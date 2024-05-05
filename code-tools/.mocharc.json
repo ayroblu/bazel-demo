@@ -1,0 +1,4 @@
+{
+  "spec": "**/*.test.mjs",
+  "require": ["./mocha-setup.mjs"]
+}

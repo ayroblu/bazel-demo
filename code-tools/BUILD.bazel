@@ -1,0 +1,19 @@
+load("//tools:mocha.bzl", "mocha_test")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
+
+ts_config(
+    name = "tsconfig",
+    src = "tsconfig.json",
+    visibility = ["//code-tools:__subpackages__"],
+)
+
+filegroup(
+    name = "setup",
+    srcs = ["mocha-setup.mjs", ".mocharc.json"],
+)
+
+mocha_test(
+    name = "test",
+    deps = ["//code-tools/src", ":setup"],
+    chdir = package_name(),
+)

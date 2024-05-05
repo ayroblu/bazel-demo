@@ -1,0 +1,27 @@
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@aspect_rules_js//js:defs.bzl", "js_test")
+
+ts_project(
+    name = "src",
+    srcs = glob(["**/*.mts"]),
+    declaration = True,
+    source_map = True,
+    transpiler = "tsc",
+    tsconfig = "//code-tools:tsconfig",
+    deps = [
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/chai-string",
+        "//:node_modules/@types/mocha",
+        "//:node_modules/@types/node",
+        "//:node_modules/chai",
+        "//:node_modules/chai-string",
+        "//:node_modules/mocha",
+        "//:node_modules/prettier",
+        "//:node_modules/tree-sitter",
+        #"//:node_modules/tree-sitter-javascript",
+        #"//:node_modules/tree-sitter-scala",
+        #"//:node_modules/tree-sitter-starlark",
+        "//:node_modules/tree-sitter-typescript",
+    ],
+    visibility = ["//code-tools:__pkg__"],
+)

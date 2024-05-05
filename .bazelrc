@@ -1,1 +1,4 @@
+# Respect skipLibCheck
+common --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
+
 build --symlink_prefix=.bazel/
