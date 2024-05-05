@@ -7,7 +7,7 @@ swift_library(
 )
 
 ios_application(
-    name = "iOSApp",
+    name = "example-app",
     bundle_id = "build.bazel.rules-apple-example",
     families = [
         "iphone",
@@ -17,4 +17,20 @@ ios_application(
     minimum_os_version = "17.0",
     visibility = ["//visibility:public"],
     deps = [":lib"],
+)
+
+# xcodeproj just to create the xcodeproj directory
+load(
+    "@rules_xcodeproj//xcodeproj:defs.bzl",
+    "top_level_target",
+    "xcodeproj",
+)
+xcodeproj(
+    name = "xcodeproj",
+    build_mode = "bazel",
+    project_name = "example-app",
+    tags = ["manual"],
+    top_level_targets = [
+        ":example-app",
+    ],
 )
