@@ -3,7 +3,8 @@ load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
 swift_library(
     name = "lib",
-    srcs = glob(["Sources/*.swift"]),
+    srcs = glob(["*.swift"]),
+    deps = ["//example-app/utils"],
 )
 
 ios_application(
