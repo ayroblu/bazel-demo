@@ -21,11 +21,12 @@ ios_application(
 )
 
 # xcodeproj just to create the xcodeproj directory
+# You need to rerun it regularly to keep XCode updated
 load(
     "@rules_xcodeproj//xcodeproj:defs.bzl",
-    "top_level_target",
     "xcodeproj",
 )
+
 xcodeproj(
     name = "xcodeproj",
     build_mode = "bazel",

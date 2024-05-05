@@ -1,0 +1,10 @@
+disabled_rules:
+  - identifier_name
+  - line_length
+  - multiple_closures_with_trailing_closure
+  - opening_brace
+  - trailing_comma
+  - closure_parameter_position
+opt_in_rules:
+  - unused_import
+force_cast: warning
