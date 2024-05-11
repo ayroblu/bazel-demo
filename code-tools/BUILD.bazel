@@ -1,5 +1,8 @@
 load("//tools:mocha.bzl", "mocha_test")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+
+npm_link_all_packages()
 
 ts_config(
     name = "tsconfig",
@@ -9,11 +12,17 @@ ts_config(
 
 filegroup(
     name = "setup",
-    srcs = ["mocha-setup.mjs", ".mocharc.json"],
+    srcs = [
+        ".mocharc.json",
+        "mocha-setup.mjs",
+    ],
 )
 
 mocha_test(
     name = "test",
-    deps = ["//code-tools/src", ":setup"],
     chdir = package_name(),
+    deps = [
+        ":setup",
+        "//code-tools/src",
+    ],
 )

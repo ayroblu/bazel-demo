@@ -1,0 +1,10 @@
+load("@rules_rust//rust:defs.bzl", "rust_binary")
+load("@rust-code-crates//:defs.bzl", "all_crate_deps")
+
+rust_binary(
+    name = "edit-files",
+    srcs = ["main.rs"],
+    deps = [
+        "//rust-code/traverse-lib",
+    ] + all_crate_deps(normal = True, package_name = "rust-code"),
+)
