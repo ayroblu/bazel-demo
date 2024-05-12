@@ -1,6 +1,6 @@
 {
   "lockFileVersion": 6,
-  "moduleFileHash": "49965ecf626297d18fe800fbc4a9dceea0baf2fa716cfa172da625f43996a8f6",
+  "moduleFileHash": "a2dafe9775c6ea35bb1bd9dddc1dc5e160c9654fda1066036b7f435b2d6e0091",
   "flags": {
     "cmdRegistries": [
       "https://bcr.bazel.build/"
@@ -123,16 +123,16 @@
             "column": 20
           },
           "imports": {
-            "npm": "npm"
+            "code-tools-npm": "code-tools-npm"
           },
           "devImports": [
-            "npm"
+            "code-tools-npm"
           ],
           "tags": [
             {
               "tagName": "npm_translate_lock",
               "attributeValues": {
-                "name": "npm",
+                "name": "code-tools-npm",
                 "npmrc": "//code-tools:.npmrc",
                 "pnpm_lock": "//code-tools:pnpm-lock.yaml",
                 "verify_node_modules_ignored": "//:.bazelignore"

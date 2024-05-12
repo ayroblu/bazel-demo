@@ -6,5 +6,8 @@ rust_binary(
     srcs = ["main.rs"],
     deps = [
         "//rust-code/traverse-lib",
-    ] + all_crate_deps(normal = True, package_name = "rust-code"),
+    ] + all_crate_deps(
+        package_name = "rust-code",
+        normal = True,
+    ),
 )
