@@ -1,0 +1,10 @@
+load("@aspect_rules_py//py:defs.bzl", "py_binary")
+
+py_binary(
+    name = "main",
+    srcs = ["main.py"],
+    main = "main.py",
+    deps = [
+        "//python_code/example_lib",
+    ],
+)

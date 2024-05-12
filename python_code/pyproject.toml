@@ -1,0 +1,14 @@
+[tool.pyright]
+typeCheckingMode = "strict"
+pythonVersion = "3.12"
+
+# Magic three lines for local project venv
+# https://github.com/microsoft/pyright/issues/30#issuecomment-1247153633
+exclude = [ ".python_code.venv" ]
+venvPath = "."
+venv = ".python_code.venv"
+# Bazel uses repo root for references
+executionEnvironments = [
+  { root = "../" }
+]
+

@@ -1,0 +1,13 @@
+package(default_visibility = ["//python_code:__subpackages__"])
+
+load("@pip//:requirements.bzl", "requirement")
+load("@aspect_rules_py//py:defs.bzl", "py_library")
+
+py_library(
+    name = "example_lib",
+    srcs = ["mylib.py"],
+    deps = [
+        requirement("tree-sitter"),
+        requirement("tree-sitter-python"),
+    ],
+)

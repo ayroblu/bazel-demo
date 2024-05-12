@@ -1,0 +1,9 @@
+# package(default_visibility = ["//python_code:__subpackages__"])
+
+load("@rules_python//python/pip_install:requirements.bzl", "compile_pip_requirements")
+
+compile_pip_requirements(
+    name = "requirements",
+    requirements_in = "requirements.in",
+    requirements_txt = "requirements.txt",
+)
