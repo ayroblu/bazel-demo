@@ -1,8 +1,8 @@
 import Parser from "tree-sitter";
 import ts from "tree-sitter-typescript";
-import { isMainScript } from "../misc-utils.mjs";
-import { traverseWithCursor } from "../traverse.mjs";
-import { getField } from "../query.mjs";
+import { isMainScript } from "../misc-utils.js";
+import { traverseWithCursor } from "../traverse.js";
+import { getField } from "../query.js";
 const { tsx } = ts;
 
 if (isMainScript(import.meta.url)) {

@@ -5,23 +5,44 @@ load("@aspect_rules_js//js:defs.bzl", "js_test")
 
 ts_project(
     name = "src",
-    srcs = glob(["**/*.mts"]),
+    srcs = glob(
+        ["**/*.ts"],
+        exclude = [
+            "**/*.test.ts",
+            "src/testtypes.d.ts",
+        ],
+    ),
     declaration = True,
     source_map = True,
     transpiler = "tsc",
     tsconfig = "//code-tools:tsconfig",
     deps = [
-        "//code-tools:node_modules/@types/chai",
-        "//code-tools:node_modules/@types/chai-string",
-        "//code-tools:node_modules/@types/mocha",
         "//code-tools:node_modules/@types/node",
-        "//code-tools:node_modules/chai",
-        "//code-tools:node_modules/chai-string",
-        "//code-tools:node_modules/mocha",
-        "//code-tools:node_modules/prettier",
+        "//code-tools:node_modules/glob",
         "//code-tools:node_modules/tree-sitter",
         "//code-tools:node_modules/tree-sitter-scala",
         "//code-tools:node_modules/tree-sitter-starlark",
+        "//code-tools:node_modules/tree-sitter-thrift",
         "//code-tools:node_modules/tree-sitter-typescript",
+    ],
+)
+
+ts_project(
+    name = "tests",
+    srcs = glob([
+        "**/*.test.ts",
+        "src/testtypes.d.ts",
+    ]),
+    declaration = True,
+    source_map = True,
+    transpiler = "tsc",
+    tsconfig = "//code-tools:tsconfig",
+    deps = [
+        ":src",
+        "//code-tools:node_modules/@types/chai",
+        "//code-tools:node_modules/@types/chai-string",
+        "//code-tools:node_modules/@types/mocha",
+        "//code-tools:node_modules/chai",
+        "//code-tools:node_modules/chai-string",
     ],
 )

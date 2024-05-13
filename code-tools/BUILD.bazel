@@ -22,7 +22,8 @@ mocha_test(
     name = "test",
     chdir = package_name(),
     deps = [
+        ":package.json",
         ":setup",
-        "//code-tools/src",
+        "//code-tools/src:tests",
     ],
 )

@@ -1,5 +1,5 @@
 import Parser from "tree-sitter";
-import type { TraverseQuery } from "./traverse.mjs";
+import type { TraverseQuery } from "./traverse";
 
 export function buildTraverseQuery<QueryItem extends TreeSitterQueryItem>(
   queryItem: QueryItem,

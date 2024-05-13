@@ -1,4 +1,4 @@
-import { unnecessaryConditionals } from "./unnecessary-conditionals.mjs";
+import { unnecessaryConditionals } from "./unnecessary-conditionals.js";
 
 type Test = {
   name: string;

@@ -1,9 +1,10 @@
 import Parser from "tree-sitter";
 import ts from "tree-sitter-typescript";
-import { traverseWithCursor, type TraverseQuery } from "../../traverse.mjs";
-import { runEdits, type CodeEdit } from "../../codemod.mjs";
-import { getField } from "../../query.mjs";
-import { pred } from "../utils.mjs";
+import { traverseWithCursor, type TraverseQuery } from "../../traverse.js";
+import { runEdits, type CodeEdit } from "../../codemod.js";
+import { getField } from "../../query.js";
+import { pred } from "../utils.js";
+import { ancestor } from "../treesitter-utils.js";
 
 const { tsx } = ts;
 
@@ -88,34 +89,32 @@ export function unnecessaryConditionals(source: string) {
     }
     if (node.type === "identifier") {
       const decNode = resolvedDec.get(node);
-      if (decNode) {
-        const isParam = ["required_parameter", "optional_parameter"].includes(
-          decNode.type,
-        );
-        if (isParam) {
-          const isNoRefs = !refsMap.get(decNode)?.length;
-          if (isNoRefs) {
-            const value = getField(decNode, "value");
-            if (value) {
-              return resolveNode(value);
-            }
-          }
-          const refNode = pred(
-            refsMap.get(decNode),
-            (n) => n?.length === 1,
-          )?.[0];
-          if (refNode) {
-            return resolveNode(refNode);
+      if (!decNode) return;
+      const isParam = ["required_parameter", "optional_parameter"].includes(
+        decNode.type,
+      );
+      const exportParent = ancestor(decNode, (t) => t === "export_statement");
+      if (exportParent) return;
+      if (isParam) {
+        const isNoRefs = !refsMap.get(decNode)?.length;
+        if (isNoRefs) {
+          const value = getField(decNode, "value");
+          if (value) {
+            return resolveNode(value);
           }
         }
-        const isConstDeclarator =
-          decNode.type === "variable_declarator" &&
-          decNode.previousSibling?.type === "const";
-        if (isConstDeclarator) {
-          const valueNode = getField(decNode, "value");
-          if (valueNode) {
-            return resolveNode(valueNode);
-          }
+        const refNode = pred(refsMap.get(decNode), (n) => n?.length === 1)?.[0];
+        if (refNode) {
+          return resolveNode(refNode);
+        }
+      }
+      const isConstDeclarator =
+        decNode.type === "variable_declarator" &&
+        decNode.previousSibling?.type === "const";
+      if (isConstDeclarator) {
+        const valueNode = getField(decNode, "value");
+        if (valueNode) {
+          return resolveNode(valueNode);
         }
       }
     }
@@ -233,26 +232,28 @@ function buildRefsMap({
     if (!name) {
       return;
     }
-    const decNode = scopes.findLast((scope) => scope.vars[name])?.vars[name]
-      .node;
-    if (decNode) {
-      goToDefMap.set(node, decNode);
-      const decParams = getField(decNode, "parameters");
-      const callParams = getField(node, "arguments");
-      if (decParams && callParams) {
-        callParams.namedChildren.forEach((callParam, i) => {
-          goToDefMap.set(callParam, decParams.namedChildren[i]);
-          const list =
-            refsMap.get(decParams.namedChildren[i]) ??
-            (() => {
-              const list: Parser.SyntaxNode[] = [];
-              refsMap.set(decParams.namedChildren[i], list);
-              return list;
-            })();
-          list.push(callParam);
-        });
-      }
-    }
+    // for f(x), find scope / def of f and store it
+    const scopeVar = scopes.findLast((scope) => scope.vars[name])?.vars[name];
+    const decNode = scopeVar?.node;
+    if (!decNode) return;
+    goToDefMap.set(node, decNode);
+    const decParams = getField(decNode, "parameters");
+    const callParams = getField(node, "arguments");
+    if (!(decParams && callParams)) return;
+
+    // const x = 1; f(x); function f(x) {}
+    // stores reference of x from f(x) to f(x);
+    callParams.namedChildren.forEach((callParam, i) => {
+      goToDefMap.set(callParam, decParams.namedChildren[i]);
+      const list =
+        refsMap.get(decParams.namedChildren[i]) ??
+        (() => {
+          const list: Parser.SyntaxNode[] = [];
+          refsMap.set(decParams.namedChildren[i], list);
+          return list;
+        })();
+      list.push(callParam);
+    });
   });
   return { refsMap };
 }

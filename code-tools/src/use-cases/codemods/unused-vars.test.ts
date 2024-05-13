@@ -1,4 +1,4 @@
-import { unusedVariables } from "./unused-vars.mjs";
+import { unusedVariables } from "./unused-vars.js";
 
 const tests = [
   {

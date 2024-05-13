@@ -1,9 +1,9 @@
 import Parser from "tree-sitter";
 import ts from "tree-sitter-typescript";
-import { traverseWithCursor, type TraverseQuery } from "../../traverse.mjs";
-import { getField } from "../../query.mjs";
-import { runEdits, type CodeEdit } from "../../codemod.mjs";
-import { pred } from "../utils.mjs";
+import { traverseWithCursor, type TraverseQuery } from "../../traverse.js";
+import { getField } from "../../query.js";
+import { runEdits, type CodeEdit } from "../../codemod.js";
+import { pred } from "../utils.js";
 
 const { tsx } = ts;
 

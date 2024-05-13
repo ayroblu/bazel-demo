@@ -1,4 +1,4 @@
-import { runCodemod } from "./codemod.mjs";
+import { runCodemod } from "./codemod.js";
 
 describe("codemod", () => {
   it("should correctly modify expression and not comment", function () {

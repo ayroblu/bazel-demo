@@ -1,8 +1,8 @@
 import Parser from "tree-sitter";
 import ts from "tree-sitter-typescript";
 import starlark from "tree-sitter-starlark";
-import { buildTraverseQuery } from "./query.mjs";
-import { traverseWithCursor } from "./traverse.mjs";
+import { buildTraverseQuery } from "./query.js";
+import { traverseWithCursor } from "./traverse.js";
 const { tsx } = ts;
 
 describe("query", () => {

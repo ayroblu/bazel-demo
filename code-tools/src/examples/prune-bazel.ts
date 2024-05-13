@@ -11,12 +11,12 @@
  */
 
 import { existsSync, readFileSync } from "node:fs";
-import { isMainScript } from "../misc-utils.mjs";
-import { shell } from "./utils/shell.mjs";
+import { isMainScript } from "../misc-utils.js";
+import { shell } from "./utils/shell.js";
 import Parser from "tree-sitter";
 import ts from "tree-sitter-starlark";
-import { buildTraverseQuery, getField } from "../query.mjs";
-import { traverseWithCursor } from "../traverse.mjs";
+import { buildTraverseQuery, getField } from "../query.js";
+import { traverseWithCursor } from "../traverse.js";
 import path from "path";
 
 const parser = new Parser();

@@ -4,8 +4,8 @@ import {
   buildTraverseQuery,
   type QueryCaptures,
   type TreeSitterQueryItem,
-} from "./query.mjs";
-import { traverseWithCursor } from "./traverse.mjs";
+} from "./query.js";
+import { traverseWithCursor } from "./traverse.js";
 const { tsx } = ts;
 
 export function runCodemod<QueryItem extends TreeSitterQueryItem>({

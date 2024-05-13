@@ -6,12 +6,12 @@
 
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { isMainScript } from "../misc-utils.mjs";
-import { shell } from "./utils/shell.mjs";
+import { isMainScript } from "../misc-utils.js";
+import { shell } from "./utils/shell.js";
 import Parser from "tree-sitter";
 import ts from "tree-sitter-typescript";
-import { buildTraverseQuery } from "../query.mjs";
-import { traverseWithCursor } from "../traverse.mjs";
+import { buildTraverseQuery } from "../query.js";
+import { traverseWithCursor } from "../traverse.js";
 const { tsx } = ts;
 
 const parser = new Parser();

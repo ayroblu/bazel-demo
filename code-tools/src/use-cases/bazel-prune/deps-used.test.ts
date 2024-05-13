@@ -1,4 +1,4 @@
-import { depsUsed } from "./deps-used.mjs";
+import { depsUsed } from "./deps-used.js";
 
 describe("depsUsed", () => {
   it("should identify dependencies used for a bazel file", () => {
