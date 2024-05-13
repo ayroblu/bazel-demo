@@ -13,10 +13,38 @@
     "mocha": "^10.4.0",
     "prettier": "^3.2.5",
     "tree-sitter": "0.20.4",
-    "tree-sitter-javascript": "0.20.4",
     "tree-sitter-scala": "^0.19.0",
     "tree-sitter-starlark": "^1.1.0",
     "tree-sitter-typescript": "^0.20.5",
     "typescript": "^5.4.3"
+  },
+  "pnpm": {
+    "packageExtensions": {
+      "tree-sitter": {
+        "dependencies": {
+          "node-gyp": "*"
+        }
+      },
+      "tree-sitter-scala": {
+        "dependencies": {
+          "node-gyp": "*"
+        }
+      },
+      "tree-sitter-starlark": {
+        "dependencies": {
+          "node-gyp": "*"
+        }
+      },
+      "tree-sitter-python": {
+        "dependencies": {
+          "node-gyp": "*"
+        }
+      },
+      "tree-sitter-typescript": {
+        "dependencies": {
+          "node-gyp": "*"
+        }
+      }
+    }
   }
 }

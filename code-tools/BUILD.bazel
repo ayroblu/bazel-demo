@@ -1,4 +1,4 @@
-load("//tools:mocha.bzl", "mocha_test")
+load("//code-tools/tools:mocha.bzl", "mocha_test")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
 load("@code-tools-npm//:defs.bzl", "npm_link_all_packages")
 

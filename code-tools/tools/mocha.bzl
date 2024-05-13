@@ -1,5 +1,4 @@
 "Wrapper around mocha_test"
-
 load("@code-tools-npm//code-tools:mocha/package_json.bzl", "bin")
 
 def mocha_test(name, deps, chdir, **kwargs):

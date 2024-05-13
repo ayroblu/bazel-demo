@@ -61,6 +61,10 @@ node.toolchain(node_version = "20.11.1")
 
 bazel_dep(name = "aspect_rules_js", version = "1.41.2")
 
+# Just so that you have access to pnpm for locking
+pnpm = use_extension("@aspect_rules_js//npm:extensions.bzl", "pnpm", dev_dependency = True)
+use_repo(pnpm, "pnpm")
+
 npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm", dev_dependency = True)
 npm.npm_translate_lock(
     name = "code-tools-npm",

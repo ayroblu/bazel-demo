@@ -20,9 +20,8 @@ ts_project(
         "//code-tools:node_modules/mocha",
         "//code-tools:node_modules/prettier",
         "//code-tools:node_modules/tree-sitter",
-        #"//code-tools:node_modules/tree-sitter-javascript",
-        #"//code-tools:node_modules/tree-sitter-scala",
-        #"//code-tools:node_modules/tree-sitter-starlark",
+        "//code-tools:node_modules/tree-sitter-scala",
+        "//code-tools:node_modules/tree-sitter-starlark",
         "//code-tools:node_modules/tree-sitter-typescript",
     ],
 )
