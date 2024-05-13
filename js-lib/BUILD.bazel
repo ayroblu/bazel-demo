@@ -1,0 +1,26 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
+load("@js-lib-npm//:defs.bzl", "npm_link_all_packages")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+
+npm_link_all_packages()
+
+ts_config(
+    name = "tsconfig",
+    src = "tsconfig.json",
+    visibility = ["//" + package_name() + ":__subpackages__"],
+)
+
+ts_project(
+    name = "js-lib",
+    srcs = glob(["*.ts"]),
+    declaration = True,
+    source_map = True,
+    transpiler = "tsc",
+    tsconfig = "//js-lib:tsconfig",
+    deps = [
+        "//js-lib:node_modules/@types/node",
+    ],
+)
+

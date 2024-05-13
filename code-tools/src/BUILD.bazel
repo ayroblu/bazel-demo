@@ -1,7 +1,6 @@
 package(default_visibility = ["//code-tools:__pkg__"])
 
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
-load("@aspect_rules_js//js:defs.bzl", "js_test")
 
 ts_project(
     name = "src",
