@@ -50,6 +50,9 @@ http_archive(
     url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.49.17/swiftformat.zip",
 )
 
+# Android
+bazel_dep(name = "rules_kotlin", version = "1.9.0")
+
 # JS
 bazel_dep(name = "rules_nodejs", version = "6.1.0")
 

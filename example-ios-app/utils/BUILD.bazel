@@ -1,4 +1,4 @@
-package(default_visibility = ["//example-app:__subpackages__"])
+package(default_visibility = ["//example-ios-app:__subpackages__"])
 
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
