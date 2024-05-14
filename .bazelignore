@@ -1,2 +1,6 @@
 code-tools/node_modules
 js-lib/node_modules
+js-site/node_modules
+js-site/apps/main/node_modules
+js-site/libs/dummy-lib/node_modules
+

@@ -1,0 +1,31 @@
+load("@aspect_rules_js//npm:defs.bzl", "npm_package")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@js-site-npm//:defs.bzl", "npm_link_all_packages")
+
+npm_link_all_packages(name = "node_modules")
+
+ts_config(
+    name = "tsconfig",
+    src = "tsconfig.json",
+    visibility = ["//js-site:__subpackages__"],
+)
+ts_project(
+    name = "dummy-lib-lib",
+    srcs = glob(["*.ts"]),
+    declaration = True,
+    source_map = True,
+    transpiler = "tsc",
+    tsconfig = ":tsconfig",
+    deps = [
+        ":node_modules/@types/node",
+    ],
+)
+npm_package(
+    name = "dummy-lib",
+    srcs = [
+        "package.json",
+        ":dummy-lib-lib",
+    ],
+    visibility = ["//visibility:public"],
+)

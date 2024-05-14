@@ -1,0 +1,24 @@
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@js-site-npm//:defs.bzl", "npm_link_all_packages")
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
+
+npm_link_all_packages()
+
+ts_project(
+    name = "main",
+    srcs = glob(["*.ts"]),
+    declaration = True,
+    source_map = True,
+    transpiler = "tsc",
+    tsconfig = "//js-site:tsconfig",
+    deps = [
+        ":node_modules/@types/node",
+        ":node_modules/@bazel-demo/dummy-lib",
+    ],
+)
+js_binary(
+    name = "bin",
+    data = [":main", ":package.json"],
+    entry_point = "index.js",
+)
+

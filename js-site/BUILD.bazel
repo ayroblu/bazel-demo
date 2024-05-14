@@ -1,0 +1,11 @@
+load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
+load("@js-site-npm//:defs.bzl", "npm_link_all_packages")
+
+npm_link_all_packages()
+
+ts_config(
+    name = "tsconfig",
+    src = "tsconfig.json",
+    visibility = ["//" + package_name() + ":__subpackages__"],
+)
+

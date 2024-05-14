@@ -3,6 +3,7 @@ package(default_visibility = ["//visibility:public"])
 load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
 load("@js-lib-npm//:defs.bzl", "npm_link_all_packages")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 
 npm_link_all_packages()
 
@@ -24,3 +25,11 @@ ts_project(
     ],
 )
 
+
+# make this library available via node_modules
+npm_package(
+    name = "js-lib-npm",
+    srcs = glob(["*.ts"]),
+    # This is a perf improvement; the default will be flipped to False in rules_js 2.0
+    include_runfiles = False,
+)

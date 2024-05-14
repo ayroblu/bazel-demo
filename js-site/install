@@ -1,0 +1,3 @@
+#!/bin/zsh
+# We probably just want to install and update the lock file at the same time cause we want to have the dependencies locally
+bazel run -- @pnpm//:pnpm --dir $PWD install

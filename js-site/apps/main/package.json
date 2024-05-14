@@ -1,0 +1,14 @@
+{
+  "name": "@bazel-demo/js-site",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/node": "^20.12.2",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.3"
+  },
+  "dependencies": {
+    "@bazel-demo/dummy-lib": "workspace:*"
+  }
+}

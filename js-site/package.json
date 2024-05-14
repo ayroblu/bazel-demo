@@ -1,0 +1,6 @@
+{
+  "name": "@bazel-demo/root",
+  "type": "module",
+  "private": true,
+  "dependencies": {}
+}
