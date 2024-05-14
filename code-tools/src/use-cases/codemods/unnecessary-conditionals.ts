@@ -81,11 +81,60 @@ export function unnecessaryConditionals(source: string) {
   // const a = true; if (a) {}
   // function b(a) {if (a) {}}b(true);
   // function b(a) {if (a) {}}const c = true;b(c); // various levels to this nesting
-  function resolveNode(node: Parser.SyntaxNode): boolean | void {
-    if (node.type === "true") {
-      return true;
-    } else if (node.type === "false") {
-      return false;
+  function resolveNode(
+    node: Parser.SyntaxNode,
+  ): boolean | Parser.SyntaxNode | void {
+    switch (node.type) {
+      case "true":
+        return true;
+      case "false":
+        return false;
+      case "parenthesized_expression":
+        return resolveNode(node.namedChildren[0]);
+      case "binary_expression":
+        return resolveBinaryExpression(node);
+      case "unary_expression":
+        const argument = getField(node, "argument");
+        if (!argument) return;
+        const resolved = resolveNode(argument);
+        if (typeof resolved !== "boolean") return;
+        return !resolved;
+      case "identifier": {
+        const decNode = resolvedDec.get(node);
+        if (!decNode) return;
+        const isParam = ["required_parameter", "optional_parameter"].includes(
+          decNode.type,
+        );
+        const exportParent = ancestor(decNode, (t) => t === "export_statement");
+        if (exportParent) return;
+        if (isParam) {
+          const isNoRefs = !refsMap.get(decNode)?.length;
+          if (isNoRefs) {
+            const value = getField(decNode, "value");
+            if (value) {
+              return resolveNode(value);
+            }
+          }
+          const refNode = pred(
+            refsMap.get(decNode),
+            (n) => n?.length === 1,
+          )?.[0];
+          if (refNode) {
+            return resolveNode(refNode);
+          }
+        }
+        const isConstDeclarator =
+          decNode.type === "variable_declarator" &&
+          decNode.previousSibling?.type === "const";
+        if (isConstDeclarator) {
+          const valueNode = getField(decNode, "value");
+          if (valueNode) {
+            return resolveNode(valueNode);
+          }
+        }
+        break;
+      }
+      default:
     }
     if (node.type === "identifier") {
       const decNode = resolvedDec.get(node);
@@ -120,6 +169,59 @@ export function unnecessaryConditionals(source: string) {
     }
   }
 
+  function resolveBinaryExpression(
+    node: Parser.SyntaxNode,
+  ): boolean | Parser.SyntaxNode | void {
+    const left = getField(node, "left");
+    const right = getField(node, "right");
+    if (!left || !right) return;
+    const operatorNode = node.children.find((n) => n !== left && n !== right);
+    if (!operatorNode) return;
+    const resolvedLeft = resolveNode(left) ?? left;
+    const resolvedRight = resolveNode(right) ?? right;
+    switch (operatorNode.type) {
+      case "&&": {
+        if (resolvedLeft === false || resolvedRight === false) {
+          return false;
+        } else if (resolvedLeft === true && resolvedRight === true) {
+          return true;
+        } else if (resolvedLeft === true) {
+          return resolvedRight;
+        } else if (resolvedRight === true) {
+          return resolvedLeft;
+        }
+        break;
+      }
+      case "||": {
+        if (resolvedLeft === false && resolvedRight === false) {
+          return false;
+        } else if (resolvedLeft === true) {
+          return true;
+        } else if (resolvedLeft === false) {
+          return resolvedRight;
+        }
+        break;
+      }
+      case "===": {
+        if (
+          typeof resolvedLeft !== "boolean" ||
+          typeof resolvedRight !== "boolean"
+        )
+          return;
+        return resolvedLeft === resolvedRight;
+      }
+      case "!==": {
+        if (
+          typeof resolvedLeft !== "boolean" ||
+          typeof resolvedRight !== "boolean"
+        )
+          return;
+        return resolvedLeft !== resolvedRight;
+      }
+      default:
+    }
+  }
+
   const edits: CodeEdit[] = conditions.flatMap(({ ifNode }) => {
     const condition = getField(ifNode, "condition")?.namedChildren[0];
     const conditionResult = condition && resolveNode(condition);
@@ -130,6 +232,14 @@ export function unnecessaryConditionals(source: string) {
         scopesByStatement,
       );
       return result ? [result] : [];
+    } else if (conditionResult) {
+      return [
+        {
+          startIndex: condition!.startIndex,
+          endIndex: condition!.endIndex,
+          newText: conditionResult.text,
+        },
+      ];
     }
     return [];
   });

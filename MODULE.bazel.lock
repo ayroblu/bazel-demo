@@ -3806,7 +3806,7 @@
     },
     "@@bazel_tools//tools/test:extensions.bzl%remote_coverage_tools_extension": {
       "general": {
-        "bzlTransitiveDigest": "l5mcjH2gWmbmIycx97bzI2stD0Q0M5gpDc0aLOHKIm8=",
+        "bzlTransitiveDigest": "FSolryCvroSOuNAMx3NJUMdq27uNx1BsupIBgaUJ68I=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},

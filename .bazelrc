@@ -9,6 +9,9 @@ build:profile --generate_json_trace_profile --profile profile.gz
 
 run:quiet --ui_event_filters=-info,-debug,-warning,-stderr,-stdout  --noshow_progress
 
+# test_output=all to always show test output
+test --test_output=errors
+
 # Allow the Bazel server to check directory sources for changes. Ensures that the Bazel server
 # notices when a directory changes, if you have a directory listed in the srcs of some target.
 # Recommended when using
