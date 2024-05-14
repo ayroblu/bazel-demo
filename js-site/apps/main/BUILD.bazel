@@ -5,7 +5,7 @@ load("@aspect_rules_js//js:defs.bzl", "js_binary")
 npm_link_all_packages()
 
 ts_project(
-    name = "main",
+    name = "lib",
     srcs = glob(["*.ts"]),
     declaration = True,
     source_map = True,
@@ -17,8 +17,8 @@ ts_project(
     ],
 )
 js_binary(
-    name = "bin",
-    data = [":main", ":package.json"],
+    name = "main",
+    data = [":lib", ":package.json"],
     entry_point = "index.js",
 )
 
