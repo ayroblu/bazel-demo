@@ -12,13 +12,16 @@ ts_project(
     transpiler = "tsc",
     tsconfig = "//js-site:tsconfig",
     deps = [
-        ":node_modules/@types/node",
         ":node_modules/@bazel-demo/dummy-lib",
+        ":node_modules/@types/node",
     ],
 )
+
 js_binary(
     name = "main",
-    data = [":lib", ":package.json"],
+    data = [
+        ":lib",
+        ":package.json",
+    ],
     entry_point = "index.js",
 )
-

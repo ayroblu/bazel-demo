@@ -10,6 +10,7 @@ ts_config(
     src = "tsconfig.json",
     visibility = ["//js-site:__subpackages__"],
 )
+
 ts_project(
     name = "dummy-lib-lib",
     srcs = glob(["*.ts"]),
@@ -21,6 +22,7 @@ ts_project(
         ":node_modules/@types/node",
     ],
 )
+
 npm_package(
     name = "dummy-lib",
     srcs = [

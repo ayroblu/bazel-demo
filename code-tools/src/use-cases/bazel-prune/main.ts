@@ -9,6 +9,8 @@ import { basename, dirname, join, resolve } from "node:path";
 import { glob } from "glob";
 import { parseScalaImportsExports } from "./scala-parse.js";
 import { parseThriftImportsExports } from "./thrift-parse.js";
+import { parseJavaImportsExports } from "./java-parse.js";
+import { createCacheManager } from "./cache.js";
 
 // Only trim scala_libs
 const { stdout } = await shell("git ls-files");
@@ -47,52 +49,83 @@ const bazelGraph = bazelContents.reduce<Record<string, Contents>>(
 function splitTarget(target: string): [string, string] {
   return target.split(":") as [string, string];
 }
-const item = bazelGraph["easypromote/server"];
-const parsed = item.getParsed();
-console.log("parsed", parsed["server"].deps);
-for (const dep of parsed["server"].deps) {
-  const [baseTarget, targetMaybe] = splitTarget(dep);
-  const target = targetMaybe ?? basename(baseTarget);
+const cache = createCacheManager<ImportExports | undefined>();
+// Read a file, for all scala libs in the file do:
+// read all imports and deps
+const relevantFiles = bazelContents.filter(({ baseTarget }) =>
+  baseTarget.startsWith("finatra"),
+);
+for (const { baseTarget } of relevantFiles) {
   const item = bazelGraph[baseTarget];
   if (!item) {
-    console.log("missing!", item);
+    console.log("missing!", baseTarget);
     continue;
   }
-  const details = item.getParsed()[target];
-  const { sources, deps } = details;
-  const allImports = new Set<string>();
-  if (sources) {
-    for (const source of sources) {
-      const files = await glob(source, { cwd: resolve(baseTarget) });
-      for (const file of files) {
-        const contents = readFileSync(join(baseTarget, file), "utf-8");
-        const { imports } = parseScalaImportsExports(contents);
-        for (const imp of imports) {
-          allImports.add(imp);
+  const entries = Object.entries(item.getParsed());
+  for (const [target, details] of entries) {
+    const { sources, deps, type, strictDeps } = details;
+    if (type !== "scala-lib") continue;
+
+    const allImports = new Set<string>();
+    if (sources) {
+      for (const source of sources) {
+        const files = await glob(source, { cwd: resolve(baseTarget) });
+        for (const file of files) {
+          const filename = join(baseTarget, file);
+          const result = cache.get(filename, () => {
+            const contents = readFileSync(filename, "utf-8");
+            return parseScalaImportsExports(contents);
+          });
+          if (!result) continue;
+          const { imports } = result;
+          for (const imp of imports) {
+            allImports.add(imp);
+          }
         }
       }
-      console.log("files", files);
     }
-  }
-  const unaccountedImports = new Set([...allImports]);
-  const seen = new Set<string>();
-  for (const dep of deps) {
-    // console.log("dep", dep);
-    const result = await getExports(dep, { seen });
-    if (!result) continue;
-    const { allExports } = result;
-    if (!allExports.some((exp) => allImports.has(exp))) {
-      console.log("unused", dep);
-    } else {
-      // console.log("used", dep);
-      for (const exp of allExports) {
-        unaccountedImports.delete(exp);
+    const unaccountedImports = new Set([...allImports]);
+    const seen = new Set<string>();
+    const unused: string[] = [];
+    const transitives: (() => void)[] = [];
+    const allExportsAllDeps: string[][] = [];
+    for (const dep of deps) {
+      // console.log("dep", dep);
+      const result = await getExports(dep, { seen });
+      if (!result) continue;
+      const { allExports, directExports } = result;
+      allExportsAllDeps.push(allExports);
+      if (!directExports.some((exp) => allImports.has(exp))) {
+        // strictDeps doesnt work yet
+        if (strictDeps && false) {
+          unused.push(dep);
+        } else {
+          transitives.push(() => {
+            if (!allExports.some((exp) => allImports.has(exp))) {
+              unused.push(dep);
+            }
+          });
+        }
       }
     }
+    for (const transitive of transitives) {
+      transitive();
+    }
+    const allExports = allExportsAllDeps.flat();
+    for (const exp of allExports) {
+      unaccountedImports.delete(exp);
+    }
+    if (unused.length) {
+      console.log("unused", baseTarget, target, unused);
+      console.log("  unaccounted:", [...unaccountedImports]);
+    }
   }
-  console.log("unaccounted imports", [...unaccountedImports]);
 }
 
+type ImportExports = {
+  exports: string[];
+  imports: string[];
+};
 type ExportResult = {
   directExports: string[];
   transitiveExports: string[];
@@ -106,7 +139,7 @@ async function getExports(
     return;
   }
   seen.add(dep);
-  const isFound = dep.includes("example/path");
+  const isFound = dep.includes("example/main");
   if (isFound) {
     console.log(" ".repeat(depth * 2), "found!", dep);
   }
@@ -114,7 +147,7 @@ async function getExports(
   const target = targetMaybe ?? basename(baseTarget);
   const item = bazelGraph[baseTarget];
   if (!item) {
-    console.log(" ".repeat(depth * 2), "not found!", dep);
+    // console.log(" ".repeat(depth * 2), "not found!", dep);
     return;
   }
   const details = item.getParsed()[target];
@@ -157,13 +190,21 @@ async function getExports(
   for (const source of sources) {
     const files = await glob(source, { cwd: resolve(baseTarget) });
     for (const file of files) {
-      if (file.endsWith(".scala")) {
-        const contents = readFileSync(join(baseTarget, file), "utf-8");
-        const { exports } = parseScalaImportsExports(contents);
-        directExports.push(...exports);
-      } else if (file.endsWith(".thrift")) {
-        const contents = readFileSync(join(baseTarget, file), "utf-8");
-        const { exports } = parseThriftImportsExports(contents);
+      const filename = join(baseTarget, file);
+      const result = cache.get(filename, () => {
+        if (file.endsWith(".scala")) {
+          const contents = readFileSync(filename, "utf-8");
+          return parseScalaImportsExports(contents);
+        } else if (file.endsWith(".thrift")) {
+          const contents = readFileSync(filename, "utf-8");
+          return parseThriftImportsExports(contents);
+        } else if (file.endsWith(".java")) {
+          const contents = readFileSync(filename, "utf-8");
+          return parseJavaImportsExports(contents);
+        }
+      });
+      if (result) {
+        const { exports } = result;
         directExports.push(...exports);
       }
     }

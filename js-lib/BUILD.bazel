@@ -25,7 +25,6 @@ ts_project(
     ],
 )
 
-
 # make this library available via node_modules
 npm_package(
     name = "js-lib-npm",

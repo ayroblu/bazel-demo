@@ -15,7 +15,7 @@ if (isMainScript(import.meta.url)) {
   const { stdout: gitFilesOutput } = await shell("git ls-files $DIRECTORY", {
     env: { DIRECTORY: "." },
   });
-  const extensions = [".js"];
+  const extensions = [".js", ".flow"];
   const filePaths = gitFilesOutput
     .split("\n")
     .filter(
@@ -27,46 +27,68 @@ if (isMainScript(import.meta.url)) {
 
   const maps = getMaps();
   const entries = Object.entries(maps);
+  const map = new Map(entries);
   for (const filePath of filePaths) {
     const source = readFileSync(filePath, { encoding: "utf8" });
     let result = source;
-    for (const [before, after] of entries) {
-      if (!source.includes(before)) {
-        continue;
-      }
-      const query = {
-        type: ["jsx_self_closing_element", "jsx_opening_element"],
-        items: [
-          {
-            field: "name",
-            text: /^(View|Image|Button|Icon\w+)$/,
-          },
-          {
-            type: "jsx_attribute",
-            items: [
-              {
-                type: "property_identifier",
-                capture: "identifier",
-                text: before,
-              },
-            ],
-          },
-        ],
-      } as const;
+    const query = {
+      type: [
+        "string_fragment",
+        "identifier",
+        "property_identifier",
+        "type_identifier",
+        "shorthand_property_identifier",
+        "shorthand_property_identifier_pattern",
+      ],
+      capture: "str",
+    } as const;
 
-      const tree = parser.parse(result);
-      const edits: CodeEdit[] = [];
-      const traverseQuery = buildTraverseQuery(query, (captures) => {
+    const edits: CodeEdit[] = [];
+    const traverseQuery = buildTraverseQuery(query, (captures) => {
+      let mapped = map.get(captures.str.text);
+      if (mapped) {
+        let startOffset = 0;
+        switch (captures.str.type) {
+          case "identifier":
+            mapped = mapped.replace(/-(\w)/g, (_, char) => char.toUpperCase());
+            break;
+          case "shorthand_property_identifier":
+          case "shorthand_property_identifier_pattern": {
+            const camelCase = mapped.replace(/-(\w)/g, (_, char) =>
+              char.toUpperCase(),
+            );
+            mapped = `'${mapped}': ${camelCase}`;
+            break;
+          }
+          case "type_identifier":
+            mapped = `'${mapped}'`;
+            break;
+          case "property_identifier":
+            const parentType = captures.str.parent?.type;
+            if (!parentType) break;
+            switch (parentType) {
+              case "member_expression":
+                mapped = `['${mapped}']`;
+                startOffset = -1;
+                break;
+              case "pair":
+              case "property_signature":
+                mapped = `'${mapped}'`;
+                break;
+            }
+            break;
+        }
         edits.push({
-          startIndex: captures.identifier.startIndex,
-          endIndex: captures.identifier.endIndex,
-          newText: after,
+          startIndex: captures.str.startIndex + startOffset,
+          endIndex: captures.str.endIndex,
+          newText: mapped,
         });
-        return { skip: true };
-      });
-      traverseWithCursor(tree.walk(), traverseQuery);
-      result = runEdits(result, edits);
-    }
+      }
+      return { skip: true };
+    });
+    const tree = parser.parse(result);
+    traverseWithCursor(tree.walk(), traverseQuery);
+    result = runEdits(result, edits);
     if (source !== result) {
       writeFileSync(filePath, result);
     }

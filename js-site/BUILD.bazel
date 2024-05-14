@@ -8,4 +8,3 @@ ts_config(
     src = "tsconfig.json",
     visibility = ["//" + package_name() + ":__subpackages__"],
 )
-

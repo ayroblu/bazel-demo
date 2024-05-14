@@ -45,7 +45,7 @@ function getScalaTraverseQuery({ baseTarget }: { baseTarget: string }) {
     items: [
       {
         field: "function",
-        text: /(scala_library|target)/,
+        text: /(java_library|scala_library|target)/,
         capture: "func",
       },
       {
@@ -61,6 +61,20 @@ function getScalaTraverseQuery({ baseTarget }: { baseTarget: string }) {
               {
                 field: "value",
                 capture: "sources",
+              },
+            ],
+            optional: true,
+          },
+          {
+            type: "keyword_argument",
+            items: [
+              {
+                field: "name",
+                text: "strict_deps",
+              },
+              {
+                field: "value",
+                capture: "strictDeps",
               },
             ],
             optional: true,
@@ -98,6 +112,7 @@ function getScalaTraverseQuery({ baseTarget }: { baseTarget: string }) {
   } as const;
   const results: ParsedBazel[] = [];
   const traverseQuery = buildTraverseQuery(query, (captures) => {
+    const strictDeps = captures.strictDeps && captures.strictDeps.text === 'True';
     const sources = captures.sources
       ? extractStrings(captures.sources)
       : captures.func.text === "scala_library"
@@ -110,6 +125,13 @@ function getScalaTraverseQuery({ baseTarget }: { baseTarget: string }) {
       target: captures.target?.text.slice(1, -1) ?? basename(baseTarget),
       sources,
       deps,
+      type:
+        captures.func.text === "scala_library"
+          ? "scala-lib"
+          : captures.func.text === "java_library"
+            ? "java-lib"
+            : "alias",
+      strictDeps,
     });
     return { skip: true };
   });
@@ -218,6 +240,7 @@ function getThriftTraverseQuery({ baseTarget }: { baseTarget: string }) {
         target: `${baseTargetName}-${lang}`,
         sources,
         deps,
+        type: "thrift",
       });
     }
     return { skip: true };
@@ -275,6 +298,7 @@ function getAliasTraverseQuery({ baseTarget }: { baseTarget: string }) {
       sources: undefined,
       target,
       deps,
+      type: "alias",
     });
     return { skip: true };
   });
@@ -285,4 +309,6 @@ export type ParsedBazel = {
   target: string;
   sources: string[] | void;
   deps: string[];
+  type: "scala-lib" | "java-lib" | "thrift" | "alias";
+  strictDeps?: boolean;
 };
