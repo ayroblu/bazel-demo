@@ -27,12 +27,16 @@ scala_library(
       example: {
         sources: ["*.scala", "other/thing.scala"],
         deps: ["path/to/dep", "path/to/dep2", "path/to/example:special"],
+        strictDeps: undefined,
         target: "example",
+        type: "scala-lib",
       },
       special: {
         sources: ["other/thing.scala"],
         deps: ["path/to/dep"],
+        strictDeps: undefined,
         target: "special",
+        type: "scala-lib",
       },
     });
   });
@@ -52,7 +56,9 @@ scala_library(
       example: {
         sources: ["**/*.scala"],
         deps: ["path/to/dep"],
+        strictDeps: undefined,
         target: "example",
+        type: "scala-lib",
       },
     });
   });
@@ -79,11 +85,13 @@ create_thrift_libraries(
         sources: ["com/example/external/*.thrift"],
         deps: ["example/thrift/src/main/thrift"],
         target: "external-java",
+        type: "thrift",
       },
       "external-scala": {
         sources: ["com/example/external/*.thrift"],
         deps: ["example/thrift/src/main/thrift"],
         target: "external-scala",
+        type: "thrift",
       },
     });
   });
@@ -102,6 +110,7 @@ alias(
         sources: undefined,
         deps: ["example/example-core/src/main/scala/com/example"],
         target: "example-core",
+        type: "alias",
       },
     });
   });

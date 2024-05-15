@@ -1,9 +1,11 @@
 import Parser from "tree-sitter";
 import ts from "tree-sitter-typescript";
-import { traverseWithCursor, type TraverseQuery } from "../../traverse.js";
-import { getField } from "../../query.js";
+import { traverseWithCursor } from "../../traverse.js";
 import { runEdits, type CodeEdit } from "../../codemod.js";
-import { pred } from "../utils.js";
+import { sortBy } from "../utils.js";
+import { ancestor } from "../treesitter-utils.js";
+import { getResolvedIdentifiers } from "./ast-utils/resolve-identifiers.js";
+import { isExported } from "./ast-utils/ast-utils.js";
 
 const { tsx } = ts;
 
@@ -13,106 +15,50 @@ export function unusedVariables(source: string) {
 
   const tree = parser.parse(source);
 
-  const nodesToRemove: Parser.SyntaxNode[] = [];
-  const scopedVariables: {
-    [key: string]: { node: Parser.SyntaxNode; counter: number };
-  }[] = [{}];
-
-  const skipDecNodes = new Set();
-  function handleLeavingScope() {
-    const scope = scopedVariables.pop();
-    if (scope) {
-      // consider: `const a = 1, b = 1;`
-      // if parent has only one child, then removable
-      // if parent two children, collect counter of removals
-      const counterMap = new Map<
-        Parser.SyntaxNode,
-        {
-          counter: number;
-          parentNode: Parser.SyntaxNode;
-          childNodes: Set<Parser.SyntaxNode>;
-        }
-      >();
-      Object.entries(scope).forEach(([_, value]) => {
-        if (value.counter === 0) {
-          const parent = value.node.parent;
-          if (parent) {
-            const c = counterMap.get(parent);
-            const childNodes = [value.node];
-            const nextComma = pred(
-              value.node.nextSibling,
-              (v) => v?.type === ",",
-            );
-            const prevComma = pred(
-              value.node.previousSibling,
-              (v) => v?.type === ",",
-            );
-            if (prevComma) {
-              childNodes.unshift(prevComma);
-            } else if (nextComma) {
-              childNodes.push(nextComma);
-            }
-            if (c) {
-              c.counter += 1;
-              childNodes.forEach((n) => c.childNodes.add(n));
-            } else {
-              counterMap.set(parent, {
-                parentNode: parent,
-                childNodes: new Set(childNodes),
-                counter: 1,
-              });
+  const { declarationsQuery, identifierMap } = getResolvedIdentifiers();
+  traverseWithCursor(tree.walk(), declarationsQuery);
+  const reverseMap = new Map<Parser.SyntaxNode, number>();
+  for (const value of identifierMap.values()) {
+    const declarator = ancestor(value, (n) => n === "variable_declarator");
+    if (!declarator) continue;
+    if (isExported(declarator)) continue;
+    const counter = reverseMap.get(declarator) ?? 0;
+    reverseMap.set(declarator, counter + 1);
+  }
+  const nodesToRemoveSet = new Set<Parser.SyntaxNode>();
+  const nodesToCheckSet = new Set<Parser.SyntaxNode>();
+  for (const [key, counter] of reverseMap) {
+    if (counter === 1) {
+      nodesToRemoveSet.add(key);
+      if (key.parent) {
+        nodesToCheckSet.add(key.parent);
+      }
+    }
+  }
+  for (const node of nodesToCheckSet) {
+    if (node.namedChildren.every((c) => nodesToRemoveSet.has(c))) {
+      for (const n of node.namedChildren) {
+        nodesToRemoveSet.delete(n);
+      }
+      nodesToRemoveSet.add(node);
+    } else {
+      for (const n of node.namedChildren) {
+        if (nodesToRemoveSet.has(n)) {
+          const prev = n.previousSibling;
+          if (prev && prev.type === ",") {
+            nodesToRemoveSet.add(prev);
+          } else {
+            const next = n.nextSibling;
+            if (next && next.type === ",") {
+              nodesToRemoveSet.add(next);
             }
           }
-        }
-      });
-      for (const { counter, parentNode, childNodes } of counterMap.values()) {
-        if (parentNode.namedChildren.length === counter) {
-          if (skipDecNodes.has(parentNode)) return;
-          nodesToRemove.push(parentNode);
-        } else {
-          nodesToRemove.push(...childNodes);
         }
       }
     }
   }
-  const traverseQuery: TraverseQuery = {
-    for_statement: (node) => {
-      const init = getField(node, "initializer");
-      if (init) {
-        skipDecNodes.add(init);
-      }
-    },
-    variable_declarator: (node) => {
-      const lastScope = scopedVariables.at(-1)!;
-      const name = getField(node, "name")?.text;
-      if (name) {
-        if (lastScope[name]) {
-          throw new Error("redeclaration of identifier: " + name);
-        }
-        lastScope[name] = {
-          node,
-          counter: 0,
-        };
-      }
-      return { skip: true };
-    },
-    identifier: (node) => {
-      const identifier = node.text;
-      const scope = scopedVariables.findLast((scope) => scope[identifier]);
-      if (scope) {
-        scope[identifier].counter += 1;
-      }
-    },
-    statement_block: () => {
-      // Assume lexical scope is encapsulated by statement_block
-      scopedVariables.push({});
-      return () => {
-        handleLeavingScope();
-      };
-    },
-  };
-  traverseWithCursor(tree.walk(), traverseQuery);
-  handleLeavingScope();
+  const nodesToRemove = [...nodesToRemoveSet];
+  nodesToRemove.sort(sortBy((a) => a.startIndex));
 
   const edits: CodeEdit[] = nodesToRemove.map((node) => ({
     startIndex: node.startIndex,

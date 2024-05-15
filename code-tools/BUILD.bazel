@@ -1,13 +1,17 @@
+package(default_visibility = ["//code-tools:__subpackages__"])
+
 load("//code-tools/tools:mocha.bzl", "mocha_test")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
 load("@code-tools-npm//:defs.bzl", "npm_link_all_packages")
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
+load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 
 npm_link_all_packages()
 
 ts_config(
     name = "tsconfig",
     src = "tsconfig.json",
-    visibility = ["//code-tools:__subpackages__"],
 )
 
 filegroup(
@@ -18,12 +22,71 @@ filegroup(
     ],
 )
 
+ts_project(
+    name = "code-tools",
+    declaration = True,
+    deps = [
+        ":node_modules/@types/node",
+        ":node_modules/glob",
+        ":node_modules/tree-sitter",
+        ":node_modules/tree-sitter-java",
+        ":node_modules/tree-sitter-scala",
+        ":node_modules/tree-sitter-starlark",
+        ":node_modules/tree-sitter-thrift",
+        ":node_modules/tree-sitter-typescript",
+    ],
+    source_map = True,
+    srcs = glob(
+        ["src/**/*.ts"],
+        exclude = [
+            "src/**/*.test.ts",
+            "src/testtypes.d.ts",
+        ],
+    ),
+    transpiler = "tsc",
+    tsconfig = ":tsconfig",
+)
+
+ts_project(
+    name = "tests",
+    declaration = True,
+    deps = [
+        ":code-tools",
+        ":node_modules/@types/chai",
+        ":node_modules/@types/chai-string",
+        ":node_modules/@types/mocha",
+        ":node_modules/chai",
+        ":node_modules/chai-string",
+    ],
+    source_map = True,
+    srcs = glob([
+        "**/*.test.ts",
+        "src/testtypes.d.ts",
+    ]),
+    transpiler = "tsc",
+    tsconfig = "//code-tools:tsconfig",
+)
+
 mocha_test(
     name = "test",
     chdir = package_name(),
     deps = [
         ":package.json",
         ":setup",
-        "//code-tools/src:tests",
+        ":tests",
     ],
+)
+
+js_binary(
+    name = "remove-unused-bin",
+    entry_point = "src/examples/remove-unused.js",
+    data = [
+        ":code-tools",
+        ":package.json",
+    ],
+)
+
+js_run_binary(
+    name = "remove-unused",
+    tool = ":remove-unused-bin",
 )

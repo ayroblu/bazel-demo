@@ -1,4 +1,4 @@
 {
-  "spec": "**/*.test.js",
+  "spec": "src/**/*.test.js",
   "require": ["./mocha-setup.mjs"]
 }

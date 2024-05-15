@@ -51,6 +51,17 @@ console.log(a);
 `,
   },
   {
+    name: "Should remove ternary if constant is truthy",
+    input: `
+const a = true;
+const b = a ? 1 : 2;
+`,
+    expected: `
+const a = true;
+const b = 1;
+`,
+  },
+  {
     name: "Should remove if statement but keep block if shadows variable",
     input: `
 const a = true;
@@ -203,96 +214,6 @@ export function run(a: boolean = true) {
     console.log(true);
   }
 }
-`,
-  },
-  {
-    name: "should convert boolean true expressions to result",
-    input: `
-const a = true;
-if (a && b) {
-}
-`,
-    expected: `
-const a = true;
-if (b) {
-}
-`,
-  },
-  {
-    name: "should convert boolean false expressions to no condition",
-    input: `
-const a = false;
-if (a && b) {
-  console.log('done');
-}
-`,
-    expected: `
-const a = false;
-`,
-  },
-  {
-    name: "should handle brackets around boolean expressions",
-    input: `
-const b = true;
-if (a && (d || c)) {
-  console.log('done');
-}
-if (a && (b || c)) {
-  console.log('done');
-}
-if (a && b || c) {
-  console.log('done');
-}
-`,
-    expected: `
-const b = true;
-if (a && (d || c)) {
-  console.log('done');
-}
-if (a) {
-  console.log('done');
-}
-if (a && b || c) {
-  console.log('done');
-}
-`,
-    only: true,
-  },
-  {
-    name: "should check ===",
-    input: `
-const a = true;
-if (a === true) {
-  console.log('done');
-}
-`,
-    expected: `
-const a = true;
-console.log('done');
-`,
-  },
-  {
-    name: "should check !==",
-    input: `
-const a = true;
-if (a !== true) {
-  console.log('done');
-}
-`,
-    expected: `
-const a = true;
-`,
-  },
-  {
-    name: "should check !",
-    input: `
-const a = true;
-if (!a) {
-  console.log('done');
-}
-`,
-    expected: `
-const a = true;
 `,
   },
 ];

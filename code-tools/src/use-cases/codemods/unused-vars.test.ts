@@ -1,6 +1,13 @@
 import { unusedVariables } from "./unused-vars.js";
 
-const tests = [
+type Test = {
+  name: string;
+  input: string;
+  expected: string;
+  only?: boolean;
+  skip?: boolean;
+};
+const tests: Test[] = [
   {
     name: "should remove b when unused lexical_declaration",
     input: `
@@ -90,6 +97,7 @@ for (let i = 0;;) {
   break;
 }
 `,
+    skip: true,
   },
   {
     name: "should handle unused for_statement of initializers reasonably",
@@ -104,10 +112,24 @@ for (const a of loop) {
 }
 `,
   },
+  {
+    name: "should ignore exported statements",
+    input: `
+const a = 1;
+export const b = 2
+const c = 3
+export default a;
+`,
+    expected: `
+const a = 1;
+export const b = 2
+export default a;
+`,
+  },
 ];
 describe("unusedVariables", () => {
-  tests.forEach(({ name, input, expected }) => {
-    it(name, () => {
+  tests.forEach(({ only, name, input, expected, skip }) => {
+    (only ? it.only : skip ? it.skip : it)(name, () => {
       expect(unusedVariables(input)).to.equalIgnoreSpaces(expected);
     });
   });

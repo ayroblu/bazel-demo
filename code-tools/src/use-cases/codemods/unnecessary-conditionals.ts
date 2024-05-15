@@ -4,7 +4,8 @@ import { traverseWithCursor, type TraverseQuery } from "../../traverse.js";
 import { runEdits, type CodeEdit } from "../../codemod.js";
 import { getField } from "../../query.js";
 import { pred } from "../utils.js";
-import { ancestor } from "../treesitter-utils.js";
+import { getTraverseDeclarations } from "./ast-utils/scoped-vars.js";
+import { isExported } from "./ast-utils/ast-utils.js";
 
 const { tsx } = ts;
 
@@ -41,7 +42,6 @@ export function unnecessaryConditionals(source: string) {
     ifNode: Parser.SyntaxNode;
     scopes: Scope[];
   }[] = [];
-  // second pass, evaluate all if statements based on scopes
   const traverseQuery: TraverseQuery = {
     if_statement: (node) => {
       conditions.push({ ifNode: node, scopes: scopes.concat() });
@@ -91,22 +91,13 @@ export function unnecessaryConditionals(source: string) {
         return false;
       case "parenthesized_expression":
         return resolveNode(node.namedChildren[0]);
-      case "binary_expression":
-        return resolveBinaryExpression(node);
-      case "unary_expression":
-        const argument = getField(node, "argument");
-        if (!argument) return;
-        const resolved = resolveNode(argument);
-        if (typeof resolved !== "boolean") return;
-        return !resolved;
       case "identifier": {
         const decNode = resolvedDec.get(node);
         if (!decNode) return;
         const isParam = ["required_parameter", "optional_parameter"].includes(
           decNode.type,
         );
-        const exportParent = ancestor(decNode, (t) => t === "export_statement");
-        if (exportParent) return;
+        if (isExported(decNode)) return;
         if (isParam) {
           const isNoRefs = !refsMap.get(decNode)?.length;
           if (isNoRefs) {
@@ -136,94 +127,10 @@ export function unnecessaryConditionals(source: string) {
       }
       default:
     }
-    if (node.type === "identifier") {
-      const decNode = resolvedDec.get(node);
-      if (!decNode) return;
-      const isParam = ["required_parameter", "optional_parameter"].includes(
-        decNode.type,
-      );
-      const exportParent = ancestor(decNode, (t) => t === "export_statement");
-      if (exportParent) return;
-      if (isParam) {
-        const isNoRefs = !refsMap.get(decNode)?.length;
-        if (isNoRefs) {
-          const value = getField(decNode, "value");
-          if (value) {
-            return resolveNode(value);
-          }
-        }
-        const refNode = pred(refsMap.get(decNode), (n) => n?.length === 1)?.[0];
-        if (refNode) {
-          return resolveNode(refNode);
-        }
-      }
-      const isConstDeclarator =
-        decNode.type === "variable_declarator" &&
-        decNode.previousSibling?.type === "const";
-      if (isConstDeclarator) {
-        const valueNode = getField(decNode, "value");
-        if (valueNode) {
-          return resolveNode(valueNode);
-        }
-      }
-    }
-  }
-
-  function resolveBinaryExpression(
-    node: Parser.SyntaxNode,
-  ): boolean | Parser.SyntaxNode | void {
-    const left = getField(node, "left");
-    const right = getField(node, "right");
-    if (!left || !right) return;
-    const operatorNode = node.children.find((n) => n !== left && n !== right);
-    if (!operatorNode) return;
-    const resolvedLeft = resolveNode(left) ?? left;
-    const resolvedRight = resolveNode(right) ?? right;
-    switch (operatorNode.type) {
-      case "&&": {
-        if (resolvedLeft === false || resolvedRight === false) {
-          return false;
-        } else if (resolvedLeft === true && resolvedRight === true) {
-          return true;
-        } else if (resolvedLeft === true) {
-          return resolvedRight;
-        } else if (resolvedRight === true) {
-          return resolvedLeft;
-        }
-        break;
-      }
-      case "||": {
-        if (resolvedLeft === false && resolvedRight === false) {
-          return false;
-        } else if (resolvedLeft === true) {
-          return true;
-        } else if (resolvedLeft === false) {
-          return resolvedRight;
-        }
-        break;
-      }
-      case "===": {
-        if (
-          typeof resolvedLeft !== "boolean" ||
-          typeof resolvedRight !== "boolean"
-        )
-          return;
-        return resolvedLeft === resolvedRight;
-      }
-      case "!==": {
-        if (
-          typeof resolvedLeft !== "boolean" ||
-          typeof resolvedRight !== "boolean"
-        )
-          return;
-        return resolvedLeft !== resolvedRight;
-      }
-      default:
-    }
   }
 
   const edits: CodeEdit[] = conditions.flatMap(({ ifNode }) => {
-    const condition = getField(ifNode, "condition")?.namedChildren[0];
+    const condition = getField(ifNode, "condition");
     const conditionResult = condition && resolveNode(condition);
     if (typeof conditionResult === "boolean") {
       const result = resolveConditional(
@@ -245,60 +152,6 @@ export function unnecessaryConditionals(source: string) {
   });
   const result = runEdits(source, edits);
   return result;
-}
-
-function getTraverseDeclarations() {
-  const scopes: Scope[] = [{ vars: {}, shadows: false }];
-  const scopesByStatement: Map<Parser.SyntaxNode, Scope> = new Map();
-  const onDeclaratorNode = (
-    node: Parser.SyntaxNode,
-    field: string = "name",
-  ) => {
-    const lastScope = scopes.at(-1)!;
-    const name = pred(
-      getField(node, field),
-      (n) => n?.type === "identifier",
-    )?.text;
-    if (name) {
-      if (lastScope.vars[name]) {
-        throw new Error("redeclaration of identifier: " + name);
-      } else if (!lastScope.shadows) {
-        if (scopes.findLast((scope) => scope.vars[name])) {
-          lastScope.shadows = true;
-        }
-      }
-      const isExported = node.parent?.type === "export_statement";
-      lastScope.vars[name] = { node, isExported };
-    }
-  };
-  const declarationsQuery: TraverseQuery = {
-    required_parameter: (node) => {
-      onDeclaratorNode(node, "pattern");
-    },
-    optional_parameter: (node) => {
-      onDeclaratorNode(node, "pattern");
-    },
-    function_declaration: (node) => {
-      onDeclaratorNode(node);
-    },
-    variable_declarator: (node) => {
-      onDeclaratorNode(node);
-    },
-    statement_block: (node) => {
-      // Assume lexical scope is encapsulated by statement_block
-      const scope = { vars: {}, shadows: false };
-      scopes.push(scope);
-      scopesByStatement.set(node, scope);
-      return () => {
-        scopes.pop();
-      };
-    },
-  };
-  return {
-    declarationsQuery,
-    scopesByStatement,
-    scopes,
-  };
 }
 
 function getTraverseReferences({ scopes }: { scopes: Scope[] }) {
