@@ -6,6 +6,7 @@ load("@code-tools-npm//:defs.bzl", "npm_link_all_packages")
 load("@aspect_rules_js//js:defs.bzl", "js_binary")
 load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@aspect_rules_swc//swc:defs.bzl", "swc")
 
 npm_link_all_packages()
 
@@ -43,7 +44,7 @@ ts_project(
             "src/testtypes.d.ts",
         ],
     ),
-    transpiler = "tsc",
+    transpiler = swc,
     tsconfig = ":tsconfig",
 )
 
@@ -63,7 +64,7 @@ ts_project(
         "**/*.test.ts",
         "src/testtypes.d.ts",
     ]),
-    transpiler = "tsc",
+    transpiler = swc,
     tsconfig = "//code-tools:tsconfig",
 )
 

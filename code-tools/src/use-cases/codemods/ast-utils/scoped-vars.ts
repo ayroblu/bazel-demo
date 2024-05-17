@@ -30,8 +30,12 @@ export function getTraverseDeclarations(): {
     )?.text;
     if (name) {
       if (lastScope.vars[name]) {
-        // throw new Error("redeclaration of identifier: " + name);
-        console.log("redeclaration of identifier: " + name);
+        console.log(lastScope);
+        // throw new Error(
+        //   "redeclaration of identifier: " +
+        //     name +
+        //     ` - ${node.startPosition.row}:${node.startPosition.column}`,
+        // );
       } else if (!lastScope.shadows) {
         if (scopes.findLast((scope) => scope.vars[name])) {
           lastScope.shadows = true;
@@ -41,6 +45,14 @@ export function getTraverseDeclarations(): {
       lastScope.vars[name] = { node, isExported };
     }
   };
+  const onLexicalScope = (node: Parser.SyntaxNode) => {
+    const scope = { vars: {}, shadows: false };
+    scopes.push(scope);
+    scopesByStatement.set(node, scope);
+    return () => {
+      scopes.pop();
+    };
+  };
   const declarationsQuery: TraverseQuery = {
     required_parameter: (node) => {
       onDeclaratorNode(node, "pattern");
@@ -48,30 +60,16 @@ export function getTraverseDeclarations(): {
     optional_parameter: (node) => {
       onDeclaratorNode(node, "pattern");
     },
-    function_declaration: (node) => {
-      onDeclaratorNode(node);
-    },
-    variable_declarator: (node) => {
-      onDeclaratorNode(node);
-    },
+    function_declaration: onDeclaratorNode,
+    variable_declarator: onDeclaratorNode,
     statement_block: (node) => {
-      // Assume lexical scope is encapsulated by statement_block
-      const scope = { vars: {}, shadows: false };
-      scopes.push(scope);
-      scopesByStatement.set(node, scope);
-      return () => {
-        scopes.pop();
-      };
+      if (!node.parent) return;
+      if (node.parent.type === "arrow_function") return;
+      if (node.parent.type === "function_type") return;
+      return onLexicalScope(node);
     },
-    arrow_function: (node) => {
-      // Special case for arrow funcs
-      const scope = { vars: {}, shadows: false };
-      scopes.push(scope);
-      scopesByStatement.set(node, scope);
-      return () => {
-        scopes.pop();
-      };
-    },
+    arrow_function: onLexicalScope,
+    function_type: onLexicalScope,
   };
   return {
     declarationsQuery,

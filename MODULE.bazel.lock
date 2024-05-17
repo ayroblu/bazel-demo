@@ -1,6 +1,6 @@
 {
   "lockFileVersion": 6,
-  "moduleFileHash": "32c0a23431063ee7e87ffda97b6b2e0cc05deba884ca2577a7ea99d87c7d1c23",
+  "moduleFileHash": "5fe228e9e2f80c0f26af571dc9ddd28f4fc262ac8487021f933f38304a30d2f1",
   "flags": {
     "cmdRegistries": [
       "https://bcr.bazel.build/"
@@ -207,7 +207,7 @@
           "usingModule": "<root>",
           "location": {
             "file": "@@//:MODULE.bazel",
-            "line": 97,
+            "line": 98,
             "column": 29
           },
           "imports": {
@@ -223,7 +223,7 @@
               "devDependency": true,
               "location": {
                 "file": "@@//:MODULE.bazel",
-                "line": 98,
+                "line": 99,
                 "column": 18
               }
             }
@@ -237,7 +237,7 @@
           "usingModule": "<root>",
           "location": {
             "file": "@@//:MODULE.bazel",
-            "line": 105,
+            "line": 106,
             "column": 21
           },
           "imports": {
@@ -253,7 +253,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-                "line": 106,
+                "line": 107,
                 "column": 15
               }
             }
@@ -267,7 +267,7 @@
           "usingModule": "<root>",
           "location": {
             "file": "@@//:MODULE.bazel",
-            "line": 134,
+            "line": 135,
             "column": 22
           },
           "imports": {
@@ -287,7 +287,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-                "line": 138,
+                "line": 139,
                 "column": 17
               }
             }
@@ -301,7 +301,7 @@
           "usingModule": "<root>",
           "location": {
             "file": "@@//:MODULE.bazel",
-            "line": 150,
+            "line": 151,
             "column": 23
           },
           "imports": {
@@ -318,7 +318,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-                "line": 151,
+                "line": 152,
                 "column": 17
               }
             }
@@ -332,7 +332,7 @@
           "usingModule": "<root>",
           "location": {
             "file": "@@//:MODULE.bazel",
-            "line": 159,
+            "line": 160,
             "column": 20
           },
           "imports": {
@@ -350,7 +350,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-                "line": 160,
+                "line": 161,
                 "column": 10
               }
             }
@@ -371,6 +371,7 @@
         "rules_nodejs": "rules_nodejs@6.1.0",
         "aspect_rules_js": "aspect_rules_js@1.41.2",
         "aspect_rules_ts": "aspect_rules_ts@2.3.0",
+        "aspect_rules_swc": "aspect_rules_swc@1.2.2",
         "rules_rust": "rules_rust@0.44.0",
         "aspect_rules_py": "aspect_rules_py@0.7.3",
         "rules_python": "rules_python@0.31.0",
@@ -1233,6 +1234,72 @@
           "strip_prefix": "rules_ts-2.3.0",
           "remote_patches": {
             "https://bcr.bazel.build/modules/aspect_rules_ts/2.3.0/patches/module_dot_bazel_version.patch": "sha256-+Q8vxEaJePTvDm+Bhx2OWmARc4xbHeK44oT72e6W+Ds="
+          },
+          "remote_patch_strip": 1
+        }
+      }
+    },
+    "aspect_rules_swc@1.2.2": {
+      "name": "aspect_rules_swc",
+      "version": "1.2.2",
+      "key": "aspect_rules_swc@1.2.2",
+      "repoName": "aspect_rules_swc",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [
+        "@swc_toolchains//:all"
+      ],
+      "extensionUsages": [
+        {
+          "extensionBzlFile": "@aspect_rules_swc//swc:extensions.bzl",
+          "extensionName": "swc",
+          "usingModule": "aspect_rules_swc@1.2.2",
+          "location": {
+            "file": "https://bcr.bazel.build/modules/aspect_rules_swc/1.2.2/MODULE.bazel",
+            "line": 16,
+            "column": 20
+          },
+          "imports": {
+            "swc_toolchains": "swc_toolchains"
+          },
+          "devImports": [],
+          "tags": [
+            {
+              "tagName": "toolchain",
+              "attributeValues": {
+                "name": "swc",
+                "swc_version": "v1.3.75"
+              },
+              "devDependency": false,
+              "location": {
+                "file": "https://bcr.bazel.build/modules/aspect_rules_swc/1.2.2/MODULE.bazel",
+                "line": 17,
+                "column": 14
+              }
+            }
+          ],
+          "hasDevUseExtension": false,
+          "hasNonDevUseExtension": true
+        }
+      ],
+      "deps": {
+        "aspect_bazel_lib": "aspect_bazel_lib@2.5.0",
+        "aspect_rules_js": "aspect_rules_js@1.41.2",
+        "bazel_skylib": "bazel_skylib@1.5.0",
+        "platforms": "platforms@0.0.9",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "urls": [
+            "https://github.com/aspect-build/rules_swc/releases/download/v1.2.2/rules_swc-v1.2.2.tar.gz"
+          ],
+          "integrity": "sha256-zeCd996nc62u2JZhJDRVn4lV0t+yz9ZCnuMz8wKZ7TQ=",
+          "strip_prefix": "rules_swc-1.2.2",
+          "remote_patches": {
+            "https://bcr.bazel.build/modules/aspect_rules_swc/1.2.2/patches/module_dot_bazel_version.patch": "sha256-nMeiLF6aeceGPmyDvh5YdRJTYFsSVehSBbzS/T6Njck="
           },
           "remote_patch_strip": 1
         }
@@ -3673,6 +3740,86 @@
           }
         },
         "recordedRepoMappingEntries": []
+      }
+    },
+    "@@aspect_rules_swc~//swc:extensions.bzl%swc": {
+      "general": {
+        "bzlTransitiveDigest": "G/tHWjon6h64OEkqCL3FE2TtupUVFJxuPFFsPJkOulM=",
+        "recordedFileInputs": {},
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "swc_linux-arm64-gnu": {
+            "bzlFile": "@@aspect_rules_swc~//swc:repositories.bzl",
+            "ruleClassName": "swc_repositories",
+            "attributes": {
+              "platform": "linux-arm64-gnu",
+              "swc_version": "v1.3.75"
+            }
+          },
+          "swc_win32-ia32-msvc": {
+            "bzlFile": "@@aspect_rules_swc~//swc:repositories.bzl",
+            "ruleClassName": "swc_repositories",
+            "attributes": {
+              "platform": "win32-ia32-msvc",
+              "swc_version": "v1.3.75"
+            }
+          },
+          "swc_toolchains": {
+            "bzlFile": "@@aspect_rules_swc~//swc/private:toolchains_repo.bzl",
+            "ruleClassName": "toolchains_repo",
+            "attributes": {
+              "user_repository_name": "swc"
+            }
+          },
+          "swc_win32-arm64-msvc": {
+            "bzlFile": "@@aspect_rules_swc~//swc:repositories.bzl",
+            "ruleClassName": "swc_repositories",
+            "attributes": {
+              "platform": "win32-arm64-msvc",
+              "swc_version": "v1.3.75"
+            }
+          },
+          "swc_darwin-x64": {
+            "bzlFile": "@@aspect_rules_swc~//swc:repositories.bzl",
+            "ruleClassName": "swc_repositories",
+            "attributes": {
+              "platform": "darwin-x64",
+              "swc_version": "v1.3.75"
+            }
+          },
+          "swc_linux-x64-gnu": {
+            "bzlFile": "@@aspect_rules_swc~//swc:repositories.bzl",
+            "ruleClassName": "swc_repositories",
+            "attributes": {
+              "platform": "linux-x64-gnu",
+              "swc_version": "v1.3.75"
+            }
+          },
+          "swc_win32-x64-msvc": {
+            "bzlFile": "@@aspect_rules_swc~//swc:repositories.bzl",
+            "ruleClassName": "swc_repositories",
+            "attributes": {
+              "platform": "win32-x64-msvc",
+              "swc_version": "v1.3.75"
+            }
+          },
+          "swc_darwin-arm64": {
+            "bzlFile": "@@aspect_rules_swc~//swc:repositories.bzl",
+            "ruleClassName": "swc_repositories",
+            "attributes": {
+              "platform": "darwin-arm64",
+              "swc_version": "v1.3.75"
+            }
+          }
+        },
+        "recordedRepoMappingEntries": [
+          [
+            "aspect_rules_swc~",
+            "bazel_skylib",
+            "bazel_skylib~"
+          ]
+        ]
       }
     },
     "@@aspect_rules_ts~//ts:extensions.bzl%ext": {
