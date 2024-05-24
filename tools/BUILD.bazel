@@ -1,7 +1,6 @@
 package(default_visibility = ["//:__pkg__"])
 
 load("@aspect_rules_lint//format:defs.bzl", "format_multirun")
-load("@buildifier_prebuilt//:rules.bzl", "buildifier")
 
 alias(
     name = "swiftformat",
@@ -15,4 +14,14 @@ format_multirun(
     name = "format",
     starlark = "@buildifier_prebuilt//:buildifier",
     swift = ":swiftformat",
+)
+
+load(":node.bzl", "node_lib", "node_platforms")
+
+node_platforms()
+
+node_lib(
+    name = "foo",
+    sha256 = "3a3058cb460899587bf5a3129309826886c704b8ad9ff69d9b55ad99b2c843e2",
+    version = "v22.2.0",
 )
