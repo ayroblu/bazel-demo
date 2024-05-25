@@ -2,7 +2,13 @@ android_binary(
     name = "example-android-app",
     custom_package = "com.example.bazel",
     deps = [
-        "//example-android-app/src:lib",
+        "//example-android-app/src",
     ],
+    incremental_dexing = 0,
     manifest = "AndroidManifest.xml",
+    multidex = "native",
+    # incremental_dexing = 1,
+    # manifest_values = {
+    #     "lib_name": "lib",
+    # },
 )

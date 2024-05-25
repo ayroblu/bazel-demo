@@ -1,19 +1,23 @@
 load("@rules_kotlin//kotlin:android.bzl", "kt_android_library")
 
 kt_android_library(
-    name = "lib",
-    custom_package = "com.example.bazel",
+    name = "src",
+    custom_package = "examples.android.lib",
     deps = [
+        # ":res2",
         "@maven//:androidx_appcompat_appcompat",
-        "@maven//:androidx_core_core",
-        "@maven//:androidx_core_core_ktx",
-        "@maven//:androidx_drawerlayout_drawerlayout",
-        "@maven//:androidx_fragment_fragment",
-        "@maven//:androidx_lifecycle_lifecycle_common",
-        "@maven//:androidx_lifecycle_lifecycle_viewmodel",
+        # "@maven//:com_google_auto_value_auto_value_annotations",
+        # "@maven//:com_squareup_moshi_moshi",
+        # "@maven//:org_jetbrains_kotlinx_kotlinx_serialization_runtime",
     ],
-    manifest = "AndroidManifest.xml",
+    manifest = "main/AndroidManifest.xml",
+    # plugins = [
+    #     ":moshi-kotlin-codegen",
+    #     ":serialization_plugin",
+    #     ":autovalue",
+    # ],
     resource_files = glob(["res/**"]),
-    srcs = glob(["kotlin/com/example/bazel/*.kt"]),
-    visibility = ["//:__pkg__"],
+    srcs = glob(["main/kotlin/**/*.kt"]),
+    # tags = ["trace"],
+    visibility = ["//example-android-app:__subpackages__"],
 )
