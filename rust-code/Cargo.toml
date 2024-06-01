@@ -21,6 +21,7 @@ tree-sitter-scala = "0.21.0"
 tree-sitter-python = "0.21.0"
 tree-sitter-starlark = "1.1.0"
 tree-sitter-typescript = "0.21.1"
+png = "0.17.13"
 
 [build-dependencies]
 cc="*"

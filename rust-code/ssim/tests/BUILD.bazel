@@ -1,0 +1,23 @@
+package(default_visibility = ["//rust-code:__subpackages__"])
+
+load("@rules_rust//rust:defs.bzl", "rust_test")
+load("@rust-code-crates//:defs.bzl", "all_crate_deps")
+
+filegroup(
+    name = "test-images",
+    srcs = glob([
+        "*.png",
+    ]),
+)
+
+rust_test(
+    name = "tests",
+    data = [":test-images"],
+    deps = [
+        "//rust-code/ssim",
+    ] + all_crate_deps(
+        normal = True,
+        package_name = "rust-code",
+    ),
+    srcs = ["ssim.rs"],
+)
