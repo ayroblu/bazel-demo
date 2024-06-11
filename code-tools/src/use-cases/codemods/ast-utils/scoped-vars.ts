@@ -30,7 +30,7 @@ export function getTraverseDeclarations(): {
     )?.text;
     if (name) {
       if (lastScope.vars[name]) {
-        console.log(lastScope);
+        console.log("redeclaration of identifier", lastScope);
         // throw new Error(
         //   "redeclaration of identifier: " +
         //     name +
