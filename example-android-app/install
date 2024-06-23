@@ -1,0 +1,5 @@
+#!/bin/bash
+parent_path=$(cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd "$parent_path"
+cd ..
+adb install ./.bazel/bin/example-android-app/example-android-app.apk

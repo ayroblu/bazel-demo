@@ -2,24 +2,24 @@
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
     package="examples.android.app">
-  <uses-sdk
-      android:minSdkVersion="23"
-      android:targetSdkVersion="33"
-       />
+    <uses-sdk
+        android:minSdkVersion="23"
+        android:targetSdkVersion="33"
+    />
 
-  <application
-      android:label="Rules Kotlin App"
-      android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+    <application
+        android:label="Bazel Example"
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
 
-    <activity
-        android:name="examples.android.lib.MainActivity"
-        android:exported="true"
-        android:label="Bazel Tutorial App" >
-      <intent-filter>
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LAUNCHER" />
-      </intent-filter>
-    </activity>
-  </application>
+        <activity
+            android:name="examples.android.lib.MainActivity"
+            android:exported="true"
+            android:label="Bazel Example">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
 
 </manifest>

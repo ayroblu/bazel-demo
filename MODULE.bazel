@@ -53,23 +53,24 @@ http_archive(
 # Android
 bazel_dep(name = "rules_jvm_external", version = "6.1")
 
+_COMPOSE_VERSION = "1.2.1"
+_COMPOSE_COMPILER_VERSION = "1.5.9"
+_KOTLIN_COMPILER_VERSION = "1.9.22"
+# _KOTLIN_COMPILER_SHA = "88b39213506532c816ff56348c07bbeefe0c8d18943bffbad11063cf97cac3e6"
+
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     artifacts = [
-        "androidx.appcompat:appcompat:1.0.0",
-        "junit:junit:4.12",
-        "androidx.test.espresso:espresso-core:3.1.1",
-        "org.hamcrest:hamcrest-library:1.3",
-        "org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc",
-        "com.squareup.moshi:moshi:1.14.0",
-        "com.squareup.moshi:moshi-kotlin:1.14.0",
-        "com.squareup.moshi:moshi-kotlin-codegen:1.14.0",
-        "com.google.dagger:dagger:2.45",
-        "com.google.dagger:dagger-compiler:2.45",
-        "com.google.dagger:dagger-producers:2.45",
-        "com.google.auto.value:auto-value:1.6.5",
-        "com.google.auto.value:auto-value-annotations:1.6.5",
-        "org.robolectric:robolectric:4.10.3",
+        "org.jetbrains.kotlin:kotlin-stdlib:{}".format(_KOTLIN_COMPILER_VERSION),
+        "androidx.core:core-ktx:1.7.0",
+        "androidx.appcompat:appcompat:1.4.1",
+        "androidx.activity:activity-compose:1.4.0",
+        "androidx.compose.material:material:{}".format(_COMPOSE_VERSION),
+        "androidx.compose.ui:ui:{}".format(_COMPOSE_VERSION),
+        "androidx.compose.ui:ui-tooling:{}".format(_COMPOSE_VERSION),
+        "androidx.compose.compiler:compiler:{}".format(_COMPOSE_COMPILER_VERSION),
+        "androidx.compose.runtime:runtime:{}".format(_COMPOSE_VERSION),
+        # "androidx.compose.material3:material3:1.0.1",
     ],
     repositories = [
         "https://maven.google.com",
@@ -77,7 +78,7 @@ maven.install(
     ],
 )
 use_repo(maven, "maven")
-bazel_dep(name = "rules_kotlin", version = "1.9.0")
+bazel_dep(name = "rules_kotlin", version = "1.9.5")
 
 # JS
 bazel_dep(name = "rules_nodejs", version = "6.1.0")

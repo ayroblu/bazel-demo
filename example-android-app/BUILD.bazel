@@ -1,14 +1,53 @@
+load("@bazel_tools//tools/jdk:default_java_toolchain.bzl", "default_java_toolchain")
+load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain", "kt_compiler_plugin")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+# load("@rules_android//android:rules.bzl", "android_binary")
+
+# Java Toolchain
+
+default_java_toolchain(
+    name = "java_toolchain",
+    visibility = ["//visibility:public"],
+)
+
+define_kt_toolchain(
+    name = "kotlin_toolchain",
+    jvm_target = "1.8",
+)
+
+kt_compiler_plugin(
+    name = "jetpack_compose_compiler_plugin",
+    deps = [
+        "@maven//:androidx_compose_compiler_compiler",
+    ],
+    id = "androidx.compose.compiler",
+    target_embedded_compiler = True,
+    visibility = ["//visibility:public"],
+)
+
+platform(
+    name = "arm64-v8a",
+    constraint_values = [
+        "@platforms//cpu:arm64",
+        "@platforms//os:android",
+    ],
+)
+
 android_binary(
     name = "example-android-app",
     custom_package = "com.example.bazel",
     deps = [
         "//example-android-app/src",
     ],
-    incremental_dexing = 0,
+    dex_shards = 5,
+    incremental_dexing = 1,
     manifest = "AndroidManifest.xml",
     multidex = "native",
-    # incremental_dexing = 1,
-    # manifest_values = {
-    #     "lib_name": "lib",
-    # },
+)
+
+build_test(
+    name = "force_build_apks_test",
+    targets = [
+        ":example-android-app",
+    ],
 )
