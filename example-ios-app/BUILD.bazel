@@ -22,6 +22,7 @@ ios_application(
 
 # xcodeproj just to create the xcodeproj directory
 # You need to rerun it regularly to keep XCode updated
+# bazel run example-ios-app:xcodeproj && xed example-ios-app/example-ios-app/xcodeproj
 load(
     "@rules_xcodeproj//xcodeproj:defs.bzl",
     "xcodeproj",
@@ -33,6 +34,6 @@ xcodeproj(
     project_name = "example-ios-app",
     tags = ["manual"],
     top_level_targets = [
-        ":example-app",
+        ":example-ios-app",
     ],
 )
