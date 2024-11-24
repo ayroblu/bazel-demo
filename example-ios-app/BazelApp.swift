@@ -4,7 +4,19 @@ import SwiftUI
 struct BazelApp: App {
   var body: some Scene {
     WindowGroup {
-      Text("Hello from Bazel!")
+      TabView {
+        Tab("Home", systemImage: "house.fill") {
+          Text("Hello from Bazel!")
+        }
+
+        Tab("Todo", systemImage: "list.bullet") {
+          Text("Todo")
+        }
+
+        Tab("More todo", systemImage: "checklist.unchecked") {
+          Text("More todo")
+        }
+      }
     }
   }
 }
