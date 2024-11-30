@@ -127,7 +127,7 @@ use_repo(rules_ts_ext, "npm_typescript")
 
 # Rust
 
-bazel_dep(name = "rules_rust", version = "0.44.0")
+bazel_dep(name = "rules_rust", version = "0.54.1")
 
 rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
 rust.toolchain(edition = "2021")
@@ -135,39 +135,27 @@ use_repo(rust, "rust_toolchains")
 
 register_toolchains("@rust_toolchains//:all")
 
-# crate = use_extension("@rules_rust//crate_universe:extension.bzl", "crate")
-# # crate.spec(
-# #     package = "tree-sitter",
-# #     version = "0.21.0",
-# # )
-# """
-# Fork due to:
-# https://github.com/tree-sitter/tree-sitter/issues/3353
-# https://github.com/tree-sitter/tree-sitter/pull/3352
-# """
-# crate.spec(
-#     package = "tree-sitter",
-#     git = "https://github.com/ayroblu/tree-sitter.git",
-#     branch = "v0.21.0-bazel"
-# )
-# crate.spec(
-#     package = "tree-sitter-scala",
-#     version = "0.21.0",
-# )
-# crate.from_specs(name = "rust-code-crates")
-# use_repo(crate, "crates")
+crate = use_extension("@rules_rust//crate_universe:extension.bzl", "crate")
+crate.spec(package = "tree-sitter", version = "0.23.2")
+crate.spec(package = "tree-sitter-scala", version = "0.23.3")
+crate.spec(package = "tree-sitter-python", version = "0.23.4")
+crate.spec(package = "tree-sitter-typescript", version = "0.23.2")
+crate.spec(package = "tree-sitter-javascript", version = "0.23.1")
+crate.spec(package = "png", version = "0.17.13")
+crate.from_specs()
+use_repo(crate, "crates")
 
-# Prefer this method with Cargo overhead for cargo patch overrides
-crate = use_extension(
-    "@rules_rust//crate_universe:extension.bzl",
-    "crate",
-)
-crate.from_cargo(
-    name = "rust-code-crates",
-    cargo_lockfile = "//rust-code:Cargo.lock",
-    manifests = ["//rust-code:Cargo.toml"],
-)
-use_repo(crate, "rust-code-crates")
+# Use Cargo overhead for cargo patch overrides
+# crate = use_extension(
+#     "@rules_rust//crate_universe:extension.bzl",
+#     "crate",
+# )
+# crate.from_cargo(
+#     name = "rust-code-crates",
+#     cargo_lockfile = "//rust-code:Cargo.lock",
+#     manifests = ["//rust-code:Cargo.toml"],
+# )
+# use_repo(crate, "rust-code-crates")
 
 # Python
 

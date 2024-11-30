@@ -1,13 +1,10 @@
 load("@rules_rust//rust:defs.bzl", "rust_binary")
 
 rust_binary(
-    name = "edit-files",
+    name = "js-function-style",
     srcs = ["main.rs"],
     deps = [
-        "//rust-code/traverse-lib",
         "@crates//:tree-sitter",
-        "@crates//:tree-sitter-scala",
-        "@crates//:tree-sitter-python",
         "@crates//:tree-sitter-typescript",
     ],
 )

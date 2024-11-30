@@ -16,7 +16,7 @@ fn main() {
 fn scala() {
     let mut parser = Parser::new();
     parser
-        .set_language(&tree_sitter_scala::language())
+        .set_language(&tree_sitter_scala::LANGUAGE.into())
         .expect("Error loading Rust grammar");
     let source_code = "val a = 1L";
     let tree = parser.parse(source_code, None).unwrap();
@@ -26,7 +26,7 @@ fn scala() {
 fn python() {
     let mut parser = Parser::new();
     parser
-        .set_language(&tree_sitter_python::language())
+        .set_language(&tree_sitter_python::LANGUAGE.into())
         .expect("Error loading Rust grammar");
     let source_code = "scala_binary(sources = [\"*.scala\"])";
     let tree = parser.parse(source_code, None).unwrap();
@@ -36,7 +36,7 @@ fn python() {
 fn tsx() {
     let mut parser = Parser::new();
     parser
-        .set_language(&tree_sitter_typescript::language_tsx())
+        .set_language(&tree_sitter_typescript::LANGUAGE_TSX.into())
         .expect("Error loading Rust grammar");
     let source_code = "let a = 1;";
     let tree = parser.parse(source_code, None).unwrap();

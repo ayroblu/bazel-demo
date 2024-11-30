@@ -1,5 +1,5 @@
 #!/bin/zsh
 # Updates the Cargo.lock file
-cargo generate-lockfile
+# cargo generate-lockfile
 # Updates the definitions for rust analyzer
 bazel run @rules_rust//tools/rust_analyzer:gen_rust_project -- //rust-code/...
