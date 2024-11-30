@@ -4,6 +4,7 @@ rust_binary(
     name = "js-function-style",
     srcs = ["main.rs"],
     deps = [
+        "//rust-code/traverse-lib",
         "@crates//:tree-sitter",
         "@crates//:tree-sitter-typescript",
     ],

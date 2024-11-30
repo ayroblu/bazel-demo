@@ -1,5 +1,3 @@
-extern crate traverse_lib;
-
 use tree_sitter::Parser;
 use tree_sitter_python;
 use tree_sitter_scala;
@@ -9,7 +7,6 @@ fn main() {
     scala();
     python();
     tsx();
-    traverse_lib::traverse();
     println!("hello world");
 }
 

@@ -5,4 +5,5 @@ load("@rules_rust//rust:defs.bzl", "rust_library")
 rust_library(
     name = "traverse-lib",
     srcs = ["traverse.rs"],
+    deps = ["@crates//:tree-sitter"],
 )
