@@ -1,0 +1,10 @@
+load("@rules_rust//rust:defs.bzl", "rust_test")
+
+rust_test(
+    name = "js-function-style-test",
+    srcs = glob(["*.rs"]),
+    deps = [
+        "//rust-code/editor-tools/js-function-style:lib",
+        "@crates//:const_format",
+    ],
+)

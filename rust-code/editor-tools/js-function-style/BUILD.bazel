@@ -1,10 +1,21 @@
-load("@rules_rust//rust:defs.bzl", "rust_binary")
+package(default_visibility = ["//rust-code/editor-tools:__subpackages__"])
+
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
 
 rust_binary(
     name = "js-function-style",
     srcs = ["main.rs"],
     deps = [
+        ":lib",
+    ],
+)
+
+rust_library(
+    name = "lib",
+    srcs = ["lib.rs"],
+    deps = [
         "//rust-code/traverse-lib",
+        "//rust-code/utils",
         "@crates//:tree-sitter",
         "@crates//:tree-sitter-typescript",
     ],

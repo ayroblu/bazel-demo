@@ -142,6 +142,7 @@ crate.spec(package = "tree-sitter-python", version = "0.23.4")
 crate.spec(package = "tree-sitter-typescript", version = "0.23.2")
 crate.spec(package = "tree-sitter-javascript", version = "0.23.1")
 crate.spec(package = "png", version = "0.17.13")
+crate.spec(package = "const_format", version = "0.2.33")
 crate.from_specs()
 use_repo(crate, "crates")
 
