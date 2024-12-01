@@ -1,0 +1,25 @@
+package(default_visibility = ["//rust-code/editor-tools:__subpackages__"])
+
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
+
+rust_binary(
+    name = "lang-move",
+    srcs = ["main.rs"],
+    deps = [
+        ":lang-move-lib",
+        "@crates//:serde_json",
+    ],
+)
+
+rust_library(
+    name = "lang-move-lib",
+    srcs = glob(["*.rs"], ["main.rs"]),
+    deps = [
+        "//rust-code/utils",
+        "//rust-code/tree-sitter-utils",
+        "@crates//:serde",
+        "@crates//:tree-sitter",
+        "@crates//:tree-sitter-typescript",
+        "@crates//:tree-sitter-rust",
+    ],
+)

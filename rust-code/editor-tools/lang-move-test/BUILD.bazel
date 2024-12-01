@@ -1,0 +1,30 @@
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+
+rust_test(
+    name = "lang-move-lib-test",
+    srcs = glob(["lib.rs"]),
+    deps = [
+        "//rust-code/editor-tools/lang-move:lang-move-lib",
+    ],
+    # env = {"RUST_BACKTRACE": "1"},
+)
+
+rust_test(
+    name = "lang-move-binary-test",
+    srcs = glob(["main.rs"]),
+    deps = [
+        ":direct",
+        "//rust-code/editor-tools/lang-move",
+        "//rust-code/editor-tools/lang-move:lang-move-lib",
+        "@crates//:assert_cmd",
+        "@crates//:serde_json",
+    ],
+)
+
+rust_library(
+    name = "direct",
+    srcs = glob(["direct.rs"]),
+    deps = [
+        "//rust-code/editor-tools/lang-move",
+    ],
+)
