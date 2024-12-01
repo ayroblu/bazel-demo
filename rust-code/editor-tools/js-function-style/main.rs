@@ -2,7 +2,7 @@ extern crate js_function_style_lib;
 extern crate serde_json;
 
 use js_function_style_lib::edit;
-use js_function_style_lib::Input;
+use js_function_style_lib::types::Input;
 use std::io::{self, BufRead};
 
 fn main() {

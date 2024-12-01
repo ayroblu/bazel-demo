@@ -1,7 +1,7 @@
 use const_format::formatcp;
 use js_function_style_lib::edit;
-use js_function_style_lib::ConvertAction;
-use js_function_style_lib::Input;
+use js_function_style_lib::types::ConvertAction;
+use js_function_style_lib::types::Input;
 
 macro_rules! edit_tests {
     ($($name:ident: $value:expr,)*) => {

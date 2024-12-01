@@ -13,10 +13,10 @@ rust_binary(
 
 rust_library(
     name = "js-function-style-lib",
-    srcs = ["lib.rs"],
+    srcs = glob(["*.rs"], ["main.rs"]),
     deps = [
-        "//rust-code/traverse-lib",
         "//rust-code/utils",
+        "//rust-code/traverse-lib",
         "@crates//:serde",
         "@crates//:tree-sitter",
         "@crates//:tree-sitter-typescript",
