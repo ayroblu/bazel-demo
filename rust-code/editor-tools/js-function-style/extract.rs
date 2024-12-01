@@ -1,7 +1,7 @@
-use tree_sitter::Node;
 use crate::types::Function;
 use crate::types::FunctionKind;
-use crate::helpers::to_text;
+use tree_sitter::Node;
+use tree_sitter_utils::to_text;
 
 pub(crate) fn get_function<'a>(node: &Node<'a>, source_bytes: &'a [u8]) -> Option<Function<'a>> {
     let kind = node.kind();

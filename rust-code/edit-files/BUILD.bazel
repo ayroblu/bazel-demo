@@ -4,7 +4,6 @@ rust_binary(
     name = "edit-files",
     srcs = ["main.rs"],
     deps = [
-        "//rust-code/traverse-lib",
         "@crates//:tree-sitter",
         "@crates//:tree-sitter-scala",
         "@crates//:tree-sitter-python",

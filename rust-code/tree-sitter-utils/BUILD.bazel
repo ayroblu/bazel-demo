@@ -3,7 +3,7 @@ package(default_visibility = ["//rust-code:__subpackages__"])
 load("@rules_rust//rust:defs.bzl", "rust_library")
 
 rust_library(
-    name = "traverse-lib",
-    srcs = ["traverse.rs"],
+    name = "tree-sitter-utils",
+    srcs = glob(["*.rs"]),
     deps = ["@crates//:tree-sitter"],
 )

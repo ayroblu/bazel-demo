@@ -16,7 +16,7 @@ rust_library(
     srcs = glob(["*.rs"], ["main.rs"]),
     deps = [
         "//rust-code/utils",
-        "//rust-code/traverse-lib",
+        "//rust-code/tree-sitter-utils",
         "@crates//:serde",
         "@crates//:tree-sitter",
         "@crates//:tree-sitter-typescript",

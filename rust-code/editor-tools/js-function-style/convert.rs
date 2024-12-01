@@ -1,9 +1,9 @@
 extern crate serde;
 
-use crate::helpers::to_text;
 use crate::types::ConvertAction;
 use crate::types::Function;
 use crate::types::Input;
+use tree_sitter_utils::to_text;
 use utils::indent_string;
 
 pub(crate) fn convert(input: &Input, item: &Function) -> Option<String> {
