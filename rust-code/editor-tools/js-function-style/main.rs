@@ -1,33 +1,17 @@
-extern crate lib;
+extern crate js_function_style_lib;
+extern crate serde_json;
 
-use lib::edit;
-use lib::ConvertAction;
-use lib::Input;
+use js_function_style_lib::edit;
+use js_function_style_lib::Input;
+use std::io::{self, BufRead};
 
 fn main() {
-    // Take in a json object via stdin
-    // Parse, and query at cursor position
-    let result = edit(Input {
-        source: EXAMPLE.to_string(),
-        line: 5,
-        column: 5,
-        action: ConvertAction::Function,
-    });
-    if let Some(result) = result {
-        println!("Something!");
+    let stdin = io::stdin();
+    for line in stdin.lock().lines() {
+        let input_result = serde_json::from_str::<Input>(&line.unwrap()).ok();
+        let result = input_result.as_ref().and_then(|input| edit(input));
+        if let Some(result) = result {
+            println!("{}", result);
+        }
     }
 }
-
-const EXAMPLE: &str = "
-function a() {
-    console.log('a');
-}
-const b = () => {
-    console.log('b');
-    console.log('b2');
-}
-const c = () => console.log('c')
-const d = function() {
-    console.log('b');
-}
-";

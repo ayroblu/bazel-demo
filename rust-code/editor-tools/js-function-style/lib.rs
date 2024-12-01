@@ -1,5 +1,7 @@
+extern crate serde;
 extern crate traverse_lib;
 
+use serde::{Deserialize, Serialize};
 use traverse_lib::TraverseAction;
 use tree_sitter::Node;
 use tree_sitter::Parser;
@@ -7,18 +9,20 @@ use tree_sitter::TreeCursor;
 use tree_sitter_typescript;
 use utils::indent_string;
 
+#[derive(Serialize, Deserialize)]
 pub struct Input {
     pub source: String,
     pub line: usize,
     pub column: usize,
     pub action: ConvertAction,
 }
+#[derive(Serialize, Deserialize)]
 pub enum ConvertAction {
     Function,
     ArrowBlock,
     ArrowInline,
 }
-pub fn edit(input: Input) -> Option<String> {
+pub fn edit(input: &Input) -> Option<String> {
     let mut parser = Parser::new();
     parser
         .set_language(&tree_sitter_typescript::LANGUAGE_TSX.into())
@@ -56,12 +60,14 @@ fn convert(input: &Input, item: &Function) -> Option<String> {
                 format!("{{\n{};\n}}", indent_string(format!("return {}", body), 1))
             };
             Some(format!(
-                "function {}{} {}",
+                "function {}{}{} {}",
                 item.name
                     .as_ref()
                     .map_or_else(|| "".to_string(), |name| name.clone()),
                 item.params
                     .map_or_else(|| "()".to_string(), |node| to_text(&node, source_bytes)),
+                item.return_type
+                    .map_or_else(|| "".to_string(), |node| to_text(&node, source_bytes)),
                 body_text
             ))
         }
@@ -78,14 +84,20 @@ fn convert(input: &Input, item: &Function) -> Option<String> {
             } else {
                 format!("{{\n{};\n}}", indent_string(format!("return {}", body), 1))
             };
-            Some(format!(
-                "const {} = {} => {}",
-                item.name
-                    .as_ref()
-                    .map_or_else(|| "".to_string(), |name| name.clone()),
-                item.params
-                    .map_or_else(|| "()".to_string(), |node| to_text(&node, source_bytes)),
-                body_text
+            let params = item
+                .params
+                .map_or_else(|| "()".to_string(), |node| to_text(&node, source_bytes));
+            let return_type = item
+                .return_type
+                .map_or_else(|| "".to_string(), |node| to_text(&node, source_bytes));
+            Some(item.name.as_ref().map_or_else(
+                || format!("{}{} => {}", params, return_type, body_text),
+                |name| {
+                    format!(
+                        "const {} = {}{} => {}",
+                        name, params, return_type, body_text
+                    )
+                },
             ))
         }
         ConvertAction::ArrowInline => {
@@ -110,14 +122,20 @@ fn convert(input: &Input, item: &Function) -> Option<String> {
                 .and_then(|node| node.named_child(0))
                 .and_then(|node| node.named_child(0))
                 .map_or_else(|| "".to_string(), |node| to_text(&node, source_bytes));
-            Some(format!(
-                "const {} = {} => {}",
-                item.name
-                    .as_ref()
-                    .map_or_else(|| "".to_string(), |name| name.clone()),
-                item.params
-                    .map_or_else(|| "()".to_string(), |node| to_text(&node, source_bytes)),
-                body_text
+            let params = item
+                .params
+                .map_or_else(|| "()".to_string(), |node| to_text(&node, source_bytes));
+            let return_type = item
+                .return_type
+                .map_or_else(|| "".to_string(), |node| to_text(&node, source_bytes));
+            Some(item.name.as_ref().map_or_else(
+                || format!("{}{} => {}", params, return_type, body_text),
+                |name| {
+                    format!(
+                        "const {} = {}{} => {}",
+                        name, params, return_type, body_text
+                    )
+                },
             ))
         }
     }
@@ -174,8 +192,8 @@ fn on_node<'a>(
     let er = node.end_position().row;
     let ec = node.end_position().column;
 
-    let node_text = to_text(&node, source_bytes);
-    println!("- {} =\n{}", node.to_sexp(), indent_string(node_text, 1));
+    // let node_text = to_text(&node, source_bytes);
+    // println!("- {} =\n{}", node.to_sexp(), indent_string(node_text, 1));
 
     let is_before = sr < input.line || (sr == input.line && sc <= input.column);
     let is_after = (er > input.line) || (er == input.line && ec >= input.column);
@@ -209,10 +227,11 @@ struct Function<'a> {
     kind: FunctionKind,
     body: Option<Node<'a>>,
     params: Option<Node<'a>>,
+    return_type: Option<Node<'a>>,
 }
 fn get_function<'a>(node: Node<'a>, source_bytes: &'a [u8]) -> Option<Function<'a>> {
     let kind = node.kind();
-    if kind == "function_declaration" {
+    if kind == "function_declaration" || kind == "function_expression" {
         // (function_declaration
         //   name: (identifier)
         //   parameters: (formal_parameters)
@@ -226,6 +245,7 @@ fn get_function<'a>(node: Node<'a>, source_bytes: &'a [u8]) -> Option<Function<'
             kind: FunctionKind::Function,
             body: node.child_by_field_name("body"),
             params: node.child_by_field_name("parameters"),
+            return_type: node.child_by_field_name("return_type"),
         })
     } else if kind == "lexical_declaration" {
         // (lexical_declaration
@@ -257,6 +277,23 @@ fn get_function<'a>(node: Node<'a>, source_bytes: &'a [u8]) -> Option<Function<'
                         .map_or_else(|| FunctionKind::ArrowInline, |_| FunctionKind::ArrowBlock),
                     body,
                     params: child_node.child_by_field_name("parameters"),
+                    return_type: child_node.child_by_field_name("return_type"),
+                }
+            })
+    } else if kind == "arrow_function" {
+        node.parent()
+            .filter(|node| node.kind() != "variable_declarator")
+            .map(|_| {
+                let body = node.child_by_field_name("body");
+                Function {
+                    name: None,
+                    node,
+                    kind: body
+                        .filter(|body| body.kind() == "statement_block")
+                        .map_or_else(|| FunctionKind::ArrowInline, |_| FunctionKind::ArrowBlock),
+                    body,
+                    params: node.child_by_field_name("parameters"),
+                    return_type: node.child_by_field_name("return_type"),
                 }
             })
     } else {

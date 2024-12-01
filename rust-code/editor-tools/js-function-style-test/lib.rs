@@ -1,7 +1,7 @@
 use const_format::formatcp;
-use lib::edit;
-use lib::ConvertAction;
-use lib::Input;
+use js_function_style_lib::edit;
+use js_function_style_lib::ConvertAction;
+use js_function_style_lib::Input;
 
 macro_rules! edit_tests {
     ($($name:ident: $value:expr,)*) => {
@@ -9,7 +9,7 @@ macro_rules! edit_tests {
         #[test]
         fn $name() {
             let (source, action, expected) = $value;
-            assert_eq!(expected, edit(Input {
+            assert_eq!(expected, edit(&Input {
                 source,
                 line: 0,
                 column: 0,
@@ -39,9 +39,37 @@ edit_tests! {
         (A_RETURN.to_string(), ConvertAction::ArrowInline, A_INLINE.to_string()),
 }
 
+macro_rules! edit_general_tests {
+    ($($name:ident: $value:expr,)*) => {
+    $(
+        #[test]
+        fn $name() {
+            let (source, line, column, action, expected) = $value;
+            assert_eq!(expected, edit(&Input {
+                source,
+                line,
+                column,
+                action,
+            }).expect("Did not return a result from edit"));
+        }
+    )*
+    }
+}
+
+edit_general_tests! {
+    converts_map_block_to_inline:
+        (R.to_string(), 1, 0, ConvertAction::ArrowInline, R_INLINE.to_string()),
+    converts_map_function_to_inline:
+        (R_FUNC.to_string(), 1, 0, ConvertAction::ArrowInline, R_INLINE.to_string()),
+    converts_map_function_to_block:
+        (R_FUNC.to_string(), 1, 0, ConvertAction::ArrowBlock, R.to_string()),
+    converts_map_inline_to_function:
+        (R_INLINE.to_string(), 0, 10, ConvertAction::Function, R_FUNC.to_string()),
+}
+
 #[test]
 fn it_converts_example_block_to_function() {
-    let result = edit(Input {
+    let result = edit(&Input {
         source: EXAMPLE.to_string(),
         line: 5,
         column: 5,
@@ -66,6 +94,13 @@ const A_RETURN: &str = "function a(v: string) {
 const A_BLOCK_RETURN: &str = "const a = (v: string) => {
     return console.log('a', v);
 }";
+const R: &str = "list.map((item: string): string => {
+    return console.log('b2');
+})";
+const R_FUNC: &str = "list.map(function (item: string): string {
+    return console.log('b2');
+})";
+const R_INLINE: &str = "list.map((item: string): string => console.log('b2'))";
 
 const B: &str = "const b = () => {
     console.log('b');

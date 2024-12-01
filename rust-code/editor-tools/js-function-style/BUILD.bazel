@@ -6,16 +6,18 @@ rust_binary(
     name = "js-function-style",
     srcs = ["main.rs"],
     deps = [
-        ":lib",
+        ":js-function-style-lib",
+        "@crates//:serde_json",
     ],
 )
 
 rust_library(
-    name = "lib",
+    name = "js-function-style-lib",
     srcs = ["lib.rs"],
     deps = [
         "//rust-code/traverse-lib",
         "//rust-code/utils",
+        "@crates//:serde",
         "@crates//:tree-sitter",
         "@crates//:tree-sitter-typescript",
     ],
