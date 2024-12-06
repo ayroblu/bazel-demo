@@ -4,11 +4,15 @@ package(default_visibility = ["//example-ios-app:__subpackages__"])
 
 swift_library(
     name = "js-wrap",
-    srcs = glob(["*.swift"]),
+    srcs = glob(
+        ["*.swift"],
+        ["main.swift"],
+    ),
     data = ["index.js"],
 )
 
 swift_binary(
     name = "bin",
-    deps = [":js-wrap"],
+    srcs = glob(["*.swift"]),
+    data = ["index.js"],
 )

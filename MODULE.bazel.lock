@@ -1,12 +1,6 @@
 {
   "lockFileVersion": 6,
-<<<<<<< HEAD
-  "moduleFileHash": "c9be88c54dbc279b981d8fe473dbc76fbe68b86ad342f6b830296b2026ef908d",
-||||||| parent of cc71105 (build format)
-  "moduleFileHash": "82c3f59c4fe8763a8d7b2148bfeb8cae68e778900181370e3e099533d1eb3012",
-=======
-  "moduleFileHash": "f6b358b4550a463f799ed05f924b9066a3d49147538a969e63ddeb12ff5164fe",
->>>>>>> cc71105 (build format)
+  "moduleFileHash": "8b3ef0a77e484ccf25299eabb0bdaa477b03bf63c31ab4585bc11d3c5fb034a5",
   "flags": {
     "cmdRegistries": [
       "https://bcr.bazel.build/"
@@ -141,7 +135,7 @@
           "usingModule": "<root>",
           "location": {
             "file": "@@//:MODULE.bazel",
-            "line": 86,
+            "line": 87,
             "column": 21
           },
           "imports": {},
@@ -155,7 +149,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-                "line": 87,
+                "line": 88,
                 "column": 15
               }
             }
@@ -169,7 +163,7 @@
           "usingModule": "<root>",
           "location": {
             "file": "@@//:MODULE.bazel",
-            "line": 92,
+            "line": 93,
             "column": 21
           },
           "imports": {
@@ -188,7 +182,7 @@
           "usingModule": "<root>",
           "location": {
             "file": "@@//:MODULE.bazel",
-            "line": 95,
+            "line": 96,
             "column": 31
           },
           "imports": {
@@ -213,7 +207,7 @@
               "devDependency": true,
               "location": {
                 "file": "@@//:MODULE.bazel",
-                "line": 96,
+                "line": 97,
                 "column": 34
               }
             },
@@ -228,7 +222,7 @@
               "devDependency": true,
               "location": {
                 "file": "@@//:MODULE.bazel",
-                "line": 105,
+                "line": 106,
                 "column": 30
               }
             },
@@ -243,7 +237,7 @@
               "devDependency": true,
               "location": {
                 "file": "@@//:MODULE.bazel",
-                "line": 114,
+                "line": 115,
                 "column": 31
               }
             }
@@ -257,7 +251,7 @@
           "usingModule": "<root>",
           "location": {
             "file": "@@//:MODULE.bazel",
-            "line": 125,
+            "line": 126,
             "column": 29
           },
           "imports": {
@@ -273,7 +267,7 @@
               "devDependency": true,
               "location": {
                 "file": "@@//:MODULE.bazel",
-                "line": 126,
+                "line": 127,
                 "column": 18
               }
             }
@@ -287,7 +281,7 @@
           "usingModule": "<root>",
           "location": {
             "file": "@@//:MODULE.bazel",
-            "line": 133,
+            "line": 134,
             "column": 21
           },
           "imports": {
@@ -303,7 +297,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-                "line": 134,
+                "line": 135,
                 "column": 15
               }
             }
@@ -317,7 +311,7 @@
           "usingModule": "<root>",
           "location": {
             "file": "@@//:MODULE.bazel",
-            "line": 139,
+            "line": 140,
             "column": 22
           },
           "imports": {
@@ -334,7 +328,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-                "line": 140,
+                "line": 141,
                 "column": 11
               }
             },
@@ -347,13 +341,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-<<<<<<< HEAD
-                "line": 141,
-||||||| parent of cc71105 (build format)
-                "line": 140,
-=======
-                "line": 144,
->>>>>>> cc71105 (build format)
+                "line": 145,
                 "column": 11
               }
             },
@@ -366,13 +354,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-<<<<<<< HEAD
-                "line": 142,
-||||||| parent of cc71105 (build format)
-                "line": 141,
-=======
-                "line": 148,
->>>>>>> cc71105 (build format)
+                "line": 149,
                 "column": 11
               }
             },
@@ -385,13 +367,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-<<<<<<< HEAD
-                "line": 143,
-||||||| parent of cc71105 (build format)
-                "line": 142,
-=======
-                "line": 152,
->>>>>>> cc71105 (build format)
+                "line": 153,
                 "column": 11
               }
             },
@@ -404,13 +380,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-<<<<<<< HEAD
-                "line": 144,
-||||||| parent of cc71105 (build format)
-                "line": 143,
-=======
-                "line": 156,
->>>>>>> cc71105 (build format)
+                "line": 157,
                 "column": 11
               }
             },
@@ -423,13 +393,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-<<<<<<< HEAD
-                "line": 145,
-||||||| parent of cc71105 (build format)
-                "line": 144,
-=======
-                "line": 160,
->>>>>>> cc71105 (build format)
+                "line": 161,
                 "column": 11
               }
             },
@@ -442,13 +406,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-<<<<<<< HEAD
-                "line": 146,
-||||||| parent of cc71105 (build format)
-                "line": 145,
-=======
-                "line": 164,
->>>>>>> cc71105 (build format)
+                "line": 165,
                 "column": 11
               }
             },
@@ -461,13 +419,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-<<<<<<< HEAD
-                "line": 147,
-||||||| parent of cc71105 (build format)
-                "line": 146,
-=======
-                "line": 168,
->>>>>>> cc71105 (build format)
+                "line": 169,
                 "column": 11
               }
             },
@@ -480,13 +432,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-<<<<<<< HEAD
-                "line": 148,
-||||||| parent of cc71105 (build format)
-                "line": 147,
-=======
-                "line": 172,
->>>>>>> cc71105 (build format)
+                "line": 173,
                 "column": 11
               }
             },
@@ -502,13 +448,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-<<<<<<< HEAD
-                "line": 149,
-||||||| parent of cc71105 (build format)
-                "line": 148,
-=======
-                "line": 176,
->>>>>>> cc71105 (build format)
+                "line": 177,
                 "column": 11
               }
             },
@@ -521,13 +461,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-<<<<<<< HEAD
-                "line": 150,
-||||||| parent of cc71105 (build format)
-                "line": 149,
-=======
-                "line": 181,
->>>>>>> cc71105 (build format)
+                "line": 182,
                 "column": 11
               }
             },
@@ -537,13 +471,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-<<<<<<< HEAD
-                "line": 151,
-||||||| parent of cc71105 (build format)
-                "line": 150,
-=======
-                "line": 185,
->>>>>>> cc71105 (build format)
+                "line": 186,
                 "column": 17
               }
             }
@@ -557,13 +485,7 @@
           "usingModule": "<root>",
           "location": {
             "file": "@@//:MODULE.bazel",
-<<<<<<< HEAD
-            "line": 171,
-||||||| parent of cc71105 (build format)
-            "line": 170,
-=======
-            "line": 205,
->>>>>>> cc71105 (build format)
+            "line": 206,
             "column": 23
           },
           "imports": {
@@ -580,13 +502,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-<<<<<<< HEAD
-                "line": 172,
-||||||| parent of cc71105 (build format)
-                "line": 171,
-=======
-                "line": 206,
->>>>>>> cc71105 (build format)
+                "line": 207,
                 "column": 17
               }
             }
@@ -600,13 +516,7 @@
           "usingModule": "<root>",
           "location": {
             "file": "@@//:MODULE.bazel",
-<<<<<<< HEAD
-            "line": 180,
-||||||| parent of cc71105 (build format)
-            "line": 179,
-=======
-            "line": 214,
->>>>>>> cc71105 (build format)
+            "line": 215,
             "column": 20
           },
           "imports": {
@@ -624,13 +534,7 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
-<<<<<<< HEAD
-                "line": 181,
-||||||| parent of cc71105 (build format)
-                "line": 180,
-=======
-                "line": 215,
->>>>>>> cc71105 (build format)
+                "line": 216,
                 "column": 10
               }
             }
@@ -640,7 +544,7 @@
         }
       ],
       "deps": {
-        "rules_xcodeproj": "rules_xcodeproj@2.1.0",
+        "rules_xcodeproj": "rules_xcodeproj@2.9.2",
         "build_bazel_apple_support": "apple_support@1.15.1",
         "build_bazel_rules_swift": "rules_swift@1.18.0",
         "build_bazel_rules_apple": "rules_apple@3.5.1",
@@ -660,10 +564,10 @@
         "local_config_platform": "local_config_platform@_"
       }
     },
-    "rules_xcodeproj@2.1.0": {
+    "rules_xcodeproj@2.9.2": {
       "name": "rules_xcodeproj",
-      "version": "2.1.0",
-      "key": "rules_xcodeproj@2.1.0",
+      "version": "2.9.2",
+      "key": "rules_xcodeproj@2.9.2",
       "repoName": "rules_xcodeproj",
       "executionPlatformsToRegister": [],
       "toolchainsToRegister": [],
@@ -671,10 +575,10 @@
         {
           "extensionBzlFile": "@rules_xcodeproj//xcodeproj:extensions.bzl",
           "extensionName": "internal",
-          "usingModule": "rules_xcodeproj@2.1.0",
+          "usingModule": "rules_xcodeproj@2.9.2",
           "location": {
-            "file": "https://bcr.bazel.build/modules/rules_xcodeproj/2.1.0/MODULE.bazel",
-            "line": 23,
+            "file": "https://bcr.bazel.build/modules/rules_xcodeproj/2.9.2/MODULE.bazel",
+            "line": 24,
             "column": 25
           },
           "imports": {
@@ -688,10 +592,10 @@
         {
           "extensionBzlFile": "@rules_xcodeproj//xcodeproj:extensions.bzl",
           "extensionName": "non_module_deps",
-          "usingModule": "rules_xcodeproj@2.1.0",
+          "usingModule": "rules_xcodeproj@2.9.2",
           "location": {
-            "file": "https://bcr.bazel.build/modules/rules_xcodeproj/2.1.0/MODULE.bazel",
-            "line": 26,
+            "file": "https://bcr.bazel.build/modules/rules_xcodeproj/2.9.2/MODULE.bazel",
+            "line": 27,
             "column": 32
           },
           "imports": {
@@ -717,12 +621,12 @@
         "ruleClassName": "http_archive",
         "attributes": {
           "urls": [
-            "https://github.com/MobileNativeFoundation/rules_xcodeproj/releases/download/2.1.0/release.tar.gz"
+            "https://github.com/MobileNativeFoundation/rules_xcodeproj/releases/download/2.9.2/release.tar.gz"
           ],
-          "integrity": "sha256-pn04vd6/nJZNK1P143Qud+SPryzqXHj7/37DmzWG07g=",
+          "integrity": "sha256-GJAmZRiNMmN/CpGEjO20eMndARx4ByCrRJt4PyQ4BSc=",
           "strip_prefix": "",
           "remote_patches": {
-            "https://bcr.bazel.build/modules/rules_xcodeproj/2.1.0/patches/module_dot_bazel_version.patch": "sha256-FvysLt3h2qlmse9NBDXupRe8skwhxcaKXWMcrmdUVvs="
+            "https://bcr.bazel.build/modules/rules_xcodeproj/2.9.2/patches/module_dot_bazel_version.patch": "sha256-6f1xT2Zu/YLikFs7ruYhw9CQuaFLmucm3gJog3kd92I="
           },
           "remote_patch_strip": 1
         }
@@ -17865,54 +17769,6 @@
             "rules_swift~",
             "build_bazel_rules_swift",
             "rules_swift~"
-          ]
-        ]
-      }
-    },
-    "@@rules_xcodeproj~//xcodeproj:extensions.bzl%internal": {
-      "general": {
-        "bzlTransitiveDigest": "YogUZuKAuUTJyGWpKYBwiwgm0Jxt72Sq/K1ejsqNoSQ=",
-        "recordedFileInputs": {},
-        "recordedDirentsInputs": {},
-        "envVariables": {},
-        "generatedRepoSpecs": {
-          "rules_xcodeproj_generated": {
-            "bzlFile": "@@rules_xcodeproj~//xcodeproj:repositories.bzl",
-            "ruleClassName": "generated_files_repo",
-            "attributes": {}
-          }
-        },
-        "recordedRepoMappingEntries": [
-          [
-            "rules_xcodeproj~",
-            "bazel_tools",
-            "bazel_tools"
-          ]
-        ]
-      }
-    },
-    "@@rules_xcodeproj~//xcodeproj:extensions.bzl%non_module_deps": {
-      "general": {
-        "bzlTransitiveDigest": "YogUZuKAuUTJyGWpKYBwiwgm0Jxt72Sq/K1ejsqNoSQ=",
-        "recordedFileInputs": {},
-        "recordedDirentsInputs": {},
-        "envVariables": {},
-        "generatedRepoSpecs": {
-          "rules_xcodeproj_index_import": {
-            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-            "ruleClassName": "http_archive",
-            "attributes": {
-              "build_file_content": "load(\"@bazel_skylib//rules:native_binary.bzl\", \"native_binary\")\n\nnative_binary(\n    name = \"index_import\",\n    src = \"index-import\",\n    out = \"index-import\",\n    visibility = [\"//visibility:public\"],\n)\n",
-              "sha256": "28c1ffa39d99e74ed70623899b207b41f79214c498c603915aef55972a851a15",
-              "url": "https://github.com/MobileNativeFoundation/index-import/releases/download/5.8.0.1/index-import.tar.gz"
-            }
-          }
-        },
-        "recordedRepoMappingEntries": [
-          [
-            "rules_xcodeproj~",
-            "bazel_tools",
-            "bazel_tools"
           ]
         ]
       }
