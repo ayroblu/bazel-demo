@@ -1,0 +1,14 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_binary", "swift_library")
+
+package(default_visibility = ["//example-ios-app:__subpackages__"])
+
+swift_library(
+    name = "js-wrap",
+    srcs = glob(["*.swift"]),
+    data = ["index.js"],
+)
+
+swift_binary(
+    name = "bin",
+    deps = [":js-wrap"],
+)

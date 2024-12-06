@@ -24,6 +24,5 @@ def dl(ctx, url, filename, out, sha256):
           cp -c "$temppath" "$out"
         }
         dl "$1" "$2" "$3" "$4"
-        """
+        """,
     )
-

@@ -5,8 +5,8 @@ rust_binary(
     srcs = ["main.rs"],
     deps = [
         "@crates//:tree-sitter",
-        "@crates//:tree-sitter-scala",
         "@crates//:tree-sitter-python",
+        "@crates//:tree-sitter-scala",
         "@crates//:tree-sitter-typescript",
     ],
 )

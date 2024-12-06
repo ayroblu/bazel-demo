@@ -11,10 +11,10 @@ filegroup(
 
 rust_test(
     name = "tests",
+    srcs = ["ssim.rs"],
     data = [":test-images"],
     deps = [
         "//rust-code/ssim",
         "@crates//:png",
     ],
-    srcs = ["ssim.rs"],
 )

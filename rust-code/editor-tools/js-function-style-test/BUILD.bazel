@@ -14,8 +14,8 @@ rust_test(
     name = "js-function-style-binary-test",
     srcs = glob(["main.rs"]),
     deps = [
-        ":runfile",
         ":direct",
+        ":runfile",
         "//rust-code/editor-tools/js-function-style",
         "//rust-code/editor-tools/js-function-style:js-function-style-lib",
         "@crates//:assert_cmd",

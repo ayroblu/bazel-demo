@@ -4,12 +4,11 @@ def _node_lib(ctx):
     version = ctx.attr.version
     arch = ctx.attr.arch
     sha256 = ctx.attr.sha256
-    filename = "node-"+version+"-"+arch+".tar.xz"
+    filename = "node-" + version + "-" + arch + ".tar.xz"
     out = ctx.actions.declare_file(filename)
-    url = "https://nodejs.org/dist/"+arch+"/"+filename
+    url = "https://nodejs.org/dist/" + arch + "/" + filename
     dl(ctx, url, filename, out, sha256)
     return [DefaultInfo(files = depset([out]))]
-
 
 def node_lib(name, version, sha256):
     arch = select({
@@ -18,10 +17,10 @@ def node_lib(name, version, sha256):
         ":macos-x86_64": "darwin-x64",
     })
     node_lib_internal(
-      name = name,
-      version = version,
-      arch = arch,
-      sha256 = sha256,
+        name = name,
+        version = version,
+        arch = arch,
+        sha256 = sha256,
     )
 
 node_lib_internal = rule(
@@ -33,8 +32,9 @@ node_lib_internal = rule(
     },
 )
 
-cpus = ['x86_64', 'arm64']
-oses = ['linux', 'macos']
+cpus = ["x86_64", "arm64"]
+oses = ["linux", "macos"]
+
 def node_platforms():
     [[native.config_setting(
         name = os + "-" + cpu,
@@ -43,4 +43,3 @@ def node_platforms():
             "@platforms//os:" + os,
         ],
     ) for cpu in cpus] for os in oses]
-

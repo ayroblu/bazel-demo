@@ -4,7 +4,10 @@ package(default_visibility = ["//example-android-app:__subpackages__"])
 
 kt_android_library(
     name = "src",
+    srcs = glob(["main/kotlin/**/*.kt"]),
     custom_package = "examples.android.lib",
+    manifest = "main/AndroidManifest.xml",
+    plugins = ["//example-android-app:jetpack_compose_compiler_plugin"],
     deps = [
         "@maven//:androidx_activity_activity_compose",
         "@maven//:androidx_appcompat_appcompat",
@@ -16,7 +19,4 @@ kt_android_library(
         "@maven//:androidx_core_core_ktx",
         "@maven//:org_jetbrains_kotlin_kotlin_stdlib",
     ],
-    manifest = "main/AndroidManifest.xml",
-    plugins = ["//example-android-app:jetpack_compose_compiler_plugin"],
-    srcs = glob(["main/kotlin/**/*.kt"]),
 )

@@ -25,7 +25,17 @@ filegroup(
 
 ts_project(
     name = "code-tools",
+    srcs = glob(
+        ["src/**/*.ts"],
+        exclude = [
+            "src/**/*.test.ts",
+            "src/testtypes.d.ts",
+        ],
+    ),
     declaration = True,
+    source_map = True,
+    transpiler = swc,
+    tsconfig = ":tsconfig",
     deps = [
         ":node_modules/@types/node",
         ":node_modules/glob",
@@ -36,21 +46,18 @@ ts_project(
         ":node_modules/tree-sitter-thrift",
         ":node_modules/tree-sitter-typescript",
     ],
-    source_map = True,
-    srcs = glob(
-        ["src/**/*.ts"],
-        exclude = [
-            "src/**/*.test.ts",
-            "src/testtypes.d.ts",
-        ],
-    ),
-    transpiler = swc,
-    tsconfig = ":tsconfig",
 )
 
 ts_project(
     name = "tests",
+    srcs = glob([
+        "**/*.test.ts",
+        "src/testtypes.d.ts",
+    ]),
     declaration = True,
+    source_map = True,
+    transpiler = swc,
+    tsconfig = "//code-tools:tsconfig",
     deps = [
         ":code-tools",
         ":node_modules/@types/chai",
@@ -59,13 +66,6 @@ ts_project(
         ":node_modules/chai",
         ":node_modules/chai-string",
     ],
-    source_map = True,
-    srcs = glob([
-        "**/*.test.ts",
-        "src/testtypes.d.ts",
-    ]),
-    transpiler = swc,
-    tsconfig = "//code-tools:tsconfig",
 )
 
 mocha_test(
@@ -80,11 +80,11 @@ mocha_test(
 
 js_binary(
     name = "remove-unused-bin",
-    entry_point = "src/examples/remove-unused.js",
     data = [
         ":code-tools",
         ":package.json",
     ],
+    entry_point = "src/examples/remove-unused.js",
 )
 
 js_run_binary(

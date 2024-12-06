@@ -78,6 +78,7 @@ maven.install(
     ],
 )
 use_repo(maven, "maven")
+
 bazel_dep(name = "rules_kotlin", version = "1.9.5")
 
 # JS
@@ -137,17 +138,51 @@ use_repo(rust, "rust_toolchains")
 register_toolchains("@rust_toolchains//:all")
 
 crate = use_extension("@rules_rust//crate_universe:extension.bzl", "crate")
-crate.spec(package = "tree-sitter", version = "0.23.2")
-crate.spec(package = "tree-sitter-scala", version = "0.23.3")
-crate.spec(package = "tree-sitter-python", version = "0.23.4")
-crate.spec(package = "tree-sitter-typescript", version = "0.23.2")
-crate.spec(package = "tree-sitter-javascript", version = "0.23.1")
-crate.spec(package = "tree-sitter-rust", version = "0.23.2")
-crate.spec(package = "png", version = "0.17.13")
-crate.spec(package = "const_format", version = "0.2.33")
-crate.spec(package = "serde_json", version = "1.0.133")
-crate.spec(package = "serde", version = "1.0.215", features = ["derive"])
-crate.spec(package = "assert_cmd", version = "2.0.16")
+crate.spec(
+    package = "tree-sitter",
+    version = "0.23.2",
+)
+crate.spec(
+    package = "tree-sitter-scala",
+    version = "0.23.3",
+)
+crate.spec(
+    package = "tree-sitter-python",
+    version = "0.23.4",
+)
+crate.spec(
+    package = "tree-sitter-typescript",
+    version = "0.23.2",
+)
+crate.spec(
+    package = "tree-sitter-javascript",
+    version = "0.23.1",
+)
+crate.spec(
+    package = "tree-sitter-rust",
+    version = "0.23.2",
+)
+crate.spec(
+    package = "png",
+    version = "0.17.13",
+)
+crate.spec(
+    package = "const_format",
+    version = "0.2.33",
+)
+crate.spec(
+    package = "serde_json",
+    version = "1.0.133",
+)
+crate.spec(
+    features = ["derive"],
+    package = "serde",
+    version = "1.0.215",
+)
+crate.spec(
+    package = "assert_cmd",
+    version = "2.0.16",
+)
 crate.from_specs()
 use_repo(crate, "crates")
 

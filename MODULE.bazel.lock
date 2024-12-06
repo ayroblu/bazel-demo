@@ -1,6 +1,12 @@
 {
   "lockFileVersion": 6,
+<<<<<<< HEAD
   "moduleFileHash": "c9be88c54dbc279b981d8fe473dbc76fbe68b86ad342f6b830296b2026ef908d",
+||||||| parent of cc71105 (build format)
+  "moduleFileHash": "82c3f59c4fe8763a8d7b2148bfeb8cae68e778900181370e3e099533d1eb3012",
+=======
+  "moduleFileHash": "f6b358b4550a463f799ed05f924b9066a3d49147538a969e63ddeb12ff5164fe",
+>>>>>>> cc71105 (build format)
   "flags": {
     "cmdRegistries": [
       "https://bcr.bazel.build/"
@@ -341,7 +347,13 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
+<<<<<<< HEAD
                 "line": 141,
+||||||| parent of cc71105 (build format)
+                "line": 140,
+=======
+                "line": 144,
+>>>>>>> cc71105 (build format)
                 "column": 11
               }
             },
@@ -354,7 +366,13 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
+<<<<<<< HEAD
                 "line": 142,
+||||||| parent of cc71105 (build format)
+                "line": 141,
+=======
+                "line": 148,
+>>>>>>> cc71105 (build format)
                 "column": 11
               }
             },
@@ -367,7 +385,13 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
+<<<<<<< HEAD
                 "line": 143,
+||||||| parent of cc71105 (build format)
+                "line": 142,
+=======
+                "line": 152,
+>>>>>>> cc71105 (build format)
                 "column": 11
               }
             },
@@ -380,7 +404,13 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
+<<<<<<< HEAD
                 "line": 144,
+||||||| parent of cc71105 (build format)
+                "line": 143,
+=======
+                "line": 156,
+>>>>>>> cc71105 (build format)
                 "column": 11
               }
             },
@@ -393,7 +423,13 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
+<<<<<<< HEAD
                 "line": 145,
+||||||| parent of cc71105 (build format)
+                "line": 144,
+=======
+                "line": 160,
+>>>>>>> cc71105 (build format)
                 "column": 11
               }
             },
@@ -406,7 +442,13 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
+<<<<<<< HEAD
                 "line": 146,
+||||||| parent of cc71105 (build format)
+                "line": 145,
+=======
+                "line": 164,
+>>>>>>> cc71105 (build format)
                 "column": 11
               }
             },
@@ -419,7 +461,13 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
+<<<<<<< HEAD
                 "line": 147,
+||||||| parent of cc71105 (build format)
+                "line": 146,
+=======
+                "line": 168,
+>>>>>>> cc71105 (build format)
                 "column": 11
               }
             },
@@ -432,23 +480,35 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
+<<<<<<< HEAD
                 "line": 148,
+||||||| parent of cc71105 (build format)
+                "line": 147,
+=======
+                "line": 172,
+>>>>>>> cc71105 (build format)
                 "column": 11
               }
             },
             {
               "tagName": "spec",
               "attributeValues": {
-                "package": "serde",
-                "version": "1.0.215",
                 "features": [
                   "derive"
-                ]
+                ],
+                "package": "serde",
+                "version": "1.0.215"
               },
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
+<<<<<<< HEAD
                 "line": 149,
+||||||| parent of cc71105 (build format)
+                "line": 148,
+=======
+                "line": 176,
+>>>>>>> cc71105 (build format)
                 "column": 11
               }
             },
@@ -461,7 +521,13 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
+<<<<<<< HEAD
                 "line": 150,
+||||||| parent of cc71105 (build format)
+                "line": 149,
+=======
+                "line": 181,
+>>>>>>> cc71105 (build format)
                 "column": 11
               }
             },
@@ -471,7 +537,13 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
+<<<<<<< HEAD
                 "line": 151,
+||||||| parent of cc71105 (build format)
+                "line": 150,
+=======
+                "line": 185,
+>>>>>>> cc71105 (build format)
                 "column": 17
               }
             }
@@ -485,7 +557,13 @@
           "usingModule": "<root>",
           "location": {
             "file": "@@//:MODULE.bazel",
+<<<<<<< HEAD
             "line": 171,
+||||||| parent of cc71105 (build format)
+            "line": 170,
+=======
+            "line": 205,
+>>>>>>> cc71105 (build format)
             "column": 23
           },
           "imports": {
@@ -502,7 +580,13 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
+<<<<<<< HEAD
                 "line": 172,
+||||||| parent of cc71105 (build format)
+                "line": 171,
+=======
+                "line": 206,
+>>>>>>> cc71105 (build format)
                 "column": 17
               }
             }
@@ -516,7 +600,13 @@
           "usingModule": "<root>",
           "location": {
             "file": "@@//:MODULE.bazel",
+<<<<<<< HEAD
             "line": 180,
+||||||| parent of cc71105 (build format)
+            "line": 179,
+=======
+            "line": 214,
+>>>>>>> cc71105 (build format)
             "column": 20
           },
           "imports": {
@@ -534,7 +624,13 @@
               "devDependency": false,
               "location": {
                 "file": "@@//:MODULE.bazel",
+<<<<<<< HEAD
                 "line": 181,
+||||||| parent of cc71105 (build format)
+                "line": 180,
+=======
+                "line": 215,
+>>>>>>> cc71105 (build format)
                 "column": 10
               }
             }

@@ -27,7 +27,7 @@ pub fn edit(input: &Input) -> Option<String> {
     let tree = parser.parse(&input.source, None).unwrap();
     let mut cursor = tree.root_node().walk();
 
-    extract(&input, &mut cursor)
+    extract(input, &mut cursor)
         .flatten()
         .map(|(node, next)| swap(&input.source, &node, &next))
 }
