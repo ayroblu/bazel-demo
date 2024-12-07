@@ -1,42 +1,28 @@
 import Foundation
 import JavaScriptCore
+import Log
 
-func getJsContext() -> JSContext? {
-  let jsContents = loadJsFile()
-
-  let context = setupJsContext()
-
-  context.evaluateScript(jsContents)
-
-  return context
-}
-
-let path = "bin.runfiles/_main/example-ios-app/js-wrap/index"
-func loadJsFile() -> String? {
-  guard let jsPath = Bundle.main.path(forResource: path, ofType: "js") else {
-    log("WARN: Unable to read resource files.")
-    return nil
-  }
-
-  guard let jsContents = try? String(contentsOfFile: jsPath, encoding: String.Encoding.utf8)
-  else {
-    log("WARN: Could not read: \(jsPath)")
-    return nil
-  }
-  return jsContents
-}
-
-func setupJsContext() -> JSContext {
+public func getJsContext() -> JSContext {
   let context: JSContext = JSContext()
-  let logHandler: @convention(block) (String) -> Void = { arg in
-    log("console.log: \(arg)")
+  let logHandler: @convention(block) () -> Void = { () in
+    guard let args = JSContext.currentArguments() else { return }
+    log(["console.log:"] + args)
   }
   context["console"]?["log"] = logHandler
   context.exceptionHandler = { context, exception in
     guard let exception = exception else { return }
-    log("ERR: \(exception)")
+    log("ERR:", exception)
+    if let stack: JSValue = exception["stack"] {
+      log("ERR:  ", stack)
+    }
   }
   setupTimers(jsContext: context)
+
+  // TODO:
+  // - Errors - stack traces
+  // - tests
+  // - passing dicts + primitives
+  // - passing structs
   return context
 }
 

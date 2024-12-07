@@ -1,0 +1,13 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_binary")
+
+package(default_visibility = ["//example-ios-app:__subpackages__"])
+
+swift_binary(
+    name = "JsWrapExample",
+    srcs = glob(["*.swift"]),
+    data = ["index.js"],
+    deps = [
+        "//example-ios-app/JsWrap",
+        "//example-ios-app/Log",
+    ],
+)

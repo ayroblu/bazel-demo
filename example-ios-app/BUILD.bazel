@@ -1,11 +1,19 @@
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
+# xcodeproj just to create the xcodeproj directory
+# You need to rerun it regularly to keep XCode updated
+# bazel run example-ios-app:xcodeproj && xed example-ios-app/example-ios-app/xcodeproj
+load(
+    "@rules_xcodeproj//xcodeproj:defs.bzl",
+    "xcodeproj",
+)
+
 swift_library(
     name = "lib",
-    srcs = glob(["*.swift"]),
+    srcs = ["BazelApp.swift"],
     deps = [
-        "//example-ios-app/js-wrap",
+        "//example-ios-app/JsWrap",
         "//example-ios-app/utils",
     ],
 )
@@ -21,14 +29,6 @@ ios_application(
     minimum_os_version = "18.0",
     visibility = ["//visibility:public"],
     deps = [":lib"],
-)
-
-# xcodeproj just to create the xcodeproj directory
-# You need to rerun it regularly to keep XCode updated
-# bazel run example-ios-app:xcodeproj && xed example-ios-app/example-ios-app/xcodeproj
-load(
-    "@rules_xcodeproj//xcodeproj:defs.bzl",
-    "xcodeproj",
 )
 
 xcodeproj(
