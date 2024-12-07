@@ -6,9 +6,10 @@ import PackageDescription
 // This + Sources folder only exists to appease swiftc + sourcekit-lsp
 let package = Package(
     name: "MyPackage",
+    platforms: [.macOS("15.1")],
     targets: [
         .target(name: "Log", path: "Log"),
-        .target(name: "JsWrap", dependencies: ["Log"], path: "JsWrap"),
-        .target(name: "JsWrapExample", dependencies: ["JsWrap"], path: "JsWrapExample"),
+        .target(name: "JsWrap", path: "JsWrap"),
+        .target(name: "JsWrapExample", path: "JsWrapExample"),
     ]
 )
