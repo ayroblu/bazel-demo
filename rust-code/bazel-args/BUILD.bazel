@@ -1,0 +1,20 @@
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
+
+package(default_visibility = ["//rust-code/editor-tools:__subpackages__"])
+
+rust_binary(
+    name = "bazel-args",
+    srcs = ["bazel-args.rs"],
+    deps = [":lib"],
+)
+
+rust_binary(
+    name = "ibazel-args",
+    srcs = ["ibazel-args.rs"],
+    deps = [":lib"],
+)
+
+rust_library(
+    name = "lib",
+    srcs = ["lib.rs"],
+)

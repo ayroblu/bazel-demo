@@ -11,6 +11,8 @@ run:quiet --ui_event_filters=-info,-debug,-warning,-stderr,-stdout  --noshow_pro
 
 # test_output=all to always show test output
 test --test_output=errors
+test:all --test_output=all
+# test_filter= to restrict to certain tests
 
 # Allow the Bazel server to check directory sources for changes. Ensures that the Bazel server
 # notices when a directory changes, if you have a directory listed in the srcs of some target.
@@ -24,10 +26,3 @@ startup --host_jvm_args=-DBAZEL_TRACK_SOURCE_DIRECTORIES=1
 # https://www.buildbuddy.io/blog/debugging-slow-bazel-builds
 startup --digest_function=BLAKE3
 common --nolegacy_important_outputs
-
-# Rust bazel group - setup rust analyzer
-# https://bazelbuild.slack.com/archives/CSV56UT0F/p1717378560228099?thread_ts=1700926930.043059&cid=CSV56UT0F
-# build --aspects=@rules_rust//rust:defs.bzl%rust_clippy_aspect
-# build --output_groups=+clippy_checks
-# build --@rules_rust//rust/settings:error_format=json
-# build --@rules_rust//:capture_clippy_output=true
