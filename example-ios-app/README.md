@@ -3,6 +3,8 @@ Example iOS App
 
 TODO
 ----
+
+- Implement fetch
 - Replicate this on Android using hermes compiler
     - https://github.com/facebook/hermes/blob/main/doc/BuildingAndRunning.md
     - https://github.com/facebook/hermes/blob/main/doc/CrossCompilation.md
