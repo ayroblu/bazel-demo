@@ -16,13 +16,12 @@ public func getJsContext() -> JSContext {
       log("ERR:  ", stack)
     }
   }
-  let queue = DispatchQueue(label: "js")
-  setupTimers(jsContext: context, dispatchQueue: queue)
+  setupTimers(jsContext: context)
 
   return context
 }
 
-func setupTimers(jsContext: JSContext, dispatchQueue queue: DispatchQueue) {
+func setupTimers(jsContext: JSContext) {
   var counter = 0
   func getId() -> Int {
     let key = counter

@@ -11,5 +11,6 @@ let package = Package(
         .target(name: "Log", path: "Log"),
         .target(name: "JsWrap", path: "JsWrap"),
         .target(name: "JsWrapExample", path: "JsWrapExample"),
+        .testTarget(name: "JsWrapTests"),
     ]
 )

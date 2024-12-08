@@ -5,7 +5,6 @@ TODO
 ----
 
 - add tests
-- Setup a way to pass structs between js and jscore land
 
 ### Backburner
 
