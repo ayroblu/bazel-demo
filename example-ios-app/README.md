@@ -3,12 +3,12 @@ Example iOS App
 
 TODO
 ----
-
-- add tests
+- Replicate this on Android using hermes compiler
+    - https://github.com/facebook/hermes/blob/main/doc/BuildingAndRunning.md
+    - https://github.com/facebook/hermes/blob/main/doc/CrossCompilation.md
 
 ### Backburner
 
-- Replicate this on Android using hermes compiler
 - Generate interfaces from interface langauge (yaml?)
 - Determine breaking changes
 - get path location for runfiles via env var bazel
