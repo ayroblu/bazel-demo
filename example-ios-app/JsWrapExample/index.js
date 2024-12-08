@@ -1,12 +1,16 @@
 // Content
 console.log('hi', 5 + 5);
-console.log(5 + 5);
 console.log(Math.min(5, 4));
 console.log("globalThis:", Object.keys(globalThis));
-console.log("dict", JSON.stringify(globalThis.capitalCity));
-console.log("struct", globalThis.structs, Object.getOwnPropertyNames(globalThis.structs));
+console.log("dict", JSON.stringify(capitalCity));
+capitalCity["NZ"] = "Wellington";
+console.log("struct", structs, Object.getOwnPropertyNames(globalThis.structs));
 
-thing = new Date()
+now = new Date()
+
+function thing(text) {
+  return "got: " + text
+}
 
 function subscribe(key, f) {
   f(key, "first")

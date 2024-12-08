@@ -16,64 +16,56 @@ public func getJsContext() -> JSContext {
       log("ERR:  ", stack)
     }
   }
-  setupTimers(jsContext: context)
+  let queue = DispatchQueue(label: "js")
+  setupTimers(jsContext: context, dispatchQueue: queue)
 
-  // TODO:
-  // - Errors - stack traces
-  // - tests
-  // - passing dicts + primitives
-  // - passing structs
   return context
 }
 
-func setupTimers(jsContext: JSContext) {
+func setupTimers(jsContext: JSContext, dispatchQueue queue: DispatchQueue) {
   var counter = 0
   func getId() -> Int {
     let key = counter
     counter += 1
     return key
   }
-  // For correctness probably should have two time dicts
-  var timers = [Int: Timer]()
-  let setTimeout: @convention(block) (JSValue, Double) -> Int = { callback, delayMs in
-    let delaySecs = delayMs / 1000.0
+  // https://stackoverflow.com/questions/55131532/difference-between-dispatchsourcetimer-timer-and-asyncafter
+  var intervalTimers = [Int: DispatchSourceTimer]()
+  var timeoutTimers = [Int: DispatchSourceTimer]()
+  let setTimeout: @convention(block) (JSValue, Int) -> Int = { callback, delayMs in
     let key = getId()
-    let work = DispatchWorkItem {
-      timers.removeValue(forKey: key)
+    let timer = DispatchSource.makeTimerSource()
+    timer.schedule(deadline: .now() + .milliseconds(delayMs))
+    timer.setEventHandler {
+      intervalTimers.removeValue(forKey: key)
       callback.call(withArguments: [])
     }
-    DispatchQueue.main.async {
-      let timer = Timer.scheduledTimer(withTimeInterval: delaySecs, repeats: false) { timer in
-        work.perform()
-      }
-      timers[key] = timer
-    }
+    timer.activate()
+    timeoutTimers[key] = timer
     return key
   }
   jsContext["setTimeout"] = setTimeout
   let clearTimeout: @convention(block) (Int) -> Void = { key in
-    timers.removeValue(forKey: key)?.invalidate()
+    timeoutTimers.removeValue(forKey: key)?.cancel()
   }
   jsContext["clearTimeout"] = clearTimeout
 
-  let setInterval: @convention(block) (JSValue, Double) -> Int = { callback, intervalMs in
-    let intervalSecs = intervalMs / 1000.0
+  let setInterval: @convention(block) (JSValue, Int) -> Int = { callback, intervalMs in
     let key = getId()
-    let work = DispatchWorkItem {
-      timers.removeValue(forKey: key)
+    let timer = DispatchSource.makeTimerSource()
+    timer.schedule(
+      deadline: .now() + .milliseconds(intervalMs), repeating: .milliseconds(intervalMs))
+    timer.setEventHandler {
+      intervalTimers.removeValue(forKey: key)
       callback.call(withArguments: [])
     }
-    DispatchQueue.main.async {
-      let timer = Timer.scheduledTimer(withTimeInterval: intervalSecs, repeats: true) { _ in
-        work.perform()
-      }
-      timers[key] = timer
-    }
+    timer.activate()
+    intervalTimers[key] = timer
     return key
   }
   jsContext["setInterval"] = setInterval
   let clearInterval: @convention(block) (Int) -> Void = { key in
-    timers.removeValue(forKey: key)?.invalidate()
+    intervalTimers.removeValue(forKey: key)?.cancel()
   }
   jsContext["clearInterval"] = clearInterval
 }
