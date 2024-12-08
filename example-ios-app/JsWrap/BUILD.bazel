@@ -8,5 +8,8 @@ swift_library(
         ["*.swift"],
     ),
     module_name = "JsWrap",
-    deps = ["//example-ios-app/Log"],
+    deps = [
+        "//example-ios-app/Log",
+        "//example-ios-app/utils",
+    ],
 )

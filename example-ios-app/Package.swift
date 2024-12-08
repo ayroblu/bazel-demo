@@ -8,6 +8,7 @@ let package = Package(
     name: "MyPackage",
     platforms: [.macOS("15.1")],
     targets: [
+        .target(name: "utils", path: "utils"),
         .target(name: "Log", path: "Log"),
         .target(name: "JsWrap", path: "JsWrap"),
         .target(name: "JsWrapExample", path: "JsWrapExample"),

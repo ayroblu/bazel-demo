@@ -1,20 +1,23 @@
 import Foundation
 import JavaScriptCore
 import Log
+import utils
 
-public func getJsContext() -> JSContext {
+public func getJsContext(onException: @escaping (String) -> Void = { _ in }) -> JSContext {
   let context: JSContext = JSContext()
   let logHandler: @convention(block) () -> Void = { () in
     guard let args = JSContext.currentArguments() else { return }
-    log(["console.log:"] + args)
+    log(args: ["console.log:"] + args)
   }
   context["console"]?["log"] = logHandler
   context.exceptionHandler = { context, exception in
     guard let exception = exception else { return }
-    log("ERR:", exception)
-    if let stack: JSValue = exception["stack"] {
-      log("ERR:  ", stack)
+    var errorText = exception.toString() ?? "unknown"
+    if let stack: String = exception["stack"]?.toString() {
+      errorText += "\n"
+      errorText += stack.indentSpaces(count: 2)
     }
+    onException(errorText)
   }
   setupTimers(jsContext: context)
 

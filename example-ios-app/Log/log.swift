@@ -1,9 +1,9 @@
 import Foundation
 
 public func log(_ args: Any...) {
-  log(args)
+  log(args: args)
 }
-public func log(_ args: [Any]) {
+public func log(args: [Any]) {
   let formatter = DateFormatter()
   formatter.dateFormat = "HH:mm:ss.SSS"  // Hours:Minutes:Seconds.Milliseconds
 

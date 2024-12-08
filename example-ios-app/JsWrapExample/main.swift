@@ -4,7 +4,11 @@ import Log
 
 let jsContents = loadJsFile()
 
-let context: JSContext = getJsContext()
+let context: JSContext = getJsContext(onException: { errorText in
+  for line in errorText.splitlines() {
+    log("ERR", line)
+  }
+})
 
 struct User: Codable {
   let id: Int
