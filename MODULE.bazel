@@ -51,16 +51,16 @@ http_archive(
 )
 
 # Android
-bazel_dep(name = "rules_jvm_external", version = "6.1")
+bazel_dep(name = "rules_jvm_external", version = "6.6")
 
 _COMPOSE_VERSION = "1.2.1"
-_COMPOSE_COMPILER_VERSION = "1.5.9"
-_KOTLIN_COMPILER_VERSION = "1.9.22"
-# _KOTLIN_COMPILER_SHA = "88b39213506532c816ff56348c07bbeefe0c8d18943bffbad11063cf97cac3e6"
+_KOTLIN_COMPILER_VERSION = "2.0.0"
+# _KOTLIN_COMPILER_SHA = "ef578730976154fd2c5968d75af8c2703b3de84a78dffe913f670326e149da3b"
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     artifacts = [
+        "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:{}".format(_KOTLIN_COMPILER_VERSION),
         "org.jetbrains.kotlin:kotlin-stdlib:{}".format(_KOTLIN_COMPILER_VERSION),
         "androidx.core:core-ktx:1.7.0",
         "androidx.appcompat:appcompat:1.4.1",
@@ -68,7 +68,6 @@ maven.install(
         "androidx.compose.material:material:{}".format(_COMPOSE_VERSION),
         "androidx.compose.ui:ui:{}".format(_COMPOSE_VERSION),
         "androidx.compose.ui:ui-tooling:{}".format(_COMPOSE_VERSION),
-        "androidx.compose.compiler:compiler:{}".format(_COMPOSE_COMPILER_VERSION),
         "androidx.compose.runtime:runtime:{}".format(_COMPOSE_VERSION),
         # "androidx.compose.material3:material3:1.0.1",
     ],
@@ -79,7 +78,7 @@ maven.install(
 )
 use_repo(maven, "maven")
 
-bazel_dep(name = "rules_kotlin", version = "1.9.5")
+bazel_dep(name = "rules_kotlin", version = "2.0.0")
 
 # JS
 bazel_dep(name = "rules_nodejs", version = "6.1.0")

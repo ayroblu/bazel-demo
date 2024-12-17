@@ -5,5 +5,5 @@ workspace(name = "bazel-demo")
 # Necessary for android support
 android_sdk_repository(
     name = "androidsdk",
-    api_level = 33,
+    api_level = 34,
 )
