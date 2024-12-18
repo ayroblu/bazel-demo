@@ -53,7 +53,7 @@ http_archive(
 # Android
 bazel_dep(name = "rules_jvm_external", version = "6.6")
 
-_COMPOSE_VERSION = "1.2.1"
+_COMPOSE_VERSION = "1.3.0"
 _KOTLIN_COMPILER_VERSION = "2.0.0"
 # _KOTLIN_COMPILER_SHA = "ef578730976154fd2c5968d75af8c2703b3de84a78dffe913f670326e149da3b"
 
@@ -63,8 +63,9 @@ maven.install(
         "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:{}".format(_KOTLIN_COMPILER_VERSION),
         "org.jetbrains.kotlin:kotlin-stdlib:{}".format(_KOTLIN_COMPILER_VERSION),
         "androidx.core:core-ktx:1.7.0",
-        "androidx.appcompat:appcompat:1.4.1",
-        "androidx.activity:activity-compose:1.4.0",
+        "androidx.appcompat:appcompat:1.5.1",
+        "androidx.lifecycle:lifecycle-process:2.5.1",
+        "androidx.activity:activity-compose:1.5.1",
         "androidx.compose.material:material:{}".format(_COMPOSE_VERSION),
         "androidx.compose.ui:ui:{}".format(_COMPOSE_VERSION),
         "androidx.compose.ui:ui-tooling:{}".format(_COMPOSE_VERSION),
