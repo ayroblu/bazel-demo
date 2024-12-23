@@ -1,6 +1,8 @@
 Example Android App
 ===================
 
+## Get Started
+
 Make sure your emulator is running:
 
 ```
@@ -23,6 +25,19 @@ Install app on device:
 ./install
 ```
 
-### Source
+## Helpful
+
+Toggle dark mode:
+
+```
+adb shell "cmd uimode night yes"
+adb shell "cmd uimode night no"
+```
+
+Setup Android Studio
+
+- https://www.kodeco.com/31558158-building-with-bazel/lessons/16
+
+## Source
 
 Inspiration and reference for bazel config comes from: https://github.com/bazelbuild/rules_kotlin/tree/master/examples/jetpack_compose
