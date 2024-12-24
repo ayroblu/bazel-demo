@@ -2,6 +2,7 @@
 common --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
 
 build --symlink_prefix=.bazel/
+build:opt -c opt
 
 # See: https://bazel.build/advanced/performance/json-trace-profile
 # chrome://tracing to view
