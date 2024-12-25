@@ -1,6 +1,6 @@
-package(default_visibility = ["//rust-code/editor-tools:__subpackages__"])
-
 load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
+
+package(default_visibility = ["//rust-code/editor-tools:__subpackages__"])
 
 rust_binary(
     name = "lang-move",
@@ -22,7 +22,9 @@ rust_library(
         "//rust-code/utils",
         "@crates//:serde",
         "@crates//:tree-sitter",
+        "@crates//:tree-sitter-python",
         "@crates//:tree-sitter-rust",
+        "@crates//:tree-sitter-scala",
         "@crates//:tree-sitter-typescript",
     ],
 )

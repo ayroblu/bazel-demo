@@ -15,6 +15,8 @@ pub enum MoveAction {
 }
 #[derive(Serialize, Deserialize)]
 pub enum Lang {
-    TypeScript,
+    Python,
     Rust,
+    Scala,
+    TypeScript,
 }

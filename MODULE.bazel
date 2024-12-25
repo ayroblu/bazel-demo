@@ -167,10 +167,6 @@ crate.spec(
     version = "0.23.2",
 )
 crate.spec(
-    package = "tree-sitter-javascript",
-    version = "0.23.1",
-)
-crate.spec(
     package = "tree-sitter-rust",
     version = "0.23.2",
 )

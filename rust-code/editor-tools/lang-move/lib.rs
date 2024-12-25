@@ -19,10 +19,16 @@ pub fn edit(input: &Input) -> Option<String> {
     match input.lang {
         Lang::TypeScript => parser
             .set_language(&tree_sitter_typescript::LANGUAGE_TSX.into())
-            .expect("Error loading Rust grammar"),
+            .expect("Error loading TypeScript grammar"),
         Lang::Rust => parser
             .set_language(&tree_sitter_rust::LANGUAGE.into())
             .expect("Error loading Rust grammar"),
+        Lang::Python => parser
+            .set_language(&tree_sitter_python::LANGUAGE.into())
+            .expect("Error loading Python grammar"),
+        Lang::Scala => parser
+            .set_language(&tree_sitter_scala::LANGUAGE.into())
+            .expect("Error loading Scala grammar"),
     }
     let tree = parser.parse(&input.source, None).unwrap();
     let mut cursor = tree.root_node().walk();
