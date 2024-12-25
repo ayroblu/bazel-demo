@@ -22,17 +22,31 @@ pub(crate) fn convert(input: &Input, item: &Function) -> Option<String> {
             } else {
                 format!("{{\n{};\n}}", indent_string(format!("return {}", body), 1))
             };
-            Some(format!(
-                "function {}{}{} {}",
-                item.name
-                    .as_ref()
-                    .map_or_else(|| "".to_string(), |name| name.clone()),
-                item.params
-                    .map_or_else(|| "()".to_string(), |node| to_text(&node, source_bytes)),
-                item.return_type
-                    .map_or_else(|| "".to_string(), |node| to_text(&node, source_bytes)),
-                body_text
-            ))
+            if vec!["method_definition", "pair"].contains(&item.node.kind()) {
+                Some(format!(
+                    "{}{}{} {}",
+                    item.name
+                        .as_ref()
+                        .map_or_else(|| "undefined".to_string(), |name| name.clone()),
+                    item.params
+                        .map_or_else(|| "()".to_string(), |node| to_text(&node, source_bytes)),
+                    item.return_type
+                        .map_or_else(|| "".to_string(), |node| to_text(&node, source_bytes)),
+                    body_text
+                ))
+            } else {
+                Some(format!(
+                    "function {}{}{} {}",
+                    item.name
+                        .as_ref()
+                        .map_or_else(|| "".to_string(), |name| name.clone()),
+                    item.params
+                        .map_or_else(|| "()".to_string(), |node| to_text(&node, source_bytes)),
+                    item.return_type
+                        .map_or_else(|| "".to_string(), |node| to_text(&node, source_bytes)),
+                    body_text
+                ))
+            }
         }
         ConvertAction::ArrowBlock => {
             let body = item
@@ -53,15 +67,23 @@ pub(crate) fn convert(input: &Input, item: &Function) -> Option<String> {
             let return_type = item
                 .return_type
                 .map_or_else(|| "".to_string(), |node| to_text(&node, source_bytes));
-            Some(item.name.as_ref().map_or_else(
-                || format!("{}{} => {}", params, return_type, body_text),
-                |name| {
-                    format!(
-                        "const {} = {}{} => {}",
-                        name, params, return_type, body_text
-                    )
-                },
-            ))
+            if vec!["method_definition", "pair"].contains(&item.node.kind()) {
+                let name = item.name.as_deref().unwrap_or_else(|| "");
+                Some(format!(
+                    "{}: {}{} => {}",
+                    name, params, return_type, body_text
+                ))
+            } else {
+                Some(item.name.as_ref().map_or_else(
+                    || format!("{}{} => {}", params, return_type, body_text),
+                    |name| {
+                        format!(
+                            "const {} = {}{} => {}",
+                            name, params, return_type, body_text
+                        )
+                    },
+                ))
+            }
         }
         ConvertAction::ArrowInline => {
             // conversion to inline is not perfect, you may return a value you weren't before
@@ -91,15 +113,23 @@ pub(crate) fn convert(input: &Input, item: &Function) -> Option<String> {
             let return_type = item
                 .return_type
                 .map_or_else(|| "".to_string(), |node| to_text(&node, source_bytes));
-            Some(item.name.as_ref().map_or_else(
-                || format!("{}{} => {}", params, return_type, body_text),
-                |name| {
-                    format!(
-                        "const {} = {}{} => {}",
-                        name, params, return_type, body_text
-                    )
-                },
-            ))
+            if vec!["method_definition", "pair"].contains(&item.node.kind()) {
+                let name = item.name.as_deref().unwrap_or_else(|| "");
+                Some(format!(
+                    "{}: {}{} => {}",
+                    name, params, return_type, body_text
+                ))
+            } else {
+                Some(item.name.as_ref().map_or_else(
+                    || format!("{}{} => {}", params, return_type, body_text),
+                    |name| {
+                        format!(
+                            "const {} = {}{} => {}",
+                            name, params, return_type, body_text
+                        )
+                    },
+                ))
+            }
         }
     }
 }

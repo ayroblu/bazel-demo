@@ -1,23 +1,23 @@
 load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 
 rust_test(
-    name = "js-function-style-lib-test",
+    name = "lib-test",
     srcs = glob(["lib.rs"]),
     deps = [
-        "//rust-code/editor-tools/js-function-style:js-function-style-lib",
+        "//rust-code/editor-tools/js-function-style:lib",
         "@crates//:const_format",
     ],
     # env = {"RUST_BACKTRACE": "1"},
 )
 
 rust_test(
-    name = "js-function-style-binary-test",
+    name = "binary-test",
     srcs = glob(["main.rs"]),
     deps = [
         ":direct",
         ":runfile",
         "//rust-code/editor-tools/js-function-style",
-        "//rust-code/editor-tools/js-function-style:js-function-style-lib",
+        "//rust-code/editor-tools/js-function-style:lib",
         "@crates//:assert_cmd",
         "@crates//:serde_json",
     ],

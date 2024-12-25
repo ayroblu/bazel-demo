@@ -1,18 +1,18 @@
-package(default_visibility = ["//rust-code/editor-tools:__subpackages__"])
-
 load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
+
+package(default_visibility = ["//rust-code/editor-tools:__subpackages__"])
 
 rust_binary(
     name = "js-function-style",
     srcs = ["main.rs"],
     deps = [
-        ":js-function-style-lib",
+        ":lib",
         "@crates//:serde_json",
     ],
 )
 
 rust_library(
-    name = "js-function-style-lib",
+    name = "lib",
     srcs = glob(
         ["*.rs"],
         ["main.rs"],

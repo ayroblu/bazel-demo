@@ -8,3 +8,4 @@ rsync .bazel/bin/rust-code/editor-tools/lang-move/lang-move ~/bin/
 rsync .bazel/bin/rust-code/bazel-args/ibazel-args ~/bin/
 rsync .bazel/bin/rust-code/bazel-args/bazel-args ~/bin/
 cd -
+./setup-rust-analyzer

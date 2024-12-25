@@ -1,11 +1,13 @@
 use crate::types::Function;
-use crate::types::FunctionKind;
 use tree_sitter::Node;
 use tree_sitter_utils::to_text;
 
 pub(crate) fn get_function<'a>(node: &Node<'a>, source_bytes: &'a [u8]) -> Option<Function<'a>> {
     let kind = node.kind();
-    if kind == "function_declaration" || kind == "function_expression" {
+    if kind == "function_declaration"
+        || kind == "function_expression"
+        || kind == "method_definition"
+    {
         // (function_declaration
         //   name: (identifier)
         //   parameters: (formal_parameters)
@@ -16,7 +18,6 @@ pub(crate) fn get_function<'a>(node: &Node<'a>, source_bytes: &'a [u8]) -> Optio
                 .child_by_field_name("name")
                 .map(|node| to_text(&node, source_bytes)),
             node: *node,
-            kind: FunctionKind::Function,
             body: node.child_by_field_name("body"),
             params: node.child_by_field_name("parameters"),
             return_type: node.child_by_field_name("return_type"),
@@ -46,25 +47,40 @@ pub(crate) fn get_function<'a>(node: &Node<'a>, source_bytes: &'a [u8]) -> Optio
                         .and_then(|node| node.child_by_field_name("name"))
                         .map(|node| to_text(&node, source_bytes)),
                     node: *node,
-                    kind: body
-                        .filter(|body| body.kind() == "statement_block")
-                        .map_or_else(|| FunctionKind::ArrowInline, |_| FunctionKind::ArrowBlock),
                     body,
                     params: child_node.child_by_field_name("parameters"),
                     return_type: child_node.child_by_field_name("return_type"),
                 }
             })
+    } else if kind == "pair" {
+        let name = node
+            .child_by_field_name("key")
+            .filter(|node| node.kind() == "property_identifier")
+            .map(|node| to_text(&node, source_bytes));
+        node.child_by_field_name("value").map(|child| {
+            let body = child.child_by_field_name("body");
+            Function {
+                name,
+                node: *node,
+                body,
+                params: child.child_by_field_name("parameters"),
+                return_type: child.child_by_field_name("return_type"),
+            }
+        })
     } else if kind == "arrow_function" {
         node.parent()
             .filter(|node| node.kind() != "variable_declarator")
+            .filter(|node| {
+                node.kind() != "pair"
+                    || node
+                        .child_by_field_name("key")
+                        .is_some_and(|node| node.kind() == "property_identifier")
+            })
             .map(|_| {
                 let body = node.child_by_field_name("body");
                 Function {
                     name: None,
                     node: *node,
-                    kind: body
-                        .filter(|body| body.kind() == "statement_block")
-                        .map_or_else(|| FunctionKind::ArrowInline, |_| FunctionKind::ArrowBlock),
                     body,
                     params: node.child_by_field_name("parameters"),
                     return_type: node.child_by_field_name("return_type"),

@@ -1,7 +1,7 @@
 use const_format::formatcp;
-use js_function_style_lib::edit;
-use js_function_style_lib::types::ConvertAction;
-use js_function_style_lib::types::Input;
+use lib::edit;
+use lib::types::ConvertAction;
+use lib::types::Input;
 
 macro_rules! edit_tests {
     ($($name:ident: $value:expr,)*) => {
@@ -65,6 +65,15 @@ edit_general_tests! {
         (R_FUNC.to_string(), 1, 0, ConvertAction::ArrowBlock, R.to_string()),
     converts_map_inline_to_function:
         (R_INLINE.to_string(), 0, 10, ConvertAction::Function, R_FUNC.to_string()),
+
+    converts_obj_block_to_function:
+        (OBJ_BLOCK.to_string(), 1, 5, ConvertAction::Function, OBJ_METHOD.to_string()),
+    converts_obj_inline_to_function:
+        (OBJ_INLINE.to_string(), 1, 5, ConvertAction::Function, OBJ_METHOD_FROM_INLINE.to_string()),
+    converts_obj_function_to_block:
+        (OBJ_METHOD.to_string(), 1, 5, ConvertAction::ArrowBlock, OBJ_BLOCK.to_string()),
+    converts_obj_function_to_inline:
+        (OBJ_METHOD.to_string(), 1, 5, ConvertAction::ArrowInline, OBJ_INLINE.to_string()),
 }
 
 #[test]
@@ -118,3 +127,22 @@ const D: &str = "const d = function() {
 }";
 
 const EXAMPLE: &str = formatcp!("\n{}\n{}\n{}\n{}\n", A, B, C, D);
+
+const OBJ_BLOCK: &str = "const a = {
+    item: (): Type => {
+        console.log('item')
+    },
+}";
+const OBJ_METHOD: &str = "const a = {
+    item(): Type {
+        console.log('item')
+    },
+}";
+const OBJ_INLINE: &str = "const a = {
+    item: (): Type => console.log('item'),
+}";
+const OBJ_METHOD_FROM_INLINE: &str = "const a = {
+    item(): Type {
+    return console.log('item');
+},
+}";
