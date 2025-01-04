@@ -9,7 +9,7 @@ import WebKit
     typealias PlatformViewController = NSViewController
 #endif
 
-let extensionBundleIdentifier = "com.ayroblu.vimkeys.Extension"
+let extensionBundleIdentifier = "com.ayroblu.vimkeys.extension"
 
 class ViewController: PlatformViewController, WKNavigationDelegate, WKScriptMessageHandler {
 
@@ -68,6 +68,7 @@ class ViewController: PlatformViewController, WKNavigationDelegate, WKScriptMess
                 withIdentifier: extensionBundleIdentifier
             ) { error in
                 guard error == nil else {
+                    print(error!)
                     // Insert code to inform the user that something went wrong.
                     return
                 }
