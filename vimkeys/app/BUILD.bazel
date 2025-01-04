@@ -1,0 +1,31 @@
+load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
+load("@build_bazel_rules_apple//apple:versioning.bzl", "apple_bundle_version")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+
+swift_library(
+    name = "lib",
+    srcs = [
+        "AppDelegate.swift",
+        "ViewController.swift",
+    ],
+    deps = [],
+)
+
+apple_bundle_version(
+    name = "version",
+    build_version = "1.0",
+)
+
+macos_application(
+    name = "app",
+    app_icons = [":Assets.xcassets"],
+    bundle_id = "com.ayroblu.vimkeys",
+    extensions = [
+        "//vimkeys",
+    ],
+    infoplists = ["//vimkeys:Info.plist"],
+    minimum_os_version = "10.14",
+    resources = ["Resources"],
+    version = ":version",
+    deps = [":lib"],
+)

@@ -1,0 +1,44 @@
+load("@build_bazel_rules_apple//apple:macos.bzl", "macos_extension")
+load("@build_bazel_rules_apple//apple:versioning.bzl", "apple_bundle_version")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+
+# xcodeproj just to create the xcodeproj directory
+# You need to rerun it regularly to keep XCode updated
+# bazel run vimkeys:xcodeproj && xed vimkeys/vimkeys.xcodeproj
+load("@rules_xcodeproj//xcodeproj:defs.bzl", "xcodeproj")
+
+package(default_visibility = ["//vimkeys:__subpackages__"])
+
+swift_library(
+    name = "lib",
+    srcs = [
+        "SafariWebExtensionHandler.swift",
+    ],
+    deps = [],
+)
+
+apple_bundle_version(
+    name = "version",
+    build_version = "1.0",
+)
+
+macos_extension(
+    name = "vimkeys",
+    bundle_id = "com.ayroblu.vimkeys.extension",
+    entitlements = ":vimkeys.entitlements",
+    infoplists = [":Info.plist"],
+    minimum_os_version = "10.14",
+    resources = ["Resources"],
+    version = ":version",
+    deps = [":lib"],
+)
+
+xcodeproj(
+    name = "xcodeproj",
+    build_mode = "bazel",
+    project_name = "vimkeys",
+    tags = ["manual"],
+    top_level_targets = [
+        ":vimkeys",
+    ],
+)
