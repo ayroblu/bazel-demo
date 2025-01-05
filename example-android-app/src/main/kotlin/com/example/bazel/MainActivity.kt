@@ -14,9 +14,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.javascriptengine.JavaScriptIsolate
+import androidx.javascriptengine.JavaScriptSandbox
+import com.google.common.util.concurrent.ListenableFuture
 import examples.android.lib.ui.theme.AppTheme
 
+
 class MainActivity : ComponentActivity() {
+    var jsSandboxFuture: ListenableFuture<JavaScriptSandbox> =
+        JavaScriptSandbox.createConnectedInstanceAsync(this)
+    var jsIsolate: JavaScriptIsolate = jsSandbox.createIsolate()
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     Log.v("Bazel", "Hello, Android")
