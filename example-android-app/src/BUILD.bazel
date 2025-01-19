@@ -17,7 +17,11 @@ kt_android_library(
         "@maven//:androidx_compose_ui_ui_tooling",
         "@maven//:androidx_core_core_ktx",
         "@maven//:androidx_javascriptengine_javascriptengine",
+        "@maven//:androidx_lifecycle_lifecycle_runtime_compose",
+        "@maven//:androidx_lifecycle_lifecycle_viewmodel_compose",
+        "@maven//:androidx_lifecycle_lifecycle_viewmodel_ktx",
         "@maven//:com_google_guava_guava",
         "@maven//:org_jetbrains_kotlin_kotlin_stdlib",
+        "@maven//:org_jetbrains_kotlinx_kotlinx_coroutines_guava",
     ],
 )

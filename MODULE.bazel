@@ -72,6 +72,16 @@ maven.install(
         "androidx.compose.material3:material3:1.3.1",
         "androidx.javascriptengine:javascriptengine:1.0.0-beta01",
 
+        # Allows viewModel usage inside Compose
+        "androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3",
+        # allows viewModelScope
+        "androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.3",
+        # lifecycleScope
+        "androidx.lifecycle:lifecycle-runtime-compose:2.8.3",
+
+        # allows using coroutines with ListenableFuture
+        "org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.6.0",
+
         # Fixes async killing issue
         "com.google.guava:guava:33.3.1-android",
 
