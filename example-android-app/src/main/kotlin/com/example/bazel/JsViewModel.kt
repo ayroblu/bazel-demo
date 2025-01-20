@@ -1,56 +1,83 @@
 package examples.android.lib
 
+import android.annotation.SuppressLint
 import android.app.Application
+import android.content.Context
 import android.util.Log
+import android.webkit.ConsoleMessage
+import android.webkit.JavascriptInterface
+import android.webkit.WebChromeClient
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.javascriptengine.JavaScriptConsoleCallback.ConsoleMessage
-import androidx.javascriptengine.JavaScriptIsolate
-import androidx.javascriptengine.JavaScriptSandbox
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 class JsViewModel(application: Application) : AndroidViewModel(application) {
-    var jsSandbox by mutableStateOf<JavaScriptSandbox?>(null)
-        private set
+    private var webView by mutableStateOf<WebView?>(null)
 
-    init {
-        if (JavaScriptSandbox.isSupported()) {
-            Log.i("Bazel", "Start js sandbox")
-            val jsSandboxFuture = JavaScriptSandbox.createConnectedInstanceAsync(getApplication())
-            viewModelScope.launch {
-                jsSandbox = jsSandboxFuture.await()
-                Log.i("Bazel", "Allocate js sandbox")
+    @SuppressLint("SetJavaScriptEnabled")
+    suspend fun initWebView(context: Context) = coroutineScope {
+        launch {
+            val webViewClient = WebViewClient()
+            val newWebView = WebView(context)
+
+            newWebView.webViewClient = webViewClient
+            newWebView.settings.javaScriptEnabled = true
+            newWebView.webChromeClient = object : WebChromeClient() {
+                @Suppress("NAME_SHADOWING")
+                override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+                    val consoleMessage = consoleMessage ?: return true
+                    handleConsole(consoleMessage)
+                    return true
+                }
             }
+            class Emitter {
+                @JavascriptInterface
+                fun emit(newName: String) {
+                    Log.i("BazelJs2", "emit $newName")
+                    name = newName
+                }
+            }
+            Log.i("BazelJs2", "setupWebView")
+            newWebView.addJavascriptInterface(Emitter(), "app")
+            newWebView.evaluateJavascript("app.toString()", {
+                webView = newWebView
+            })
         }
     }
 
-    suspend fun run(): String? {
-        val jsSandbox = jsSandbox ?: return null
-        val jsIsolate: JavaScriptIsolate = jsSandbox.createIsolate()
-        jsIsolate.setConsoleCallback { consoleCallback(it) }
-        val funcs = """async function run() {
-            console.log(1+1);
-            // setTimeout(() => {});
-            return "hi"
-        }"""
-//        val code = "throw new Error('internal')"
-        return runCatching {
-            jsIsolate.evaluateJavaScriptAsync(funcs).await()
-            val result = jsIsolate.evaluateJavaScriptAsync("run()").await()
-            Log.i("Bazel", result)
-            return result
-        }.onFailure { err ->
-            Log.e("BazelJsError", err.message.toString())
-        }.getOrDefault(null)
+    fun run2() {
+        name = "pre run"
+        Log.i("Bazel", "pre run")
+        webView?.evaluateJavascript("""
+            console.log("logging")
+            app.emit("Run once!")
+            setTimeout(() => {
+                app.emit("Run twice!")
+            }, 2000);
+        """, {})
     }
+
+    var name by mutableStateOf<String>("Other button")
 }
 
-fun consoleCallback(message: ConsoleMessage) {
-    Log.i("BazelJs", message.message)
-    Log.v("BazelJs", "(${message.level}) ${message.source}:${message.line}:${message.column}")
-    Log.v("BazelJs", "  ${message.trace ?: return}")
+fun handleConsole(consoleMessage: ConsoleMessage) {
+    when (consoleMessage.messageLevel()) {
+        ConsoleMessage.MessageLevel.DEBUG ->
+            Log.d("BazelWebView", consoleMessage.message())
+
+        ConsoleMessage.MessageLevel.ERROR ->
+            Log.e("BazelWebView", consoleMessage.message())
+
+        ConsoleMessage.MessageLevel.WARNING ->
+            Log.w("BazelWebView", consoleMessage.message())
+
+        else ->
+            Log.i("BazelWebView", consoleMessage.message())
+    }
+    Log.v("BazelWebView", "${consoleMessage.sourceId()}:${consoleMessage.lineNumber()}")
 }

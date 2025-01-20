@@ -8,6 +8,8 @@ build:opt -c opt
 # chrome://tracing to view
 build:profile --generate_json_trace_profile --profile profile.gz
 
+build:explain --explain=/tmp/explanation.txt --verbose_explanations
+
 run:quiet --ui_event_filters=-info,-debug,-warning,-stderr,-stdout  --noshow_progress
 
 # test_output=all to always show test output

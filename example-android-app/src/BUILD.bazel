@@ -10,6 +10,7 @@ kt_android_library(
     plugins = ["//example-android-app:jetpack_compose_compiler_plugin"],
     deps = [
         "@maven//:androidx_activity_activity_compose",
+        "@maven//:androidx_activity_activity_ktx",
         "@maven//:androidx_appcompat_appcompat",
         "@maven//:androidx_compose_material3_material3",
         "@maven//:androidx_compose_runtime_runtime",
