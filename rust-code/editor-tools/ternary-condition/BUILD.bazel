@@ -1,0 +1,27 @@
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
+
+package(default_visibility = ["//rust-code/editor-tools:__subpackages__"])
+
+rust_binary(
+    name = "ternary-condition",
+    srcs = ["main.rs"],
+    deps = [
+        ":ternary-condition-lib",
+        "@crates//:serde_json",
+    ],
+)
+
+rust_library(
+    name = "ternary-condition-lib",
+    srcs = glob(
+        ["*.rs"],
+        ["main.rs"],
+    ),
+    deps = [
+        "//rust-code/tree-sitter-utils",
+        "//rust-code/utils",
+        "@crates//:serde",
+        "@crates//:tree-sitter",
+        "@crates//:tree-sitter-typescript",
+    ],
+)

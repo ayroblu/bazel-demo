@@ -29,3 +29,23 @@ pub fn swap(source_in: &String, node: &Node, next: &Node) -> String {
     source.replace_range(range, &node_text);
     source
 }
+
+pub fn strip_semi(text: String) -> String {
+    if text.ends_with(";") {
+        text[..text.len() - 1].to_string()
+    } else {
+        text
+    }
+}
+
+#[macro_export]
+macro_rules! fn_get_ancestor_node {
+    ($name:ident, $kind:ident) => {
+        fn $name(node: Node) -> Option<Node> {
+            if node.kind() == stringify!($kind) {
+                return Some(node);
+            }
+            return node.parent().and_then($name);
+        }
+    };
+}

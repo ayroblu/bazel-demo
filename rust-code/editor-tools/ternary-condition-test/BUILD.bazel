@@ -1,0 +1,30 @@
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+
+rust_test(
+    name = "lib-test",
+    srcs = glob(["lib.rs"]),
+    deps = [
+        "//rust-code/editor-tools/ternary-condition:ternary-condition-lib",
+    ],
+    # env = {"RUST_BACKTRACE": "1"},
+)
+
+rust_test(
+    name = "binary-test",
+    srcs = glob(["main.rs"]),
+    deps = [
+        ":direct",
+        "//rust-code/editor-tools/ternary-condition",
+        "//rust-code/editor-tools/ternary-condition:ternary-condition-lib",
+        "@crates//:assert_cmd",
+        "@crates//:serde_json",
+    ],
+)
+
+rust_library(
+    name = "direct",
+    srcs = glob(["direct.rs"]),
+    deps = [
+        "//rust-code/editor-tools/ternary-condition",
+    ],
+)
