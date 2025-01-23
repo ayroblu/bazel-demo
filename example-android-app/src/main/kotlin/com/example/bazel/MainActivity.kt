@@ -27,12 +27,6 @@ class MainActivity : ComponentActivity() {
         Log.v("Bazel", "Hello, Android")
         actionBar?.hide()
         setContent { AppTheme { MainApp() } }
-
-        val viewModel: JsViewModel by viewModels()
-        val self = this
-        lifecycleScope.launch {
-            viewModel.initWebView(self)
-        }
         Log.v("Bazel", "Finish init")
     }
 }
@@ -46,8 +40,9 @@ fun MainApp() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            JsEngineButton()
             Log.v("Bazel", "render")
+            JsEngineButton()
+            Log.v("Bazel", "render2")
             val jsViewModel = viewModel<JsViewModel>()
             Button(onClick = {
                 jsViewModel.run2()
