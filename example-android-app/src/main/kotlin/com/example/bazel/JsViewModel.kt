@@ -14,10 +14,12 @@ import com.example.bazel.jswebview.WebViewThread
 
 class JsViewModel(application: Application) : AndroidViewModel(application) {
     var name by mutableStateOf("Other button")
-    private val jsAppWrapper = JsAppWrapper(this)
+    private val jsAppWrapper: JsAppWrapper = JsAppWrapper(this)
 
     fun handleClick() {
         name = "pre click"
+        Log.v("BazelJs2", "handleClick")
+        jsAppWrapper.data.set("name", "Run once!");
         jsAppWrapper.jsDispatcher.click()
     }
 }
@@ -26,11 +28,11 @@ class JsAppWrapper(private val jsViewModel: JsViewModel) {
     private val webViewThread = WebViewThread(jsViewModel.getApplication()) {
         setupWebView(it)
     }
-    private val data = HashMap<String, String>()
+
+    val data = HashMap<String, String>()
     val jsDispatcher = JsDispatcher(webViewThread)
 
     private fun setupWebView(webView: WebView) {
-        jsDispatcher.setup(webView)
         val jsApp = JsApp(jsViewModel, data)
         webView.addJavascriptInterface(jsApp, jsApp.appName)
         Log.v("BazelJs2", "Added App: ${jsApp.appName}")
@@ -39,9 +41,9 @@ class JsAppWrapper(private val jsViewModel: JsViewModel) {
                 Log.i("BazelJs2", "app found")
             } else {
                 Log.i("BazelJs2", "app not found")
-                webView.addJavascriptInterface(jsApp, jsApp.appName)
             }
         }
+        jsDispatcher.setup(webView)
     }
 }
 
@@ -59,9 +61,9 @@ class JsApp(private val jsViewModel: JsViewModel, private val data: HashMap<Stri
     override fun getData(key: String): String? {
         return data[key]
     }
-    // @JavascriptInterface
-    // override fun getData(key: String, value: List<String>) {
-    //     Log.v("BazelJs2", value.toString())
-    //     data[key] = value.joinToString()
-    // }
+    @JavascriptInterface
+    override fun setData(key: String, value: String) {
+        Log.v("BazelJs2", value)
+        data[key] = value
+    }
 }

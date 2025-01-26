@@ -10,7 +10,7 @@ interface IApp {
     fun emit(newName: String)
     fun getName(): String
     fun getData(key: String): String?
-    // fun getData(key: String, value: List<String>)
+    fun setData(key: String, value: String)
 }
 
 class JsDispatcher(private val webViewThread: WebViewThread) {
@@ -28,7 +28,7 @@ class JsDispatcher(private val webViewThread: WebViewThread) {
 private const val setupScript = """
 function click() {
     console.log("logging")
-    androidApp.setData("example", ["name"])
+    androidApp.setData("example", JSON.stringify(["item"]))
     androidApp.emit(androidApp.getData("name"))
     console.log("name", androidApp.getName());
     setTimeout(() => {
@@ -37,4 +37,5 @@ function click() {
         }
     }, 2000);
 }
+console.log("evaluated");
 """
