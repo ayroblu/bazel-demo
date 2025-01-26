@@ -11,7 +11,7 @@
         android:label="Bazel Example">
 
         <activity
-            android:name="examples.android.lib.MainActivity"
+            android:name="com.example.bazel.MainActivity"
             android:exported="true"
             android:label="Bazel Example">
             <intent-filter>

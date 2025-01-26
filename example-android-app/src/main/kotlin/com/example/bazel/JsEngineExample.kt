@@ -1,4 +1,4 @@
-package examples.android.lib
+package com.example.bazel
 
 import android.app.Application
 import android.util.Log

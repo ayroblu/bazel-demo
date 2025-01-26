@@ -1,4 +1,4 @@
-package examples.android.lib.ui.theme
+package com.example.bazel.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

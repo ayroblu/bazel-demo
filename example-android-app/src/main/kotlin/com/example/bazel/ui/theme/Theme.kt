@@ -1,4 +1,4 @@
-package examples.android.lib.ui.theme
+package com.example.bazel.ui.theme
 
 /**/
 import android.app.Activity
@@ -268,7 +268,7 @@ fun AppTheme(
           val context = LocalContext.current
           if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
       }
-      
+
       darkTheme -> darkScheme
       else -> lightScheme
   }

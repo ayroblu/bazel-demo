@@ -1,4 +1,4 @@
-package examples.android.lib
+package com.example.bazel
 
 import android.content.res.Configuration
 import android.os.Bundle
@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import examples.android.lib.ui.theme.AppTheme
+import com.example.bazel.ui.theme.AppTheme
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -45,7 +45,7 @@ fun MainApp() {
             Log.v("Bazel", "render2")
             val jsViewModel = viewModel<JsViewModel>()
             Button(onClick = {
-                jsViewModel.run2()
+                jsViewModel.run()
             }) {
                 Text(text = jsViewModel.name)
             }

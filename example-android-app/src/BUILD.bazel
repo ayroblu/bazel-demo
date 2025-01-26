@@ -5,7 +5,7 @@ package(default_visibility = ["//example-android-app:__subpackages__"])
 kt_android_library(
     name = "src",
     srcs = glob(["main/kotlin/**/*.kt"]),
-    custom_package = "examples.android.lib",
+    custom_package = "com.example.bazel",
     manifest = "main/AndroidManifest.xml",
     plugins = ["//example-android-app:jetpack_compose_compiler_plugin"],
     deps = [
