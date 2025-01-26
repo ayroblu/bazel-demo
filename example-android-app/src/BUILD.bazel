@@ -7,7 +7,10 @@ kt_android_library(
     srcs = glob(["main/kotlin/**/*.kt"]),
     custom_package = "com.example.bazel",
     manifest = "main/AndroidManifest.xml",
-    plugins = ["//example-android-app:jetpack_compose_compiler_plugin"],
+    plugins = [
+        "//example-android-app:jetpack_compose_compiler_plugin",
+        "//example-android-app:serialization_compiler_plugin",
+    ],
     deps = [
         "@maven//:androidx_activity_activity_compose",
         "@maven//:androidx_activity_activity_ktx",
@@ -24,5 +27,6 @@ kt_android_library(
         "@maven//:com_google_guava_guava",
         "@maven//:org_jetbrains_kotlin_kotlin_stdlib",
         "@maven//:org_jetbrains_kotlinx_kotlinx_coroutines_guava",
+        "@maven//:org_jetbrains_kotlinx_kotlinx_serialization_json",
     ],
 )
