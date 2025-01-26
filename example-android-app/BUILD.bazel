@@ -46,6 +46,8 @@ android_binary(
     ],
 )
 
+exports_files(["example-android-app.iml"])
+
 android_binary(
     name = "prod",
     custom_package = "com.example.bazel",

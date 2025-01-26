@@ -1,4 +1,4 @@
-package com.example.bazel
+package com.example.bazel.jswebview
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -28,9 +28,15 @@ fun handleConsole(consoleMessage: ConsoleMessage) {
     Log.v("BazelWebView", "${consoleMessage.sourceId()}:${consoleMessage.lineNumber()}")
 }
 
-class LooperThread(val context: Context, val onWebView: (WebView) -> Unit) : Thread() {
+class WebViewThread(private val context: Context, private val onWebView: (WebView) -> Unit) :
+    Thread() {
     private lateinit var handler: Handler
     private lateinit var webViewHelper: WebViewHelper
+
+    init {
+        start()
+        Log.i("BazelWebView", "started")
+    }
 
     override fun run() {
         Looper.prepare()
@@ -45,6 +51,7 @@ class LooperThread(val context: Context, val onWebView: (WebView) -> Unit) : Thr
                     Log.v("BazelJs2", "Command received: $data")
                     webViewHelper.run(data)
                 }
+
                 else -> {
                     Log.v("BazelJs2", "Unknown command")
                 }
@@ -67,11 +74,11 @@ class LooperThread(val context: Context, val onWebView: (WebView) -> Unit) : Thr
         }
     }
 
-    fun stopLooper() {
-        if (::handler.isInitialized) {
-            handler.looper.quit() // Stop the Looper
-        }
-    }
+    // fun stopLooper() {
+    //     if (::handler.isInitialized) {
+    //         handler.looper.quit() // Stop the Looper
+    //     }
+    // }
 }
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -96,6 +103,6 @@ class WebViewHelper(context: Context) {
     }
 
     fun run(js: String) {
-        webView.evaluateJavascript(js, {})
+        webView.evaluateJavascript(js) {}
     }
 }
