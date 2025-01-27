@@ -1,0 +1,38 @@
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load(
+    "@rules_xcodeproj//xcodeproj:defs.bzl",
+    "xcodeproj",
+)
+
+swift_library(
+    name = "lib",
+    srcs = ["MainApp.swift"],
+    deps = [
+        "//g1-app/Connect",
+        "//g1-app/utils",
+    ],
+)
+
+ios_application(
+    name = "g1-app",
+    bundle_id = "build.bazel.rules-apple-example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = ["Resources/Info.plist"],
+    minimum_os_version = "18.0",
+    visibility = ["//visibility:public"],
+    deps = [":lib"],
+)
+
+xcodeproj(
+    name = "xcodeproj",
+    build_mode = "bazel",
+    project_name = "g1-app",
+    tags = ["manual"],
+    top_level_targets = [
+        ":g1-app",
+    ],
+)
