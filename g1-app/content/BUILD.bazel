@@ -1,0 +1,12 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+
+package(default_visibility = ["//g1-app:__subpackages__"])
+
+swift_library(
+    name = "content",
+    srcs = glob(["*.swift"]),
+    module_name = "content",
+    deps = [
+        "//g1-app/Connect",
+    ],
+)

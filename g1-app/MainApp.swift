@@ -1,22 +1,11 @@
 import SwiftUI
+import content
 
 @main
-struct BazelApp: App {
+struct MainApp: App {
   var body: some Scene {
     WindowGroup {
-      TabView {
-        Tab("Home", systemImage: "house.fill") {
-          Text("Hello from Bazel!")
-        }
-
-        Tab("Todo", systemImage: "list.bullet") {
-          Text("Todo")
-        }
-
-        Tab("More todo", systemImage: "checklist.unchecked") {
-          Text("More todo")
-        }
-      }
+      ContentView()
     }
   }
 }

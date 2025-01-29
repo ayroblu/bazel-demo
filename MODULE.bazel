@@ -1,18 +1,18 @@
 # iOS
-bazel_dep(name = "rules_xcodeproj", version = "2.9.2")
+bazel_dep(name = "rules_xcodeproj", version = "2.10.0")
 bazel_dep(
     name = "apple_support",
-    version = "1.15.1",
+    version = "1.17.1",
     repo_name = "build_bazel_apple_support",
 )
 bazel_dep(
     name = "rules_swift",
-    version = "1.18.0",
+    version = "2.4.0",
     repo_name = "build_bazel_rules_swift",
 )
 bazel_dep(
     name = "rules_apple",
-    version = "3.5.1",
+    version = "3.17.1",
     repo_name = "build_bazel_rules_apple",
 )
 
@@ -22,7 +22,7 @@ bazel_dep(
     dev_dependency = True,
 )
 
-bazel_dep(name = "swiftlint", version = "0.54.0", repo_name = "SwiftLint")
+bazel_dep(name = "swiftlint", version = "0.58.2", repo_name = "SwiftLint")
 bazel_dep(name = "aspect_rules_lint", version = "0.19.0")
 
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")

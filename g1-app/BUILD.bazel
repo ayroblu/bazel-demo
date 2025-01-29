@@ -1,7 +1,9 @@
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 load(
     "@rules_xcodeproj//xcodeproj:defs.bzl",
+    "top_level_target",
     "xcodeproj",
 )
 
@@ -10,29 +12,53 @@ swift_library(
     srcs = ["MainApp.swift"],
     deps = [
         "//g1-app/Connect",
+        "//g1-app/content",
         "//g1-app/utils",
     ],
 )
 
 ios_application(
     name = "g1-app",
-    bundle_id = "build.bazel.rules-apple-example",
+    bundle_id = "com.ayroblu.g1-app",
     families = [
         "iphone",
         "ipad",
     ],
     infoplists = ["Resources/Info.plist"],
     minimum_os_version = "18.0",
+    # cp ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/<uuid>.mobileprovision .
+    provisioning_profile = "5bc6ee9b-186f-4f5c-8525-0382a219531e.mobileprovision",
     visibility = ["//visibility:public"],
     deps = [":lib"],
 )
 
+macos_application(
+    name = "macos",
+    # app_icons = [":Assets.xcassets"],
+    bundle_id = "com.ayroblu.g1-app",
+    #bundle_name = "g1-app",
+    #entitlements = ":g1-app.entitlements",
+    infoplists = ["Resources/Info.plist"],
+    minimum_os_version = "15.0",
+    #resources = glob(["Resources/*"]),
+    #version = ":version",
+    visibility = ["//visibility:public"],
+    deps = [":lib"],
+)
+
+# bazel run xcodeproj && xed g1-app.xcodeproj
 xcodeproj(
     name = "xcodeproj",
     build_mode = "bazel",
     project_name = "g1-app",
     tags = ["manual"],
     top_level_targets = [
-        ":g1-app",
+        top_level_target(
+            ":g1-app",
+            target_environments = [
+                "device",
+                "simulator",
+            ],
+        ),
     ],
 )

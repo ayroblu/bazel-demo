@@ -1,17 +1,6 @@
-Example iOS App
-===============
+G1 App
+======
 
-TODO
-----
+This is an app for the Even Reality G1 glasses based on their demo app: https://github.com/even-realities/EvenDemoApp
 
-- Implement fetch
-- Replicate this on Android using hermes compiler
-    - https://github.com/facebook/hermes/blob/main/doc/BuildingAndRunning.md
-    - https://github.com/facebook/hermes/blob/main/doc/CrossCompilation.md
-
-### Backburner
-
-- Generate interfaces from interface langauge (yaml?)
-- Determine breaking changes
-- get path location for runfiles via env var bazel
-    - Somehow use rlocation?
+Note that for bazel and sourcekit-lsp, we manually add each package to our vim config so that it finds the packages
