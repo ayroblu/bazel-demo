@@ -5,7 +5,7 @@ import utils
 class MainVM: ObservableObject {
   @Published var devices: [String] = []
 
-  let connectionManager = ConnectionManager()
+  var connectionManager = ConnectionManager()
 
   func connect() {
     Task {

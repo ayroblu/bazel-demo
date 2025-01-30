@@ -13387,8 +13387,8 @@
     },
     "@@rules_xcodeproj~//xcodeproj:extensions.bzl%internal": {
       "general": {
-        "bzlTransitiveDigest": "oP3RgmLsOE/7IP3PDMuneT7VuV8qMVSsEH+krPSIypc=",
-        "usagesDigest": "VoKr+hxyFJiOpVMEBR6MWkP6730V4trR03wvZlOMxa8=",
+        "bzlTransitiveDigest": "NOI591YpKfztv8X+6YWriYoCv/cykk2677MYVGEXLFE=",
+        "usagesDigest": "As6NphkZTZJLUTfbrPUqE8WG5UftVkxvKmFhWRwza10=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -13410,8 +13410,8 @@
     },
     "@@rules_xcodeproj~//xcodeproj:extensions.bzl%non_module_deps": {
       "general": {
-        "bzlTransitiveDigest": "oP3RgmLsOE/7IP3PDMuneT7VuV8qMVSsEH+krPSIypc=",
-        "usagesDigest": "oXNKwqpDQINcw0i+zT8VqYKdTMHKYSxeAJyvZdhX5A0=",
+        "bzlTransitiveDigest": "NOI591YpKfztv8X+6YWriYoCv/cykk2677MYVGEXLFE=",
+        "usagesDigest": "1yCn+exBP9D4GSRxnpwM5nk53WmPvPN7oTNb5KUXiiI=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
