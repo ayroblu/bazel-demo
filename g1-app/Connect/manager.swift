@@ -40,6 +40,14 @@ public struct ConnectionManager {
     centralManager.stopScan()
     log("stop scanning")
   }
+
+  public func disconnect() {
+    manager.transmitBoth(getExitData())
+    for peripheral in connectedPeripherals {
+      centralManager.cancelPeripheralConnection(peripheral)
+    }
+    log("disconnected")
+  }
 }
 
 class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
@@ -89,6 +97,26 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
     }
   }
 
+  var leftPeripheral: CBPeripheral?
+  var rightPeripheral: CBPeripheral?
+  var transmitLeftCharacteristic: CBCharacteristic?
+  var transmitRightCharacteristic: CBCharacteristic?
+
+  func transmitBoth(_ data: Data) {
+    guard let left = leftPeripheral else { return }
+    guard let right = rightPeripheral else { return }
+    transmit(data, for: left, type: .withoutResponse)
+    transmit(data, for: right, type: .withoutResponse)
+  }
+  func transmit(_ data: Data, for peripheral: CBPeripheral, type: CBCharacteristicWriteType) {
+    guard let name = peripheral.name else { return }
+    guard
+      let characteristic = name.contains("_L_")
+        ? transmitLeftCharacteristic : transmitRightCharacteristic
+    else { return }
+    peripheral.writeValue(data, for: characteristic, type: type)
+  }
+
   func peripheral(
     _ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?
   ) {
@@ -102,17 +130,18 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
         peripheral.setNotifyValue(true, for: characteristic)
       case UARTTXCharacteristicUUID:
         log("tx \(name)")
-        // peripheral.writeValue(Data([0x4d, 0x01]), for: characteristic, type: .withoutResponse)
-        let text = "Hi there!"
-        let textData = text.data(using: .utf8)
-        guard let textData = textData else { break }
-        let data = Data([0x4E, 0x00, 0x01, 0x00, 0x71, 0, 0, 0, 0x01] + textData)
-        peripheral.writeValue(data, for: characteristic, type: .withoutResponse)
+        if name.contains("_L_") {
+          transmitLeftCharacteristic = characteristic
+          leftPeripheral = peripheral
+        } else if name.contains("_R_") {
+          transmitRightCharacteristic = characteristic
+          rightPeripheral = peripheral
+        }
+      // peripheral.writeValue(Data([0x4d, 0x01]), for: characteristic, type: .withoutResponse)
       default:
         log("unknown characteristic")
       }
     }
-
   }
 
   func peripheral(
@@ -135,21 +164,28 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
     case .DEVICE:
       // let isLeft = peripheral.identifier.uuidString == "left-uuid"
       let taps = DEVICE_CMD(rawValue: data[1])
+      guard let name = peripheral.name else { break }
       switch taps {
       case .SINGLE_TAP:
-        log("single tap!")
+        log("single tap!", name)
       case .DOUBLE_TAP:
-        log("double tap!")
+        log("double tap!", name)
       case .TRIPLE_TAP:
-        log("triple tap!")
+        log("triple tap!", name)
       case .LOOK_UP:
-        log("look up")
+        log("look up", name)
+        let text = "Looked up!"
+        guard let textData = getG1TextData(text: text) else { break }
+        transmitBoth(textData)
       case .LOOK_DOWN:
-        log("look down")
+        log("look down", name)
+        let text = "Looked down!"
+        guard let textData = getG1TextData(text: text) else { break }
+        transmitBoth(textData)
       case .DASH_SHOWN:
-        log("dash shown")
+        log("dash shown", name)
       case .DASH_HIDE:
-        log("dash hide")
+        log("dash hide", name)
       case .none:
         log("unknown device command: \(data[1])")
       }
@@ -158,6 +194,26 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
       break
     }
   }
+}
+
+func getG1TextData(text: String) -> Data? {
+  guard let textData = text.data(using: .utf8) else { return nil }
+  let cmd = 0x4E
+  let seq = 0x00
+  let numItems = 0x01
+  let item = 0x00
+  let newScreen = 0x71  // 0x01 | 0x70, new content | text show
+  let newCharPos = [0x00, 0x00]  // Big endian int16
+  let pageNum = 0x00
+  let pageCount = 0x01
+
+  let controlArr =
+    [cmd, seq, numItems, item, newScreen] + newCharPos + [pageNum, pageCount]
+  return Data(controlArr.map { UInt8($0) }) + textData
+}
+
+func getExitData() -> Data {
+  return Data([0x18])
 }
 
 enum BLE_REC: UInt8 {

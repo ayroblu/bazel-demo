@@ -21,4 +21,8 @@ class MainVM: ObservableObject {
     }
     devices = newDevices
   }
+
+  func disconnect() {
+    connectionManager.disconnect()
+  }
 }

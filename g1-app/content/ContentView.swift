@@ -14,6 +14,9 @@ public struct ContentView: View {
         ForEach(Array(vm.devices.enumerated()), id: \.offset) { index, device in
           Text(device)
         }
+        Button("Disconnect") {
+          vm.disconnect()
+        }
         Button("Connect") {
           vm.connect()
         }
