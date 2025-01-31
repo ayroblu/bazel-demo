@@ -2,7 +2,7 @@ import Connect
 import SwiftUI
 
 public struct ContentView: View {
-  @ObservedObject var vm = MainVM()
+  @StateObject var vm = MainVM()
   public init() {}
   public var body: some View {
     TabView {
@@ -14,8 +14,16 @@ public struct ContentView: View {
         ForEach(Array(vm.devices.enumerated()), id: \.offset) { index, device in
           Text(device)
         }
-        Button("Disconnect") {
-          vm.disconnect()
+        if vm.devices.count > 0 {
+          Button("Disconnect") {
+            vm.disconnect()
+          }
+          TextEditor(
+            text: $vm.text, selection: $vm.selection
+          )
+          .padding().textFieldStyle(.roundedBorder)
+          .frame(height: 100)
+
         }
         Button("Connect") {
           vm.connect()

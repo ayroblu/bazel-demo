@@ -48,6 +48,11 @@ public struct ConnectionManager {
     }
     log("disconnected")
   }
+
+  public func sendText(_ text: String) {
+    guard let textData = getG1TextData(text: text) else { return }
+    manager.transmitBoth(textData)
+  }
 }
 
 class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {

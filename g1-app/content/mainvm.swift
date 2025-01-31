@@ -1,9 +1,39 @@
 import Connect
 import SwiftUI
 import utils
+import Log
 
 class MainVM: ObservableObject {
   @Published var devices: [String] = []
+  @Published private var _text: String = "Hi there!"
+  @Published var selection: TextSelection? = nil
+  private var previous: String = ""
+  var text: String {
+    get {
+      if let selection = selection {
+        var toSend = _text
+        switch selection.indices {
+        case .selection(let range):
+          if toSend.indices.contains(range.lowerBound) {
+            toSend.insert("l", at: range.lowerBound)
+          } else {
+            toSend.append("l")
+          }
+          break
+        default:
+          break
+        }
+        if toSend != previous {
+          previous = toSend
+          sendText(toSend)
+        }
+      }
+      return _text
+    }
+    set {
+      _text = newValue
+    }
+  }
 
   var connectionManager = ConnectionManager()
 
@@ -23,6 +53,11 @@ class MainVM: ObservableObject {
   }
 
   func disconnect() {
+    devices = []
     connectionManager.disconnect()
+  }
+
+  private func sendText(_ text: String) {
+    connectionManager.sendText(text)
   }
 }
