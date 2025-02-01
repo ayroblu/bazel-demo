@@ -1,7 +1,7 @@
 import Connect
+import Log
 import SwiftUI
 import utils
-import Log
 
 class MainVM: ObservableObject {
   @Published var devices: [String] = []
@@ -11,18 +11,7 @@ class MainVM: ObservableObject {
   var text: String {
     get {
       if let selection = selection {
-        var toSend = _text
-        switch selection.indices {
-        case .selection(let range):
-          if toSend.indices.contains(range.lowerBound) {
-            toSend.insert("l", at: range.lowerBound)
-          } else {
-            toSend.append("l")
-          }
-          break
-        default:
-          break
-        }
+        let toSend = textWithCursor(text: _text, selection: selection)
         if toSend != previous {
           previous = toSend
           sendText(toSend)
@@ -60,4 +49,20 @@ class MainVM: ObservableObject {
   private func sendText(_ text: String) {
     connectionManager.sendText(text)
   }
+}
+
+func textWithCursor(text: String, selection: TextSelection) -> String {
+  var toSend = text
+  switch selection.indices {
+  case .selection(let range):
+    if toSend.indices.contains(range.lowerBound) {
+      toSend.insert("l", at: range.lowerBound)
+    } else {
+      toSend.append("l")
+    }
+    break
+  default:
+    break
+  }
+  return toSend
 }

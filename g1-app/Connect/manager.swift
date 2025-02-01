@@ -1,5 +1,7 @@
 import CoreBluetooth
 import Log
+import Pcm
+import Speech
 import utils
 
 public struct ConnectionManager {
@@ -158,12 +160,12 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
     switch rspCommand {
     case .MIC:
       // let hexString = data.map { String(format: "%02hhx", $0) }.joined()
-      // let effectiveData = data.subdata(in: 2..<data.count)
-      // let pcmConverter = PcmConverter()
-      // var pcmData = pcmConverter.decode(effectiveData)
+      let effectiveData = data.subdata(in: 2..<data.count)
+      let pcmConverter = PcmConverter()
+      let pcmData = pcmConverter.decode(effectiveData)
 
-      // let inputData = pcmData as Data
-      // SpeechStreamRecognizer.shared.appendPCMData(inputData)
+      let inputData = pcmData as Data
+      appendPCMData(inputData)
 
       log("mic received!")
     case .DEVICE:
@@ -197,6 +199,38 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
     default:
       // log("unknown command: \(data[0])")
       break
+    }
+  }
+
+  private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+  func appendPCMData(_ pcmData: Data) {
+    guard let recognitionRequest = recognitionRequest else {
+      print("Recognition request is not available")
+      return
+    }
+
+    let audioFormat = AVAudioFormat(
+      commonFormat: .pcmFormatInt16, sampleRate: 16000, channels: 1, interleaved: false)!
+    guard
+      let audioBuffer = AVAudioPCMBuffer(
+        pcmFormat: audioFormat,
+        frameCapacity: AVAudioFrameCount(pcmData.count)
+          / audioFormat.streamDescription.pointee.mBytesPerFrame)
+    else {
+      print("Failed to create audio buffer")
+      return
+    }
+    audioBuffer.frameLength = audioBuffer.frameCapacity
+
+    pcmData.withUnsafeBytes { (bufferPointer: UnsafeRawBufferPointer) in
+      if let audioDataPointer = bufferPointer.baseAddress?.assumingMemoryBound(to: Int16.self) {
+        let audioBufferPointer = audioBuffer.int16ChannelData?.pointee
+        audioBufferPointer?.initialize(
+          from: audioDataPointer, count: pcmData.count / MemoryLayout<Int16>.size)
+        recognitionRequest.append(audioBuffer)
+      } else {
+        print("Failed to get pointer to audio data")
+      }
     }
   }
 }

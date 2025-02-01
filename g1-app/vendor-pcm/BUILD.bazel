@@ -1,0 +1,24 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+
+package(default_visibility = ["//g1-app:__subpackages__"])
+
+objc_library(
+    name = "vendor-pcm",
+    srcs = ["PcmConverter.m"],
+    hdrs = [
+        "PcmConverter.h",
+        "lc3/lc3.h",
+    ],
+    module_name = "Pcm",
+    deps = [":lc3"],
+)
+
+objc_library(
+    name = "lc3",
+    srcs = glob([
+        "lc3/*.c",
+        "lc3/*.h",
+    ]),
+    hdrs = ["lc3/lc3.h"],
+    includes = ["lc3"],
+)

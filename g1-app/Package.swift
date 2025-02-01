@@ -12,5 +12,6 @@ let package = Package(
         .target(name: "content", path: "content"),
         .target(name: "Log", path: "Log"),
         .target(name: "Connect", path: "Connect"),
+        .target(name: "Pcm", path: "vendor-pcm"),
     ]
 )

@@ -29,6 +29,8 @@
 		<string>17.0</string>
 		<key>NSBluetoothAlwaysUsageDescription</key>
 		<string>Uses bluetooth to connect to g1 glasses</string>
+		<key>NSSpeechRecognitionUsageDescription</key>
+		<string>Support speech recognition for transcription</string>
 		<key>UIRequiredDeviceCapabilities</key>
 		<array>
 			<string>armv7</string>

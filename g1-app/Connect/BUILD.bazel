@@ -11,5 +11,6 @@ swift_library(
     deps = [
         "//g1-app/Log",
         "//g1-app/utils",
+        "//g1-app/vendor-pcm",
     ],
 )
