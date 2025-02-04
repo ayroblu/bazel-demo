@@ -28,23 +28,24 @@ ios_application(
     minimum_os_version = "18.0",
     # cp ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/<uuid>.mobileprovision .
     provisioning_profile = "5bc6ee9b-186f-4f5c-8525-0382a219531e.mobileprovision",
+    resources = glob(["Assets/*"]),
     visibility = ["//visibility:public"],
     deps = [":lib"],
 )
 
-macos_application(
-    name = "macos",
-    # app_icons = [":Assets.xcassets"],
-    bundle_id = "com.ayroblu.g1-app",
-    #bundle_name = "g1-app",
-    #entitlements = ":g1-app.entitlements",
-    infoplists = ["Resources/Info.plist"],
-    minimum_os_version = "15.0",
-    #resources = glob(["Resources/*"]),
-    #version = ":version",
-    visibility = ["//visibility:public"],
-    deps = [":lib"],
-)
+# macos_application(
+#     name = "macos",
+#     # app_icons = [":Assets.xcassets"],
+#     bundle_id = "com.ayroblu.g1-app",
+#     #bundle_name = "g1-app",
+#     #entitlements = ":g1-app.entitlements",
+#     infoplists = ["Resources/Info.plist"],
+#     minimum_os_version = "15.0",
+#     #resources = glob(["Resources/*"]),
+#     #version = ":version",
+#     visibility = ["//visibility:public"],
+#     deps = [":lib"],
+# )
 
 # bazel run xcodeproj && xed g1-app.xcodeproj
 xcodeproj(

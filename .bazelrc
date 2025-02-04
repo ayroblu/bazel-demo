@@ -1,6 +1,9 @@
 # Respect skipLibCheck
 common --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
 
+# for --ios_device=
+common --flag_alias=ios_device=@build_bazel_rules_apple//apple/build_settings:ios_device
+
 build --symlink_prefix=.bazel/
 build:opt -c opt
 

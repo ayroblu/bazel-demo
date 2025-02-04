@@ -11,6 +11,7 @@ public struct ContentView: View {
         Button("List") {
           vm.list()
         }
+        .buttonStyle(.borderedProminent)
         ForEach(Array(vm.devices.enumerated()), id: \.offset) { index, device in
           Text(device)
         }
@@ -23,11 +24,26 @@ public struct ContentView: View {
           )
           .padding().textFieldStyle(.roundedBorder)
           .frame(height: 100)
+          Button("Send Image") {
+            vm.sendImage()
+          }
+          .buttonStyle(.bordered)
 
+          Button("Send notification") {
+            vm.sendNotif()
+          }
+          .buttonStyle(.bordered)
+
+          Button("Listen") {
+            vm.listenAudio()
+          }
+          .buttonStyle(.bordered)
         }
         Button("Connect") {
           vm.connect()
         }
+        .buttonStyle(.bordered)
+        .padding(.top)
       }
 
       Tab("Todo", systemImage: "list.bullet") {

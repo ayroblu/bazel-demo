@@ -2,10 +2,19 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 	<dict>
+		<key>NSBluetoothAlwaysUsageDescription</key>
+		<string>Uses bluetooth to connect to g1 glasses</string>
+		<key>NSSpeechRecognitionUsageDescription</key>
+		<string>Support speech recognition for transcription</string>
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>bluetooth-central</string>
+			<string>bluetooth-peripheral</string>
+		</array>
+
+		<!-- Boilerplate -->
 		<key>UILaunchScreen</key>
 		<dict>
-			<key>UILaunchScreen</key>
-			<dict />
 		</dict>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>en</string>
@@ -27,10 +36,6 @@
 		<true />
 		<key>MinimumOSVersion</key>
 		<string>17.0</string>
-		<key>NSBluetoothAlwaysUsageDescription</key>
-		<string>Uses bluetooth to connect to g1 glasses</string>
-		<key>NSSpeechRecognitionUsageDescription</key>
-		<string>Support speech recognition for transcription</string>
 		<key>UIRequiredDeviceCapabilities</key>
 		<array>
 			<string>armv7</string>

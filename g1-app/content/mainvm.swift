@@ -40,6 +40,17 @@ class MainVM: ObservableObject {
     }
     devices = newDevices
   }
+  func sendImage() {
+    connectionManager.sendImage()
+  }
+
+  func sendNotif() {
+    connectionManager.sendNotif()
+  }
+
+  func listenAudio() {
+    connectionManager.listenAudio()
+  }
 
   func disconnect() {
     devices = []
