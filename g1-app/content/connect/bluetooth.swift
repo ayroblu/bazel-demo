@@ -98,6 +98,10 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
     transmit(data, for: left, type: .withResponse)
     transmit(data, for: right, type: .withResponse)
   }
+  func readRight(_ data: Data) {
+    guard let right = rightPeripheral else { return }
+    transmit(data, for: right, type: .withResponse)
+  }
   func transmit(_ data: Data, for peripheral: CBPeripheral, type: CBCharacteristicWriteType) {
     guard let name = peripheral.name else { return }
     guard
@@ -107,6 +111,7 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
     peripheral.writeValue(data, for: characteristic, type: type)
   }
 
+  var isConnected = false
   func peripheral(
     _ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?
   ) {
@@ -136,6 +141,14 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
         default:
           log("unknown characteristic")
         }
+      }
+      guard leftPeripheral != nil else { return }
+      guard rightPeripheral != nil else { return }
+      guard transmitLeftCharacteristic != nil else { return }
+      guard transmitLeftCharacteristic != nil else { return }
+      if !isConnected {
+        isConnected = true
+        manager?.onConnect()
       }
     } else if service.uuid == smpServiceCbuuid && discoverSmb {
       for characteristic in characteristics {

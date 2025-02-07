@@ -20,6 +20,12 @@ struct G1Cmd {
       return Data([SendCmd.Brightness.rawValue, brightness, auto ? 1 : 0])
     }
   }
+  struct Config {
+    static func headTiltData(angle: Int) -> Data? {
+      guard angle >= 0 && angle <= 60 else { return nil }
+      return Data([SendCmd.HeadTilt.rawValue, UInt8(angle), 0x01])
+    }
+  }
   struct Mic {
     static func data(enable: Bool) -> Data {
       return Data([SendCmd.Mic.rawValue, enable ? 1 : 0])
@@ -99,39 +105,74 @@ struct G1Cmd {
   }
   struct Notify {
     static var notifyId: UInt8 = 0x00
-    static func data(
-      msgId: Int, appIdentifier: String, title: String, subtitle: String, message: String,
-      timestamp: Int, displayName: String
-    ) -> Data? {
+    static func allowData(id: String, name: String) -> [Data] {
       let dict: [String: Any] = [
+        "calendar_enable": true,
+        "call_enable": true,
+        "msg_enable": true,
+        "ios_mail_enable": true,
+        "app": [
+          "list": [["id": id, "name": name]],
+          "enable": true,
+        ],
+      ]
+
+      guard let json = toJson(dict: dict) else { return [] }
+      let chunks = json.chunk(into: 177)
+      let numItems: UInt8 = UInt8(chunks.count)
+      log("allowData numItems: \(numItems), dataSize: \(json.count)", json.ascii() ?? "<>")
+      let result = chunks.enumerated().map { (index, chunk) in
+        Data([SendCmd.AddNotif.rawValue, numItems, UInt8(index)]) + chunk
+      }
+      return result
+    }
+    static func data(notifyData: NotifyData) -> [Data] {
+      let dict = [
         "ncs_notification": [
-          "msg_id": msgId,
-          "app_identifier": appIdentifier,
-          "title": title,
-          "subtitle": subtitle,
-          "message": message,
-          "time_s": timestamp,
-          "display_name": displayName,
+          "msg_id": 1_234_567_890, "app_identifier": "com.even.test", "title": "Even Realities",
+          "subtitle": "Notify", "message": "This is a notification",
+          "time_s": Int(Date().timeIntervalSince1970 * 1000),
+          "display_name": "Even",
         ]
       ]
-      let jsonData = try? JSONSerialization.data(withJSONObject: dict)
-      guard let jsonData = jsonData else {
-        log("invalid json:", dict)
-        return nil
+      // let dict: [String: Any] = [
+      //   "ncs_notification": [
+      //     "msg_id": notifyData.msgId,
+      //     "app_identifier": notifyData.appIdentifier,
+      //     "title": notifyData.title,
+      //     "subtitle": notifyData.subtitle ?? "",
+      //     "message": notifyData.message ?? "",
+      //     "time_s": notifyData.timestamp,
+      //     "display_name": notifyData.displayName,
+      //   ]
+      // ]
+      guard let json = toJson(dict: dict) else { return [] }
+      log("JSON", String(data: json, encoding: .utf8) ?? "?")
+      let chunks = json.chunk(into: 176)
+      let numItems: UInt8 = UInt8(chunks.count)
+      let result = chunks.enumerated().map { (index, chunk) in
+        Data([SendCmd.Notif.rawValue, notifyId, numItems, UInt8(index)]) + chunk
       }
-      guard let json = String(data: jsonData, encoding: .utf8)?.data(using: .utf8) else {
-        log("invalid data -> string:", dict)
-        return nil
-      }
-      let numItems: UInt8 = 0x01
-      let item: UInt8 = 0x00
-      return Data([SendCmd.Notif.rawValue, notifyId, numItems, item]) + json
+      notifyId = (notifyId + 1) & 0xFF
+      return result
     }
   }
 }
 
+struct NotifyData {
+  let msgId: Int = 1_234_567_890
+  let appIdentifier: String = Info.id
+  let title: String
+  var subtitle: String?
+  var message: String?
+  let timestamp: Int = Int(Date().timeIntervalSince1970 * 1000)
+  let displayName: String = Info.name
+}
+
 enum SendCmd: UInt8 {
   case Brightness = 0x01
+  case AddNotif = 0x04
+  case HeadTilt = 0x0B
   case Mic = 0x0E
   case Exit = 0x18
   case FirmwareInfo = 0x23
@@ -142,23 +183,40 @@ enum SendCmd: UInt8 {
   case Ping = 0x4D
 }
 enum BLE_REC: UInt8 {
+  case ERROR = 0x00
+  case AddNotif = 0x04
+  case HeadTilt = 0x0B
   case MIC = 0x0E
   case MIC_DATA = 0xF1
   case DEVICE = 0xF5
   case BATTERY = 0x2C
   case FIRMWARE_INFO_RES = 0x6E
   case CRC = 0x16
+  case Exit = 0x18
   case BmpDone = 0x20
   case HEARTBEAT = 0x25
+  case NOTIF = 0x4B
   case PING = 0x4D
   case TEXT = 0x4E
+  case NOTIF_SETTING = 0xF6
   case UNKNOWN_06 = 0x06
+  case UNKNOWN_08 = 0x08
+  case UNKNOWN_14 = 0x14
   case UNKNOWN_1E = 0x1E
   case UNKNOWN_22 = 0x22
+  case UNKNOWN_26 = 0x26
   case UNKNOWN_29 = 0x29
-  case UNKNOWN_2B = 0x2b
+  case UNKNOWN_2A = 0x2A
+  case UNKNOWN_2B = 0x2B
+  case UNKNOWN_32 = 0x32
+  case UNKNOWN_3A = 0x3A
   case UNKNOWN_37 = 0x37
+  case UNKNOWN_39 = 0x39
+  case UNKNOWN_3B = 0x3B
   case UNKNOWN_3E = 0x3E
+  case UNKNOWN_3F = 0x3F
+  case UNKNOWN_4F = 0x4F
+  case UNKNOWN_50 = 0x50
 }
 enum DEVICE_CMD: UInt8 {
   case SINGLE_TAP = 0x01

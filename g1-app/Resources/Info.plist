@@ -6,6 +6,8 @@
 		<string>Uses bluetooth to connect to g1 glasses</string>
 		<key>NSSpeechRecognitionUsageDescription</key>
 		<string>Support speech recognition for transcription</string>
+		<!-- <key>NSMicrophoneUsageDescription</key> -->
+		<!-- <string>Microphone for on device listening</string> -->
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>bluetooth-central</string>

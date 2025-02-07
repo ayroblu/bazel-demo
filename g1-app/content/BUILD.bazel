@@ -4,9 +4,11 @@ package(default_visibility = ["//g1-app:__subpackages__"])
 
 swift_library(
     name = "content",
-    srcs = glob(["*.swift"]),
+    srcs = glob(["**/*.swift"]),
     module_name = "content",
     deps = [
-        "//g1-app/Connect",
+        "//g1-app/Log",
+        "//g1-app/utils",
+        "//g1-app/vendor-pcm",
     ],
 )

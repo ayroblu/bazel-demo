@@ -11,6 +11,5 @@ let package = Package(
         .target(name: "utils", path: "utils"),
         .target(name: "content", path: "content"),
         .target(name: "Log", path: "Log"),
-        .target(name: "Connect", path: "Connect"),
     ]
 )

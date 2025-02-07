@@ -1,4 +1,3 @@
-import Connect
 import Log
 import SwiftUI
 import utils
@@ -25,6 +24,9 @@ class MainVM: ObservableObject {
   }
 
   var connectionManager = ConnectionManager()
+  init() {
+    connectionManager.mainVm = self
+  }
 
   func connect() {
     Task {

@@ -3,10 +3,11 @@ import Log
 import Pcm
 import Speech
 
-public struct ConnectionManager {
+public class ConnectionManager {
   let uartServiceCbuuid = CBUUID(string: uartServiceUuid)
   let manager = BluetoothManager()
   let centralManager: CBCentralManager
+  var mainVm: MainVM?
   var connectedPeripherals: [CBPeripheral] = []
 
   public init() {
@@ -15,7 +16,7 @@ public struct ConnectionManager {
     manager.manager = self
   }
 
-  public mutating func getConnected() -> [CBPeripheral] {
+  public func getConnected() -> [CBPeripheral] {
     let peripherals = centralManager.retrieveConnectedPeripherals(withServices: [uartServiceCbuuid])
     connectedPeripherals = []
     for peripheral in peripherals {
@@ -81,31 +82,64 @@ public struct ConnectionManager {
   }
 
   public func sendNotif() {
-    // todo
-    // let data = G1Cmd.Notify.data()
+    // let allowData = G1Cmd.Notify.allowData(id: Info.id, name: Info.name)
+    // for data in allowData {
+    //   manager.transmitBoth(data)
+    // }
+    let data = G1Cmd.Notify.data(
+      notifyData: NotifyData(
+        title: "New product!",
+        subtitle: "hello!", message: "message?"))
+    for data in data {
+      manager.transmitBoth(data)
+    }
   }
 
+  var speechRecognizer: SpeechRecognizer?
+  // var micOn = false
   public func listenAudio() {
-    // todo
+    if let speech = speechRecognizer {
+      speech.stopRecognition()
+      speechRecognizer = nil
+      manager.readRight(G1Cmd.Mic.data(enable: false))
+      manager.transmitBoth(G1Cmd.Exit.data())
+      return
+    }
+    speechRecognizer = SpeechRecognizer { text in
+      log("recognized", text)
+      guard let textData = G1Cmd.Text.data(text: text) else { return }
+      self.manager.transmitBoth(textData)
+    }
+    manager.readRight(G1Cmd.Mic.data(enable: true))
+    speechRecognizer?.startRecognition(locale: Locale(identifier: "en-US"))
+    guard let textData = G1Cmd.Text.data(text: "Listening...") else { return }
+    manager.transmitBoth(textData)
+    log("listening")
   }
 
   func onValue(_ peripheral: CBPeripheral, data: Data) {
     guard let name = peripheral.name else { return }
     let rspCommand = BLE_REC(rawValue: data[0])
     switch rspCommand {
+    case .ERROR:
+      let code = data[1]
+      let msg = data.subdata(in: 2..<data.count).ascii() ?? "<>"
+      log("00: \(name) \(code.hex) \(msg)")
+      break
+    case .AddNotif:
+      // 0x04ca
+      log("Add notif resp: \(name) \(data.hex)")
+      break
     case .MIC:
-      let isSuccess = G1Cmd.Mic.respData(data: data).isSuccess
-      log("mic action success: \(isSuccess)")
+      let resp = G1Cmd.Mic.respData(data: data)
+      log("mic action success: \(resp.isSuccess), enabled: \(resp.enable)")
     case .MIC_DATA:
-      // let hexString = data.map { String(format: "%02hhx", $0) }.joined()
       let effectiveData = data.subdata(in: 2..<data.count)
       let pcmConverter = PcmConverter()
       let pcmData = pcmConverter.decode(effectiveData)
 
       let inputData = pcmData as Data
-      appendPCMData(inputData)
-
-      log("mic received!")
+      speechRecognizer?.appendPcmData(inputData)
     case .CRC:
       if G1Cmd.Bmp.crcResp(data: data) {
         log("CRC check failed", data.hex)
@@ -125,15 +159,14 @@ public struct ConnectionManager {
       case .LOOK_UP:
         log("look up", name, data.hex)
 
-        let text = "Looked up!"
-        guard let textData = G1Cmd.Text.data(text: text) else { break }
-        manager.transmitBoth(textData)
-        manager.readBoth(Data([BLE_REC.BATTERY.rawValue, 0x02]))
+      // let text = "Looked up!"
+      // guard let textData = G1Cmd.Text.data(text: text) else { break }
+      // manager.transmitBoth(textData)
       case .LOOK_DOWN:
         log("look down", name, data.hex)
-        let text = "Looked down!"
-        guard let textData = G1Cmd.Text.data(text: text) else { break }
-        manager.transmitBoth(textData)
+      // let text = "Looked down!"
+      // guard let textData = G1Cmd.Text.data(text: text) else { break }
+      // manager.transmitBoth(textData)
       case .DASH_SHOWN:
         log("dash shown", name, data.hex)
       case .DASH_HIDE:
@@ -177,16 +210,32 @@ public struct ConnectionManager {
     case .BATTERY:
       switch data[1] {
       case 0x66:
+        // (Left)
+        // 0x2c66 4b 00 d3 94 20 000000 01 05
+        // 0x2c66 4b 00 d3 83 20 000000 01 05
+        // 0x2c66 4b 00 d4 88 20 000000 01 05
+        // (Right)
+        // 0x2c66 4d 4c d6 83 1e 01 05 00 01 05
+        // 0x2c66 4d 4c d6 83 1e 01 05 00 01 05
+        // 0x2c66 4d 4c d6 81 1e 01 05 00 01 05
         log("battery: \(name) \(data[2]) \(data.hex)")
       default:
         log("battery: \(name) \(data.hex)")
       }
     case .FIRMWARE_INFO_RES:
-      let text = data.ascii() ?? "<>"
-      log("firmware: \(name) \(text.trim())")
+      // let text = data.ascii() ?? "<>"
+      // log("firmware: \(name) \(text.trim())")
+      break
+    case .HeadTilt:
+      // Right only
+      // 0x0bc9
+      break
     case .BmpDone:
       log("bmp done \(name), isSuccess: \(data[1] == 0xC9)")
       break
+    case .NOTIF:
+      let isSuccess = data[1] == 0xC9 || data[1] == 0xCB
+      log("notif \(name), isSuccess: \(isSuccess), \(data.hex)")
     case .HEARTBEAT:
       // log("got heartbeat", data.hex)
       break
@@ -196,12 +245,43 @@ public struct ConnectionManager {
     case .TEXT:
       // 0x4ec90001
       break
+    case .Exit:
+      // ack exit
+      // 0x18c9
+      break
+    case .NOTIF_SETTING:
+      // New App notif discovered:
+      // {"whitelist_app_add": {"app_identifier":  "com.ayroblu.g1-app","display_name": "G1 Bazel App"}}
+      let parts = data[1]
+      let seq = data[2]
+      let rest = data.subdata(in: 3..<data.count)
+      if seq == 0 {
+        f6Data[peripheral] = [rest]
+      } else {
+        if var list = f6Data[peripheral], list.count == seq {
+          list.append(rest)
+          f6Data[peripheral] = list
+        }
+      }
+      if let list = f6Data[peripheral], seq == parts - 1 {
+        let data = Data(list.joined())
+        log("0xF6: \(name) [\(data.count)]", data.ascii() ?? "<>")
+      }
+      break
     case .UNKNOWN_06:
       // On open? proximity?
       // 0x0607000206
       // 0x060700e306
       // 0x061500e401
       // 0x062d00e503010001
+      break
+    case .UNKNOWN_08:
+      // on pairing
+      // 0x0806000004
+      break
+    case .UNKNOWN_14:
+      // After opening notifications
+      // 0x14c9
       break
     case .UNKNOWN_1E:
       // Similar to 6
@@ -216,57 +296,70 @@ public struct ConnectionManager {
       //    0x2205003c010301
       //    0x22050044010301
       break
+    case .UNKNOWN_26:
+      // dash control
+      // 0x2606000102c9
+      log("dash control \(data.hex)")
+      break
     case .UNKNOWN_29:
       // On open even app
       // 0x29650601
+      break
+    case .UNKNOWN_2A:
+      // After opening settings
+      // 0x2a6801
       break
     case .UNKNOWN_2B:
       // very noisy
       // 0x2b690a0b
       // 0x2b690a07
       break
+    case .UNKNOWN_32:
+      // Right only after opening settings
+      // 0x326d1501
+      break
+    case .UNKNOWN_3A:
+      // After opening settings
+      // 0x3ac901
+      break
     case .UNKNOWN_37:
       // 0x3737e1bc000001
+      break
+    case .UNKNOWN_39:
+      // on dash control
+      // 0x390500cf01
+      break
+    case .UNKNOWN_3B:
+      // on load, right only
+      // 0x3bc90303
+      // 0x3bc90103 (set display position?)
       break
     case .UNKNOWN_3E:
       // Very long, only after ping, only right
       // 0x3ec97bd4477fe46c090051000000b32b0000d60a000007000100e90702027c6500000b000000e907011bbc7f000006000000e907011cf825000003000000e907011dec04000001000000e907011e30cf000005000000e907011f548d000002000000e9070201d89f000006000000e90702023302000095000000e907011b11030000de000000e907011cd100000025000000e907011d0800000002000000e907011e4904000035010000e907011f580100004c000000e9070201a6030000cb
       break
+    case .UNKNOWN_3F:
+      // On pairing
+      // 0x3f05c9
+      break
+    case .UNKNOWN_4F:
+      // On pairing
+      // 0x4fc901
+      break
+    case .UNKNOWN_50:
+      // right only
+      // 0x500600000101
+      break
     case .none:
-      log("unknown command: \(name) \(data[0]) \(data.hex) \(data.ascii() ?? "<>")")
+      log(
+        "unknown command: \(name) \(data[0]) \(data.hex) \(data.subdata(in: 1..<data.count).ascii() ?? "<>")"
+      )
       break
     }
   }
+  var f6Data: [CBPeripheral: [Data]] = [:]
 
-  private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
-  func appendPCMData(_ pcmData: Data) {
-    guard let recognitionRequest = recognitionRequest else {
-      print("Recognition request is not available")
-      return
-    }
-
-    let audioFormat = AVAudioFormat(
-      commonFormat: .pcmFormatInt16, sampleRate: 16000, channels: 1, interleaved: false)!
-    guard
-      let audioBuffer = AVAudioPCMBuffer(
-        pcmFormat: audioFormat,
-        frameCapacity: AVAudioFrameCount(pcmData.count)
-          / audioFormat.streamDescription.pointee.mBytesPerFrame)
-    else {
-      print("Failed to create audio buffer")
-      return
-    }
-    audioBuffer.frameLength = audioBuffer.frameCapacity
-
-    pcmData.withUnsafeBytes { (bufferPointer: UnsafeRawBufferPointer) in
-      if let audioDataPointer = bufferPointer.baseAddress?.assumingMemoryBound(to: Int16.self) {
-        let audioBufferPointer = audioBuffer.int16ChannelData?.pointee
-        audioBufferPointer?.initialize(
-          from: audioDataPointer, count: pcmData.count / MemoryLayout<Int16>.size)
-        recognitionRequest.append(audioBuffer)
-      } else {
-        print("Failed to get pointer to audio data")
-      }
-    }
+  func onConnect() {
+    manager.readBoth(Data([BLE_REC.BATTERY.rawValue, 0x02]))
   }
 }

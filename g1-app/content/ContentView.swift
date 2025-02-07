@@ -1,4 +1,3 @@
-import Connect
 import SwiftUI
 
 public struct ContentView: View {
@@ -12,6 +11,11 @@ public struct ContentView: View {
           vm.list()
         }
         .buttonStyle(.borderedProminent)
+        .onAppear {
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            vm.list()
+          }
+        }
         ForEach(Array(vm.devices.enumerated()), id: \.offset) { index, device in
           Text(device)
         }
