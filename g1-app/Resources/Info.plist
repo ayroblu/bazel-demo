@@ -8,6 +8,8 @@
 		<string>Support speech recognition for transcription</string>
 		<!-- <key>NSMicrophoneUsageDescription</key> -->
 		<!-- <string>Microphone for on device listening</string> -->
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>Location for navigation in foreground</string>
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>bluetooth-central</string>

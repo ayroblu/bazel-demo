@@ -25,6 +25,17 @@ struct G1Cmd {
       guard angle >= 0 && angle <= 60 else { return nil }
       return Data([SendCmd.HeadTilt.rawValue, UInt8(angle), 0x01])
     }
+    static func dashData(isShow: Bool, vertical: UInt8, distance: UInt8) -> Data? {
+      let cmd: UInt8 = 0x02
+      let show: UInt8 = isShow ? 0x01 : 0x00
+      guard vertical >= 1 && vertical <= 0x08 else { return nil }
+      // distance is 1-5m in 0.5m increments
+      guard distance >= 1 && distance <= 0x09 else { return nil }
+      return Data([
+        SendCmd.DashConfig.rawValue, 0x08, 0x00, 0x01,
+        cmd, show, vertical, distance,
+      ])
+    }
   }
   struct Mic {
     static func data(enable: Bool) -> Data {
@@ -157,6 +168,47 @@ struct G1Cmd {
       return result
     }
   }
+  struct Navigate {
+    static var seqId: UInt8 = 0x00
+    static func data(id: String, name: String) -> [Data] {
+      let partType0: UInt8 = 0x00
+      let partType1: UInt8 = 0x01
+      let partType2: UInt8 = 0x02
+      let partType3: UInt8 = 0x03
+      let numPackets: UInt8 = 0x01
+      let packetNum: UInt8 = 0x00
+      let arrivedTitle: Data = "Arrived".data()
+      let arrivedMessage: Data = "Your destination is on the right".data()
+      let distance: Data = "0 m".data()
+      let speed: Data = "9.8km/h".data()
+      let data0 = Data([0x0A, 0x06, 0x00, seqId, partType0])
+      seqId += 1
+      let NULL = Data([0x00])
+      let data1 =
+        Data([
+          0x0A, 0x40, 0x00, seqId, partType1, 0x02, 0x00, 0xCC,
+          0x00, 0x73, 0x00,
+        ]) + arrivedTitle + NULL + NULL + arrivedMessage + NULL + distance + NULL + speed + NULL
+      seqId += 1
+      let data2 =
+        Data([
+          0x0A, 0x40, 0x00, seqId, partType2, numPackets, 0x00, packetNum, 0x0,
+          // TODO
+        ])
+      seqId += 1
+      let data3 =
+        Data([
+          0x0A, 0x40, 0x00, seqId, partType3, numPackets, 0x00, packetNum, 0x0,
+          // TODO
+        ])
+      return [
+        data0,
+        data1,
+        data2,
+        data3,
+      ]
+    }
+  }
 }
 
 struct NotifyData {
@@ -176,6 +228,7 @@ enum SendCmd: UInt8 {
   case Mic = 0x0E
   case Exit = 0x18
   case FirmwareInfo = 0x23
+  case DashConfig = 0x26
   case Text = 0x4E
   case Bmp = 0x15
   case Crc = 0x16
@@ -184,8 +237,11 @@ enum SendCmd: UInt8 {
 }
 enum BLE_REC: UInt8 {
   case ERROR = 0x00
+  case AutoBrightness = 0x01
+  case SilentMode = 0x03
   case AddNotif = 0x04
   case HeadTilt = 0x0B
+  case DashConfig = 0x26
   case MIC = 0x0E
   case MIC_DATA = 0xF1
   case DEVICE = 0xF5
@@ -199,29 +255,29 @@ enum BLE_REC: UInt8 {
   case PING = 0x4D
   case TEXT = 0x4E
   case NOTIF_SETTING = 0xF6
-  case UNKNOWN_06 = 0x06
-  case UNKNOWN_08 = 0x08
-  case UNKNOWN_14 = 0x14
-  case UNKNOWN_1E = 0x1E
-  case UNKNOWN_22 = 0x22
-  case UNKNOWN_26 = 0x26
-  case UNKNOWN_29 = 0x29
-  case UNKNOWN_2A = 0x2A
-  case UNKNOWN_2B = 0x2B
-  case UNKNOWN_32 = 0x32
-  case UNKNOWN_3A = 0x3A
-  case UNKNOWN_37 = 0x37
-  case UNKNOWN_39 = 0x39
-  case UNKNOWN_3B = 0x3B
-  case UNKNOWN_3E = 0x3E
-  case UNKNOWN_3F = 0x3F
-  case UNKNOWN_4F = 0x4F
-  case UNKNOWN_50 = 0x50
+  // case UNKNOWN_06 = 0x06
+  // case UNKNOWN_08 = 0x08
+  // case UNKNOWN_14 = 0x14
+  // case UNKNOWN_1E = 0x1E
+  // case UNKNOWN_22 = 0x22
+  // case UNKNOWN_29 = 0x29
+  // case UNKNOWN_2A = 0x2A
+  // case UNKNOWN_2B = 0x2B
+  // case UNKNOWN_32 = 0x32
+  // case UNKNOWN_3A = 0x3A
+  // case UNKNOWN_37 = 0x37
+  // case UNKNOWN_39 = 0x39
+  // case UNKNOWN_3B = 0x3B
+  // case UNKNOWN_3E = 0x3E
+  // case UNKNOWN_3F = 0x3F
+  // case UNKNOWN_4F = 0x4F
+  // case UNKNOWN_50 = 0x50
 }
 enum DEVICE_CMD: UInt8 {
   case SINGLE_TAP = 0x01
   case DOUBLE_TAP = 0x00
-  case TRIPLE_TAP = 0x04  // or 05??
+  case TRIPLE_TAP_SILENT = 0x04
+  case TRIPLE_TAP_NORMAL = 0x05
   case LOOK_UP = 0x02
   case LOOK_DOWN = 0x03
   case DASH_SHOWN = 0x1E

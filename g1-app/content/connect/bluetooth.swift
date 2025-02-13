@@ -5,7 +5,8 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
   let uartServiceCbuuid = CBUUID(string: uartServiceUuid)
   let uartTxCharacteristicCbuuid = CBUUID(string: uartTxCharacteristicUuid)
   let uartRxCharacteristicCbuuid = CBUUID(string: uartRxCharacteristicUuid)
-  let smpServiceCbuuid = CBUUID(string: smpCharacteristicUuid)
+  let smpServiceCbuuid = CBUUID(string: smpServiceUuid)
+  let smpCharacteristicCbuuid = CBUUID(string: smpCharacteristicUuid)
   let discoverSmb = false
   var manager: ConnectionManager?
 
@@ -73,8 +74,10 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
     for service in services {
       if service.uuid == uartServiceCbuuid {
         peripheral.discoverCharacteristics(nil, for: service)
-      } else if service.uuid == smpServiceCbuuid && discoverSmb {
-        peripheral.discoverCharacteristics(nil, for: service)
+      } else if service.uuid == smpServiceCbuuid {
+        if discoverSmb {
+          peripheral.discoverCharacteristics(nil, for: service)
+        }
       } else {
         log("discover unknown service: \(service)")
       }

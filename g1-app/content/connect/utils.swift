@@ -61,6 +61,12 @@ extension String {
   func trim() -> String {
     return self.trimmingCharacters(in: .whitespacesAndNewlines)
   }
+  func uint8() -> [UInt8] {
+    return [UInt8](self.data(using: .utf8)!)
+  }
+  func data() -> Data {
+    return self.data(using: .utf8)!
+  }
 }
 
 func toJson(dict: Any) -> Data? {

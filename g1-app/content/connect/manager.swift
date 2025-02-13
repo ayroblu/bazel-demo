@@ -95,6 +95,24 @@ public class ConnectionManager {
     }
   }
 
+  public func dashConfig() {
+    let data = G1Cmd.Config.dashData(isShow: true, vertical: 8, distance: 8)
+    if let data {
+      manager.transmitBoth(data)
+    }
+    Task {
+      try? await Task.sleep(for: .seconds(2))
+      if let data = G1Cmd.Config.dashData(isShow: true, vertical: 2, distance: 3) {
+        manager.transmitBoth(data)
+      }
+      try? await Task.sleep(for: .seconds(2))
+      let data = G1Cmd.Config.dashData(isShow: false, vertical: 2, distance: 3)
+      if let data {
+        manager.transmitBoth(data)
+      }
+    }
+  }
+
   var speechRecognizer: SpeechRecognizer?
   // var micOn = false
   public func listenAudio() {
@@ -126,6 +144,12 @@ public class ConnectionManager {
       let msg = data.subdata(in: 2..<data.count).ascii() ?? "<>"
       log("00: \(name) \(code.hex) \(msg)")
       break
+    case .AutoBrightness:
+      // 0x01c9
+      break
+    case .SilentMode:
+      // 0x03c9
+      break
     case .AddNotif:
       // 0x04ca
       log("Add notif resp: \(name) \(data.hex)")
@@ -154,8 +178,10 @@ public class ConnectionManager {
         log("single tap!", name)
       case .DOUBLE_TAP:
         log("double tap!", name)
-      case .TRIPLE_TAP:
-        log("triple tap!", name)
+      case .TRIPLE_TAP_SILENT:
+        log("silent mode on", name)
+      case .TRIPLE_TAP_NORMAL:
+        log("not silent mode", name)
       case .LOOK_UP:
         log("look up", name, data.hex)
 
@@ -205,7 +231,13 @@ public class ConnectionManager {
         // 0xf5120c
         break
       case .none:
-        log("unknown device command: \(name) \(data[1]) \(data.hex)")
+        switch data[1] {
+        case 0x00:
+          break
+        default:
+          log("unknown device command: \(name) \(data[1]) \(data.hex)")
+          break
+        }
       }
     case .BATTERY:
       switch data[1] {
@@ -229,6 +261,11 @@ public class ConnectionManager {
     case .HeadTilt:
       // Right only
       // 0x0bc9
+      break
+    case .DashConfig:
+      // dash control
+      // 0x2606000102c9
+      log("dash control \(data.hex)")
       break
     case .BmpDone:
       log("bmp done \(name), isSuccess: \(data[1] == 0xC9)")
@@ -268,93 +305,98 @@ public class ConnectionManager {
         log("0xF6: \(name) [\(data.count)]", data.ascii() ?? "<>")
       }
       break
-    case .UNKNOWN_06:
-      // On open? proximity?
-      // 0x0607000206
-      // 0x060700e306
-      // 0x061500e401
-      // 0x062d00e503010001
-      break
-    case .UNKNOWN_08:
-      // on pairing
-      // 0x0806000004
-      break
-    case .UNKNOWN_14:
-      // After opening notifications
-      // 0x14c9
-      break
-    case .UNKNOWN_1E:
-      // Similar to 6
-      // 0x1e5800e803010001
-      // 0x1e2400ea03010001
-      // 0x1e1000ec03010001
-      // 0x1e06001c01
-      break
-    case .UNKNOWN_22:
-      // Uptime?
-      // R: 0x220500e6010301
-      //    0x2205003c010301
-      //    0x22050044010301
-      break
-    case .UNKNOWN_26:
-      // dash control
-      // 0x2606000102c9
-      log("dash control \(data.hex)")
-      break
-    case .UNKNOWN_29:
-      // On open even app
-      // 0x29650601
-      break
-    case .UNKNOWN_2A:
-      // After opening settings
-      // 0x2a6801
-      break
-    case .UNKNOWN_2B:
-      // very noisy
-      // 0x2b690a0b
-      // 0x2b690a07
-      break
-    case .UNKNOWN_32:
-      // Right only after opening settings
-      // 0x326d1501
-      break
-    case .UNKNOWN_3A:
-      // After opening settings
-      // 0x3ac901
-      break
-    case .UNKNOWN_37:
-      // 0x3737e1bc000001
-      break
-    case .UNKNOWN_39:
-      // on dash control
-      // 0x390500cf01
-      break
-    case .UNKNOWN_3B:
-      // on load, right only
-      // 0x3bc90303
-      // 0x3bc90103 (set display position?)
-      break
-    case .UNKNOWN_3E:
-      // Very long, only after ping, only right
-      // 0x3ec97bd4477fe46c090051000000b32b0000d60a000007000100e90702027c6500000b000000e907011bbc7f000006000000e907011cf825000003000000e907011dec04000001000000e907011e30cf000005000000e907011f548d000002000000e9070201d89f000006000000e90702023302000095000000e907011b11030000de000000e907011cd100000025000000e907011d0800000002000000e907011e4904000035010000e907011f580100004c000000e9070201a6030000cb
-      break
-    case .UNKNOWN_3F:
-      // On pairing
-      // 0x3f05c9
-      break
-    case .UNKNOWN_4F:
-      // On pairing
-      // 0x4fc901
-      break
-    case .UNKNOWN_50:
-      // right only
-      // 0x500600000101
-      break
     case .none:
-      log(
-        "unknown command: \(name) \(data[0]) \(data.hex) \(data.subdata(in: 1..<data.count).ascii() ?? "<>")"
-      )
-      break
+      switch data[0] {
+      case 0x06:
+        // On open? proximity? Config update?
+        // 6, 22 1E are all triggered on note update
+        // 0x0607000206
+        // 0x060700e306
+        // 0x061500e401
+        // 0x062d00e503010001
+        // log("0x06: \(name) \(data.hex)")
+        break
+      case 0x08:
+        // on pairing
+        // 0x0806000004
+        break
+      case 0x14:
+        // After opening notifications
+        // 0x14c9
+        break
+      case 0x1E:
+        // response to note update I think
+        log("0x1E: \(name) \(data.hex)")
+        // Similar to 6
+        // 0x1e5800e803010001
+        // 0x1e2400ea03010001
+        // 0x1e1000ec03010001
+        // 0x1e06001c01
+        break
+      case 0x22:
+        // log("0x22: \(name) \(data.hex)")
+        // Uptime?
+        // R: 0x220500e6010301
+        //    0x2205003c010301
+        //    0x22050044010301
+        break
+      case 0x29:
+        // On open even app
+        // 0x29650601
+        break
+      case 0x2A:
+        // After opening settings
+        // 0x2a6801
+        break
+      case 0x2B:
+        // very noisy
+        // 0x2b690a0b
+        // 0x2b690a07
+        break
+      case 0x32:
+        // Right only after opening settings
+        // 0x326d1501
+        break
+      case 0x3A:
+        // After opening settings
+        // 0x3ac901
+        break
+      case 0x37:
+        // time since boot in seconds?
+        // 0x3737e1bc000001
+        break
+      case 0x39:
+        // on dash control
+        // 0x390500cf01
+        break
+      case 0x3B:
+        // on load, right only
+        // 0x3bc90303
+        // 0x3bc90103 (set display position?)
+        break
+      case 0x3E:
+        // Very long, only after ping, only right
+        // Fetch buried point data, which is essentially user usage tracking: https://www.php.cn/faq/446290.html
+        // 0x3ec97bd4477fe46c090051000000b32b0000d60a000007000100e90702027c6500000b000000e907011bbc7f000006000000e907011cf825000003000000e907011dec04000001000000e907011e30cf000005000000e907011f548d000002000000e9070201d89f000006000000e90702023302000095000000e907011b11030000de000000e907011cd100000025000000e907011d0800000002000000e907011e4904000035010000e907011f580100004c000000e9070201a6030000cb
+        break
+      case 0x3F:
+        // On pairing
+        // 0x3f05c9
+        break
+      case 0x4F:
+        // On pairing
+        // 0x4fc901
+        break
+      case 0x50:
+        // right only
+        // 0x500600000101
+        break
+      default:
+        log(
+          "unknown command: \(name) \(data[0]) \(data.hex) \(data.subdata(in: 1..<data.count).ascii() ?? "<>")"
+        )
+        break
+      }
     }
   }
   var f6Data: [CBPeripheral: [Data]] = [:]

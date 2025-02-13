@@ -1,4 +1,5 @@
 import Log
+import MapKit
 import SwiftUI
 import utils
 
@@ -9,7 +10,7 @@ class MainVM: ObservableObject {
   private var previous: String = ""
   var text: String {
     get {
-      if let selection = selection {
+      if let selection {
         let toSend = textWithCursor(text: _text, selection: selection)
         if toSend != previous {
           previous = toSend
@@ -59,6 +60,10 @@ class MainVM: ObservableObject {
     connectionManager.disconnect()
   }
 
+  func dashConfig() {
+    connectionManager.dashConfig()
+  }
+
   private func sendText(_ text: String) {
     connectionManager.sendText(text)
   }
@@ -78,4 +83,42 @@ func textWithCursor(text: String, selection: TextSelection) -> String {
     break
   }
   return toSend
+}
+
+func getDirections() async -> MKRoute? {
+  let searchRequest = MKLocalSearch.Request()
+  searchRequest.naturalLanguageQuery = "Sainsburys"
+  let search = MKLocalSearch(request: searchRequest)
+  let response = try? await search.start()
+  guard let to = response?.mapItems.first else { return nil }
+  let from = MKMapItem.forCurrentLocation()
+  return await getDirections(from: from, to: to)
+}
+func getDirections(from: MKMapItem, to: MKMapItem) async -> MKRoute? {
+  // Create and configure the request
+  let request = MKDirections.Request()
+  request.source = from
+  request.destination = to
+  request.transportType = .walking
+  request.requestsAlternateRoutes = true
+  // request.transportType = .cycling
+  // request.transportType = .transit
+  // request.transportType = .automobile
+
+  // Get the directions based on the request
+  let directions = MKDirections(request: request)
+  let response = try? await directions.calculate()
+  print(response?.routes.first?.steps.map { $0.instructions } ?? [])
+  print(response?.routes.first?.steps.map { $0.distance } ?? [])
+  // print(response?.routes.first?.steps.map { $0.notice } ?? [])
+  print(
+    response?.routes.first?.steps.map {
+      switch $0.transportType {
+      case .walking: "walking"
+      case .automobile: "car"
+      case .transit: "train"
+      case _: "unknown"
+      }
+    } ?? [])
+  return response?.routes.first
 }
