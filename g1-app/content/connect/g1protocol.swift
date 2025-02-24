@@ -1,5 +1,6 @@
 import Foundation
 import Log
+import utils
 import zlib
 
 let uartServiceUuid = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
@@ -14,13 +15,75 @@ struct G1Cmd {
       return Data([SendCmd.Exit.rawValue])
     }
   }
-  struct Brightness {
-    static func data(brightness: UInt8, auto: Bool) -> Data {
-      let brightness: UInt8 = brightness > 63 ? 63 : brightness
-      return Data([SendCmd.Brightness.rawValue, brightness, auto ? 1 : 0])
+  struct Info {
+    static func batteryData(battery: Bool) -> Data {
+      return Data([SendCmd.Battery.rawValue, 0x02])
+    }
+    static func glassesStateData() -> Data {
+      return Data([SendCmd.GlassesState.rawValue])
+    }
+    static func firmwareData() -> Data {
+      return Data([SendCmd.FirmwareInfo.rawValue, 0x74])
     }
   }
   struct Config {
+    static func brightnessData(brightness: UInt8, auto: Bool) -> Data {
+      let brightness: UInt8 = brightness > 63 ? 63 : brightness
+      return Data([SendCmd.Brightness.rawValue, brightness, auto ? 1 : 0])
+    }
+    static func silentModeData(enabled: Bool) -> Data {
+      return Data([SendCmd.SilentMode.rawValue, enabled ? 0x0C : 0x0A, 0x00])
+    }
+    enum DashMode: UInt8 {
+      case Full = 0x00
+      case Dual = 0x01
+      case Minimal = 0x02
+    }
+    enum DashSubMode: UInt8 {
+      case Notes = 0x00
+      case Stock = 0x01
+      case News = 0x02
+      case Calendar = 0x03
+      case Navigation = 0x04
+      case Map = 0x05
+    }
+    static func dashModeData(mode: DashMode, subMode: DashSubMode) -> Data {
+      return Data([
+        SendCmd.DashMode.rawValue, 0x07, 0x00, 0x06, mode.rawValue,
+        mode == DashMode.Minimal ? 0x00 : subMode.rawValue,
+      ])
+    }
+    enum WeatherIcon: UInt8 {
+      case Night = 0x01
+      case Clouds = 0x02
+      case Drizzle = 0x03
+      case HeavyDrizzle = 0x04
+      case Rain = 0x05
+      case HeavyRain = 0x06
+      case Thunder = 0x07
+      case ThunderStorm = 0x08
+      case Snow = 0x09
+      case Mist = 0x0A
+      case Fog = 0x0B
+      case Sand = 0x0C
+      case Squalls = 0x0D
+      case Tornado = 0x0E
+      case Freezing = 0x0F
+      case Sunny = 0x10
+    }
+    static func dashTimeWeatherData(weatherIcon: WeatherIcon, temp: UInt8) -> Data {
+      let currentTime = Date().timeIntervalSince1970
+      let epochTime32: [UInt8] = withUnsafeBytes(of: Int32(currentTime)) { Array($0) }
+      let epochTime64: [UInt8] = withUnsafeBytes(of: Int64(currentTime * 1000)) { Array($0) }
+      let fahrenheit: UInt8 = 0x00  // 00 is C, 01 is F
+      let twelveHour: UInt8 = 0x00  // 00 is 24h, 01 is 12h
+      return Data(
+        [
+          SendCmd.DashMode.rawValue, 0x15, 0x00, 0x03,
+        ] + epochTime32 + epochTime64 + [
+          weatherIcon.rawValue, temp, fahrenheit, twelveHour,
+        ])
+    }
     static func headTiltData(angle: Int) -> Data? {
       guard angle >= 0 && angle <= 60 else { return nil }
       return Data([SendCmd.HeadTilt.rawValue, UInt8(angle), 0x01])
@@ -35,6 +98,58 @@ struct G1Cmd {
         SendCmd.DashConfig.rawValue, 0x08, 0x00, 0x01,
         cmd, show, vertical, distance,
       ])
+    }
+    struct Event {
+      let name: String
+      let time: String
+      let location: String
+    }
+    static func calendarData(event: Event) -> Data {
+      let nameData: [UInt8] = event.name.uint8()
+      let nameLength: UInt8 = UInt8(nameData.count)
+      let timeData: [UInt8] = event.time.uint8()
+      let timeLength: UInt8 = UInt8(timeData.count)
+      let locationData: [UInt8] = event.location.uint8()
+      let locationLength: UInt8 = UInt8(locationData.count)
+      let fixedData: [UInt8] = [
+        0x00, 0x99, 0x03, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x03, 0x01,
+      ]
+      // need part + event data split for swift type checker
+      let partData: [UInt8] = fixedData + [0x01, nameLength] + nameData
+      let partData2: [UInt8] = partData + [0x02, timeLength] + timeData
+      let eventData: [UInt8] = partData2 + [0x03, locationLength] + locationData
+      let totalLength: UInt8 = UInt8(eventData.count + 2)
+      log("calendar length", eventData.count)
+      return Data([SendCmd.DashMode.rawValue, totalLength] + eventData)
+    }
+    struct Note {
+      let title: String
+      let text: String
+    }
+    static var noteId: UInt8 = 0x00
+    static func notesData(notes: [Note]) -> [Data] {
+      return (0..<4).map { idx in
+        noteId = (noteId + 1) & 0xFF
+        let noteIdx: UInt8 = UInt8(idx + 1)
+        if let note = notes[safe: idx] {
+          let titleData: [UInt8] = note.title.uint8()
+          let titleLength: UInt8 = UInt8(titleData.count)
+          let textData: [UInt8] = note.text.uint8()
+          let textLength: UInt8 = UInt8(textData.count)
+          let noteData: [UInt8] =
+            [0x00, noteId, 0x03, 0x01, 0x00, 0x01, 0x00, noteIdx, 0x01, titleLength] + titleData
+            + [textLength, 0x00] + textData
+          let totalLength: UInt8 = UInt8(noteData.count + 2)
+          return Data([SendCmd.Notes.rawValue, totalLength] + noteData)
+        } else {
+          let noteData: [UInt8] = [
+            0x00, noteId, 0x03, 0x01, 0x00, 0x01, 0x00, noteIdx, 0x00,
+            0x01, 0x00, 0x01, 0x00, 0x00,
+          ]
+          let totalLength: UInt8 = UInt8(noteData.count + 2)
+          return Data([SendCmd.Notes.rawValue, totalLength] + noteData)
+        }
+      }
     }
   }
   struct Mic {
@@ -223,15 +338,23 @@ struct NotifyData {
 
 enum SendCmd: UInt8 {
   case Brightness = 0x01
+  case SilentMode = 0x03
   case AddNotif = 0x04
+  case DashMode = 0x06
   case HeadTilt = 0x0B
   case Mic = 0x0E
-  case Exit = 0x18
-  case FirmwareInfo = 0x23
-  case DashConfig = 0x26
-  case Text = 0x4E
   case Bmp = 0x15
   case Crc = 0x16
+  case Exit = 0x18
+  case Notes = 0x1E
+  case FirmwareInfo = 0x23
+  case DashConfig = 0x26
+  case WearDetection = 0x27  // 01 for on
+  case BrightnessState = 0x29
+  case GlassesState = 0x2B
+  case Battery = 0x2C
+  case Uptime = 0x37
+  case Text = 0x4E
   case Notif = 0x4B
   case Ping = 0x4D
 }
@@ -240,6 +363,7 @@ enum BLE_REC: UInt8 {
   case AutoBrightness = 0x01
   case SilentMode = 0x03
   case AddNotif = 0x04
+  case DashMode = 0x06
   case HeadTilt = 0x0B
   case DashConfig = 0x26
   case MIC = 0x0E
@@ -251,27 +375,12 @@ enum BLE_REC: UInt8 {
   case Exit = 0x18
   case BmpDone = 0x20
   case HEARTBEAT = 0x25
+  case GlassesState = 0x2B
+  case Uptime = 0x37
   case NOTIF = 0x4B
   case PING = 0x4D
   case TEXT = 0x4E
   case NOTIF_SETTING = 0xF6
-  // case UNKNOWN_06 = 0x06
-  // case UNKNOWN_08 = 0x08
-  // case UNKNOWN_14 = 0x14
-  // case UNKNOWN_1E = 0x1E
-  // case UNKNOWN_22 = 0x22
-  // case UNKNOWN_29 = 0x29
-  // case UNKNOWN_2A = 0x2A
-  // case UNKNOWN_2B = 0x2B
-  // case UNKNOWN_32 = 0x32
-  // case UNKNOWN_3A = 0x3A
-  // case UNKNOWN_37 = 0x37
-  // case UNKNOWN_39 = 0x39
-  // case UNKNOWN_3B = 0x3B
-  // case UNKNOWN_3E = 0x3E
-  // case UNKNOWN_3F = 0x3F
-  // case UNKNOWN_4F = 0x4F
-  // case UNKNOWN_50 = 0x50
 }
 enum DEVICE_CMD: UInt8 {
   case SINGLE_TAP = 0x01
@@ -282,12 +391,12 @@ enum DEVICE_CMD: UInt8 {
   case LOOK_DOWN = 0x03
   case DASH_SHOWN = 0x1E
   case DASH_HIDE = 0x1F
-  case CASE_EXIT = 0x07
-  case CASE = 0x08
+  case CASE_OPEN = 0x08
   case CASE_CLOSE = 0x0B
   case CASE_STATE = 0x0E
   case CASE_BATTERY = 0x0F
-  case UNKNOWN_06 = 0x06
+  case WEAR_ON = 0x06
+  case WEAR_OFF = 0x07
   case UNKNOWN_09 = 0x09
   case UNKNOWN_0A = 0x0A
   case UNKNOWN_11 = 0x11

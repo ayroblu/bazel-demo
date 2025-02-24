@@ -8,6 +8,26 @@ class MainVM: ObservableObject {
   @Published private var _text: String = "Hi there!"
   @Published var selection: TextSelection? = nil
   private var previous: String = ""
+  @Published var isConnected: Bool = false
+  @Published var isCaseOpen: Bool?
+  @Published var leftBattery: Int?
+  @Published var rightBattery: Int?
+  @Published var silentMode: Bool = false
+  @Published var brightness: UInt8 = 6
+  @Published var autoBrightness: Bool = true
+  var battery: Int? {
+    if let leftBattery, let rightBattery {
+      return min(leftBattery, rightBattery)
+    }
+    if let leftBattery {
+      return leftBattery
+    }
+    if let rightBattery {
+      return rightBattery
+    }
+    return nil
+  }
+  @Published var caseBattery: Int?
   var text: String {
     get {
       if let selection {
@@ -51,17 +71,9 @@ class MainVM: ObservableObject {
     connectionManager.sendNotif()
   }
 
-  func listenAudio() {
-    connectionManager.listenAudio()
-  }
-
   func disconnect() {
     devices = []
     connectionManager.disconnect()
-  }
-
-  func dashConfig() {
-    connectionManager.dashConfig()
   }
 
   private func sendText(_ text: String) {

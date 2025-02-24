@@ -10,43 +10,45 @@ struct NavigateView: View {
   let manager = CLLocationManager()
 
   var body: some View {
-    ZStack {
-      Map(position: $cameraPosition) {
-        UserAnnotation()
-        if let route {
-          MapPolyline(route)
-            .stroke(
-              .white,
-              style: StrokeStyle(
-                lineWidth: 7, lineCap: .round, lineJoin: .round, miterLimit: 10))
-          MapPolyline(route)
-            .stroke(
-              .blue,
-              style: StrokeStyle(
-                lineWidth: 4, lineCap: .round, lineJoin: .round, miterLimit: 10))
-        }
-      }
-      .mapControls {
-        MapUserLocationButton()
-        MapCompass()
-      }
-      .onAppear {
-        manager.requestWhenInUseAuthorization()
-        Task {
-          route = await getDirections()
+    LazyView {
+      ZStack {
+        Map(position: $cameraPosition) {
+          UserAnnotation()
           if let route {
-            var rect = route.polyline.boundingMapRect
-            rect.size.width *= 1.2
-            rect.size.height *= 1.2
-            rect.origin.x -= rect.size.width / 10
-            rect.origin.y -= rect.size.height / 10
-            cameraPosition = MapCameraPosition.rect(rect)
+            MapPolyline(route)
+              .stroke(
+                .white,
+                style: StrokeStyle(
+                  lineWidth: 7, lineCap: .round, lineJoin: .round, miterLimit: 10))
+            MapPolyline(route)
+              .stroke(
+                .blue,
+                style: StrokeStyle(
+                  lineWidth: 4, lineCap: .round, lineJoin: .round, miterLimit: 10))
+          }
+        }
+        .mapControls {
+          MapUserLocationButton()
+          MapCompass()
+        }
+        .onAppear {
+          manager.requestWhenInUseAuthorization()
+          Task {
+            route = await getDirections()
+            if let route {
+              var rect = route.polyline.boundingMapRect
+              rect.size.width *= 1.2
+              rect.size.height *= 1.2
+              rect.origin.x -= rect.size.width / 10
+              rect.origin.y -= rect.size.height / 10
+              cameraPosition = MapCameraPosition.rect(rect)
+            }
           }
         }
       }
+      .navigationTitle("Navigation")
+      // .navigationBarHidden(true)
     }
-    .navigationTitle("Navigation")
-    // .navigationBarHidden(true)
   }
 }
 

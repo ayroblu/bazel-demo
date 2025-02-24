@@ -6,6 +6,7 @@ actor SpeechRecognizer {
   private var recognizer: SFSpeechRecognizer?
   private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
   private var recognitionTask: SFSpeechRecognitionTask?
+  var audioManager = AudioManager()
 
   // private var lastTranscription: SFTranscription?  // cache to make contrast between near results
   // private var cacheString = ""  // cache stream recognized formattedString
@@ -55,8 +56,7 @@ actor SpeechRecognizer {
   }
 
   private func startRecognitionInternal(locale: Locale) {
-    // lastTranscription = nil
-    // cacheString = ""
+    audioManager.open()
 
     recognizer = SFSpeechRecognizer(locale: locale)
     guard let recognizer = recognizer else {
@@ -135,6 +135,7 @@ actor SpeechRecognizer {
   }
 
   private func reset() {
+    audioManager.close()
     recognitionTask?.cancel()
     try? AVAudioSession.sharedInstance().setActive(false)
     recognitionRequest = nil
@@ -166,6 +167,8 @@ actor SpeechRecognizer {
       return
     }
     audioBuffer.frameLength = audioBuffer.frameCapacity
+
+    audioManager.write(audioBuffer: audioBuffer)
 
     pcmData.withUnsafeBytes { (bufferPointer: UnsafeRawBufferPointer) in
       if let audioDataPointer = bufferPointer.baseAddress?.assumingMemoryBound(to: Int16.self) {

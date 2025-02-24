@@ -27,10 +27,18 @@ ios_application(
     minimum_os_version = "18.0",
     # cp ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/<uuid>.mobileprovision .
     provisioning_profile = "5bc6ee9b-186f-4f5c-8525-0382a219531e.mobileprovision",
-    resources = glob(["Assets/*"]),
+    resources = glob(
+        ["Assets/*"],
+        exclude_directories = 0,
+    ),
     visibility = ["//visibility:public"],
     deps = [":lib"],
 )
+
+# filegroup(
+#     name = "Assets.xcassets",
+#     srcs = glob(["Assets.xcassets/**"]),
+# )
 
 # macos_application(
 #     name = "macos",

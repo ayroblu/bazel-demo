@@ -38,6 +38,9 @@ extension Data {
   var hex: String {
     return trimEnd().reduce("0x") { $0 + String(format: "%02x", $1) }
   }
+  var hexSpace: String {
+    return trimEnd().reduce("0x") { $0 + String(format: "%02x ", $1) }
+  }
   func trimEnd() -> Data {
     let data = self
     var lastNonZero = data.count - 1
