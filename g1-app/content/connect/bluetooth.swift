@@ -14,6 +14,7 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
     switch central.state {
     case .poweredOn:
       log("Bluetooth is powered on.")
+      restore()
     case .poweredOff:
       log("Bluetooth is powered off.")
     default:
@@ -27,6 +28,7 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
   ) {
     guard let name = peripheral.name else { return }
     log("discovered \(name)")
+    // manager?.pairing?.onPeripheral(peripheral: peripheral)
   }
 
   func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
@@ -201,7 +203,26 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
     manager?.onValue(peripheral, data: data)
   }
 
+  var toRestore: [CBPeripheral]?
   func centralManager(_ central: CBCentralManager, willRestoreState dict: [String: Any]) {
-    log("willRestoreState", dict)
+    // log("willRestoreState", dict)
+    // kCBRestoredScanServices
+    // kCBRestoredPeripherals
+    if let peripherals = dict["kCBRestoredPeripherals"] as? [CBPeripheral] {
+      toRestore = peripherals
+    }
+  }
+  func restore() {
+    if let peripherals = toRestore {
+      for peripheral in peripherals {
+        if let name = peripheral.name {
+          log("restoring", name)
+        }
+        peripheral.delegate = self
+        manager?.centralManager.connect(
+          peripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+      }
+    }
+    toRestore = nil
   }
 }

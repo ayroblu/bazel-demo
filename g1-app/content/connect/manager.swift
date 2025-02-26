@@ -2,13 +2,16 @@ import CoreBluetooth
 import Log
 import Pcm
 import Speech
+import SwiftData
 
 public class ConnectionManager {
   let uartServiceCbuuid = CBUUID(string: uartServiceUuid)
   let manager = BluetoothManager()
   let centralManager: CBCentralManager
   var mainVm: MainVM?
-  var connectedPeripherals: [CBPeripheral] = []
+  var connectedPeripherals: [CBPeripheral] {
+    return [manager.leftPeripheral, manager.rightPeripheral].compactMap { $0 }
+  }
 
   public init() {
     let options = [CBCentralManagerOptionRestoreIdentifierKey: "central-manager-identifier"]
@@ -16,15 +19,53 @@ public class ConnectionManager {
     manager.manager = self
   }
 
+  var pairing: Pairing?
+
+  func syncUnknown(modelContext: ModelContext) {
+    let pairing = Pairing(modelContext: modelContext, connect: connect)
+    self.pairing = pairing
+    let peripherals = centralManager.retrieveConnectedPeripherals(withServices: [uartServiceCbuuid])
+    for peripheral in peripherals {
+      pairing.onPeripheral(peripheral: peripheral)
+    }
+    log("No paired peripherals found")
+    centralManager.scanForPeripherals(withServices: [uartServiceCbuuid], options: nil)
+  }
+
+  func syncBasic(modelContext: ModelContext) {
+    let pairing = Pairing(modelContext: modelContext, connect: connect)
+    self.pairing = pairing
+  }
+
+  func stopPairing() {
+    if pairing != nil {
+      pairing = nil
+      centralManager.stopScan()
+    }
+  }
+
+  func connect(left: CBPeripheral, right: CBPeripheral) {
+    if let name = left.name {
+      log("connecting to \(name) (state: \(left.state.rawValue))")
+    }
+    if let name = right.name {
+      log("connecting to \(name) (state: \(right.state.rawValue))")
+    }
+    left.delegate = manager
+    right.delegate = manager
+    centralManager.connect(
+      left, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+    centralManager.connect(
+      right, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+  }
+
   public func getConnected() -> [CBPeripheral] {
     let peripherals = centralManager.retrieveConnectedPeripherals(withServices: [uartServiceCbuuid])
-    connectedPeripherals = []
     for peripheral in peripherals {
       guard let name = peripheral.name else { continue }
       guard name.contains("Even") else { continue }
       // guard peripheral.state == .disconnected else { continue }
       log("connecting to \(name) (state: \(peripheral.state.rawValue))")
-      connectedPeripherals.append(peripheral)
       peripheral.delegate = manager
       centralManager.connect(
         peripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
@@ -455,7 +496,7 @@ public class ConnectionManager {
         // Max brightness: 42
         mainVm?.brightness = brightness
         mainVm?.autoBrightness = isAutoBrightness
-        log("auto brightness \(name) \(brightness) \(isAutoBrightness) | \(data.hex)")
+      // log("auto brightness \(name) \(brightness) \(isAutoBrightness) | \(data.hex)")
       case 0x2A:
         // After opening settings
         // 0x2a6801
@@ -505,6 +546,12 @@ public class ConnectionManager {
   var f6Data: [CBPeripheral: [Data]] = [:]
 
   func onConnect() {
+    if let pairing, let left = manager.leftPeripheral, let right = manager.rightPeripheral {
+      pairing.modelContext.insert(
+        GlassesModel(left: left.identifier.uuidString, right: right.identifier.uuidString))
+      self.pairing = nil
+      centralManager.stopScan()
+    }
     deviceInfo()
     mainVm?.isConnected = true
   }
@@ -528,4 +575,45 @@ enum RespCode: UInt8 {
   case Success = 0xC9
   case Continue = 0xCA
   case Failure = 0xCB
+}
+
+struct LeftRight {
+  let left: CBPeripheral?
+  let right: CBPeripheral?
+}
+class Pairing {
+  var paired: [String: LeftRight] = [:]
+  let modelContext: ModelContext
+  let connect: (CBPeripheral, CBPeripheral) -> Void
+
+  init(
+    modelContext: ModelContext, connect: @escaping (CBPeripheral, CBPeripheral) -> Void
+  ) {
+    self.modelContext = modelContext
+    self.connect = connect
+  }
+
+  func onPeripheral(peripheral: CBPeripheral) {
+    guard let name = peripheral.name else { return }
+    guard name.contains("Even G1") else { return }
+
+    let components = name.components(separatedBy: "_")
+    guard components.count > 1, let channelNumber = components[safe: 1] else { return }
+    if let lr = paired[channelNumber] {
+      if let right = lr.right, name.contains("_L_") {
+        connect(peripheral, right)
+        return
+      }
+      if let left = lr.left, name.contains("_R_") {
+        connect(left, peripheral)
+        return
+      }
+    } else {
+      if name.contains("_L_") {
+        paired[channelNumber] = LeftRight(left: peripheral, right: nil)
+      } else if name.contains("_R_") {
+        paired[channelNumber] = LeftRight(left: nil, right: peripheral)
+      }
+    }
+  }
 }

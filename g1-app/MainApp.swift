@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 import content
 
@@ -7,5 +8,6 @@ struct MainApp: App {
     WindowGroup {
       ContentView()
     }
+    .modelContainer(for: GlassesModel.self)
   }
 }

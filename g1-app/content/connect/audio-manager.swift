@@ -10,7 +10,12 @@ class AudioManager {
   func open() {
     try? FileManager.default.removeItem(at: outputUrl)
     audioFile = try? AVAudioFile(
-      forWriting: outputUrl, settings: [AVFormatIDKey: kAudioFormatMPEG4AAC],
+      forWriting: outputUrl,
+      settings: [
+        AVFormatIDKey: kAudioFormatMPEG4AAC,
+        AVSampleRateKey: 16000,
+        AVNumberOfChannelsKey: 1,
+      ],
       commonFormat: .pcmFormatInt16, interleaved: false)
   }
 

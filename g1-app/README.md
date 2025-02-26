@@ -7,5 +7,5 @@ Note that for bazel and sourcekit-lsp, we manually add each package to our vim c
 
 ## TODO
 * Connection management
-* Record audio
 * Create a bmp
+* Voice control

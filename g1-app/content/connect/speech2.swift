@@ -168,14 +168,13 @@ actor SpeechRecognizer {
     }
     audioBuffer.frameLength = audioBuffer.frameCapacity
 
-    audioManager.write(audioBuffer: audioBuffer)
-
     pcmData.withUnsafeBytes { (bufferPointer: UnsafeRawBufferPointer) in
       if let audioDataPointer = bufferPointer.baseAddress?.assumingMemoryBound(to: Int16.self) {
         let audioBufferPointer = audioBuffer.int16ChannelData?.pointee
         audioBufferPointer?.initialize(
           from: audioDataPointer, count: pcmData.count / MemoryLayout<Int16>.size)
         recognitionRequest.append(audioBuffer)
+        audioManager.write(audioBuffer: audioBuffer)
       } else {
         log("Failed to get pointer to audio data")
       }
