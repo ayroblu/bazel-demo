@@ -24,17 +24,23 @@ public class ConnectionManager {
   func syncUnknown(modelContext: ModelContext) {
     let pairing = Pairing(modelContext: modelContext, connect: connect)
     self.pairing = pairing
-    let peripherals = centralManager.retrieveConnectedPeripherals(withServices: [uartServiceCbuuid])
-    for peripheral in peripherals {
-      pairing.onPeripheral(peripheral: peripheral)
-    }
-    log("No paired peripherals found")
-    centralManager.scanForPeripherals(withServices: [uartServiceCbuuid], options: nil)
+
+    startScan()
   }
 
-  func syncBasic(modelContext: ModelContext) {
-    let pairing = Pairing(modelContext: modelContext, connect: connect)
-    self.pairing = pairing
+  private func startScan() {
+    guard let pairing else { return }
+    let peripherals = centralManager.retrieveConnectedPeripherals(withServices: [
+      uartServiceCbuuid
+    ])
+    for peripheral in peripherals {
+      if pairing.onPeripheral(peripheral: peripheral) {
+        return
+      }
+    }
+    log("No paired peripherals found")
+    // centralManager.scanForPeripherals(withServices: [uartServiceCbuuid])
+    centralManager.scanForPeripherals(withServices: nil)
   }
 
   func stopPairing() {
@@ -44,6 +50,8 @@ public class ConnectionManager {
     }
   }
 
+  var leftPeripheral: CBPeripheral?
+  var rightPeripheral: CBPeripheral?
   func connect(left: CBPeripheral, right: CBPeripheral) {
     if let name = left.name {
       log("connecting to \(name) (state: \(left.state.rawValue))")
@@ -51,12 +59,15 @@ public class ConnectionManager {
     if let name = right.name {
       log("connecting to \(name) (state: \(right.state.rawValue))")
     }
+    leftPeripheral = left
+    rightPeripheral = right
     left.delegate = manager
     right.delegate = manager
     centralManager.connect(
       left, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
     centralManager.connect(
       right, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+    centralManager.stopScan()
   }
 
   public func getConnected() -> [CBPeripheral] {
@@ -338,7 +349,7 @@ public class ConnectionManager {
       //   log("removed from case", data.hex)
       //   mainVm?.isCaseOpen = nil
       case .CASE_STATE:
-        log("case is open ?: \(data[2])")
+        log("case is open: \(data[2])")
         // mainVm?.isCaseOpen = data[2] == 1
         // 0xf50e01
         break
@@ -547,10 +558,10 @@ public class ConnectionManager {
 
   func onConnect() {
     if let pairing, let left = manager.leftPeripheral, let right = manager.rightPeripheral {
+      log("onConnect - inserting GlassesModel")
       pairing.modelContext.insert(
         GlassesModel(left: left.identifier.uuidString, right: right.identifier.uuidString))
       self.pairing = nil
-      centralManager.stopScan()
     }
     deviceInfo()
     mainVm?.isConnected = true
@@ -593,20 +604,20 @@ class Pairing {
     self.connect = connect
   }
 
-  func onPeripheral(peripheral: CBPeripheral) {
-    guard let name = peripheral.name else { return }
-    guard name.contains("Even G1") else { return }
+  func onPeripheral(peripheral: CBPeripheral) -> Bool {
+    guard let name = peripheral.name else { return false }
+    guard name.contains("Even G1") else { return false }
 
     let components = name.components(separatedBy: "_")
-    guard components.count > 1, let channelNumber = components[safe: 1] else { return }
+    guard components.count > 1, let channelNumber = components[safe: 1] else { return false }
     if let lr = paired[channelNumber] {
       if let right = lr.right, name.contains("_L_") {
         connect(peripheral, right)
-        return
+        return true
       }
       if let left = lr.left, name.contains("_R_") {
         connect(left, peripheral)
-        return
+        return true
       }
     } else {
       if name.contains("_L_") {
@@ -615,5 +626,6 @@ class Pairing {
         paired[channelNumber] = LeftRight(left: nil, right: peripheral)
       }
     }
+    return false
   }
 }

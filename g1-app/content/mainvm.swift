@@ -15,6 +15,7 @@ class MainVM: ObservableObject {
   @Published var silentMode: Bool = false
   @Published var brightness: UInt8 = 6
   @Published var autoBrightness: Bool = true
+  @Published var isBluetoothEnabled: Bool = false
   var battery: Int? {
     if let leftBattery, let rightBattery {
       return min(leftBattery, rightBattery)

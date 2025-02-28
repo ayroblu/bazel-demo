@@ -7,5 +7,7 @@ Note that for bazel and sourcekit-lsp, we manually add each package to our vim c
 
 ## TODO
 * Connection management
+    * When not connected, scan for all devices and connect
+    * When bluetooth is disabled / devices disconnected, disable buttons
 * Create a bmp
 * Voice control

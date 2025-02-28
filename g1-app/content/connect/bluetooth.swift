@@ -11,14 +11,34 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
   var manager: ConnectionManager?
 
   func centralManagerDidUpdateState(_ central: CBCentralManager) {
+    manager?.mainVm?.isBluetoothEnabled = central.state == .poweredOn
     switch central.state {
     case .poweredOn:
       log("Bluetooth is powered on.")
       restore()
     case .poweredOff:
       log("Bluetooth is powered off.")
-    default:
-      log("Bluetooth state is unknown or unsupported.")
+    case .unknown:
+      break
+    case .unsupported:
+      break
+    case .unauthorized:
+      switch CBCentralManager.authorization {
+      case .allowedAlways:
+        break
+      case .denied:
+        break
+      case .restricted:
+        break
+      case .notDetermined:
+        break
+      @unknown default:
+        break
+      }
+    case .resetting:
+      break
+    @unknown default:
+      log("Bluetooth state is unknown.")
     }
   }
 
@@ -28,7 +48,7 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
   ) {
     guard let name = peripheral.name else { return }
     log("discovered \(name)")
-    // manager?.pairing?.onPeripheral(peripheral: peripheral)
+    manager?.pairing?.onPeripheral(peripheral: peripheral)
   }
 
   func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
@@ -222,7 +242,7 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
         manager?.centralManager.connect(
           peripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
       }
+      toRestore = nil
     }
-    toRestore = nil
   }
 }
