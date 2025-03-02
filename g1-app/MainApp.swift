@@ -8,6 +8,9 @@ struct MainApp: App {
     WindowGroup {
       ContentView()
     }
-    .modelContainer(for: GlassesModel.self)
+    .modelContainer(for: [
+      GlassesModel.self,
+      NoteModel.self,
+    ])
   }
 }

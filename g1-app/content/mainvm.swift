@@ -9,13 +9,15 @@ class MainVM: ObservableObject {
   @Published var selection: TextSelection? = nil
   private var previous: String = ""
   @Published var isConnected: Bool = false
-  @Published var isCaseOpen: Bool?
+  @Published var glassesState: GlassesState = GlassesState.Off
   @Published var leftBattery: Int?
   @Published var rightBattery: Int?
   @Published var silentMode: Bool = false
   @Published var brightness: UInt8 = 6
   @Published var autoBrightness: Bool = true
   @Published var isBluetoothEnabled: Bool = false
+  @Published var dashVertical: UInt8 = 3
+  @Published var dashDistance: UInt8 = 2
   var battery: Int? {
     if let leftBattery, let rightBattery {
       return min(leftBattery, rightBattery)

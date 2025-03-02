@@ -1,9 +1,20 @@
-load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library", "swift_test")
 
 package(default_visibility = ["//g1-app:__subpackages__"])
 
 swift_library(
     name = "utils",
-    srcs = glob(["*.swift"]),
+    srcs = glob(
+        ["*.swift"],
+        ["**/*Tests.swift"],
+    ),
     module_name = "utils",
+)
+
+swift_test(
+    name = "utils-tests",
+    srcs = glob(["**/*Tests.swift"]),
+    deps = [
+        ":utils",
+    ],
 )

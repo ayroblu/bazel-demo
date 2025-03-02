@@ -1,5 +1,7 @@
+import CoreBluetooth
 import Foundation
 import Log
+import Pcm
 import utils
 import zlib
 
@@ -129,7 +131,7 @@ struct G1Cmd {
     static var noteId: UInt8 = 0x00
     static func notesData(notes: [Note]) -> [Data] {
       return (0..<4).map { idx in
-        noteId = (noteId + 1) & 0xFF
+        noteId &+= 1
         let noteIdx: UInt8 = UInt8(idx + 1)
         if let note = notes[safe: idx] {
           let titleData: [UInt8] = note.title.uint8()
@@ -149,6 +151,9 @@ struct G1Cmd {
           let totalLength: UInt8 = UInt8(noteData.count + 2)
           return Data([SendCmd.Notes.rawValue, totalLength] + noteData)
         }
+        // Checksum? Maybe just length
+        // Send:    1E06 003F 0101
+        // Receive: 1E06 0009 0100
       }
     }
   }
@@ -198,8 +203,6 @@ struct G1Cmd {
     }
     static func crcData(inputData: Data) -> Data {
       let crc: UInt32 = (address + inputData).toCrc32()
-      // flutter: 2025-02-02 22:55:30.917743 Crc32Xz---lr---R---ret--------[22, 194, 143, 65, 67, 202, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]------crc----[194, 143, 65, 67]--
-      // [194, 143, 65, 67]
       log("crc data", crc.bytes())
       return Data([BLE_REC.CRC.rawValue] + crc.bytes())
     }
@@ -218,14 +221,14 @@ struct G1Cmd {
       let length: UInt8 = 6
       let dataArr: [UInt8] = [
         0x25,
-        length & 0xff,
-        (length >> 8) & 0xff,
+        length,
+        length >> 8,
         heartbeatSeq,
         0x04,
         heartbeatSeq,
       ]
       let data = Data(dataArr)
-      heartbeatSeq = (heartbeatSeq + 1) & 0xFF
+      heartbeatSeq &+= 1
       return data
     }
   }
@@ -279,14 +282,64 @@ struct G1Cmd {
       let result = chunks.enumerated().map { (index, chunk) in
         Data([SendCmd.Notif.rawValue, notifyId, numItems, UInt8(index)]) + chunk
       }
-      notifyId = (notifyId + 1) & 0xFF
+      notifyId &+= 1
       return result
     }
   }
   struct Navigate {
     static var seqId: UInt8 = 0x00
+    static func setupData() -> Data {
+      return Data([0x0A, 0x06, 0x00, 0x7F, 0x00, 0x01])
+    }
+    static var pollerSeqId: UInt8 = 0x01
+    static func pollerData() -> Data {
+      let part: [UInt8] = [0x00, seqId, 0x04, pollerSeqId]
+      seqId &+= 1
+      pollerSeqId &+= 1
+      let data = Data([0x0A, UInt8(part.count + 2)] + part)
+      return data
+    }
+    static func initData() -> Data {
+      let part: [UInt8] = [0x00, seqId, 0x00, 0x01]
+      let data = Data([0x0A, UInt8(part.count + 2)] + part)
+      seqId &+= 1
+      return data
+    }
+    static func directionsDataExample() -> Data {
+      return directionsData(
+        totalDuration: "6min", totalDistance: "529m", direction: "Turn right onto the walkway",
+        distance: "18 m", speed: "0km/h")
+    }
+    static func directionsData(
+      totalDuration: String, totalDistance: String, direction: String, distance: String,
+      speed: String
+    ) -> Data {
+      let totalDurationData: [UInt8] = totalDuration.uint8()
+      let totalDistanceData: [UInt8] = totalDistance.uint8()
+      let directionData: [UInt8] = direction.uint8()
+      let distanceData: [UInt8] = distance.uint8()
+      let speedData: [UInt8] = speed.uint8()
+
+      let null: [UInt8] = [0x00]
+      let part0: [UInt8] = [0x00, seqId, 0x01, 0x03, 0xB8, 0x01, 0x24, 0x00]
+      let part: [UInt8] =
+        part0 + totalDurationData + null + totalDistanceData + null + directionData + null
+        + distanceData + null + speedData + null
+      let data = Data([0x0A, UInt8(part.count + 2)] + part)
+      return data
+    }
+    static func primaryImageData(image: [Bool], overlay: [Bool]) -> [Data] {
+      // image must be 136 * 136 long
+      let packetNum: UInt8 = 0x01
+      let packetCount: UInt8 = 0x13
+      let part0: [UInt8] = [0x00, seqId, 0x02, packetCount, 0x00, packetNum, 0x00]
+      let imageData: [UInt8] = []
+      let part: [UInt8] = part0 + imageData
+      let data = Data([0x0A, UInt8(part.count + 2)] + part)
+      seqId &+= 1
+      return [data]
+    }
     static func data(id: String, name: String) -> [Data] {
-      let partType0: UInt8 = 0x00
       let partType1: UInt8 = 0x01
       let partType2: UInt8 = 0x02
       let partType3: UInt8 = 0x03
@@ -296,28 +349,26 @@ struct G1Cmd {
       let arrivedMessage: Data = "Your destination is on the right".data()
       let distance: Data = "0 m".data()
       let speed: Data = "9.8km/h".data()
-      let data0 = Data([0x0A, 0x06, 0x00, seqId, partType0])
-      seqId += 1
+      seqId &+= 1
       let NULL = Data([0x00])
       let data1 =
         Data([
           0x0A, 0x40, 0x00, seqId, partType1, 0x02, 0x00, 0xCC,
           0x00, 0x73, 0x00,
         ]) + arrivedTitle + NULL + NULL + arrivedMessage + NULL + distance + NULL + speed + NULL
-      seqId += 1
+      seqId &+= 1
       let data2 =
         Data([
           0x0A, 0x40, 0x00, seqId, partType2, numPackets, 0x00, packetNum, 0x0,
           // TODO
         ])
-      seqId += 1
+      seqId &+= 1
       let data3 =
         Data([
           0x0A, 0x40, 0x00, seqId, partType3, numPackets, 0x00, packetNum, 0x0,
           // TODO
         ])
       return [
-        data0,
         data1,
         data2,
         data3,
@@ -334,6 +385,12 @@ struct NotifyData {
   var message: String?
   let timestamp: Int = Int(Date().timeIntervalSince1970 * 1000)
   let displayName: String = Info.name
+}
+enum GlassesState {
+  case Wearing
+  case Off
+  case CaseOpen
+  case CaseClosed
 }
 
 enum SendCmd: UInt8 {
@@ -354,6 +411,7 @@ enum SendCmd: UInt8 {
   case GlassesState = 0x2B
   case Battery = 0x2C
   case Uptime = 0x37
+  case DashPosition = 0x3B
   case Text = 0x4E
   case Notif = 0x4B
   case Ping = 0x4D
@@ -365,6 +423,7 @@ enum BLE_REC: UInt8 {
   case AddNotif = 0x04
   case DashMode = 0x06
   case HeadTilt = 0x0B
+  case Notes = 0x1E
   case DashConfig = 0x26
   case MIC = 0x0E
   case MIC_DATA = 0xF1
@@ -377,6 +436,7 @@ enum BLE_REC: UInt8 {
   case HEARTBEAT = 0x25
   case GlassesState = 0x2B
   case Uptime = 0x37
+  case DashPosition = 0x3B
   case NOTIF = 0x4B
   case PING = 0x4D
   case TEXT = 0x4E
@@ -401,4 +461,342 @@ enum DEVICE_CMD: UInt8 {
   case UNKNOWN_0A = 0x0A
   case UNKNOWN_11 = 0x11
   case UNKNOWN_12 = 0x12
+}
+
+func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
+  let isLeft = peripheral == mainVm?.connectionManager.manager.leftPeripheral
+  guard let name = peripheral.name else { return }
+  let rspCommand = BLE_REC(rawValue: data[0])
+  switch rspCommand {
+  case .ERROR:
+    let code = data[1]
+    let msg = data.subdata(in: 2..<data.count).ascii() ?? "<>"
+    log("00: \(name) \(code.hex) \(msg)")
+    break
+  case .AutoBrightness:
+    // 0x01c9
+    logFailure(code: data[1], type: "autobrightness", name: name, data: data)
+  case .SilentMode:
+    // 0x03c9
+    logFailure(code: data[1], type: "silent mode", name: name, data: data)
+  case .AddNotif:
+    // 0x04ca
+    logFailure(code: data[1], type: "add notif", name: name, data: data)
+  case .DashMode:
+    switch data[1] {
+    case 0x07:
+      // mode: (full dual minimal)
+      // 0x0607003b06
+      break
+    case 0x15:
+      // dash time and weather
+      // 0x0615003801
+      break
+    default:
+      // Probably calendar?
+      // log("unknown dash cmd: \(name) \(data.hex)")
+      break
+    }
+  case .MIC:
+    let resp = G1Cmd.Mic.respData(data: data)
+    log("mic action success: \(resp.isSuccess), enabled: \(resp.enable)")
+  case .MIC_DATA:
+    let effectiveData = data.subdata(in: 2..<data.count)
+    let pcmConverter = PcmConverter()
+    let pcmData = pcmConverter.decode(effectiveData)
+
+    let inputData = pcmData as Data
+    mainVm?.connectionManager.speechRecognizer?.appendPcmData(inputData)
+  case .CRC:
+    if G1Cmd.Bmp.crcResp(data: data) {
+      log("CRC check failed", data.hex)
+    } else {
+      log("CRC success")
+    }
+  case .Notes:
+    // response to note update
+    // Only the data[1] and data[3] changes, reflecting the original message (packet length and sequence number)
+    // 1E10 003E 0301 0001 0000
+    // 0x1e06001c01
+    // log("0x1E: \(name) \(data.hex)")
+    break
+  case .GlassesState:
+    // 0x2b690a0b
+    // 0x2b690a07
+    // Right is sometimes wrong
+    if !isLeft {
+      break
+    }
+    switch data[3] {
+    case 0x06:
+      mainVm?.glassesState = .Wearing
+    case 0x07:
+      mainVm?.glassesState = .Off
+    case 0x08:
+      mainVm?.glassesState = .CaseOpen
+    case 0x0B:
+      mainVm?.glassesState = .CaseClosed
+    default:
+      log("UNKNOWN 0x2B: \(name) \(data.hex)")
+    }
+    if let silentMode = data[2] == 0x0C ? true : data[2] == 0x0A ? false : nil {
+      mainVm?.silentMode = silentMode
+    } else {
+      log("unknown mode state \(name) \(data.hex)")
+    }
+  case .Uptime:
+    // time since boot in seconds?
+    // 0x3737e1bc000001
+    break
+  case .DashPosition:
+    // on load, right only
+    // 0x3bc90203
+    if data[1] == 0xC9 {
+      mainVm?.dashVertical = data[2]
+      mainVm?.dashDistance = data[3]
+    }
+    break
+  case .DEVICE:
+    // let isLeft = peripheral.identifier.uuidString == "left-uuid"
+    let cmd = DEVICE_CMD(rawValue: data[1])
+    switch cmd {
+    case .SINGLE_TAP:
+      log("single tap!", name)
+    case .DOUBLE_TAP:
+      log("double tap!", name)
+    case .TRIPLE_TAP_SILENT:
+      log("silent mode on", name)
+    case .TRIPLE_TAP_NORMAL:
+      log("not silent mode", name)
+    case .LOOK_UP:
+      log("look up", name, data.hex)
+
+    // let text = "Looked up!"
+    // guard let textData = G1Cmd.Text.data(text: text) else { break }
+    // manager.transmitBoth(textData)
+    case .LOOK_DOWN:
+      log("look down", name, data.hex)
+    // let text = "Looked down!"
+    // guard let textData = G1Cmd.Text.data(text: text) else { break }
+    // manager.transmitBoth(textData)
+    case .DASH_SHOWN:
+      log("dash shown", name, data.hex)
+    case .DASH_HIDE:
+      log("dash hide", name, data.hex)
+    case .CASE_OPEN:
+      log("case open", data.hex)
+      mainVm?.glassesState = .CaseOpen
+    case .CASE_CLOSE:
+      log("case close", data.hex)
+      mainVm?.glassesState = .CaseClosed
+    case .CASE_STATE:
+      log("case is open: \(data[2])")
+      // mainVm?.glassesState = data[2] == 1 ? GlassesState.CaseOpen : GlassesState.CaseClosed
+      // 0xf50e01
+      break
+    case .CASE_BATTERY:
+      log("case battery: \(data[2])")
+      mainVm?.caseBattery = Int(data[2])
+      // 0xf50f46
+      break
+    case .WEAR_ON:
+      log("wear on: \(name) \(data.hex)")
+      // 0xf506
+      break
+    case .WEAR_OFF:
+      log("wear off: \(name) \(data.hex)")
+      // wear off is also not in case
+      mainVm?.glassesState = .Off
+      // 0xf507
+      break
+    case .UNKNOWN_09:
+      // 0xf50901
+      break
+    case .UNKNOWN_0A:
+      // 0xf50a64
+      break
+    case .UNKNOWN_11:
+      // L only, after Ping
+      // 0xf511
+      break
+    case .UNKNOWN_12:
+      // R Only
+      // 0xf51206
+      // 0xf5120c
+      break
+    case .none:
+      switch data[1] {
+      case 0x00:
+        break
+      default:
+        log("unknown device command: \(name) \(data[1]) \(data.hex)")
+        break
+      }
+    }
+  case .BATTERY:
+    switch data[1] {
+    case 0x66:
+      // (Left)
+      // 0x2c66 4b 00 d3 94 20 000000 01 05
+      // 0x2c66 4b 00 d3 83 20 000000 01 05
+      // 0x2c66 4b 00 d4 88 20 000000 01 05
+      // (Right)
+      // 0x2c66 4d 4c d6 83 1e 01 05 00 01 05
+      // 0x2c66 4d 4c d6 83 1e 01 05 00 01 05
+      // 0x2c66 4d 4c d6 81 1e 01 05 00 01 05
+
+      // log(
+      //   "battery: \(name) \(data[2]), info: \(data.subdata(in: 4..<7).hexSpace)| \(data.hex)"
+      // )
+      if isLeft {
+        mainVm?.leftBattery = Int(data[2])
+      } else {
+        mainVm?.rightBattery = Int(data[2])
+      }
+    default:
+      log("battery: \(name) \(data.hex)")
+    }
+  case .FIRMWARE_INFO_RES:
+    // let text = data.ascii() ?? "<>"
+    // log("firmware: \(name) \(text.trim())")
+    break
+  case .HeadTilt:
+    // Right only
+    // 0x0bc9
+    logFailure(code: data[1], type: "head tilt", name: name, data: data)
+  case .DashConfig:
+    // dash control
+    // 0x2606000102c9
+    // log("dash control \(data.hex)")
+    break
+  case .BmpDone:
+    log("bmp done \(name), isSuccess: \(data[1] == 0xC9)")
+    break
+  case .NOTIF:
+    let isSuccess = data[1] == 0xC9 || data[1] == 0xCB
+    log("notif \(name), isSuccess: \(isSuccess), \(data.hex)")
+  case .HEARTBEAT:
+    // log("got heartbeat", data.hex)
+    break
+  case .PING:
+    log("ping", data.hex)
+    break
+  case .TEXT:
+    // 0x4ec90001
+    break
+  case .Exit:
+    // ack exit
+    // 0x18c9
+    break
+  case .NOTIF_SETTING:
+    // New App notif discovered:
+    // {"whitelist_app_add": {"app_identifier":  "com.ayroblu.g1-app","display_name": "G1 Bazel App"}}
+    let parts = data[1]
+    let seq = data[2]
+    let rest = data.subdata(in: 3..<data.count)
+    if seq == 0 {
+      f6Data[peripheral] = [rest]
+    } else {
+      if var list = f6Data[peripheral], list.count == seq {
+        list.append(rest)
+        f6Data[peripheral] = list
+      }
+    }
+    if let list = f6Data[peripheral], seq == parts - 1 {
+      let data = Data(list.joined())
+      log("0xF6: \(name) [\(data.count)]", data.ascii() ?? "<>")
+    }
+    break
+  case .none:
+    switch data[0] {
+    case 0x06:
+      // On open? proximity? Config update?
+      // 6, 22 1E are all triggered on note update
+      // 0x0607000206
+      // 0x060700e306
+      // 0x061500e401
+      // 0x062d00e503010001
+      // log("0x06: \(name) \(data.hex)")
+      break
+    case 0x08:
+      // on pairing
+      // 0x0806000004
+      break
+    case 0x14:
+      // After opening notifications
+      // 0x14c9
+      break
+    case 0x22:
+      // log("0x22: \(name) \(data.hex)")
+      // Right only
+      // TX: 2205 0043 01
+      // RX: 2205 0043 0100 0100
+      // R: 0x220500e6010301
+      //    0x2205003c010301
+      //    0x22050044010301
+      break
+    case 0x29:
+      // On open even app from [0x29] send
+      let brightness = data[2]
+      let isAutoBrightness = data[3] == 0x01
+      // Max brightness: 42
+      mainVm?.brightness = brightness
+      mainVm?.autoBrightness = isAutoBrightness
+    // log("auto brightness \(name) \(brightness) \(isAutoBrightness) | \(data.hex)")
+    case 0x2A:
+      // After opening settings
+      // 0x2a6801
+      break
+    case 0x32:
+      // Right only after opening settings
+      // 0x326d1501
+      break
+    case 0x3A:
+      // After opening settings
+      // 0x3ac901
+      break
+    case 0x39:
+      // on dash control
+      // 0x390500cf01
+      break
+    case 0x3E:
+      // Very long, only after ping, only right
+      // Fetch buried point data, which is essentially user usage tracking: https://www.php.cn/faq/446290.html
+      // 0x3ec97bd44...
+      break
+    case 0x3F:
+      // On pairing
+      // 0x3f05c9
+      break
+    case 0x4F:
+      // On pairing
+      // 0x4fc901
+      break
+    case 0x50:
+      // right only
+      // 0x500600000101
+      break
+    default:
+      log(
+        "unknown command: \(name) \(data[0]) \(data.hex) \(data.subdata(in: 1..<data.count).ascii() ?? "<>")"
+      )
+      break
+    }
+  }
+}
+var f6Data: [CBPeripheral: [Data]] = [:]
+func logFailure(code: UInt8, type: String, name: String, data: Data) {
+  switch RespCode(rawValue: code) {
+  case .Success:
+    break
+  case .Continue:
+    break
+  case .Failure, .none:
+    log("failure: \(type) \(name) \(data.hex)")
+  }
+}
+enum RespCode: UInt8 {
+  case Success = 0xC9
+  case Continue = 0xCA
+  case Failure = 0xCB
 }
