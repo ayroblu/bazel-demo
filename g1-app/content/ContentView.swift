@@ -22,10 +22,13 @@ public struct ContentView: View {
         }
       }
       .buttonStyle(.borderedProminent)
-    } else if glasses != nil {
+    } else if let glasses {
       NavigationStack {
         List {
           GlassesInfoView(mainVm: vm)
+            .onAppear {
+              vm.connectionManager.syncKnown(glasses: glasses)
+            }
           HStack {
             Button(
               "Silent Mode", systemImage: vm.silentMode ? "moon.circle.fill" : "moon.circle"
@@ -69,6 +72,9 @@ public struct ContentView: View {
               }
             }
           }
+          NavigationLink("Dash Config") {
+            DashConfigView(vm: vm)
+          }
           NavigationLink("Text Editor") {
             TextEditor(
               text: $vm.text, selection: $vm.selection
@@ -78,17 +84,9 @@ public struct ContentView: View {
             .scrollContentBackground(.hidden)
             .background(Color(red: 0.1, green: 0.1, blue: 0.1))
           }
-          NavigationLink("Dash Config") {
-            Button("Dash position") {
-              vm.connectionManager.dashPosition()
-            }
-            .buttonStyle(.bordered)
-            Button("Dash notes") {
-              vm.connectionManager.dashNotes()
-            }
-            .buttonStyle(.bordered)
-            Button("Dash calendar") {
-              vm.connectionManager.dashCalendar()
+          NavigationLink("Navigate test") {
+            Button("test") {
+              vm.connectionManager.sendTestNavigate()
             }
             .buttonStyle(.bordered)
           }

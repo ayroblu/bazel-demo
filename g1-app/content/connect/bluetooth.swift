@@ -48,7 +48,7 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
   ) {
     guard let name = peripheral.name else { return }
     log("discovered \(name)")
-    manager?.pairing?.onPeripheral(peripheral: peripheral)
+    let _ = manager?.pairing?.onPeripheral(peripheral: peripheral)
   }
 
   func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
@@ -220,7 +220,7 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
         return
       }
     }
-    manager?.onValue(peripheral, data: data)
+    onValue(peripheral, data: data, mainVm: manager?.mainVm)
   }
 
   var toRestore: [CBPeripheral]?
@@ -243,6 +243,9 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
           peripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
       }
       toRestore = nil
+    } else if let glasses = manager?.glasses {
+      manager?.reconnectKnown(glasses: glasses)
+      manager?.glasses = nil
     }
   }
 }
