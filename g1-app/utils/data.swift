@@ -13,10 +13,52 @@ extension UInt32 {
     ]
   }
 }
+extension Bool {
+  public func uint8() -> UInt8 {
+    return self ? 1 : 0
+  }
+}
 extension Array where Element: Any {
-  public func chunk(into size: Int) -> [[Element]] {
+  func splat() -> (Element, Element) {
+    return (self[0], self[1])
+  }
+  public func chunk(into size: Int) -> [ArraySlice<Element>] {
     stride(from: 0, to: count, by: size).map { index in
-      Array(self[index..<(Swift.min(index + size, count))])
+      self[index..<(Swift.min(index + size, count))]
+    }
+  }
+}
+extension Array where Element == UInt8 {
+  public func runLengthEncode() -> [Element] {
+    let input = self
+    guard !input.isEmpty else { return [] }
+
+    var result: [UInt8] = []
+    var currentByte = input[0]
+    var count: UInt8 = 1
+
+    for i in 1..<input.count {
+      if input[i] == currentByte && count < 255 {
+        count += 1
+      } else {
+        result.append(count)
+        result.append(currentByte)
+
+        currentByte = input[i]
+        count = 1
+      }
+    }
+
+    result.append(count)
+    result.append(currentByte)
+
+    return result
+  }
+
+  public func runLengthDecode() -> [Element] {
+    return self.chunk(into: 2).flatMap { chunk in
+      let (len, code) = Array(chunk).splat()
+      return [UInt8](repeating: code, count: Int(len))
     }
   }
 }

@@ -288,20 +288,25 @@ struct G1Cmd {
   }
   struct Navigate {
     static var seqId: UInt8 = 0x00
-    static func setupData() -> Data {
-      return Data([0x0A, 0x06, 0x00, 0x7F, 0x00, 0x01])
+    static func parseExampleImage(image: String) -> [Bool] {
+      return []
     }
-    static var pollerSeqId: UInt8 = 0x01
-    static func pollerData() -> Data {
-      let part: [UInt8] = [0x00, seqId, 0x04, pollerSeqId]
-      seqId &+= 1
-      pollerSeqId &+= 1
-      let data = Data([0x0A, UInt8(part.count + 2)] + part)
-      return data
+    static func example() -> [Data] {
+      // TODO: do I skip sending the "image" sometimes? why both image + overlay?
+      return [initData(), directionsDataExample()]
+        + primaryImageData(
+          image: parseExampleImage(image: exampleImage1),
+          overlay: parseExampleImage(image: exampleImage1Overlay))
+        + secondaryImageData(
+          image: parseExampleImage(image: exampleImage2),
+          overlay: parseExampleImage(image: exampleImage2Overlay))
     }
     static func initData() -> Data {
+      // Note saw also right before start:
+      // Both: [0x39, 0x05, 0x00, 0x7C, 0x01]
+      // Right: [0x50, 0x06, 0x00, 0x00, 0x01, 0x01]
       let part: [UInt8] = [0x00, seqId, 0x00, 0x01]
-      let data = Data([0x0A, UInt8(part.count + 2)] + part)
+      let data = Data([SendCmd.Navigate.rawValue, UInt8(part.count + 2)] + part)
       seqId &+= 1
       return data
     }
@@ -320,59 +325,56 @@ struct G1Cmd {
       let distanceData: [UInt8] = distance.uint8()
       let speedData: [UInt8] = speed.uint8()
 
-      let null: [UInt8] = [0x00]
       let part0: [UInt8] = [0x00, seqId, 0x01, 0x03, 0xB8, 0x01, 0x24, 0x00]
       let part: [UInt8] =
-        part0 + totalDurationData + null + totalDistanceData + null + directionData + null
-        + distanceData + null + speedData + null
-      let data = Data([0x0A, UInt8(part.count + 2)] + part)
+        part0 + totalDurationData + nullArr + totalDistanceData + nullArr
+        + directionData + nullArr + distanceData + nullArr + speedData + nullArr
+      let data = Data([SendCmd.Navigate.rawValue, UInt8(part.count + 2)] + part)
       return data
     }
     static func primaryImageData(image: [Bool], overlay: [Bool]) -> [Data] {
-      // image must be 136 * 136 long
-      let packetNum: UInt8 = 0x01
-      let packetCount: UInt8 = 0x13
-      let part0: [UInt8] = [0x00, seqId, 0x02, packetCount, 0x00, packetNum, 0x00]
-      let imageData: [UInt8] = []
-      let part: [UInt8] = part0 + imageData
-      let data = Data([0x0A, UInt8(part.count + 2)] + part)
-      seqId &+= 1
-      return [data]
-    }
-    static func data(id: String, name: String) -> [Data] {
-      let partType1: UInt8 = 0x01
+      // image and overlay must be 136 * 136 long
       let partType2: UInt8 = 0x02
+      let imageBytes: [UInt8] = (image + overlay).toBytes().runLengthEncode()
+      let maxLength = 185
+      let chunks = imageBytes.chunk(into: maxLength)
+      let packetCount: UInt8 = UInt8(chunks.count)
+      return chunks.enumerated().map { (index, chunk) in
+        let packetNum: UInt8 = UInt8(index + 1)
+        let part: [UInt8] = [null, seqId, partType2, packetCount, null, packetNum, null] + chunk
+        seqId &+= 1
+        return Data([SendCmd.Navigate.rawValue, UInt8(part.count + 2)] + part)
+      }
+    }
+    static func secondaryImageData(image: [Bool], overlay: [Bool]) -> [Data] {
+      // image must be 488 * 136 (w x h)
       let partType3: UInt8 = 0x03
-      let numPackets: UInt8 = 0x01
-      let packetNum: UInt8 = 0x00
-      let arrivedTitle: Data = "Arrived".data()
-      let arrivedMessage: Data = "Your destination is on the right".data()
-      let distance: Data = "0 m".data()
-      let speed: Data = "9.8km/h".data()
+      let imageBytes: [UInt8] = (image + overlay).toBytes()
+      let maxLength = 185
+      let chunks = imageBytes.chunk(into: maxLength)
+      let packetCount: UInt8 = UInt8(chunks.count)
+      return chunks.enumerated().map { (index, chunk) in
+        let packetNum: UInt8 = UInt8(index + 1)
+        let part: [UInt8] =
+          [null, seqId, partType3, packetCount, null, packetNum, null, null] + chunk
+        seqId &+= 1
+        return Data([SendCmd.Navigate.rawValue, UInt8(part.count + 2)] + part)
+      }
+    }
+    static var pollerSeqId: UInt8 = 0x01
+    static func pollerData() -> Data {
+      let partType4: UInt8 = 0x04
+      let part: [UInt8] = [null, seqId, partType4, pollerSeqId]
       seqId &+= 1
-      let NULL = Data([0x00])
-      let data1 =
-        Data([
-          0x0A, 0x40, 0x00, seqId, partType1, 0x02, 0x00, 0xCC,
-          0x00, 0x73, 0x00,
-        ]) + arrivedTitle + NULL + NULL + arrivedMessage + NULL + distance + NULL + speed + NULL
+      pollerSeqId &+= 1
+      let data = Data([SendCmd.Navigate.rawValue, UInt8(part.count + 2)] + part)
+      return data
+    }
+    static func endData() -> Data {
+      let partType5: UInt8 = 0x05
+      let part: [UInt8] = [null, seqId, partType5, 0x01]
       seqId &+= 1
-      let data2 =
-        Data([
-          0x0A, 0x40, 0x00, seqId, partType2, numPackets, 0x00, packetNum, 0x0,
-          // TODO
-        ])
-      seqId &+= 1
-      let data3 =
-        Data([
-          0x0A, 0x40, 0x00, seqId, partType3, numPackets, 0x00, packetNum, 0x0,
-          // TODO
-        ])
-      return [
-        data1,
-        data2,
-        data3,
-      ]
+      return Data([SendCmd.Navigate.rawValue, UInt8(part.count + 2)] + part)
     }
   }
 }
@@ -398,6 +400,7 @@ enum SendCmd: UInt8 {
   case SilentMode = 0x03
   case AddNotif = 0x04
   case DashMode = 0x06
+  case Navigate = 0x0A
   case HeadTilt = 0x0B
   case Mic = 0x0E
   case Bmp = 0x15
@@ -785,6 +788,8 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
   }
 }
 var f6Data: [CBPeripheral: [Data]] = [:]
+let nullArr: [UInt8] = [0x00]
+let null: UInt8 = 0x00
 func logFailure(code: UInt8, type: String, name: String, data: Data) {
   switch RespCode(rawValue: code) {
   case .Success:

@@ -132,7 +132,7 @@ public class ConnectionManager {
   }
 
   public func sendTestNavigate() {
-    let data = G1Cmd.Navigate.setupData()
+    let data = G1Cmd.Navigate.initData()
     manager.transmitBoth(data)
   }
 
