@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 	<dict>
+		<key>NSCalendarsFullAccessUsageDescription</key>
+		<string>Read access to calendar events to push to g1 glasses</string>
 		<key>NSBluetoothAlwaysUsageDescription</key>
 		<string>Uses bluetooth to connect to g1 glasses</string>
 		<key>NSSpeechRecognitionUsageDescription</key>

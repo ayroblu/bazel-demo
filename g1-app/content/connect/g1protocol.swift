@@ -289,10 +289,9 @@ struct G1Cmd {
   struct Navigate {
     static var seqId: UInt8 = 0x00
     static func parseExampleImage(image: String) -> [Bool] {
-      return []
+      return image.parseHex().convertToBits()
     }
-    static func example() -> [Data] {
-      // TODO: do I skip sending the "image" sometimes? why both image + overlay?
+    static func exampleData() -> [Data] {
       return [initData(), directionsDataExample()]
         + primaryImageData(
           image: parseExampleImage(image: exampleImage1),
@@ -311,13 +310,15 @@ struct G1Cmd {
       return data
     }
     static func directionsDataExample() -> Data {
+      // x is 0 -> 488
+      // y is 0 -> 136
       return directionsData(
         totalDuration: "6min", totalDistance: "529m", direction: "Turn right onto the walkway",
-        distance: "18 m", speed: "0km/h")
+        distance: "18 m", speed: "0km/h", x: 488.bytes(byteCount: 2), y: 0x00)
     }
     static func directionsData(
       totalDuration: String, totalDistance: String, direction: String, distance: String,
-      speed: String
+      speed: String, x: [UInt8], y: UInt8
     ) -> Data {
       let totalDurationData: [UInt8] = totalDuration.uint8()
       let totalDistanceData: [UInt8] = totalDistance.uint8()
@@ -325,7 +326,7 @@ struct G1Cmd {
       let distanceData: [UInt8] = distance.uint8()
       let speedData: [UInt8] = speed.uint8()
 
-      let part0: [UInt8] = [0x00, seqId, 0x01, 0x03, 0xB8, 0x01, 0x24, 0x00]
+      let part0: [UInt8] = [0x00, seqId, 0x01, 0x03] + x + [y, 0x00]
       let part: [UInt8] =
         part0 + totalDurationData + nullArr + totalDistanceData + nullArr
         + directionData + nullArr + distanceData + nullArr + speedData + nullArr
@@ -425,6 +426,7 @@ enum BLE_REC: UInt8 {
   case SilentMode = 0x03
   case AddNotif = 0x04
   case DashMode = 0x06
+  case Navigate = 0x0A
   case HeadTilt = 0x0B
   case Notes = 0x1E
   case DashConfig = 0x26
@@ -500,6 +502,9 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
       // log("unknown dash cmd: \(name) \(data.hex)")
       break
     }
+  case .Navigate:
+    // response to navigation requests
+    break
   case .MIC:
     let resp = G1Cmd.Mic.respData(data: data)
     log("mic action success: \(resp.isSuccess), enabled: \(resp.enable)")
@@ -712,15 +717,6 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
     break
   case .none:
     switch data[0] {
-    case 0x06:
-      // On open? proximity? Config update?
-      // 6, 22 1E are all triggered on note update
-      // 0x0607000206
-      // 0x060700e306
-      // 0x061500e401
-      // 0x062d00e503010001
-      // log("0x06: \(name) \(data.hex)")
-      break
     case 0x08:
       // on pairing
       // 0x0806000004

@@ -13,9 +13,45 @@ extension UInt32 {
     ]
   }
 }
+extension Int {
+  public func bytes(byteCount: Int? = nil) -> [UInt8] {
+    let bytesNeeded = byteCount ?? (MemoryLayout<Int>.size)
+    var bytes = [UInt8]()
+    var value = self
+    for _ in 0..<bytesNeeded {
+      let byte = UInt8(value & 0xFF)
+      bytes.append(byte)
+      value >>= 8
+    }
+
+    return bytes
+  }
+}
 extension Bool {
   public func uint8() -> UInt8 {
     return self ? 1 : 0
+  }
+}
+extension String {
+  public func parseHex() -> [UInt8] {
+    let hexString = self
+    let cleanedString = hexString.filter { "0123456789ABCDEFabcdef".contains($0) }
+
+    var bytes = [UInt8]()
+    for i in stride(from: 0, to: cleanedString.count, by: 2) {
+      let startIndex = cleanedString.index(cleanedString.startIndex, offsetBy: i)
+      let endIndex =
+        cleanedString.index(startIndex, offsetBy: 2, limitedBy: cleanedString.endIndex)
+        ?? cleanedString.endIndex
+
+      let byteString = String(cleanedString[startIndex..<endIndex])
+
+      if let byte = UInt8(byteString, radix: 16) {
+        bytes.append(byte)
+      }
+    }
+
+    return bytes
   }
 }
 extension Array where Element: Any {
@@ -60,6 +96,20 @@ extension Array where Element == UInt8 {
       let (len, code) = Array(chunk).splat()
       return [UInt8](repeating: code, count: Int(len))
     }
+  }
+
+  public func convertToBits() -> [Bool] {
+    let bytes = self
+    var bits = [Bool]()
+
+    for byte in bytes {
+      for bitPosition in (0..<8) {
+        let bitValue = (byte >> bitPosition) & 0x01
+        bits.append(bitValue == 1)
+      }
+    }
+
+    return bits
   }
 }
 extension Data {

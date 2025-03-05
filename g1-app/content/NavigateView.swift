@@ -27,6 +27,7 @@ struct NavigateView: View {
                   lineWidth: 4, lineCap: .round, lineJoin: .round, miterLimit: 10))
           }
         }
+        .mapStyle(.standard(elevation: .flat, emphasis: .muted, pointsOfInterest:.excludingAll))
         .mapControls {
           MapUserLocationButton()
           MapCompass()

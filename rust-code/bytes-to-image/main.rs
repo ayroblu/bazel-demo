@@ -4,12 +4,19 @@ use std::io::BufWriter;
 use std::path::Path;
 
 fn main() {
-    let path = Path::new(r"image.png");
+    save_image("image_2.png", TEXT2, 136, 136);
+    save_image("image_2_overlay.png", TEXT2_2, 136, 136);
+    save_image("image_3.png", TEXT3, 488, 136);
+    save_image("image_3_overlay.png", TEXT3_2, 488, 136);
+    println!("Saved!");
+}
+
+fn save_image(name: &str, image: &str, width: u32, height: u32) {
+    let path = Path::new(name);
     let file = File::create(path).unwrap();
     let ref mut w = BufWriter::new(file);
 
-    let mut encoder = png::Encoder::new(w, 488, 136);
-    // let mut encoder = png::Encoder::new(w, 136, 136);
+    let mut encoder = png::Encoder::new(w, width, height);
     encoder.set_color(png::ColorType::Rgba);
     encoder.set_depth(png::BitDepth::Eight);
     encoder.set_source_gamma(png::ScaledFloat::from_scaled(45455)); // 1.0 / 2.2, scaled by 100000
@@ -24,12 +31,11 @@ fn main() {
     encoder.set_source_chromaticities(source_chromaticities);
     let mut writer = encoder.write_header().unwrap();
 
-    let data = image(TEXT3_2);
+    let data = image_to_bytes(image);
     writer.write_image_data(&data).unwrap(); // Save
-    println!("Saved!");
 }
 
-fn image(text: &str) -> Vec<u8> {
+fn image_to_bytes(text: &str) -> Vec<u8> {
     let bool_vec = hex_string_to_bool_vec(text);
     bool_vec
         .iter()

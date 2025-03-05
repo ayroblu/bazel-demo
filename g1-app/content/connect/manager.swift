@@ -132,8 +132,21 @@ public class ConnectionManager {
   }
 
   public func sendTestNavigate() {
-    let data = G1Cmd.Navigate.initData()
-    manager.transmitBoth(data)
+    Task {
+      log("starting navigate")
+      for data in G1Cmd.Navigate.exampleData() {
+        manager.transmitBoth(data)
+        try? await Task.sleep(for: .milliseconds(8))
+      }
+      for _ in 1..<10 {
+        let data = G1Cmd.Navigate.pollerData()
+        manager.transmitBoth(data)
+        try? await Task.sleep(for: .seconds(1))
+      }
+      let data = G1Cmd.Navigate.endData()
+      manager.transmitBoth(data)
+      log("ending navigate")
+    }
   }
 
   public func sendText(_ text: String) {
@@ -198,24 +211,6 @@ public class ConnectionManager {
     guard let data = G1Cmd.Config.dashData(isShow: isShow, vertical: vertical, distance: distance)
     else { return }
     manager.transmitBoth(data)
-  }
-
-  public func dashPosition() {
-    let data = G1Cmd.Config.dashData(isShow: true, vertical: 8, distance: 8)
-    if let data {
-      manager.transmitBoth(data)
-    }
-    Task {
-      try? await Task.sleep(for: .seconds(2))
-      if let data = G1Cmd.Config.dashData(isShow: true, vertical: 2, distance: 3) {
-        manager.transmitBoth(data)
-      }
-      try? await Task.sleep(for: .seconds(2))
-      let data = G1Cmd.Config.dashData(isShow: false, vertical: 2, distance: 3)
-      if let data {
-        manager.transmitBoth(data)
-      }
-    }
   }
 
   func dashNotes(notes: [G1Cmd.Config.Note]) {

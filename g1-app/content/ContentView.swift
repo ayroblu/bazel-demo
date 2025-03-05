@@ -85,10 +85,12 @@ public struct ContentView: View {
             .background(Color(red: 0.1, green: 0.1, blue: 0.1))
           }
           NavigationLink("Navigate test") {
-            Button("test") {
-              vm.connectionManager.sendTestNavigate()
+            List {
+              Button("test") {
+                vm.connectionManager.sendTestNavigate()
+              }
+              .buttonStyle(.bordered)
             }
-            .buttonStyle(.bordered)
           }
           NavigationLink("Navigate") {
             NavigateView(vm: vm)
