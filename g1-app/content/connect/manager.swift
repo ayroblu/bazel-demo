@@ -1,4 +1,5 @@
 import CoreBluetooth
+import EventKit
 import Log
 import Pcm
 import Speech
@@ -7,6 +8,8 @@ import SwiftData
 public class ConnectionManager {
   let uartServiceCbuuid = CBUUID(string: uartServiceUuid)
   let manager = BluetoothManager()
+  let eventStore = EKEventStore()
+  // let calendar = CalendarManager()
   let centralManager: CBCentralManager
   var mainVm: MainVM?
   var connectedPeripherals: [CBPeripheral] {
@@ -17,6 +20,7 @@ public class ConnectionManager {
     let options = [CBCentralManagerOptionRestoreIdentifierKey: "central-manager-identifier"]
     centralManager = CBCentralManager(delegate: manager, queue: nil, options: options)
     manager.manager = self
+    requestCalendarAccessIfNeeded()
   }
 
   var pairing: Pairing?
