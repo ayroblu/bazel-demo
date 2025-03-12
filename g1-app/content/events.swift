@@ -2,6 +2,8 @@ import EventKit
 import Log
 import SwiftUI
 
+let SELECTED_REMINDER_LIST = "reminder-list"
+
 extension ConnectionManager {
   func requestCalendarAccessIfNeeded() {
     let authorizationStatus = EKEventStore.authorizationStatus(for: .event)
@@ -36,7 +38,7 @@ extension ConnectionManager {
   }
 
   func syncEvents() {
-    if let event = fetchEvents().first {
+    if let event = fetchEvents().filter({ !$0.isAllDay }).first {
       let time = dateToText(startDate: event.startDate, endDate: event.endDate)
       let configEvent = G1Cmd.Config.Event(
         name: event.title, time: time, location: event.location ?? "")
@@ -102,4 +104,79 @@ extension ConnectionManager {
   //     print("Failed to save event: \(error.localizedDescription)")
   //   }
   // }
+}
+
+extension ConnectionManager {
+  func requestReminderAccessIfNeeded() {
+    let authorizationStatus = EKEventStore.authorizationStatus(for: .reminder)
+    if authorizationStatus == .fullAccess {
+      addReminderListener()
+      syncReminders()
+      return
+    }
+    guard authorizationStatus == .notDetermined else { return }
+    Task {
+      let result = try? await eventStore.requestFullAccessToReminders()
+      log("request reminders access result: \(String(describing: result))")
+      if result == true {
+        addReminderListener()
+        syncReminders()
+      }
+    }
+  }
+
+  private func addReminderListener() {
+    NotificationCenter.default.addObserver(
+      self, selector: #selector(self.storeChangedReminders), name: .EKEventStoreChanged,
+      object: eventStore)
+  }
+
+  @objc
+  private func storeChangedReminders() {
+    log("Store changed reminders")
+    syncReminders()
+  }
+
+  func syncReminders() {
+    Task {
+      guard let reminderList = getReminderList() else { return }
+      let reminders = await fetchReminders()
+      let text = reminders[..<4].map { $0.title.prefix(50) }.joined(separator: "\n")
+      let note = G1Cmd.Config.Note(title: String(reminderList.title.prefix(50)), text: text)
+      dashNotes(notes: [note])
+    }
+  }
+
+  func getReminderLists() -> [EKCalendar] {
+    return eventStore.calendars(for: .reminder)
+  }
+
+  func getReminderList() -> EKCalendar? {
+    let listId = UserDefaults.standard.string(forKey: SELECTED_REMINDER_LIST)
+    if let listId, let calendar = eventStore.calendar(withIdentifier: listId) {
+      return calendar
+    }
+    return eventStore.defaultCalendarForNewReminders()
+  }
+
+  func setReminderList(_ value: String) {
+    UserDefaults.standard.set(value, forKey: SELECTED_REMINDER_LIST)
+  }
+
+  func fetchReminders() async -> [EKReminder] {
+    guard let reminderList = getReminderList() else { return [] }
+    let predicate = eventStore.predicateForIncompleteReminders(
+      withDueDateStarting: nil, ending: nil, calendars: [reminderList])
+    return await eventStore.fetchReminders(matching: predicate) ?? []
+  }
+}
+
+extension EKEventStore {
+  func fetchReminders(matching: NSPredicate) async -> [EKReminder]? {
+    await withCheckedContinuation { continuation in
+      fetchReminders(matching: matching) { reminders in
+        continuation.resume(returning: reminders)
+      }
+    }
+  }
 }

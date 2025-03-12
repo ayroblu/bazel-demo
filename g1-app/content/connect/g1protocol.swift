@@ -74,14 +74,15 @@ struct G1Cmd {
       case Sunny = 0x10
     }
     static func dashTimeWeatherData(weatherIcon: WeatherIcon, temp: UInt8) -> Data {
-      let currentTime = Date().timeIntervalSince1970
+      let currentTime = Date().adjustToCurrentTimeZone().timeIntervalSince1970
       let epochTime32: [UInt8] = withUnsafeBytes(of: Int32(currentTime)) { Array($0) }
       let epochTime64: [UInt8] = withUnsafeBytes(of: Int64(currentTime * 1000)) { Array($0) }
       let fahrenheit: UInt8 = 0x00  // 00 is C, 01 is F
       let twelveHour: UInt8 = 0x00  // 00 is 24h, 01 is 12h
+      // Value: 0615 0007 013B 1ECA 6723 1786 6D95 0100 0001 0B00 00
       return Data(
         [
-          SendCmd.DashMode.rawValue, 0x15, 0x00, 0x03,
+          SendCmd.DashMode.rawValue, 0x15, 0x00, 0x07, 0x01,
         ] + epochTime32 + epochTime64 + [
           weatherIcon.rawValue, temp, fahrenheit, twelveHour,
         ])
@@ -578,6 +579,8 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
       log("not silent mode", name)
     case .LOOK_UP:
       log("look up", name, data.hex)
+      mainVm?.connectionManager.syncEvents()
+      mainVm?.connectionManager.checkWeather()
 
     // let text = "Looked up!"
     // guard let textData = G1Cmd.Text.data(text: text) else { break }
@@ -609,6 +612,8 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
       break
     case .WEAR_ON:
       log("wear on: \(name) \(data.hex)")
+      mainVm?.glassesState = .Wearing
+      mainVm?.connectionManager.sendWearMessage()
       // 0xf506
       break
     case .WEAR_OFF:

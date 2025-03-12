@@ -21,6 +21,7 @@ public class ConnectionManager {
     centralManager = CBCentralManager(delegate: manager, queue: nil, options: options)
     manager.manager = self
     requestCalendarAccessIfNeeded()
+    requestReminderAccessIfNeeded()
   }
 
   var pairing: Pairing?
@@ -142,6 +143,10 @@ public class ConnectionManager {
         manager.transmitBoth(data)
         try? await Task.sleep(for: .milliseconds(8))
       }
+
+      await sendRoadMap(
+        bounds: ElementBounds(minlat: 51.511, minlon: -0.136, maxlat: 51.512, maxlon: -0.135))
+
       for _ in 1..<10 {
         let data = G1Cmd.Navigate.pollerData()
         manager.transmitBoth(data)
@@ -156,6 +161,16 @@ public class ConnectionManager {
   public func sendText(_ text: String) {
     guard let textData = G1Cmd.Text.data(text: text) else { return }
     manager.transmitBoth(textData)
+  }
+
+  public func sendWearMessage() {
+    Task {
+      sendText("Glasses initialized")
+      try? await Task.sleep(for: .seconds(3))
+
+      let data = G1Cmd.Exit.data()
+      manager.transmitBoth(data)
+    }
   }
 
   public func sendImage() {

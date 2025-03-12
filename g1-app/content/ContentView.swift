@@ -26,8 +26,15 @@ public struct ContentView: View {
       NavigationStack {
         List {
           GlassesInfoView(mainVm: vm)
-            .onAppear {
-              vm.connectionManager.syncKnown(glasses: glasses)
+            .onChange(of: scenePhase) { oldPhase, newPhase in
+              if newPhase == .active {
+                log("syncKnown")
+                vm.connectionManager.syncKnown(glasses: glasses)
+              } else if newPhase == .inactive {
+                log("Inactive")
+              } else if newPhase == .background {
+                log("Background")
+              }
             }
           HStack {
             Button(

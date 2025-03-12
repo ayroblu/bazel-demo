@@ -169,3 +169,10 @@ extension String {
     return self.data(using: .utf8)!
   }
 }
+
+extension Date {
+  public func adjustToCurrentTimeZone() -> Date {
+    let delta = TimeInterval(TimeZone.current.secondsFromGMT(for: self))
+    return addingTimeInterval(delta)
+  }
+}

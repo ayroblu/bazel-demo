@@ -1,3 +1,4 @@
+import EventKit
 import Log
 import SwiftData
 import SwiftUI
@@ -6,6 +7,7 @@ struct DashConfigView: View {
   @StateObject var vm: MainVM
   @Environment(\.modelContext) private var modelContext
   @Query(sort: \NoteModel.persistentModelID) private var notes: [NoteModel]
+  @State var reminderList: EKCalendar?
 
   var body: some View {
     List {
@@ -52,6 +54,30 @@ struct DashConfigView: View {
       }
 
       Section(header: Text("Notes")) {
+        let reminderLists = vm.connectionManager.getReminderLists()
+        if let currentReminderList = vm.connectionManager.getReminderList() {
+          let selectedReminderList: Binding<EKCalendar?> = Binding(
+            get: {
+              reminderList = currentReminderList
+              return reminderList
+            },
+            set: {
+              guard let identifier = $0?.calendarIdentifier else { return }
+              vm.connectionManager.setReminderList(identifier)
+              reminderList = $0
+            }
+          )
+          Picker("Reminders", selection: selectedReminderList) {
+            ForEach(reminderLists, id: \.calendarIdentifier) { list in
+              Text(list.title)
+                .tag(list)
+            }
+          }
+          .onChange(of: reminderList) {
+            vm.connectionManager.syncReminders()
+          }
+        }
+
         let maxNote =
           notes.lastIndex(where: { note in note.title.count > 0 || note.text.count > 0 }) ?? -1
         ForEach(notes) { note in

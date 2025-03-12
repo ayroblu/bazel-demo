@@ -4,6 +4,8 @@
 	<dict>
 		<key>NSCalendarsFullAccessUsageDescription</key>
 		<string>Read access to calendar events to push to g1 glasses</string>
+		<key>NSRemindersFullAccessUsageDescription</key>
+		<string>Read access to reminders to push to g1 glasses</string>
 		<key>NSBluetoothAlwaysUsageDescription</key>
 		<string>Uses bluetooth to connect to g1 glasses</string>
 		<key>NSSpeechRecognitionUsageDescription</key>

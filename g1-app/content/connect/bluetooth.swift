@@ -220,7 +220,16 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
         return
       }
     }
+    checkConnected()
     onValue(peripheral, data: data, mainVm: manager?.mainVm)
+  }
+
+  private func checkConnected() {
+    guard let rightPeripheral else { return }
+    if rightPeripheral.state != .connected {
+      manager?.centralManager.connect(
+        rightPeripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+    }
   }
 
   var toRestore: [CBPeripheral]?
