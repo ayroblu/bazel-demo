@@ -239,16 +239,6 @@ public class ConnectionManager {
     }
   }
 
-  public func dashCalendar() {
-    let event = G1Cmd.Config.Event(
-      name: "App time",
-      time: "13:00-14:00",
-      location: "Cloud"
-    )
-    let data = G1Cmd.Config.calendarData(event: event)
-    manager.transmitBoth(data)
-  }
-
   var speechRecognizer: SpeechRecognizer?
   // var micOn = false
   public func listenAudio() {

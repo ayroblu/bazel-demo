@@ -6,8 +6,7 @@ import SwiftUI
 struct DashConfigView: View {
   @StateObject var vm: MainVM
   @Environment(\.modelContext) private var modelContext
-  @Query(sort: \NoteModel.persistentModelID) private var notes: [NoteModel]
-  @State var reminderList: EKCalendar?
+  @AppStorage(SELECTED_REMINDER_LIST) var reminderListId: String?
 
   var body: some View {
     List {
@@ -55,16 +54,12 @@ struct DashConfigView: View {
 
       Section(header: Text("Notes")) {
         let reminderLists = vm.connectionManager.getReminderLists()
-        if let currentReminderList = vm.connectionManager.getReminderList() {
+        if let currentReminderList = vm.connectionManager.getReminderList(for: reminderListId) {
           let selectedReminderList: Binding<EKCalendar?> = Binding(
-            get: {
-              reminderList = currentReminderList
-              return reminderList
-            },
+            get: { currentReminderList },
             set: {
               guard let identifier = $0?.calendarIdentifier else { return }
               vm.connectionManager.setReminderList(identifier)
-              reminderList = $0
             }
           )
           Picker("Reminders", selection: selectedReminderList) {
@@ -73,61 +68,10 @@ struct DashConfigView: View {
                 .tag(list)
             }
           }
-          .onChange(of: reminderList) {
+          .onChange(of: reminderListId) {
             vm.connectionManager.syncReminders()
           }
         }
-
-        let maxNote =
-          notes.lastIndex(where: { note in note.title.count > 0 || note.text.count > 0 }) ?? -1
-        ForEach(notes) { note in
-          if let noteIndex = notes.firstIndex(of: note) {
-            if min(maxNote + 1, 3) >= noteIndex {
-              NavigationLink {
-                NoteEditView(note: note)
-                  .onDisappear {
-                    vm.connectionManager.dashNotes(notes: notes[0...maxNote].map { $0.toG1Cmd() })
-                  }
-              } label: {
-                if maxNote < noteIndex {
-                  Label("Add", systemImage: "plus.circle.fill")
-                } else {
-                  Text(note.title)
-                }
-              }
-              .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                if maxNote >= noteIndex {
-                  Button(role: .destructive) {
-                    modelContext.delete(note)
-                    modelContext.insert(NoteModel())
-                    try? modelContext.save()
-                  } label: {
-                    Label("Delete", systemImage: "trash")
-                  }
-                }
-              }
-            }
-          }
-        }
-        // .padding().textFieldStyle(.roundedBorder)
-        // .frame(height: 100)
-        // .scrollContentBackground(.hidden)
-        // .background(Color(red: 0.1, green: 0.1, blue: 0.1))
-      }
-      .onAppear {
-        if notes.count < 4 {
-          log("inserting notes")
-          for _ in notes.count..<4 {
-            modelContext.insert(NoteModel())
-          }
-          try? modelContext.save()
-        }
-      }
-      Section(header: Text("Calendar")) {
-        Button("Dash calendar") {
-          vm.connectionManager.dashCalendar()
-        }
-        .buttonStyle(.bordered)
       }
     }
   }

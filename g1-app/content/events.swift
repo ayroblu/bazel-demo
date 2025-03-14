@@ -159,6 +159,13 @@ extension ConnectionManager {
     return eventStore.defaultCalendarForNewReminders()
   }
 
+  func getReminderList(for listId: String?) -> EKCalendar? {
+    if let listId, let calendar = eventStore.calendar(withIdentifier: listId) {
+      return calendar
+    }
+    return eventStore.defaultCalendarForNewReminders()
+  }
+
   func setReminderList(_ value: String) {
     UserDefaults.standard.set(value, forKey: SELECTED_REMINDER_LIST)
   }
