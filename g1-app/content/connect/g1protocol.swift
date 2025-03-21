@@ -87,7 +87,7 @@ struct G1Cmd {
           weatherIcon.rawValue, temp, fahrenheit, twelveHour,
         ])
     }
-    static func headTiltData(angle: Int) -> Data? {
+    static func headTiltData(angle: UInt8) -> Data? {
       guard angle >= 0 && angle <= 60 else { return nil }
       return Data([SendCmd.HeadTilt.rawValue, UInt8(angle), 0x01])
     }
@@ -122,7 +122,6 @@ struct G1Cmd {
       let partData2: [UInt8] = partData + [0x02, timeLength] + timeData
       let eventData: [UInt8] = partData2 + [0x03, locationLength] + locationData
       let totalLength: UInt8 = UInt8(eventData.count + 2)
-      log("calendar length", eventData.count)
       return Data([SendCmd.DashMode.rawValue, totalLength] + eventData)
     }
     struct Note {
@@ -415,6 +414,7 @@ enum SendCmd: UInt8 {
   case BrightnessState = 0x29
   case GlassesState = 0x2B
   case Battery = 0x2C
+  case HeadsUp = 0x32
   case Uptime = 0x37
   case DashPosition = 0x3B
   case Text = 0x4E
@@ -441,6 +441,7 @@ enum BLE_REC: UInt8 {
   case BmpDone = 0x20
   case HEARTBEAT = 0x25
   case GlassesState = 0x2B
+  case HeadsUp = 0x32
   case Uptime = 0x37
   case DashPosition = 0x3B
   case NOTIF = 0x4B
@@ -553,6 +554,10 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
     } else {
       log("unknown mode state \(name) \(data.hex)")
     }
+  case .HeadsUp:
+    // Right only after opening settings
+    // 0x326d1501
+    mainVm?.headsUpAngle = data[2]
   case .Uptime:
     // time since boot in seconds?
     // 0x3737e1bc000001
@@ -750,10 +755,6 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
     case 0x2A:
       // After opening settings
       // 0x2a6801
-      break
-    case 0x32:
-      // Right only after opening settings
-      // 0x326d1501
       break
     case 0x3A:
       // After opening settings

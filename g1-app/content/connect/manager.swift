@@ -226,6 +226,11 @@ public class ConnectionManager {
     }
   }
 
+  public func headsUpAngle(angle: UInt8) {
+    guard let data = G1Cmd.Config.headTiltData(angle: angle) else { return }
+    manager.transmitBoth(data)
+  }
+
   public func dashPosition(isShow: Bool, vertical: UInt8, distance: UInt8) {
     guard let data = G1Cmd.Config.dashData(isShow: isShow, vertical: vertical, distance: distance)
     else { return }
@@ -268,13 +273,18 @@ public class ConnectionManager {
         GlassesModel(left: left.identifier.uuidString, right: right.identifier.uuidString))
       self.pairing = nil
     }
+
     deviceInfo()
+    syncReminders()
+
     mainVm?.isConnected = true
   }
+
   func deviceInfo() {
     manager.readLeft(Data([SendCmd.GlassesState.rawValue]))
     manager.readBoth(Data([BLE_REC.BATTERY.rawValue, 0x02]))
     manager.readRight(Data([SendCmd.BrightnessState.rawValue]))
     manager.readRight(Data([SendCmd.DashPosition.rawValue]))
+    manager.readRight(Data([SendCmd.HeadsUp.rawValue]))
   }
 }

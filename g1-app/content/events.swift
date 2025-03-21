@@ -138,6 +138,8 @@ extension ConnectionManager {
   }
 
   func syncReminders() {
+    let authorizationStatus = EKEventStore.authorizationStatus(for: .reminder)
+    guard authorizationStatus == .fullAccess else { return }
     Task {
       guard let reminderList = getReminderList() else { return }
       let reminders = await fetchReminders()

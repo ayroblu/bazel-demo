@@ -8,6 +8,10 @@ swift_library(
         ["**/*.swift"],
         ["**/*Tests.swift"],
     ),
+    copts = select({
+        "//conditions:default": ["-DDEBUG"],
+        "//:release_build": ["-DRELEASE"],
+    }),
     module_name = "content",
     deps = [
         "//g1-app/Log",

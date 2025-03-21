@@ -16,6 +16,7 @@ class MainVM: ObservableObject {
   @Published var brightness: UInt8 = 6
   @Published var autoBrightness: Bool = true
   @Published var isBluetoothEnabled: Bool = false
+  @Published var headsUpAngle: UInt8 = 30
   @Published var dashVertical: UInt8 = 3
   @Published var dashDistance: UInt8 = 2
   var battery: Int? {

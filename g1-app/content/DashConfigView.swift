@@ -10,6 +10,22 @@ struct DashConfigView: View {
 
   var body: some View {
     List {
+      let headsUpAngle = Binding(
+        get: { Double(vm.headsUpAngle) },
+        set: { vm.headsUpAngle = UInt8($0) }
+      )
+      Section(header: Text("Dash angle: \(vm.headsUpAngle)°")) {
+        Slider(
+          value: headsUpAngle,
+          in: 0...60,
+          step: 1
+        ) { editing in
+          if !editing {
+            vm.connectionManager.headsUpAngle(angle: vm.headsUpAngle)
+          }
+        }
+      }
+
       let dashVertical = Binding(
         get: { Double(vm.dashVertical) },
         set: {

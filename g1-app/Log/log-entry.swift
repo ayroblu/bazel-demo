@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 @Model
-class Log {
+public class LogEntry {
   var timestamp: Date
   var key: String
   var text: String

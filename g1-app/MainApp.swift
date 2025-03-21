@@ -1,3 +1,4 @@
+import Log
 import SwiftData
 import SwiftUI
 import content
@@ -11,6 +12,7 @@ struct MainApp: App {
     .modelContainer(for: [
       GlassesModel.self,
       NoteModel.self,
+      LogEntry.self,
     ])
   }
 }

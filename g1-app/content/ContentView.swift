@@ -80,7 +80,9 @@ public struct ContentView: View {
             }
           }
           NavigationLink("Dash Config") {
-            DashConfigView(vm: vm)
+            LazyView {
+              DashConfigView(vm: vm)
+            }
           }
           NavigationLink("Text Editor") {
             TextEditor(
@@ -125,7 +127,17 @@ public struct ContentView: View {
             .buttonStyle(.bordered)
             ShareLink("Export", item: audioManager.outputUrl)
           }
+          #if DEBUG
+            NavigationLink("Logs") {
+              LogsUi()
+            }
+          #endif
         }
+      }
+      .onAppear {
+        #if DEBUG
+          initLogDb(modelContext)
+        #endif
       }
     } else {
       if vm.isBluetoothEnabled {
