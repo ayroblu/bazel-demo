@@ -6,7 +6,8 @@ import SwiftUI
 struct DashConfigView: View {
   @StateObject var vm: MainVM
   @Environment(\.modelContext) private var modelContext
-  @AppStorage(SELECTED_REMINDER_LIST) var reminderListId: String?
+  @State var forceRerender = 0
+  // @AppStorage(SELECTED_REMINDER_LISTS) var reminderListIds: [String]?
 
   var body: some View {
     List {
@@ -69,28 +70,51 @@ struct DashConfigView: View {
       }
 
       Section(header: Text("Notes")) {
-        let reminderLists = vm.connectionManager.getReminderLists()
-        if let currentReminderList = vm.connectionManager.getReminderList(for: reminderListId) {
-          let selectedReminderList: Binding<EKCalendar?> = Binding(
-            get: { currentReminderList },
-            set: {
-              guard let identifier = $0?.calendarIdentifier else { return }
-              vm.connectionManager.setReminderList(identifier)
-            }
-          )
-          Picker("Reminders", selection: selectedReminderList) {
-            ForEach(reminderLists, id: \.calendarIdentifier) { list in
-              Text(list.title)
-                .tag(list)
+        let selectedReminderLists = vm.connectionManager.getSelectedReminderLists()
+        let reminderLists = vm.connectionManager.getReminderLists().filter {
+          !selectedReminderLists.contains($0)
+        }
+        var reminderListIds = selectedReminderLists.map { $0.calendarIdentifier }
+        ForEach(selectedReminderLists, id: \.calendarIdentifier) { reminderList in
+          if let idx = selectedReminderLists.firstIndex(of: reminderList) {
+            let selectedReminderList: Binding<EKCalendar> = Binding(
+              get: { reminderList },
+              set: {
+                let identifier = $0.calendarIdentifier
+                if reminderListIds[safe: idx] != nil {
+                  reminderListIds[idx] = identifier
+                } else {
+                  reminderListIds.append(identifier)
+                }
+                vm.connectionManager.setReminderLists(reminderListIds)
+                forceRerender += 1
+                vm.connectionManager.syncReminders()
+              }
+            )
+            Picker("Reminders \(idx + 1)", selection: selectedReminderList) {
+              ForEach(reminderLists, id: \.calendarIdentifier) { list in
+                Text(list.title)
+                  .tag(list)
+              }
             }
           }
-          .onChange(of: reminderListId) {
-            vm.connectionManager.syncReminders()
+        }
+        if let nextReminderList = reminderLists.first, selectedReminderLists.count < 4 {
+          Button("Add", systemImage: "plus.circle.fill") {
+            reminderListIds.append(nextReminderList.calendarIdentifier)
+            vm.connectionManager.setReminderLists(reminderListIds)
+            forceRerender += 1
           }
         }
       }
+      .environment(\.editMode, Binding.constant(EditMode.active))
     }
   }
+
+  // .onMove(perform: move)
+  // func move(from source: IndexSet, to destination: Int) {
+  //     reminderLists.move(fromOffsets: source, toOffset: destination)
+  // }
 }
 
 struct NoteEditView: View {

@@ -3,6 +3,7 @@ import Log
 import SwiftUI
 
 let SELECTED_REMINDER_LIST = "reminder-list"
+let SELECTED_REMINDER_LISTS = "reminder-lists"
 
 extension ConnectionManager {
   func requestCalendarAccessIfNeeded() {
@@ -141,11 +142,12 @@ extension ConnectionManager {
     let authorizationStatus = EKEventStore.authorizationStatus(for: .reminder)
     guard authorizationStatus == .fullAccess else { return }
     Task {
-      guard let reminderList = getReminderList() else { return }
-      let reminders = await fetchReminders()
-      let text = reminders[..<4].map { $0.title.prefix(50) }.joined(separator: "\n")
-      let note = G1Cmd.Config.Note(title: String(reminderList.title.prefix(50)), text: text)
-      dashNotes(notes: [note])
+      let selectedReminders = await fetchSelectedReminders()
+      let notes = selectedReminders.map {
+        let text = $0.reminders[..<4].map { $0.title.prefix(50) }.joined(separator: "\n")
+        return G1Cmd.Config.Note(title: String($0.list.title.prefix(50)), text: text)
+      }
+      dashNotes(notes: notes)
     }
   }
 
@@ -153,30 +155,55 @@ extension ConnectionManager {
     return eventStore.calendars(for: .reminder)
   }
 
-  func getReminderList() -> EKCalendar? {
-    let listId = UserDefaults.standard.string(forKey: SELECTED_REMINDER_LIST)
+  func getSelectedReminderLists() -> [EKCalendar] {
+    let listIds = UserDefaults.standard.stringArray(forKey: SELECTED_REMINDER_LISTS)
+    guard let listIds else {
+      return [eventStore.defaultCalendarForNewReminders()].compactMap { $0 }
+    }
+    let selectedCalendars = listIds.compactMap { getReminderList(for: $0) }
+    guard selectedCalendars.count > 0 else {
+      return [eventStore.defaultCalendarForNewReminders()].compactMap { $0 }
+    }
+    return selectedCalendars
+  }
+
+  private func getReminderList(for listId: String?) -> EKCalendar? {
     if let listId, let calendar = eventStore.calendar(withIdentifier: listId) {
       return calendar
     }
-    return eventStore.defaultCalendarForNewReminders()
+    return nil
   }
 
-  func getReminderList(for listId: String?) -> EKCalendar? {
-    if let listId, let calendar = eventStore.calendar(withIdentifier: listId) {
-      return calendar
+  func setReminderLists(_ value: [String]) {
+    UserDefaults.standard.set(value, forKey: SELECTED_REMINDER_LISTS)
+  }
+
+  private func fetchSelectedReminders() async -> [SelectedReminder] {
+    let reminderLists = getSelectedReminderLists()
+    return await withTaskGroup(of: SelectedReminder.self) { group in
+      for list in reminderLists {
+        let s = self
+        group.addTask {
+          let predicate = s.eventStore.predicateForIncompleteReminders(
+            withDueDateStarting: nil, ending: nil, calendars: [list])
+          let reminders = await s.eventStore.fetchReminders(matching: predicate) ?? []
+          return SelectedReminder(list: list, reminders: reminders)
+        }
+      }
+      var results: [SelectedReminder] = []
+      for await item in group {
+        results.append(item)
+      }
+      return results
     }
-    return eventStore.defaultCalendarForNewReminders()
   }
+}
 
-  func setReminderList(_ value: String) {
-    UserDefaults.standard.set(value, forKey: SELECTED_REMINDER_LIST)
-  }
-
-  func fetchReminders() async -> [EKReminder] {
-    guard let reminderList = getReminderList() else { return [] }
-    let predicate = eventStore.predicateForIncompleteReminders(
-      withDueDateStarting: nil, ending: nil, calendars: [reminderList])
-    return await eventStore.fetchReminders(matching: predicate) ?? []
+private struct SelectedReminder: Identifiable {
+  let list: EKCalendar
+  let reminders: [EKReminder]
+  var id: String {
+    list.calendarIdentifier
   }
 }
 
