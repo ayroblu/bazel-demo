@@ -71,9 +71,7 @@ struct DashConfigView: View {
 
       Section(header: Text("Notes")) {
         let selectedReminderLists = vm.connectionManager.getSelectedReminderLists()
-        let reminderLists = vm.connectionManager.getReminderLists().filter {
-          !selectedReminderLists.contains($0)
-        }
+        let reminderLists = vm.connectionManager.getReminderLists()
         var reminderListIds = selectedReminderLists.map { $0.calendarIdentifier }
         ForEach(selectedReminderLists, id: \.calendarIdentifier) { reminderList in
           if let idx = selectedReminderLists.firstIndex(of: reminderList) {
@@ -91,15 +89,30 @@ struct DashConfigView: View {
                 vm.connectionManager.syncReminders()
               }
             )
-            Picker("Reminders \(idx + 1)", selection: selectedReminderList) {
-              ForEach(reminderLists, id: \.calendarIdentifier) { list in
+            let pickerReminderLists = reminderLists.filter {
+              !selectedReminderLists.contains($0) || reminderList == $0
+            }
+            Picker("\(idx + 1)", selection: selectedReminderList) {
+              ForEach(pickerReminderLists, id: \.calendarIdentifier) { list in
                 Text(list.title)
                   .tag(list)
               }
             }
+            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+              if idx != 0 {
+                Button(role: .destructive) {
+                  reminderListIds.remove(at: idx)
+                  vm.connectionManager.setReminderLists(reminderListIds)
+                } label: {
+                  Label("Delete", systemImage: "trash")
+                }
+              }
+            }
           }
         }
-        if let nextReminderList = reminderLists.first, selectedReminderLists.count < 4 {
+        .id(forceRerender)
+        let eligibleReminderLists = reminderLists.filter { !selectedReminderLists.contains($0) }
+        if let nextReminderList = eligibleReminderLists.first, selectedReminderLists.count < 4 {
           Button("Add", systemImage: "plus.circle.fill") {
             reminderListIds.append(nextReminderList.calendarIdentifier)
             vm.connectionManager.setReminderLists(reminderListIds)

@@ -11,6 +11,7 @@ let package = Package(
         .target(name: "utils", path: "utils"),
         .target(name: "content", path: "content"),
         .target(name: "Log", path: "Log"),
+        .target(name: "maps", path: "maps"),
         // .testTarget(name: "utils-test", path: "utils"),
     ]
 )

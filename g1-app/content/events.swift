@@ -144,7 +144,7 @@ extension ConnectionManager {
     Task {
       let selectedReminders = await fetchSelectedReminders()
       let notes = selectedReminders.map {
-        let text = $0.reminders[..<4].map { $0.title.prefix(50) }.joined(separator: "\n")
+        let text = $0.reminders.prefix(4).map { $0.title.prefix(50) }.joined(separator: "\n")
         return G1Cmd.Config.Note(title: String($0.list.title.prefix(50)), text: text)
       }
       dashNotes(notes: notes)
@@ -160,7 +160,7 @@ extension ConnectionManager {
     guard let listIds else {
       return [eventStore.defaultCalendarForNewReminders()].compactMap { $0 }
     }
-    let selectedCalendars = listIds.compactMap { getReminderList(for: $0) }
+    let selectedCalendars = listIds.uniqued().compactMap { getReminderList(for: $0) }
     guard selectedCalendars.count > 0 else {
       return [eventStore.defaultCalendarForNewReminders()].compactMap { $0 }
     }

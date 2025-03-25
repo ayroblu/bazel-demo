@@ -15,6 +15,7 @@ swift_library(
     module_name = "content",
     deps = [
         "//g1-app/Log",
+        "//g1-app/maps",
         "//g1-app/utils",
         "//g1-app/vendor-pcm",
     ],

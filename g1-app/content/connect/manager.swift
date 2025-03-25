@@ -144,8 +144,7 @@ public class ConnectionManager {
         try? await Task.sleep(for: .milliseconds(8))
       }
 
-      await sendRoadMap(
-        bounds: ElementBounds(minlat: 51.511, minlon: -0.136, maxlat: 51.512, maxlon: -0.135))
+      await sendRoadMap(minlat: 51.511, minlng: -0.136, maxlat: 51.512, maxlng: -0.135)
 
       for _ in 1..<10 {
         let data = G1Cmd.Navigate.pollerData()
