@@ -6,15 +6,22 @@ swift_library(
     name = "maps",
     srcs = glob(
         ["*.swift"],
-        ["**/*Tests.swift"],
+        ["*Tests.swift"],
     ),
     module_name = "maps",
 )
 
+# To save snapshot updates, delete the snapshot file, and run:
+# $ bazel test:log:no_sandbox //g1-app/maps:maps-tests
 swift_test(
     name = "maps-tests",
-    srcs = glob(["**/*Tests.swift"]),
+    srcs = glob(["*Tests.swift"]),
+    data = [":test-snapshots"],
+    env = {
+        "SNAPSHOT_REFERENCE_DIR": "$(execpath :test-snapshots)",
+    },
     deps = [
         ":maps",
+        "//g1-app/snapshot-testing",
     ],
 )

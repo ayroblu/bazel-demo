@@ -1,0 +1,16 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library", "swift_test")
+
+package(default_visibility = ["//g1-app:__subpackages__"])
+
+swift_library(
+    name = "snapshot-testing",
+    srcs = glob(
+        ["*.swift"],
+        ["*Tests.swift"],
+    ),
+    always_include_developer_search_paths = True,
+    module_name = "MySnapshotTesting",
+    deps = [
+        "@swiftpkg_swift_snapshot_testing//:SnapshotTesting",
+    ],
+)

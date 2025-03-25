@@ -4,6 +4,12 @@ struct MapBoard {
   let width: Int
   let height: Int
   var board: [[Bool]]
+
+  init(width: Int, height: Int) {
+    self.board = Array(repeating: Array(repeating: false, count: width), count: height)
+    self.width = width
+    self.height = height
+  }
 }
 
 extension MapBoard {

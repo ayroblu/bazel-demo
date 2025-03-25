@@ -50,10 +50,36 @@ http_archive(
     url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.49.17/swiftformat.zip",
 )
 
+bazel_dep(name = "rules_swift_package_manager", version = "0.47.2")
+
+swift_deps = use_extension(
+    "@rules_swift_package_manager//:extensions.bzl",
+    "swift_deps",
+)
+swift_deps.from_package(
+    resolved = "//:Package.resolved",
+    swift = "//:Package.swift",
+)
+use_repo(
+    swift_deps,
+    "swift_package",
+    "swiftpkg_swift_snapshot_testing",
+    # Auto generate by running: `bazel mod tidy`.
+    # NOTE: The name of the Bazel external repository for a Swift package is `swiftpkg_xxx` where
+    # `xxx` is the Swift package identity, lowercase, with punctuation replaced by `hyphen`. For
+    # example, the repository name for apple/swift-nio is `swiftpkg_swift_nio`.
+    # Use it like: "@swiftpkg_swift_nio//:NIO",
+)
+# bazel run @swift_package//:update
+# # OR: bazel run @swift_package//:update -- MyPackage
+# # example resolve: bazel run @swift_package//:resolve
+# Then: bazel mod tidy
+
 # Android
 bazel_dep(name = "rules_jvm_external", version = "6.6")
 
 _COMPOSE_VERSION = "1.7.6"
+
 _KOTLIN_COMPILER_VERSION = "2.0.0"
 # _KOTLIN_COMPILER_SHA = "ef578730976154fd2c5968d75af8c2703b3de84a78dffe913f670326e149da3b"
 

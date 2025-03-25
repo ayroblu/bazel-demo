@@ -6,7 +6,9 @@ import PackageDescription
 // This + Sources folder only exists to appease swiftc + sourcekit-lsp
 let package = Package(
     name: "MyPackage",
-    platforms: [.iOS(.v18)],
+    platforms: [
+        .macOS("15.2"), .iOS(.v18),
+    ],
     targets: [
         .target(name: "utils", path: "utils"),
         .target(name: "content", path: "content"),
