@@ -1,50 +1,61 @@
 import Foundation
 
-struct MapBoard {
-  let width: Int
-  let height: Int
-  var board: [[Bool]]
-
-  init(width: Int, height: Int) {
-    self.board = Array(repeating: Array(repeating: false, count: width), count: height)
-    self.width = width
-    self.height = height
-  }
-}
-
 extension MapBoard {
-  mutating func rasterLine(_ a: (Double, Double), _ b: (Double, Double)) {
-    let (ax, ay) = a
-    let (bx, by) = b
-    let lenX = abs(bx - ax)
-    let lenY = abs(by - ay)
-    let isVertical = lenY > lenX
-    // round ax, ay, set board[x][y] = true
-    let dir =
-      isVertical
-      ? ay > by ? (((bx - ax) / lenY), -1) : (((bx - ax) / lenY), 1)
-      : ax > bx ? (-1, ((by - ay) / lenX)) : (1, ((by - ay) / lenX))
-    func rangeWidth(_ v: Double) -> Range<Int> {
-      let upper = Int(round(v)) + (width - 1) / 2
-      let lower = upper - width
-      return lower..<upper
+  mutating func drawLine(
+    from start: (x: Int, y: Int),
+    to end: (x: Int, y: Int),
+    lineWidth: Int = 1
+  ) {
+    guard
+      start.x >= 0 && start.x < width && start.y >= 0 && start.y < height && end.x >= 0
+        && end.x < width && end.y >= 0 && end.y < height
+    else {
+      // print("Line coordinates out of board bounds")
+      return
     }
 
-    // board[round(x + dirX)][round(y + dirY)] = true
-    // var counter = width
-    if isVertical {
-      // for _ in ay..<by {
-      let x = ax
-      let y = ay
-      for dx in rangeWidth(x) {
-        // board[x + dx][y] = true
-        rasterPoint(x + Double(dx), y)
+    // Bresenham's line algorithm with width
+    let dx = abs(end.x - start.x)
+    let dy = abs(end.y - start.y)
+    let sx = start.x < end.x ? 1 : -1
+    let sy = start.y < end.y ? 1 : -1
+
+    var err = dx - dy
+    var currentX = start.x
+    var currentY = start.y
+
+    while true {
+      // Draw a square of points around the line with given width
+      // 1:  0...0
+      // 2:  0...1
+      // 3: -1...1
+      // 4: -1...2
+      // 5: -2...2
+      for offsetX in -((lineWidth - 1) / 2)...(lineWidth / 2) {
+        for offsetY in -((lineWidth - 1) / 2)...(lineWidth / 2) {
+          let plotX = currentX + offsetX
+          let plotY = currentY + offsetY
+
+          // Ensure the point is within board bounds
+          if plotX >= 0 && plotX < width && plotY >= 0 && plotY < height {
+            board[plotY][plotX] = true
+          }
+        }
       }
-      // }
-    }
-  }
 
-  mutating func rasterPoint(_ x: Double, _ y: Double) {
-    board[Int(round(x))][Int(round(y))] = true
+      if currentX == end.x && currentY == end.y {
+        break
+      }
+
+      let e2 = 2 * err
+      if e2 > -dy {
+        err -= dy
+        currentX += sx
+      }
+      if e2 < dx {
+        err += dx
+        currentY += sy
+      }
+    }
   }
 }

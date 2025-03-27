@@ -1,30 +1,26 @@
 import Foundation
 
-func fetchRoads(bounds: ElementBounds) async -> OverpassResult? {
-  return await fetchPost(
+func fetchRoads(bounds: ElementBounds) async throws -> OverpassResult {
+  let body =
+    "data=[out:json];way[\"highway\"](\(bounds.minlat),\(bounds.minlng),\(bounds.maxlat),\(bounds.maxlng));out geom;"
+  return try await fetchPost(
     OverpassResult.self,
     urlPath: "https://overpass-api.de/api/interpreter",
-    body:
-      "data=[out:json];way[\"highway\"](\(bounds.minlat),\(bounds.minlng),\(bounds.maxlat),\(bounds.maxlng));out geom;"
+    body: body
   )
+  // curl -X POST -g "https://overpass-api.de/api/interpreter" \
+  //   --data-urlencode "data=[out:json];way[\"highway\"](51.511,-0.136,51.512,-0.135);out geom;" > roads.json
 }
 
-public struct ElementBounds: Codable {
-  public let minlat: Double
-  public let minlng: Double
-  public let maxlat: Double
-  public let maxlng: Double
-
-  public init(minlat: Double, minlng: Double, maxlat: Double, maxlng: Double) {
-    self.minlat = minlat
-    self.minlng = minlng
-    self.maxlat = maxlat
-    self.maxlng = maxlng
-  }
+struct Bounds: Codable {
+  let minlat: Double
+  let minlon: Double
+  let maxlat: Double
+  let maxlon: Double
 }
 struct LatLng: Codable {
   let lat: Double
-  let lng: Double
+  let lon: Double
 }
 struct OverpassTags: Codable {
   let highway: String?  // unclassified
@@ -40,7 +36,7 @@ struct OverpassTags: Codable {
 struct OverpassElement: Codable {
   let type: String
   let id: Int
-  let bounds: ElementBounds
+  let bounds: Bounds
   let nodes: [Int]
   let geometry: [LatLng]
   let tags: OverpassTags
@@ -52,14 +48,15 @@ struct OverpassResult: Codable {
   let elements: [OverpassElement]
 }
 
-func fetchPost<T>(_ type: T.Type, urlPath: String, body: String?) async -> T? where T: Decodable {
-  guard let url = URL(string: urlPath) else { return nil }
+func fetchPost<T>(_ type: T.Type, urlPath: String, body: String?) async throws -> T
+where T: Decodable {
+  guard let url = URL(string: urlPath) else { throw URLError(.badURL) }
   var urlRequest = URLRequest(url: url)
   urlRequest.httpMethod = "POST"
   if let body {
     urlRequest.httpBody = body.data(using: .utf8)
   }
-  guard let (data, _) = try? await URLSession.shared.data(for: urlRequest) else { return nil }
+  let (data, _) = try await URLSession.shared.data(for: urlRequest)
   let decoder = JSONDecoder()
-  return try? decoder.decode(type, from: data)
+  return try decoder.decode(type, from: data)
 }

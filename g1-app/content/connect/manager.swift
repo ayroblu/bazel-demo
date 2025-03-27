@@ -144,9 +144,28 @@ public class ConnectionManager {
         try? await Task.sleep(for: .milliseconds(8))
       }
 
-      await sendRoadMap(minlat: 51.511, minlng: -0.136, maxlat: 51.512, maxlng: -0.135)
-
       for _ in 1..<10 {
+        let data = G1Cmd.Navigate.pollerData()
+        manager.transmitBoth(data)
+        try? await Task.sleep(for: .seconds(1))
+      }
+      let data = G1Cmd.Navigate.endData()
+      manager.transmitBoth(data)
+      log("ending navigate")
+    }
+  }
+
+  public func sendTestNavigate2() {
+    Task {
+      log("starting navigate")
+      for data in [G1Cmd.Navigate.initData(), G1Cmd.Navigate.directionsDataExample()] {
+        manager.transmitBoth(data)
+        try? await Task.sleep(for: .milliseconds(8))
+      }
+
+      await sendRoadMap(lat: 51.511, lng: -0.136)
+
+      for _ in 1..<30 {
         let data = G1Cmd.Navigate.pollerData()
         manager.transmitBoth(data)
         try? await Task.sleep(for: .seconds(1))

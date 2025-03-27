@@ -16,9 +16,13 @@ swift_library(
 swift_test(
     name = "maps-tests",
     srcs = glob(["*Tests.swift"]),
-    data = [":test-snapshots"],
+    data = [
+        ":fixtures",
+        ":test-snapshots",
+    ],
     env = {
         "SNAPSHOT_REFERENCE_DIR": "$(execpath :test-snapshots)",
+        "FIXTURES": "$(execpath :fixtures)",
     },
     deps = [
         ":maps",

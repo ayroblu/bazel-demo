@@ -99,6 +99,10 @@ public struct ContentView: View {
                 vm.connectionManager.sendTestNavigate()
               }
               .buttonStyle(.bordered)
+              Button("test2") {
+                vm.connectionManager.sendTestNavigate2()
+              }
+              .buttonStyle(.bordered)
             }
           }
           NavigationLink("Navigate") {
