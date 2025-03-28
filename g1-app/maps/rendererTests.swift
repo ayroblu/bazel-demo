@@ -11,7 +11,7 @@ class RendererTests: XCTestCase {
     let roads = try loadJson(filename: "roads.json", jsonType: OverpassResult.self)
     mapBoard.render(data: roads, bounds: bounds)
     let board = mapBoard.board.toBoardString()
-    assertSnapshot(of: board, as: .lines, record: true)
+    assertSnapshot(of: board, as: .lines)
   }
 
   func loadJson<T: Decodable>(filename: String, jsonType: T.Type) throws -> T {

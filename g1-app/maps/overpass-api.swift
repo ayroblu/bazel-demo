@@ -1,13 +1,17 @@
 import Foundation
+import Log
 
-func fetchRoads(bounds: ElementBounds) async throws -> OverpassResult {
+public func fetchRoads(bounds: ElementBounds) async throws -> OverpassResult {
   let body =
     "data=[out:json];way[\"highway\"](\(bounds.minlat),\(bounds.minlng),\(bounds.maxlat),\(bounds.maxlng));out geom;"
-  return try await fetchPost(
+  log("fetching from overpass", body)
+  let result = try await fetchPost(
     OverpassResult.self,
     urlPath: "https://overpass-api.de/api/interpreter",
     body: body
   )
+  log("roads fetched", result.elements.count)
+  return result
   // curl -X POST -g "https://overpass-api.de/api/interpreter" \
   //   --data-urlencode "data=[out:json];way[\"highway\"](51.511,-0.136,51.512,-0.135);out geom;" > roads.json
 }
@@ -41,7 +45,7 @@ struct OverpassElement: Codable {
   let geometry: [LatLng]
   let tags: OverpassTags
 }
-struct OverpassResult: Codable {
+public struct OverpassResult: Codable {
   let version: Double
   let generator: String
   // let osm3s: Osm3s

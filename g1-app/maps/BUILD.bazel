@@ -9,6 +9,7 @@ swift_library(
         ["*Tests.swift"],
     ),
     module_name = "maps",
+    deps = ["//g1-app/Log"],
 )
 
 # To save snapshot updates, delete the snapshot file, and run:

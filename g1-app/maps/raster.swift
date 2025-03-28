@@ -58,4 +58,17 @@ extension MapBoard {
       }
     }
   }
+
+  mutating func drawArrow(position: (x: Int, y: Int), dim: (w: Int, h: Int), lineWidth: Int = 2) {
+    let (x, y) = position
+    let (w, h) = dim
+    let wo = w - lineWidth
+    let ho = h - 1
+    let midX = Double(wo) / 2
+    for r in 0..<lineWidth {
+      drawLine(from: (x + r, y + ho), to: (x + Int(floor(midX)) + r, y))
+      drawLine(from: (x + wo + r, y + ho), to: (x + Int(ceil(midX)) + r, y))
+    }
+  }
+
 }

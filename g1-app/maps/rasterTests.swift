@@ -34,6 +34,14 @@ class RasterTests: XCTestCase {
     let board = mapBoard.board.toBoardString()
     assertSnapshot(of: board, as: .lines)
   }
+
+  func testDrawArrow() {
+    var mapBoard = MapBoard(width: 8, height: 8)
+    mapBoard.drawArrow(position: (0, 2), dim: (8, 4))
+    // mapBoard.rotate(angle: -30 * .pi / 180.0)
+    let board = mapBoard.board.toBoardString()
+    assertSnapshot(of: board, as: .lines)
+  }
 }
 
 extension Array where Element == [Bool] {
