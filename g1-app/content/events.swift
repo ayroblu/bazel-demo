@@ -1,6 +1,7 @@
 import EventKit
 import Log
 import SwiftUI
+import utils
 
 let SELECTED_REMINDER_LIST = "reminder-list"
 let SELECTED_REMINDER_LISTS = "reminder-lists"
@@ -180,22 +181,15 @@ extension ConnectionManager {
 
   private func fetchSelectedReminders() async -> [SelectedReminder] {
     let reminderLists = getSelectedReminderLists()
-    return await withTaskGroup(of: SelectedReminder.self) { group in
-      for list in reminderLists {
-        let s = self
-        group.addTask {
-          let predicate = s.eventStore.predicateForIncompleteReminders(
+    return await asyncAll(
+      reminderLists.map { list in
+        return { [self] in
+          let predicate = eventStore.predicateForIncompleteReminders(
             withDueDateStarting: nil, ending: nil, calendars: [list])
-          let reminders = await s.eventStore.fetchReminders(matching: predicate) ?? []
+          let reminders = await eventStore.fetchReminders(matching: predicate) ?? []
           return SelectedReminder(list: list, reminders: reminders)
         }
-      }
-      var results: [SelectedReminder] = []
-      for await item in group {
-        results.append(item)
-      }
-      return results
-    }
+      })
   }
 }
 
