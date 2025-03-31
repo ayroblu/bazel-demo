@@ -1,4 +1,5 @@
 import Foundation
+import MapKit
 
 extension MapBoard {
   mutating func render(data: OverpassResult, bounds: ElementBounds) {
@@ -20,12 +21,7 @@ extension MapBoard {
     guard
       lat >= bounds.minlat && lat <= bounds.maxlat && lng >= bounds.minlng && lng <= bounds.maxlng
     else { return nil }
-    let dlat = bounds.maxlat - bounds.minlat
-    let dlng = bounds.maxlng - bounds.minlng
-    return (
-      Int(round((lng - bounds.minlng) / dlng * Double(width))),
-      Int(round((bounds.maxlat - lat) / dlat * Double(height)))
-    )
+    return getPosInBounds(dim: (width, height), pos: (lat, lng), bounds: bounds)
   }
 
   mutating func crop(start: (x: Int, y: Int), dim: (newWidth: Int, newHeight: Int)) {
@@ -42,5 +38,29 @@ extension MapBoard {
     board = newBoard
     width = newWidth
     height = newHeight
+  }
+
+  mutating func renderRoute(route: MKRoute, bounds: ElementBounds) {
+    let points = route.polyline.points()
+    for i in 1..<route.polyline.pointCount {
+      let pointA = points[i - 1]
+      let pointB = points[i]
+      let a = LatLng(lat: pointA.coordinate.latitude, lon: pointA.coordinate.longitude)
+      let b = LatLng(lat: pointB.coordinate.latitude, lon: pointB.coordinate.longitude)
+      if let from = mapPoint(point: a, bounds: bounds),
+        let to = mapPoint(point: b, bounds: bounds)
+      {
+        drawLine(from: from, to: to, lineWidth: 2)
+      }
+    }
+
+    // Triangle
+    let lastPoint = points[route.polyline.pointCount - 1]
+    let lastLatLng = LatLng(lat: lastPoint.coordinate.latitude, lon: lastPoint.coordinate.longitude)
+    if let (x, y) = mapPoint(point: lastLatLng, bounds: bounds) {
+      drawLine(from: (x, y - 2), to: (x - 4, y + 2))
+      drawLine(from: (x, y - 2), to: (x + 4, y + 2))
+      drawLine(from: (x - 4, y + 2), to: (x + 4, y + 2))
+    }
   }
 }

@@ -1,4 +1,5 @@
 import Foundation
+import MapKit
 
 // let padding = 0.001
 // public func fetchRoadMap(bounds: ElementBounds, width: Int, height: Int) async throws -> [Bool] {
@@ -29,15 +30,43 @@ extension OverpassResult {
   }
 }
 
-public func getSelfMap(width: Int, height: Int, angle: Double) -> [Bool] {
+public func getSelfMap(
+  dim: (width: Int, height: Int), route: MKRoute, bounds: ElementBounds, selfArrow: SelfArrow? = nil
+) -> [Bool] {
+  let (width, height) = dim
   var board = MapBoard(width: width, height: height)
-  board.merge(getArrowBoard(angle: 0), pos: (width / 2 - 4, height / 2 - 4))
+  if let selfArrow {
+    let (x, y) = getPosInBounds(
+      dim: (width, height), pos: (selfArrow.lat, selfArrow.lng), bounds: bounds)
+    board.merge(getArrowBoard(angle: -135 * .pi / 180.0), pos: (x - 8, y - 8))
+  }
+  board.renderRoute(route: route, bounds: bounds)
   return board.board.flatMap { $0 }
 }
 
+public func getPosInBounds(
+  dim: (width: Int, height: Int), pos: (lat: Double, lng: Double), bounds: ElementBounds
+) -> (x: Int, y: Int) {
+  let (width, height) = dim
+  let (lat, lng) = pos
+  let x = Int((lng - bounds.minlng) / (bounds.maxlng - bounds.minlng) * Double(width))
+  let y = Int((bounds.maxlat - lat) / (bounds.maxlat - bounds.minlat) * Double(height))
+  return (x, y)
+}
+
+public struct SelfArrow {
+  public let lat: Double
+  public let lng: Double
+  public let angle: Double = 0
+  public init(lat: Double, lng: Double) {
+    self.lat = lat
+    self.lng = lng
+  }
+}
+
 private func getArrowBoard(angle: Double) -> MapBoard {
-  var arrowBoard = MapBoard(width: 8, height: 8)
-  arrowBoard.drawArrow(position: (0, 2), dim: (8, 4))
+  var arrowBoard = MapBoard(width: 16, height: 16)
+  arrowBoard.drawArrow(position: (0, 4), dim: (16, 8), lineWidth: 4)
   arrowBoard.rotate(angle: angle)
   return arrowBoard
 }

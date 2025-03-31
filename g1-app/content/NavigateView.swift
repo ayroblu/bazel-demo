@@ -27,7 +27,7 @@ struct NavigateView: View {
                   lineWidth: 4, lineCap: .round, lineJoin: .round, miterLimit: 10))
           }
         }
-        .mapStyle(.standard(elevation: .flat, emphasis: .muted, pointsOfInterest:.excludingAll))
+        .mapStyle(.standard(elevation: .flat, emphasis: .muted, pointsOfInterest: .excludingAll))
         .mapControls {
           MapUserLocationButton()
           MapCompass()
@@ -35,7 +35,7 @@ struct NavigateView: View {
         .onAppear {
           manager.requestWhenInUseAuthorization()
           Task {
-            route = await getDirections()
+            route = await getDirections(textQuery: "Sainsburys")
             if let route {
               var rect = route.polyline.boundingMapRect
               rect.size.width *= 1.2

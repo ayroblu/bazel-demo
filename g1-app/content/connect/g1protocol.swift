@@ -316,17 +316,55 @@ struct G1Cmd {
         totalDuration: "6min", totalDistance: "529m", direction: "Turn right onto the walkway",
         distance: "18 m", speed: "0km/h", x: 488.bytes(byteCount: 2), y: 0x00)
     }
+    struct DirectionTurn {
+      static let StraightDot: UInt8 = 0x01
+      static let Straight: UInt8 = 0x02
+      static let Right: UInt8 = 0x03
+      static let Left: UInt8 = 0x04
+      static let SlightRight: UInt8 = 0x05
+      static let SlightLeft: UInt8 = 0x06
+      static let StrongRight: UInt8 = 0x07
+      static let StrongLeft: UInt8 = 0x08
+      static let UTurnLeft: UInt8 = 0x09
+      static let UTurnRight: UInt8 = 0x0A
+      static let Merge: UInt8 = 0x0B
+      static let RightLaneRightStrongAtRoundabout: UInt8 = 0x0C
+      static let LeftLaneRightStrongAtRoundabout: UInt8 = 0x0D
+      static let RightLaneRightAtRoundabout: UInt8 = 0x0E
+      static let LeftLaneRightAtRoundabout: UInt8 = 0x0F
+      static let RightLaneSlightRightAtRoundabout: UInt8 = 0x10
+      static let LeftLaneSlightRightAtRoundabout: UInt8 = 0x11
+      static let RightLaneStraightAtRoundabout: UInt8 = 0x12
+      static let LeftLaneStraightAtRoundabout: UInt8 = 0x13
+      static let RightLaneSlightLeftAtRoundabout: UInt8 = 0x14
+      static let LeftLaneSlightLeftAtRoundabout: UInt8 = 0x15
+      static let RightLaneLeftAtRoundabout: UInt8 = 0x16
+      static let LeftLaneLeftAtRoundabout: UInt8 = 0x17
+      static let RightLaneStrongLeftAtRoundabout: UInt8 = 0x18
+      static let LeftLaneStrongLeftAtRoundabout: UInt8 = 0x19
+      static let RightLaneUTurnAtRoundabout: UInt8 = 0x1A
+      static let LeftLaneUTurnAtRoundabout: UInt8 = 0x1B
+      static let RightLaneEnterRoundabout: UInt8 = 0x1C
+      static let LeftLaneEnterRoundabout: UInt8 = 0x1D
+      static let RightLaneExitRoundabout: UInt8 = 0x1E
+      static let LeftLaneExitRoundabout: UInt8 = 0x1F
+      static let RightOfframp: UInt8 = 0x20
+      static let LeftOfframp: UInt8 = 0x21
+      static let SlightRightAtFork: UInt8 = 0x22
+      static let SlightLeftAtFork: UInt8 = 0x23
+    }
     static func directionsData(
       totalDuration: String, totalDistance: String, direction: String, distance: String,
       speed: String, x: [UInt8], y: UInt8
     ) -> Data {
+      let unknown1: UInt8 = 0x01
       let totalDurationData: [UInt8] = totalDuration.uint8()
       let totalDistanceData: [UInt8] = totalDistance.uint8()
       let directionData: [UInt8] = direction.uint8()
       let distanceData: [UInt8] = distance.uint8()
       let speedData: [UInt8] = speed.uint8()
 
-      let part0: [UInt8] = [0x00, seqId, 0x01, 0x03] + x + [y, 0x00]
+      let part0: [UInt8] = [null, seqId, unknown1, DirectionTurn.Straight] + x + [y, null]
       let part: [UInt8] =
         part0 + totalDurationData + nullArr + totalDistanceData + nullArr
         + directionData + nullArr + distanceData + nullArr + speedData + nullArr

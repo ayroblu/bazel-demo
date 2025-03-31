@@ -11,8 +11,24 @@ extension ConnectionManager {
       minlat: lat - padding, minlng: lng - padding,
       maxlat: lat + padding, maxlng: lng + padding)
     let roads = try await fetchRoads(bounds: secondaryBounds)
+
+    manager.transmitBoth(G1Cmd.Navigate.initData())
+    try? await Task.sleep(for: .milliseconds(8))
+
+    let pos = getPosInBounds(dim: (488, 136), pos: (lat, lng), bounds: secondaryBounds)
+    let directionsData = G1Cmd.Navigate.directionsData(
+      totalDuration: route.expectedTravelTime.prettyPrint(),
+      totalDistance: "\(Int(route.distance))m",
+      direction: route.steps[0].instructions,
+      distance: "\(Int(route.steps[0].distance))m", speed: "0km/h",
+      x: pos.x.bytes(byteCount: 2), y: UInt8(pos.y))
+    manager.transmitBoth(directionsData)
+    try? await Task.sleep(for: .milliseconds(8))
+
     let roadMap = roads.renderMap(bounds: bounds, dim: (136, 136))
-    let selfMap = getSelfMap(width: 136, height: 136, angle: 0)
+    let selfMap = getSelfMap(
+      dim: (136, 136), route: route, bounds: bounds,
+      selfArrow: SelfArrow(lat: lat, lng: lng))
     let primaryImageData = G1Cmd.Navigate.primaryImageData(image: roadMap, overlay: selfMap)
     for data in primaryImageData {
       manager.transmitBoth(data)
@@ -20,36 +36,27 @@ extension ConnectionManager {
     }
 
     let secondaryRoadMap = roads.renderMap(bounds: secondaryBounds, dim: (488, 136))
-    let secondarySelfMap = getSelfMap(width: 488, height: 136, angle: 0)
+    let secondarySelfMap = getSelfMap(
+      dim: (488, 136), route: route, bounds: secondaryBounds)
     let secondaryImageData = G1Cmd.Navigate.secondaryImageData(
       image: secondaryRoadMap, overlay: secondarySelfMap)
     for data in secondaryImageData {
       manager.transmitBoth(data)
       try? await Task.sleep(for: .milliseconds(8))
     }
-  }
-  // Overlay: MapBoard + arrow for direction
-  // history: dashed, route: solid
-}
 
-// func fetchRoadMapWithFallback(bounds: ElementBounds, width: Int, height: Int) async -> [Bool] {
-//   do {
-//     return try await fetchRoadMap(bounds: bounds, width: width, height: height)
-//   } catch {
-//     log("sendRoadMap", error)
-//     return G1Cmd.Navigate.parseExampleImage(image: exampleImage1)
-//   }
-// }
+  }
+}
 
 private func routeBounds(route: MKRoute) -> ElementBounds {
   let rect = route.toElementBounds()
   log("rect", rect)
   let isWidth = rect.width / 488 * 136 > rect.height
-  let size = isWidth ? rect.width / 488 : rect.height / 136
-  let paddingY = size * 68 + 0.001
-  let paddingX = size * 244 + 0.001
+  let baseSize = isWidth ? rect.width / 488 : rect.height / 136
+  let size = baseSize * 1.1
+  let paddingY = size * 68
+  let paddingX = size * 244
   let (lat, lng) = rect.center
-  log(rect.center, paddingX, paddingY)
   return ElementBounds(
     minlat: lat - paddingY, minlng: lng - paddingX,
     maxlat: lat + paddingY, maxlng: lng + paddingX)
@@ -70,9 +77,9 @@ extension MKRoute {
   }
 }
 
-func getDirections() async -> MKRoute? {
+func getDirections(textQuery: String) async -> MKRoute? {
   let searchRequest = MKLocalSearch.Request()
-  searchRequest.naturalLanguageQuery = "Sainsburys"
+  searchRequest.naturalLanguageQuery = textQuery
   let search = MKLocalSearch(request: searchRequest)
   let response = try? await search.start()
   guard let to = response?.mapItems.first else { return nil }
@@ -112,4 +119,21 @@ func getMKMapItem(lat: Double, lng: Double) -> MKMapItem {
   let placemark = MKPlacemark(coordinate: coordinate)
   let mapItem = MKMapItem(placemark: placemark)
   return mapItem
+}
+
+extension TimeInterval {
+  func prettyPrint() -> String {
+    let totalSeconds = Int(self)
+    let hours = totalSeconds / 3600
+    let minutes = (totalSeconds % 3600) / 60
+    let seconds = totalSeconds % 60
+
+    if hours > 0 {
+      return String(format: "%dh %dm %ds", hours, minutes, seconds)
+    } else if minutes > 0 {
+      return String(format: "%dm %ds", minutes, seconds)
+    } else {
+      return String(format: "%ds", seconds)
+    }
+  }
 }

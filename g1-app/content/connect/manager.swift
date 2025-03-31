@@ -160,15 +160,15 @@ public class ConnectionManager {
       log("starting navigate")
       let from = getMKMapItem(lat: 51.51298, lng: -0.13632)
       let to = getMKMapItem(lat: 51.50986, lng: -0.13428)
-      guard let route = await getDirections(from: from, to: to) else { return }
 
-      for data in [G1Cmd.Navigate.initData(), G1Cmd.Navigate.directionsDataExample()] {
-        manager.transmitBoth(data)
-        try? await Task.sleep(for: .milliseconds(8))
+      guard let route = await getDirections(from: from, to: to) else {
+        log("no route found")
+        return
       }
 
       do {
-        try await sendRoadMap(lat: 51.511, lng: -0.136, route: route)
+        // try await sendRoadMap(lat: 51.511, lng: -0.136, route: route)
+        try await sendRoadMap(lat: 51.51298, lng: -0.13632, route: route)
       } catch {
         log(error)
         let data = G1Cmd.Navigate.endData()
@@ -176,7 +176,48 @@ public class ConnectionManager {
         return
       }
 
-      for _ in 1..<30 {
+      for _ in 1..<20 {
+        let data = G1Cmd.Navigate.pollerData()
+        manager.transmitBoth(data)
+        try? await Task.sleep(for: .seconds(1))
+      }
+      let data = G1Cmd.Navigate.endData()
+      manager.transmitBoth(data)
+      log("ending navigate")
+    }
+  }
+
+  public func sendTestNavigate3(text: String) {
+    Task {
+      log("starting navigate")
+      // let from = getMKMapItem(lat: 51.51298, lng: -0.13632)
+      // let to = getMKMapItem(lat: 51.50986, lng: -0.13428)
+
+      // do {
+      //   let locManager = LocationManager()
+      //   let _ = try await locManager.requestLocation()
+      // } catch {
+      //   log(error)
+      //   return
+      // }
+      // log("got location")
+
+      guard let route = await getDirections(textQuery: text) else {
+        log("no route found")
+        return
+      }
+
+      do {
+        // try await sendRoadMap(lat: 51.511, lng: -0.136, route: route)
+        try await sendRoadMap(lat: 51.51298, lng: -0.13632, route: route)
+      } catch {
+        log(error)
+        let data = G1Cmd.Navigate.endData()
+        manager.transmitBoth(data)
+        return
+      }
+
+      for _ in 1..<20 {
         let data = G1Cmd.Navigate.pollerData()
         manager.transmitBoth(data)
         try? await Task.sleep(for: .seconds(1))
@@ -194,8 +235,11 @@ public class ConnectionManager {
 
   public func sendWearMessage() {
     Task {
-      sendText("                    Glasses initialized")
-      try? await Task.sleep(for: .seconds(1))
+      deviceInfo()
+      try? await Task.sleep(for: .milliseconds(100))
+      guard let battery = mainVm?.battery else { return }
+      sendText("                    Glasses initialized [\(battery)%]")
+      try? await Task.sleep(for: .seconds(2))
 
       let data = G1Cmd.Exit.data()
       manager.transmitBoth(data)
