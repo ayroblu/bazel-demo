@@ -47,6 +47,7 @@ class MainVM: ObservableObject {
       _text = newValue
     }
   }
+  @Published var searchResults: [LocSearchResult] = []
 
   var connectionManager = ConnectionManager()
   init() {

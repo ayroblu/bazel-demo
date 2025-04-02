@@ -1,6 +1,7 @@
 import CoreBluetooth
 import EventKit
 import Log
+import MapKit
 import Pcm
 import Speech
 import SwiftData
@@ -187,29 +188,13 @@ public class ConnectionManager {
     }
   }
 
-  public func sendTestNavigate3(text: String) {
+  public func sendTestNavigate3(loc: (lat: Double, lng: Double), route: MKRoute) {
     Task {
       log("starting navigate")
-      // let from = getMKMapItem(lat: 51.51298, lng: -0.13632)
-      // let to = getMKMapItem(lat: 51.50986, lng: -0.13428)
 
-      // do {
-      //   let locManager = LocationManager()
-      //   let _ = try await locManager.requestLocation()
-      // } catch {
-      //   log(error)
-      //   return
-      // }
-      // log("got location")
-
-      guard let route = await getDirections(textQuery: text) else {
-        log("no route found")
-        return
-      }
-
+      let (lat, lng) = loc
       do {
-        // try await sendRoadMap(lat: 51.511, lng: -0.136, route: route)
-        try await sendRoadMap(lat: 51.51298, lng: -0.13632, route: route)
+        try await sendRoadMap(lat: lat, lng: lng, route: route)
       } catch {
         log(error)
         let data = G1Cmd.Navigate.endData()

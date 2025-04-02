@@ -2,13 +2,15 @@ import CoreLocation
 import Log
 
 class LocationManager: NSObject, CLLocationManagerDelegate {
-  private let locationManager = CLLocationManager()
+  static let shared = LocationManager()
+  let locationManager = CLLocationManager()
   private var locationContinuation: CheckedContinuation<CLLocation, Error>?
 
   override init() {
     super.init()
     locationManager.delegate = self
-    locationManager.desiredAccuracy = kCLLocationAccuracyBest
+    locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+    // locationManager.desiredAccuracy = kCLLocationAccuracyBest
   }
 
   private func checkPermission() throws {
@@ -31,7 +33,7 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     return try await withCheckedThrowingContinuation { continuation in
       locationContinuation = continuation
       log("requestLocation")
-      locationManager.startUpdatingLocation()
+      locationManager.requestLocation()
     }
   }
 
@@ -42,7 +44,6 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     guard let location = locations.last else { return }
     locationContinuation?.resume(returning: location)
     locationContinuation = nil
-    locationManager.stopUpdatingLocation()
   }
 
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
@@ -56,4 +57,12 @@ enum LocationError: Error {
   case servicesDisabled
   case permissionDenied
   case unknown
+}
+
+func getUserLocation() async throws -> CLLocation {
+  if let location = LocationManager.shared.locationManager.location {
+    return location
+  } else {
+    return try await LocationManager.shared.requestLocation()
+  }
 }

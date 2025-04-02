@@ -17,10 +17,6 @@ extension MapBoard {
   private func mapPoint(point: LatLng, bounds: ElementBounds) -> (x: Int, y: Int)? {
     let lat = point.lat
     let lng = point.lon
-    // Note a small bug here when crossing from "eastern" to "western" hemisphere
-    guard
-      lat >= bounds.minlat && lat <= bounds.maxlat && lng >= bounds.minlng && lng <= bounds.maxlng
-    else { return nil }
     return getPosInBounds(dim: (width, height), pos: (lat, lng), bounds: bounds)
   }
 

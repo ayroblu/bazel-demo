@@ -571,6 +571,7 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
   case .GlassesState:
     // 0x2b690a0b
     // 0x2b690a07
+    // 0x2b690aff
     // Right is sometimes wrong
     if !isLeft {
       break
@@ -584,6 +585,8 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
       mainVm?.glassesState = .CaseOpen
     case 0x0B:
       mainVm?.glassesState = .CaseClosed
+    case 0xFF:
+      log("Glasses turned on")
     default:
       log("UNKNOWN 0x2B: \(name) \(data.hex)")
     }

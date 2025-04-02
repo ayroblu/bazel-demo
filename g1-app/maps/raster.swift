@@ -7,8 +7,8 @@ extension MapBoard {
     lineWidth: Int = 1
   ) {
     guard
-      start.x >= 0 && start.x < width && start.y >= 0 && start.y < height && end.x >= 0
-        && end.x < width && end.y >= 0 && end.y < height
+      start.x >= -width && start.x < width * 2 && start.y >= -height && start.y < height * 2
+        && end.x >= -width && end.x < width * 2 && end.y >= -height && end.y < height * 2
     else {
       // print("Line coordinates out of board bounds")
       return

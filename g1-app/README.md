@@ -11,7 +11,3 @@ Note that for bazel and sourcekit-lsp, we manually add each package to our vim c
 * Navigate - Map
     * https://docs.mapbox.com/ios/maps/examples/static-map-snapshot/
 * On device translation
-
-### Navigation thoughts:
-1. On start, fetch the "whole" map. Note that for a large map, where you move diagonally, this could be a lot of data.
-2. Render roads as lines, using number of lanes etc to represent thickness. PERHAPS, should also show impediments in some way (river, buildings etc)
