@@ -39,7 +39,11 @@ public func getSelfMap(
   if let selfArrow {
     let (x, y) = getPosInBounds(
       dim: (width, height), pos: (selfArrow.lat, selfArrow.lng), bounds: bounds)
-    board.merge(getArrowBoard(angle: -135 * .pi / 180.0), pos: (x - 8, y - 8))
+    if let angle = selfArrow.angle {
+      board.merge(getArrowBoard(angle: angle), pos: (x - 8, y - 8))
+    } else {
+      board.drawCircleOutline(pos: (x, y), radius: 8)
+    }
   }
   board.renderRoute(route: route, bounds: bounds)
   return board.board.flatMap { $0 }
@@ -65,10 +69,11 @@ public func getPosInBoundsClamped(
 public struct SelfArrow {
   public let lat: Double
   public let lng: Double
-  public let angle: Double = 0
-  public init(lat: Double, lng: Double) {
+  public let angle: Double?
+  public init(lat: Double, lng: Double, angle: Double?) {
     self.lat = lat
     self.lng = lng
+    self.angle = angle
   }
 }
 

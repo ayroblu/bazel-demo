@@ -63,17 +63,18 @@ swift_deps.from_package(
 use_repo(
     swift_deps,
     "swift_package",
+    "swiftpkg_swift_collections",
     "swiftpkg_swift_snapshot_testing",
-    # Auto generate by running: `bazel mod tidy`.
-    # NOTE: The name of the Bazel external repository for a Swift package is `swiftpkg_xxx` where
-    # `xxx` is the Swift package identity, lowercase, with punctuation replaced by `hyphen`. For
-    # example, the repository name for apple/swift-nio is `swiftpkg_swift_nio`.
-    # Use it like: "@swiftpkg_swift_nio//:NIO",
 )
-# bazel run @swift_package//:update
-# # OR: bazel run @swift_package//:update -- MyPackage
-# # example resolve: bazel run @swift_package//:resolve
-# Then: bazel mod tidy
+# To add a package:
+# 1. Update Package.swift
+# 2. `swift package resolve` (from root (theoretically `bazel run @swift_package//:resolve` but didn't work for me))
+# 3. `bazel mod tidy`
+
+# NOTE: The name of the Bazel external repository for a Swift package is `swiftpkg_xxx` where
+# `xxx` is the Swift package identity, lowercase, with punctuation replaced by `hyphen`. For
+# example, the repository name for apple/swift-nio is `swiftpkg_swift_nio`.
+# Use it like: "@swiftpkg_swift_nio//:NIO",
 
 # Android
 bazel_dep(name = "rules_jvm_external", version = "6.6")

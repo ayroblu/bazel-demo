@@ -1,3 +1,4 @@
+import Collections
 import CoreLocation
 import Log
 import utils
@@ -46,6 +47,8 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     }
   }
 
+  var locationHistory = LocationHistory()
+
   func locationManager(
     _ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]
   ) {
@@ -55,6 +58,8 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     self.location = location
     locationContinuation?.resume(returning: location)
     locationContinuation = nil
+
+    locationHistory.updateLocation(location: location)
   }
 
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
@@ -79,4 +84,58 @@ func getUserLocation() async throws -> CLLocation {
     log("No location manager location")
     return try await LocationManager.shared.requestLocation()
   }
+}
+
+struct LocationHistory {
+  private var history: Deque<CLLocation> = []
+
+  mutating func updateLocation(location: CLLocation) {
+    let now = Date()
+    if let timestamp = history.last?.timestamp,
+      now.timeIntervalSince(timestamp) < 1
+    {
+    } else {
+      history.append(location)
+    }
+    while let firstLoc = history.first, now.timeIntervalSince(firstLoc.timestamp) > 20 {
+      let _ = history.popFirst()
+    }
+  }
+
+  /// m/s
+  func getSpeed() -> Double {
+    guard history.count > 1 else { return 0 }
+    // either moving average of points, or first - last / time
+    guard let first = history.first else { return 0 }
+    guard let last = history.last else { return 0 }
+    let timeInterval = last.timestamp.timeIntervalSince(first.timestamp)
+    guard timeInterval > 0 else { return 0 }
+    return first.distance(from: last) / timeInterval
+  }
+
+  func getAngle() -> Double {
+    guard history.count > 1 else { return 0 }
+    guard let first = history.first else { return 0 }
+    guard let last = history.last else { return 0 }
+    return calculateAngle(from: first, to: last)
+  }
+}
+
+func calculateAngle(from startLocation: CLLocation, to endLocation: CLLocation) -> Double {
+  let startLatitude = startLocation.coordinate.latitude * .pi / 180
+  let startLongitude = startLocation.coordinate.longitude * .pi / 180
+  let endLatitude = endLocation.coordinate.latitude * .pi / 180
+  let endLongitude = endLocation.coordinate.longitude * .pi / 180
+
+  let dLon = endLongitude - startLongitude
+
+  let y = sin(dLon) * cos(endLatitude)
+  let x = cos(startLatitude) * sin(endLatitude) - sin(startLatitude) * cos(endLatitude) * cos(dLon)
+
+  var bearing = atan2(y, x)
+  bearing = bearing * 180 / .pi  // Convert to degrees
+
+  bearing = (bearing + 360).truncatingRemainder(dividingBy: 360)
+
+  return bearing
 }

@@ -71,4 +71,47 @@ extension MapBoard {
     }
   }
 
+  /// midpoint circle algorithm
+  mutating func drawCircleOutline(pos: (centerX: Int, centerY: Int), radius: Int) {
+    // Check if radius is negative
+    guard radius >= 0 else { return }
+
+    let (centerX, centerY) = pos
+    let rows = height
+    let cols = width
+
+    func setPoint(_ x: Int, _ y: Int) {
+      if x >= 0 && x < cols && y >= 0 && y < rows {
+        board[y][x] = true
+      }
+    }
+
+    // Special case for radius 0 (single point)
+    if radius == 0 {
+      setPoint(centerX, centerY)
+      return
+    }
+
+    var x = radius
+    var y = 0
+    var err = 0
+
+    while x >= y {
+      setPoint(centerX + x, centerY + y)
+      setPoint(centerX + y, centerY + x)
+      setPoint(centerX - y, centerY + x)
+      setPoint(centerX - x, centerY + y)
+      setPoint(centerX - x, centerY - y)
+      setPoint(centerX - y, centerY - x)
+      setPoint(centerX + y, centerY - x)
+      setPoint(centerX + x, centerY - y)
+
+      y += 1
+      err += 1 + 2 * y
+      if 2 * (err - x) + 1 > 0 {
+        x -= 1
+        err -= 1 - 2 * x
+      }
+    }
+  }
 }

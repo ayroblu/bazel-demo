@@ -42,6 +42,13 @@ class RasterTests: XCTestCase {
     let board = mapBoard.board.toBoardString()
     assertSnapshot(of: board, as: .lines)
   }
+
+  func testCircleOutline() {
+    var mapBoard = MapBoard(width: 20, height: 20)
+    mapBoard.drawCircleOutline(pos: (9, 9), radius: 8)
+    let board = mapBoard.board.toBoardString()
+    assertSnapshot(of: board, as: .lines)
+  }
 }
 
 extension Array where Element == [Bool] {

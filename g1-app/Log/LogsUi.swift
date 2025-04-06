@@ -14,7 +14,12 @@ public struct LogsUi: View {
       ForEach(logItems) { logItem in
         Text(logItem.text)
       }
-    }.listStyle(.grouped)
-      .navigationTitle("Logs")
+    }
+    #if os(iOS)
+      .listStyle(.grouped)
+    #else
+      .listStyle(.inset)
+    #endif
+    .navigationTitle("Logs")
   }
 }

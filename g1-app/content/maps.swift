@@ -71,7 +71,7 @@ extension ConnectionManager {
       totalDuration: progress.remainingDuration.prettyPrint(),
       totalDistance: "\(Int(progress.remainingDistance))m",
       direction: step.instructions,
-      distance: "\(Int(remainingStepDistance))m", speed: "0km/h",
+      distance: "\(Int(remainingStepDistance))m", speed: getPrettySpeed(),
       x: pos.x.bytes(byteCount: 2), y: UInt8(pos.y))
     manager.transmitBoth(directionsData)
     try await Task.sleep(for: .milliseconds(8))
@@ -79,7 +79,8 @@ extension ConnectionManager {
     let roadMap = roads.renderMap(bounds: bounds, dim: (136, 136))
     let selfMap = getSelfMap(
       dim: (136, 136), route: route, bounds: bounds,
-      selfArrow: SelfArrow(lat: lat, lng: lng))
+      // -getAngle: bearing is clockwise, but rotations are counter clockwise
+      selfArrow: SelfArrow(lat: lat, lng: lng, angle: getSpeed() > 2 ? -getAngle() : nil))
 
     let primaryImageData = G1Cmd.Navigate.primaryImageData(image: roadMap, overlay: selfMap)
     for data in primaryImageData {
@@ -302,4 +303,20 @@ extension TimeInterval {
       return String(format: "%d secs", seconds)
     }
   }
+}
+extension LocationHistory {
+  func prettySpeed() -> String {
+    let metersPerSecond = getSpeed()
+    let kmph = Int(metersPerSecond * 3.6)
+    return "\(kmph)km/h"
+  }
+}
+func getPrettySpeed() -> String {
+  return LocationManager.shared.locationHistory.prettySpeed()
+}
+func getSpeed() -> Double {
+  return LocationManager.shared.locationHistory.getSpeed()
+}
+func getAngle() -> Double {
+  return LocationManager.shared.locationHistory.getAngle()
 }

@@ -14297,8 +14297,8 @@
         "bzlTransitiveDigest": "LH1aJpJmr7tEdo599FeusBFcX7hhse5SPjdPtEhY7Go=",
         "usagesDigest": "+20i94NyIm3Rw8l/UZbKCNbvgjWS4atX98y9mSzX8q0=",
         "recordedFileInputs": {
-          "@@//Package.resolved": "fbdfb40bfb35b6012968b9a1d31ab2f27519633dedf1830e22e27cfa827da5a9",
-          "@@//Package.swift": "5923089671b3c186b56fb727bdfc43d8daa290c26aa2999063aa9ca2b3125fc0"
+          "@@//Package.resolved": "9017afe1a7b4c32374b1a8e97266a913933cd3b935246ac0fcda056491e0b882",
+          "@@//Package.swift": "41d20650d7f448726bfd988bdb5c08d0ddca98d50f3978a3d5bd3ba39c7fb14f"
         },
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -14318,6 +14318,26 @@
               "commit": "b2d4cb30735f4fbc3a01963a9c658336dd21e9ba",
               "remote": "https://github.com/pointfreeco/swift-snapshot-testing",
               "version": "1.18.1",
+              "init_submodules": false,
+              "recursive_init_submodules": true,
+              "patch_args": [
+                "-p0"
+              ],
+              "patch_cmds": [],
+              "patch_cmds_win": [],
+              "patch_tool": "",
+              "patches": [],
+              "publicly_expose_all_targets": false
+            }
+          },
+          "swiftpkg_swift_collections": {
+            "bzlFile": "@@rules_swift_package_manager~//swiftpkg/internal:swift_package.bzl",
+            "ruleClassName": "swift_package",
+            "attributes": {
+              "bazel_package_name": "swiftpkg_swift_collections",
+              "commit": "671108c96644956dddcd89dd59c203dcdb36cec7",
+              "remote": "https://github.com/apple/swift-collections.git",
+              "version": "1.1.4",
               "init_submodules": false,
               "recursive_init_submodules": true,
               "patch_args": [
@@ -14394,6 +14414,7 @@
         "moduleExtensionMetadata": {
           "explicitRootModuleDirectDeps": [
             "swiftpkg_swift_snapshot_testing",
+            "swiftpkg_swift_collections",
             "swift_package"
           ],
           "explicitRootModuleDirectDevDeps": [],
