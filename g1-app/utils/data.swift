@@ -176,3 +176,8 @@ extension Date {
     return addingTimeInterval(delta)
   }
 }
+extension Comparable {
+  public func clamped(to range: ClosedRange<Self>) -> Self {
+    return Swift.max(range.lowerBound, Swift.min(range.upperBound, self))
+  }
+}

@@ -10,4 +10,6 @@ Note that for bazel and sourcekit-lsp, we manually add each package to our vim c
 * Voice control
 * Navigate - Map
     * https://docs.mapbox.com/ios/maps/examples/static-map-snapshot/
+    * Update position / instructions based on where you are
+    * Update speed based on location history
 * On device translation

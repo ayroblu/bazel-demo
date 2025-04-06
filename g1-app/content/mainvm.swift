@@ -19,6 +19,7 @@ class MainVM: ObservableObject {
   @Published var headsUpAngle: UInt8 = 30
   @Published var dashVertical: UInt8 = 3
   @Published var dashDistance: UInt8 = 2
+  @Published var glassesAppState: GlassesAppState?
   var battery: Int? {
     if let leftBattery, let rightBattery {
       return min(leftBattery, rightBattery)
@@ -48,6 +49,9 @@ class MainVM: ObservableObject {
     }
   }
   @Published var searchResults: [LocSearchResult] = []
+
+  var locationSub: (() -> Void)?
+  var locationSubInner: (() -> Void)?
 
   var connectionManager = ConnectionManager()
   init() {
@@ -100,4 +104,11 @@ func textWithCursor(text: String, selection: TextSelection) -> String {
     break
   }
   return toSend
+}
+
+enum GlassesAppState {
+  case Text
+  case Navigation
+  case Dash
+  case Bmp
 }

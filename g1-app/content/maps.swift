@@ -6,53 +6,133 @@ import utils
 
 let padding = 0.002
 extension ConnectionManager {
-  func sendRoadMap(lat: Double, lng: Double, route: MKRoute) async throws {
+  func sendNavigate(route: MKRoute) {
+    currentTask = Task {
+      do {
+        try await sendNavigateInner(route: route)
+      } catch {
+        log(error)
+        let data = G1Cmd.Navigate.endData()
+        manager.transmitBoth(data)
+      }
+    }
+  }
+  func stopNavigate() {
+    currentTask?.cancel()
+  }
+
+  func sendNavigateInner(route: MKRoute) async throws {
     let secondaryBounds = routeBounds(route: route)
     let roads = try await fetchRoads(bounds: secondaryBounds)
 
-    let pos = getPosInBounds(dim: (488, 136), pos: (lat, lng), bounds: secondaryBounds)
-    guard pos.x >= 0 && pos.x < 488 && pos.y >= 0 && pos.y < 136 else {
-      log("pos was outside bounds", pos)
-      return
-    }
+    log("starting navigate")
 
     manager.transmitBoth(G1Cmd.Navigate.initData())
-    try? await Task.sleep(for: .milliseconds(8))
+    try await Task.sleep(for: .milliseconds(8))
 
-    // TODO: pos x and y may not be a byte
+    var prevLocation: (lat: Double, lng: Double)?
+    for _ in 1..<1000 {
+      let location = try await getUserLocation()
+      let lat = location.coordinate.latitude
+      let lng = location.coordinate.longitude
+      if isSignificantlyDifferent(loc: (lat, lng), prevLoc: prevLocation) {
+        try await sendRoadMap(loc: location, route: route, roads: roads)
+        log("sent road map")
+      } else {
+        let data = G1Cmd.Navigate.pollerData()
+        manager.transmitBoth(data)
+        log("sent poll")
+      }
+      try await Task.sleep(for: .seconds(1))
+      prevLocation = (lat, lng)
+    }
+    let data = G1Cmd.Navigate.endData()
+    manager.transmitBoth(data)
+    log("ending navigate")
+  }
+
+  func sendRoadMap(loc: CLLocation, route: MKRoute, roads: OverpassResult)
+    async throws
+  {
+    let lat = loc.coordinate.latitude
+    let lng = loc.coordinate.longitude
+
+    let progress = calculateRouteProgress(route: route, currentLocation: loc)
+    guard let step = progress.currentStep else { return }
+    guard let remainingStepDistance = progress.remainingStepDistance else { return }
+
     let bounds = ElementBounds(
       minlat: lat - padding, minlng: lng - padding,
       maxlat: lat + padding, maxlng: lng + padding)
+    let secondaryBounds = routeBounds(route: route)
+    let pos = getPosInBoundsClamped(dim: (488, 136), pos: (lat, lng), bounds: secondaryBounds)
+
     let directionsData = G1Cmd.Navigate.directionsData(
-      totalDuration: route.expectedTravelTime.prettyPrint(),
-      totalDistance: "\(Int(route.distance))m",
-      direction: route.steps[0].instructions,
-      distance: "\(Int(route.steps[0].distance))m", speed: "0km/h",
+      totalDuration: progress.remainingDuration.prettyPrint(),
+      totalDistance: "\(Int(progress.remainingDistance))m",
+      direction: step.instructions,
+      distance: "\(Int(remainingStepDistance))m", speed: "0km/h",
       x: pos.x.bytes(byteCount: 2), y: UInt8(pos.y))
     manager.transmitBoth(directionsData)
-    try? await Task.sleep(for: .milliseconds(8))
+    try await Task.sleep(for: .milliseconds(8))
 
     let roadMap = roads.renderMap(bounds: bounds, dim: (136, 136))
     let selfMap = getSelfMap(
       dim: (136, 136), route: route, bounds: bounds,
       selfArrow: SelfArrow(lat: lat, lng: lng))
+
     let primaryImageData = G1Cmd.Navigate.primaryImageData(image: roadMap, overlay: selfMap)
     for data in primaryImageData {
       manager.transmitBoth(data)
-      try? await Task.sleep(for: .milliseconds(8))
+      try await Task.sleep(for: .milliseconds(8))
     }
 
     let secondaryRoadMap = roads.renderMap(bounds: secondaryBounds, dim: (488, 136))
     let secondarySelfMap = getSelfMap(
       dim: (488, 136), route: route, bounds: secondaryBounds)
+
     let secondaryImageData = G1Cmd.Navigate.secondaryImageData(
       image: secondaryRoadMap, overlay: secondarySelfMap)
     for data in secondaryImageData {
       manager.transmitBoth(data)
-      try? await Task.sleep(for: .milliseconds(8))
+      try await Task.sleep(for: .milliseconds(8))
     }
 
   }
+}
+
+private func isSignificantlyDifferent(
+  loc: (lat: Double, lng: Double), prevLoc: (lat: Double, lng: Double)?
+) -> Bool {
+  if let prevLoc {
+    return calculateDistance(lat1: loc.lat, lon1: loc.lng, lat2: prevLoc.lat, lon2: prevLoc.lng)
+      > 10
+  } else {
+    return true
+  }
+}
+
+func calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double) -> Double {
+  // in meters
+  let earthRadius = 6371000.0
+
+  let lat1Rad = lat1 * .pi / 180
+  let lon1Rad = lon1 * .pi / 180
+  let lat2Rad = lat2 * .pi / 180
+  let lon2Rad = lon2 * .pi / 180
+
+  let deltaLat = lat2Rad - lat1Rad
+  let deltaLon = lon2Rad - lon1Rad
+
+  let a =
+    sin(deltaLat / 2) * sin(deltaLat / 2) + cos(lat1Rad) * cos(lat2Rad) * sin(deltaLon / 2)
+    * sin(deltaLon / 2)
+
+  let c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+  let distance = earthRadius * c
+
+  return distance
 }
 
 private func routeBounds(route: MKRoute) -> ElementBounds {
@@ -200,15 +280,12 @@ extension TimeInterval {
   func prettyPrint() -> String {
     let totalSeconds = Int(self)
     let hours = totalSeconds / 3600
-    let minutes = (totalSeconds % 3600) / 60
-    let seconds = totalSeconds % 60
+    let minutes = Int(ceil(Double(totalSeconds) / 60.0))
 
     if hours > 0 {
-      return String(format: "%dh %dm %ds", hours, minutes, seconds)
-    } else if minutes > 0 {
-      return String(format: "%dm %ds", minutes, seconds)
+      return String(format: "%d hours %d mins", hours, minutes)
     } else {
-      return String(format: "%ds", seconds)
+      return String(format: "%d mins", minutes)
     }
   }
   func prettyPrintMinutes() -> String {
@@ -218,11 +295,11 @@ extension TimeInterval {
     let seconds = totalSeconds % 60
 
     if hours > 0 {
-      return String(format: "%dh %dm", hours, minutes)
+      return String(format: "%d hours %d mins", hours, minutes)
     } else if minutes > 0 {
-      return String(format: "%dm", minutes)
+      return String(format: "%d mins", minutes)
     } else {
-      return String(format: "%ds", seconds)
+      return String(format: "%d secs", seconds)
     }
   }
 }

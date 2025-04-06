@@ -216,8 +216,8 @@
     "https://bcr.bazel.build/modules/rules_swift/2.4.0/source.json": "a6577f57f9febbdc015a01f2a8f3487422032f134d6c61d18ed8e8ca3b9acc7c",
     "https://bcr.bazel.build/modules/rules_swift_package_manager/0.47.2/MODULE.bazel": "7608f9dc3972c14bdba2c9be00dfc1b9981e77da7893ef423c8e69793d245a76",
     "https://bcr.bazel.build/modules/rules_swift_package_manager/0.47.2/source.json": "85d5ea688c0c1369712a76c70b35d908ef2088a1ced4e31d241fb57137ac74e8",
-    "https://bcr.bazel.build/modules/rules_xcodeproj/2.10.0/MODULE.bazel": "8234c23c20beed858b4591766c41cf6227943b9fb2fcf3e7a817f7461122d080",
-    "https://bcr.bazel.build/modules/rules_xcodeproj/2.10.0/source.json": "c35937a5da901f4b5f2f9e13ed3bdd75f84bc911d4c90f868c3784bc56b91558",
+    "https://bcr.bazel.build/modules/rules_xcodeproj/2.11.1/MODULE.bazel": "be827c02f5be3afa5b40530a58d16e595f1b09611353e6a05adbc09dd9547aa4",
+    "https://bcr.bazel.build/modules/rules_xcodeproj/2.11.1/source.json": "3812211976e650ceab5090cbfc9941b25990f74306ba1b97f674d59233604baa",
     "https://bcr.bazel.build/modules/sourcekitten/0.36.0/MODULE.bazel": "f2305a90684732c44956e3815e6a498fdfb9daa7029362d75a84d383c9e8a725",
     "https://bcr.bazel.build/modules/sourcekitten/0.36.0/source.json": "81647097ccbc04c1779e1324298e07aa442b3907df61852085d7e001ee3b0991",
     "https://bcr.bazel.build/modules/stardoc/0.5.0/MODULE.bazel": "f9f1f46ba8d9c3362648eea571c6f9100680efc44913618811b58cc9c02cd678",
@@ -14588,8 +14588,8 @@
     },
     "@@rules_xcodeproj~//xcodeproj:extensions.bzl%internal": {
       "general": {
-        "bzlTransitiveDigest": "NOI591YpKfztv8X+6YWriYoCv/cykk2677MYVGEXLFE=",
-        "usagesDigest": "As6NphkZTZJLUTfbrPUqE8WG5UftVkxvKmFhWRwza10=",
+        "bzlTransitiveDigest": "Hj6u12gVIlo4LYaUmM1BCxjKzPKkHNlDfUA83JrmKgw=",
+        "usagesDigest": "HEEyx01kWbPvqEjbgXR1PflAceyWGn4fFu/Nkp+qNPY=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -14611,8 +14611,8 @@
     },
     "@@rules_xcodeproj~//xcodeproj:extensions.bzl%non_module_deps": {
       "general": {
-        "bzlTransitiveDigest": "NOI591YpKfztv8X+6YWriYoCv/cykk2677MYVGEXLFE=",
-        "usagesDigest": "1yCn+exBP9D4GSRxnpwM5nk53WmPvPN7oTNb5KUXiiI=",
+        "bzlTransitiveDigest": "Hj6u12gVIlo4LYaUmM1BCxjKzPKkHNlDfUA83JrmKgw=",
+        "usagesDigest": "evSbwzh4GTerci9VGTlCMXpokRPFTFSYbaXNHI+Z3A0=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},

@@ -625,8 +625,10 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
       log("not silent mode", name)
     case .LOOK_UP:
       log("look up", name, data.hex)
-      mainVm?.connectionManager.syncEvents()
-      mainVm?.connectionManager.checkWeather()
+      if mainVm?.glassesAppState == nil {
+        mainVm?.connectionManager.syncEvents()
+        mainVm?.connectionManager.checkWeather()
+      }
 
     // let text = "Looked up!"
     // guard let textData = G1Cmd.Text.data(text: text) else { break }
@@ -638,8 +640,12 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
     // manager.transmitBoth(textData)
     case .DASH_SHOWN:
       log("dash shown", name, data.hex)
+      mainVm?.glassesAppState = .Dash
     case .DASH_HIDE:
       log("dash hide", name, data.hex)
+      if mainVm?.glassesAppState == .Dash {
+        mainVm?.glassesAppState = nil
+      }
     case .CASE_OPEN:
       log("case open", data.hex)
       mainVm?.glassesState = .CaseOpen
@@ -730,6 +736,7 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
     break
   case .BmpDone:
     log("bmp done \(name), isSuccess: \(data[1] == 0xC9)")
+    mainVm?.glassesAppState = .Bmp
     break
   case .NOTIF:
     let isSuccess = data[1] == 0xC9 || data[1] == 0xCB
@@ -742,10 +749,12 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
     break
   case .TEXT:
     // 0x4ec90001
+    mainVm?.glassesAppState = .Text
     break
   case .Exit:
     // ack exit
     // 0x18c9
+    mainVm?.glassesAppState = nil
     break
   case .NOTIF_SETTING:
     // New App notif discovered:

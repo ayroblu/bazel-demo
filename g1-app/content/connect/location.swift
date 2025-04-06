@@ -1,16 +1,25 @@
 import CoreLocation
 import Log
+import utils
 
 class LocationManager: NSObject, CLLocationManagerDelegate {
   static let shared = LocationManager()
   let locationManager = CLLocationManager()
   private var locationContinuation: CheckedContinuation<CLLocation, Error>?
+  var location: CLLocation?
+  var subLocation: () -> () -> Void = { {} }
 
   override init() {
     super.init()
     locationManager.delegate = self
     locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
     // locationManager.desiredAccuracy = kCLLocationAccuracyBest
+    if locationManager.authorizationStatus != .authorizedAlways {
+      locationManager.requestAlwaysAuthorization()
+    }
+    subLocation = runWhileSubbed(
+      start: { [self] in locationManager.startUpdatingLocation() },
+      stop: { [self] in locationManager.stopUpdatingLocation() })
   }
 
   private func checkPermission() throws {
@@ -41,7 +50,9 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     _ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]
   ) {
     log("did update location")
+    // if locationContinuation != nil { log("did update location") }
     guard let location = locations.last else { return }
+    self.location = location
     locationContinuation?.resume(returning: location)
     locationContinuation = nil
   }
@@ -60,9 +71,12 @@ enum LocationError: Error {
 }
 
 func getUserLocation() async throws -> CLLocation {
-  if let location = LocationManager.shared.locationManager.location {
+  if let location = LocationManager.shared.location {
+    return location
+  } else if let location = LocationManager.shared.locationManager.location {
     return location
   } else {
+    log("No location manager location")
     return try await LocationManager.shared.requestLocation()
   }
 }

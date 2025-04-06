@@ -12,8 +12,12 @@
 		<string>Support speech recognition for transcription</string>
 		<!-- <key>NSMicrophoneUsageDescription</key> -->
 		<!-- <string>Microphone for on device listening</string> -->
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>Location for navigation feature</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
-		<string>Location for navigation in foreground</string>
+		<string>Location for navigation feature</string>
+		<!-- <key>NSLocationAlwaysUsageDescription</key> -->
+		<!-- <string>Your app needs always-on location access to provide [specific reason].</string> -->
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>bluetooth-central</string>

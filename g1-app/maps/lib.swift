@@ -1,5 +1,6 @@
 import Foundation
 import MapKit
+import utils
 
 // let padding = 0.001
 // public func fetchRoadMap(bounds: ElementBounds, width: Int, height: Int) async throws -> [Bool] {
@@ -52,6 +53,13 @@ public func getPosInBounds(
   let x = Int((lng - bounds.minlng) / (bounds.maxlng - bounds.minlng) * Double(width))
   let y = Int((bounds.maxlat - lat) / (bounds.maxlat - bounds.minlat) * Double(height))
   return (x, y)
+}
+public func getPosInBoundsClamped(
+  dim: (width: Int, height: Int), pos: (lat: Double, lng: Double), bounds: ElementBounds
+) -> (x: Int, y: Int) {
+  let (width, height) = dim
+  let (x, y) = getPosInBounds(dim: dim, pos: pos, bounds: bounds)
+  return (x.clamped(to: 0...width), y.clamped(to: 0...height))
 }
 
 public struct SelfArrow {
