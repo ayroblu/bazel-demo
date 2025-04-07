@@ -38,13 +38,13 @@ extension ConnectionManager {
       if isSignificantlyDifferent(loc: (lat, lng), prevLoc: prevLocation) {
         try await sendRoadMap(loc: location, route: route, roads: roads)
         log("sent road map")
+        prevLocation = (lat, lng)
       } else {
         let data = G1Cmd.Navigate.pollerData()
         manager.transmitBoth(data)
         log("sent poll")
       }
       try await Task.sleep(for: .seconds(1))
-      prevLocation = (lat, lng)
     }
     let data = G1Cmd.Navigate.endData()
     manager.transmitBoth(data)
@@ -58,6 +58,9 @@ extension ConnectionManager {
     let lng = loc.coordinate.longitude
 
     let progress = calculateRouteProgress(route: route, currentLocation: loc)
+    if progress.remainingDistance < 10 {
+      throw NavigationError.arrived
+    }
     guard let step = progress.currentStep else { return }
     guard let remainingStepDistance = progress.remainingStepDistance else { return }
 
@@ -80,7 +83,7 @@ extension ConnectionManager {
     let selfMap = getSelfMap(
       dim: (136, 136), route: route, bounds: bounds,
       // -getAngle: bearing is clockwise, but rotations are counter clockwise
-      selfArrow: SelfArrow(lat: lat, lng: lng, angle: getSpeed() > 2 ? -getAngle() : nil))
+      selfArrow: SelfArrow(lat: lat, lng: lng, angle: getSpeed() > 1 ? -getAngle() : nil))
 
     let primaryImageData = G1Cmd.Navigate.primaryImageData(image: roadMap, overlay: selfMap)
     for data in primaryImageData {
@@ -100,6 +103,9 @@ extension ConnectionManager {
     }
 
   }
+}
+enum NavigationError: Error {
+  case arrived
 }
 
 private func isSignificantlyDifferent(
@@ -221,7 +227,7 @@ func searchLocations(textQuery: String) async -> [MKMapItem] {
     longitudinalMeters: 3000
   )
   searchRequest.region = region
-  searchRequest.resultTypes = .pointOfInterest
+  searchRequest.resultTypes = [.pointOfInterest, .address]
   searchRequest.regionPriority = .required
 
   let search = MKLocalSearch(request: searchRequest)

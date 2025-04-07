@@ -132,10 +132,7 @@ func calculateAngle(from startLocation: CLLocation, to endLocation: CLLocation) 
   let y = sin(dLon) * cos(endLatitude)
   let x = cos(startLatitude) * sin(endLatitude) - sin(startLatitude) * cos(endLatitude) * cos(dLon)
 
-  var bearing = atan2(y, x)
-  bearing = bearing * 180 / .pi  // Convert to degrees
-
-  bearing = (bearing + 360).truncatingRemainder(dividingBy: 360)
+  let bearing = atan2(y, x)
 
   return bearing
 }

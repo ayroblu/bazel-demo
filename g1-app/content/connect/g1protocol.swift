@@ -544,6 +544,7 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
     }
   case .Navigate:
     // response to navigation requests
+    // mainVm?.glassesAppState = .Navigation
     break
   case .MIC:
     let resp = G1Cmd.Mic.respData(data: data)
