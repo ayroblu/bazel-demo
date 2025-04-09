@@ -2,18 +2,28 @@ import Log
 import MapKit
 import SwiftUI
 
+let navigationOptions: [MKDirectionsTransportType] = [.automobile, .transit, .walking]
 struct NavigateSearchView: View {
   @StateObject var vm: MainVM
   @State var text: String = "Sainsburys"
+  @State private var selectedOption: TransportOption = .walking
   @Environment(\.scenePhase) var scenePhase
 
   var body: some View {
     VStack {
+      Picker("Transport Type", selection: $selectedOption) {
+        ForEach(TransportOption.allCases) { option in
+          Text(option.rawValue)
+            .tag(option)
+        }
+      }
+      .pickerStyle(.segmented)
       HStack {
         TextField("Location where you want to go...", text: $text)
         Button("go") {
           Task {
-            vm.searchResults = await getSearchResults(textQuery: text)
+            vm.searchResults = await getSearchResults(
+              textQuery: text, transportType: selectedOption.transportType)
           }
         }
         .buttonStyle(.bordered)
@@ -62,6 +72,23 @@ struct NavigateSearchView: View {
     .onDisappear {
       vm.locationSub?()
       vm.locationSub = nil
+    }
+  }
+}
+
+enum TransportOption: String, CaseIterable, Identifiable {
+  case automobile = "Drive"
+  case walking = "Walk"
+  // Not supported for route requests
+  // case transit = "Transit"
+
+  var id: Self { self }
+
+  var transportType: MKDirectionsTransportType {
+    switch self {
+    case .automobile: return .automobile
+    case .walking: return .walking
+    // case .transit: return .transit
     }
   }
 }

@@ -4,6 +4,7 @@ import SwiftData
 @MainActor var modelContext: ModelContext?
 @MainActor public func initLogDb(_ _modelContext: ModelContext) {
   modelContext = _modelContext
+  setupUncaughtExceptionHandler()
   try? deleteOldEntries(modelContext: _modelContext)
 }
 
@@ -65,5 +66,15 @@ func deleteOldEntries(modelContext: ModelContext) throws {
 
   if oldEntries.count > 0 {
     log("Deleted \(oldEntries.count) entries older than 1 week")
+  }
+}
+
+func setupUncaughtExceptionHandler() {
+  NSSetUncaughtExceptionHandler { exception in
+    let stackTrace = exception.callStackSymbols.joined(separator: "\n")
+    log("UncaughtException: \(exception.name): \(exception.reason ?? "")\n\(stackTrace)")
+  }
+  signal(SIGSEGV) { signal in
+    log("SIGSEGV: \(signal)")
   }
 }

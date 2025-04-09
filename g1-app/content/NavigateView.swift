@@ -35,7 +35,7 @@ struct NavigateView: View {
         .onAppear {
           manager.requestWhenInUseAuthorization()
           Task {
-            route = await getDirections(textQuery: "Sainsburys")
+            route = try? await getDirections(textQuery: "Sainsburys", transportType: .walking)
             if let route {
               var rect = route.polyline.boundingMapRect
               rect.size.width *= 1.2

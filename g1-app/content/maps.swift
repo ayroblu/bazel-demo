@@ -1,5 +1,6 @@
 import Foundation
 import Log
+import LogUtils
 import MapKit
 import maps
 import utils
@@ -205,18 +206,26 @@ private func prettyPrintDistance(_ distance: Double) -> String {
     return String(format: "%dm", Int(distance))
   }
 }
-func getSearchResults(textQuery: String) async -> [LocSearchResult] {
+func getSearchResults(
+  textQuery: String, transportType: MKDirectionsTransportType
+) async -> [LocSearchResult] {
   let locations = await searchLocations(textQuery: textQuery)
   let here = MKMapItem.forCurrentLocation()
   return await asyncAll(
     locations.map { location in
       return { () -> LocSearchResult? in
-        guard let route = await getDirections(from: here, to: location) else { return nil }
+        let route = await tryFn {
+          try await getDirections(
+            from: here, to: location,
+            transportType: transportType)
+        }
+        guard let route else { return nil }
         return LocSearchResult.from(item: location, route: route)
       }
     }
   ).compactMap { $0 }
 }
+
 func searchLocations(textQuery: String) async -> [MKMapItem] {
   guard let userLocation = try? await getUserLocation() else { return [] }
   let searchRequest = MKLocalSearch.Request()
@@ -239,42 +248,30 @@ func searchLocations(textQuery: String) async -> [MKMapItem] {
     return []
   }
 }
-func getDirections(textQuery: String) async -> MKRoute? {
+func getDirections(
+  textQuery: String, transportType: MKDirectionsTransportType
+) async throws -> MKRoute? {
   let searchRequest = MKLocalSearch.Request()
   searchRequest.naturalLanguageQuery = textQuery
   let search = MKLocalSearch(request: searchRequest)
-  let response = try? await search.start()
-  guard let to = response?.mapItems.first else { return nil }
+  let response = try await search.start()
+  guard let to = response.mapItems.first else { return nil }
   let from = MKMapItem.forCurrentLocation()
-  return await getDirections(from: from, to: to)
+  return try await getDirections(from: from, to: to, transportType: transportType)
 }
-func getDirections(from: MKMapItem, to: MKMapItem) async -> MKRoute? {
-  // Create and configure the request
+func getDirections(
+  from: MKMapItem, to: MKMapItem,
+  transportType: MKDirectionsTransportType
+) async throws -> MKRoute? {
   let request = MKDirections.Request()
   request.source = from
   request.destination = to
-  request.transportType = .walking
-  request.requestsAlternateRoutes = true
-  // request.transportType = .cycling
-  // request.transportType = .transit
-  // request.transportType = .automobile
+  request.transportType = transportType
+  // request.requestsAlternateRoutes = true
 
-  // Get the directions based on the request
   let directions = MKDirections(request: request)
-  let response = try? await directions.calculate()
-  // print(response?.routes.first?.steps.map { $0.instructions } ?? [])
-  // print(response?.routes.first?.steps.map { $0.distance } ?? [])
-  // print(response?.routes.first?.steps.map { $0.notice } ?? [])
-  // print(
-  //   response?.routes.first?.steps.map {
-  //     switch $0.transportType {
-  //     case .walking: "walking"
-  //     case .automobile: "car"
-  //     case .transit: "train"
-  //     case _: "unknown"
-  //     }
-  //   } ?? [])
-  return response?.routes.first
+  let response = try await directions.calculate()
+  return response.routes.first
 }
 func getMKMapItem(lat: Double, lng: Double) -> MKMapItem {
   let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lng)
