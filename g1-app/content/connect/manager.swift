@@ -81,8 +81,10 @@ public class ConnectionManager {
     if let left = manager.leftPeripheral, let right = manager.rightPeripheral,
       left.state == .connected && right.state == .connected
     {
+      deviceInfo()
       return
     }
+    mainVm?.isConnected = false
     if centralManager.state == .poweredOn {
       reconnectKnown(glasses: glasses)
     } else {
