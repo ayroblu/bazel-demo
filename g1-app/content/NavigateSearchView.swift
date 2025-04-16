@@ -18,17 +18,15 @@ struct NavigateSearchView: View {
         }
       }
       .pickerStyle(.segmented)
-      HStack {
-        TextField("Location where you want to go...", text: $text)
-        Button("go") {
-          Task {
-            vm.searchResults = await getSearchResults(
-              textQuery: text, transportType: selectedOption.transportType)
-          }
+      .padding(.horizontal)
+      SearchTextField(placeholder: "Where you want to go...", searchText: $text) {
+        Task {
+          vm.searchResults = await getSearchResults(
+            textQuery: text, transportType: selectedOption.transportType)
         }
-        .buttonStyle(.bordered)
-        .disabled(text.isEmpty)
       }
+      .padding(.horizontal)
+
       List {
         ForEach(vm.searchResults) { result in
           NavigationLink {
@@ -53,6 +51,7 @@ struct NavigateSearchView: View {
         }
       }
       .scrollDismissesKeyboard(.immediately)
+      .contentMargins(.top, 0)
     }
     .onChange(of: scenePhase) { oldPhase, newPhase in
       if newPhase == .active {
@@ -72,6 +71,36 @@ struct NavigateSearchView: View {
     .onDisappear {
       vm.locationSub?()
       vm.locationSub = nil
+    }
+  }
+}
+
+/// https://stackoverflow.com/a/58473985
+struct SearchTextField: View {
+  let placeholder: String
+  @Binding var searchText: String
+  let onSubmit: () -> Void
+
+  var body: some View {
+    HStack {
+      Image(systemName: "magnifyingglass")
+
+      TextField(placeholder, text: $searchText)
+        .foregroundColor(.primary)
+
+      Button(action: {
+        searchText = ""
+      }) {
+        Image(systemName: "xmark.circle.fill").opacity(searchText == "" ? 0 : 1)
+      }
+    }
+    .padding(EdgeInsets(top: 8, leading: 6, bottom: 8, trailing: 6))
+    .foregroundColor(.secondary)
+    .background(Color(.secondarySystemBackground))
+    .cornerRadius(10.0)
+    .submitLabel(.search)
+    .onSubmit {
+      onSubmit()
     }
   }
 }

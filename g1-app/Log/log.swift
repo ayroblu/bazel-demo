@@ -15,10 +15,7 @@ public func log(_ args: Any...) {
   log(key: "INFO", args: args)
 }
 func log(key: String, args: [Any]) {
-  let formatter = DateFormatter()
-  formatter.dateFormat = "HH:mm:ss.SSS"  // Hours:Minutes:Seconds.Milliseconds
-
-  let timeString = formatter.string(from: Date())
+  let timeString = formatTime(from: Date())
 
   print(timeString, terminator: " ")
   for arg in args {
@@ -40,6 +37,13 @@ func log(key: String, args: [Any]) {
       print(error)
     }
   }
+}
+
+func formatTime(from: Date) -> String {
+  let formatter = DateFormatter()
+  formatter.dateFormat = "HH:mm:ss.SSS"  // Hours:Minutes:Seconds.Milliseconds
+
+  return formatter.string(from: from)
 }
 
 // Function to delete entries older than 1 week

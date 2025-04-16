@@ -13,9 +13,11 @@ public struct LogsUi: View {
         Text("No items")
       } else {
         ForEach(logItems) { logItem in
-          Text(logItem.text)
-          Text(logItem.timestamp.pretty())
-            .font(.footnote)
+          VStack(alignment: .leading) {
+            Text(logItem.text)
+            Text(formatTime(from: logItem.timestamp))
+              .font(.footnote)
+          }
         }
       }
     }
@@ -41,16 +43,5 @@ public struct LogsUi: View {
   func deleteAll() throws {
     try modelContext.delete(model: LogEntry.self)
     try modelContext.save()
-  }
-}
-
-extension Date {
-  func pretty() -> String {
-    let date = self
-    let formatter = DateFormatter()
-    formatter.dateStyle = .medium  // e.g., "Apr 9, 2025"
-    formatter.timeStyle = .short  // e.g., "3:30 PM"
-
-    return formatter.string(from: date)
   }
 }
