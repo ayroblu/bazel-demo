@@ -81,6 +81,7 @@ public class ConnectionManager {
     if let left = manager.leftPeripheral, let right = manager.rightPeripheral,
       left.state == .connected && right.state == .connected
     {
+      mainVm?.isConnected = true
       deviceInfo()
       return
     }

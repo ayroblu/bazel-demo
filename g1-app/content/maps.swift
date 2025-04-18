@@ -32,18 +32,18 @@ extension ConnectionManager {
     try await Task.sleep(for: .milliseconds(8))
 
     var prevLocation: (lat: Double, lng: Double)?
-    for _ in 1..<1000 {
+    for i in 1..<1000 {
       let location = try await getUserLocation()
       let lat = location.coordinate.latitude
       let lng = location.coordinate.longitude
-      if isSignificantlyDifferent(loc: (lat, lng), prevLoc: prevLocation) {
+      if isSignificantlyDifferent(loc: (lat, lng), prevLoc: prevLocation) || i % 10 == 0 {
         try await sendRoadMap(loc: location, route: route, roads: roads)
-        log("sent road map")
+        log("sent road map", i)
         prevLocation = (lat, lng)
       } else {
         let data = G1Cmd.Navigate.pollerData()
         manager.transmitBoth(data)
-        log("sent poll")
+        log("sent poll", i)
       }
       try await Task.sleep(for: .seconds(1))
     }
