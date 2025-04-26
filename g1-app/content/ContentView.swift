@@ -25,7 +25,7 @@ public struct ContentView: View {
     } else if let glasses {
       NavigationStack {
         List {
-          GlassesInfoView(mainVm: vm)
+          GlassesInfoView(mainVm: vm, glasses: glasses)
             .onChange(of: scenePhase) { oldPhase, newPhase in
               if newPhase == .active {
                 log("syncKnown")
