@@ -3,6 +3,7 @@ import SwiftUI
 struct GlassesInfoView: View {
   @Environment(\.colorScheme) var colorScheme
   @StateObject var mainVm: MainVM
+  let glasses: GlassesModel
 
   var body: some View {
     ZStack {
@@ -33,7 +34,7 @@ struct GlassesInfoView: View {
       }
     }
     .onTapGesture {
-      mainVm.connectionManager.deviceInfo()
+      mainVm.connectionManager.syncKnown(glasses: glasses)
     }
   }
 }

@@ -225,8 +225,17 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
   }
 
   private func checkConnected() {
-    guard let rightPeripheral else { return }
+    if let leftPeripheral, leftPeripheral.state != .connected {
+      log("trying to connect left")
+      manager?.centralManager.connect(
+        leftPeripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+    }
+    guard let rightPeripheral else {
+      log("no right peripheral")
+      return
+    }
     if rightPeripheral.state != .connected {
+      log("trying to connect right")
       manager?.centralManager.connect(
         rightPeripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
     }

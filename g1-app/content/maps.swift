@@ -172,21 +172,15 @@ extension MKRoute {
   }
 }
 struct LocSearchResult: Identifiable {
-  let id: MKMapItem.Identifier
+  let id: String
   let item: MKMapItem
   let route: MKRoute
   let title: String
   let subtitle: String
 
   static func from(item: MKMapItem, route: MKRoute) -> LocSearchResult? {
-    guard let id = item.identifier else {
-      print("no identifier")
-      return nil
-    }
-    guard let title = item.name else {
-      print("no title")
-      return nil
-    }
+    let id = item.identifier?.rawValue ?? UUID().uuidString
+    let title = item.name ?? "<unknown>"
     let thoroughfare = item.placemark.thoroughfare
     let subThoroughfare = item.placemark.subThoroughfare
     let distance = route.distance
@@ -211,6 +205,7 @@ func getSearchResults(
 ) async -> [LocSearchResult] {
   let locations = await searchLocations(textQuery: textQuery)
   let here = MKMapItem.forCurrentLocation()
+  log("num search locations", locations.count)
   return await asyncAll(
     locations.map { location in
       return { () -> LocSearchResult? in
