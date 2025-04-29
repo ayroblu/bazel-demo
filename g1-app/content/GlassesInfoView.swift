@@ -14,7 +14,9 @@ struct GlassesInfoView: View {
         if let battery = mainVm.battery {
           HStack {
             Spacer()
-            Image(systemName: getBatterySymbol(battery: battery))
+            Image(
+              systemName: mainVm.charging
+                ? "battery.100percent.bolt" : getBatterySymbol(battery: battery))
             Text("\(battery)%")
           }
         }
@@ -23,7 +25,9 @@ struct GlassesInfoView: View {
           if let battery = mainVm.caseBattery {
             HStack {
               Spacer()
-              Image(systemName: getBatterySymbol(battery: battery))
+              Image(
+                systemName: mainVm.charging
+                  ? "battery.100percent.bolt" : getBatterySymbol(battery: battery))
               Text("\(battery)%")
             }
           }

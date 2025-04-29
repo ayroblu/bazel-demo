@@ -72,6 +72,7 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
   func centralManager(
     _ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?
   ) {
+    manager?.mainVm?.isConnected = false
     guard let name = peripheral.name else { return }
     log("didDisconnectPeripheral \(name)", error ?? "")
   }
@@ -171,13 +172,20 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
           log("unknown characteristic")
         }
       }
-      guard leftPeripheral != nil else { return }
-      guard rightPeripheral != nil else { return }
+      guard let leftPeripheral else { return }
+      guard let rightPeripheral else { return }
       guard transmitLeftCharacteristic != nil else { return }
       guard transmitLeftCharacteristic != nil else { return }
       if !isConnected {
         isConnected = true
         manager?.onConnect()
+        manager?.centralManager.registerForConnectionEvents(
+          options: [
+            CBConnectionEventMatchingOption.peripheralUUIDs: [
+              leftPeripheral.identifier.uuidString,
+              rightPeripheral.identifier.uuidString,
+            ]
+          ])
       }
     } else if service.uuid == smpServiceCbuuid && discoverSmb {
       for characteristic in characteristics {
@@ -239,6 +247,15 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
       manager?.centralManager.connect(
         rightPeripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
     }
+  }
+  func centralManager(
+    _ central: CBCentralManager, connectionEventDidOccur event: CBConnectionEvent,
+    for peripheral: CBPeripheral
+  ) {
+    guard let name = peripheral.name else { return }
+    // 0 disconnected, 1 connected
+    log("connectEventDidOccur", name, event.rawValue)
+
   }
 
   var toRestore: [CBPeripheral]?

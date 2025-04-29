@@ -20,6 +20,7 @@ class MainVM: ObservableObject {
   @Published var dashVertical: UInt8 = 3
   @Published var dashDistance: UInt8 = 2
   @Published var glassesAppState: GlassesAppState?
+  @Published var charging: Bool = false
   var battery: Int? {
     if let leftBattery, let rightBattery {
       return min(leftBattery, rightBattery)
@@ -33,6 +34,7 @@ class MainVM: ObservableObject {
     return nil
   }
   @Published var caseBattery: Int?
+  @Published var caseCharging: Bool = false
   var text: String {
     get {
       if let selection {

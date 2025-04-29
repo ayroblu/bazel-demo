@@ -498,11 +498,11 @@ enum DEVICE_CMD: UInt8 {
   case DASH_HIDE = 0x1F
   case CASE_OPEN = 0x08
   case CASE_CLOSE = 0x0B
-  case CASE_STATE = 0x0E
+  case CASE_CHARGING = 0x0E
   case CASE_BATTERY = 0x0F
   case WEAR_ON = 0x06
   case WEAR_OFF = 0x07
-  case UNKNOWN_09 = 0x09
+  case CHARGING = 0x09
   case UNKNOWN_0A = 0x0A
   case UNKNOWN_11 = 0x11
   case UNKNOWN_12 = 0x12
@@ -653,9 +653,9 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
     case .CASE_CLOSE:
       log("case close", data.hex)
       mainVm?.glassesState = .CaseClosed
-    case .CASE_STATE:
-      log("case is open: \(data[2])")
-      // mainVm?.glassesState = data[2] == 1 ? GlassesState.CaseOpen : GlassesState.CaseClosed
+    case .CASE_CHARGING:
+      log("case is charging: \(data[2])")
+      mainVm?.caseCharging = data[2] == 1
       // 0xf50e01
       break
     case .CASE_BATTERY:
@@ -675,8 +675,9 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
       mainVm?.glassesState = .Off
       // 0xf507
       break
-    case .UNKNOWN_09:
+    case .CHARGING:
       // 0xf50901
+      mainVm?.charging = data[2] == 1
       break
     case .UNKNOWN_0A:
       // 0xf50a64
