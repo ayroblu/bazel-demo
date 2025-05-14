@@ -229,6 +229,7 @@ crate.spec(
     package = "assert_cmd",
     version = "2.0.16",
 )
+crate.spec(package = "regex", version = "1.11.1")
 crate.from_specs()
 use_repo(crate, "crates")
 

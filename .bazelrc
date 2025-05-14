@@ -37,10 +37,10 @@ startup --digest_function=BLAKE3
 common --nolegacy_important_outputs
 
 # https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#xcode-version-selection-and-invalidation
-startup --host_jvm_args=-Xdock:name=/Applications/Xcode16.2.app/Contents/Developer
-build --xcode_version=16C5032a
-build --repo_env=XCODE_VERSION=16C5032a
-build --repo_env=DEVELOPER_DIR=/Applications/Xcode16.2.app/Contents/Developer
+# startup --host_jvm_args=-Xdock:name=/Applications/Xcode16.2.app/Contents/Developer
+# build --xcode_version=16C5032a
+# build --repo_env=XCODE_VERSION=16C5032a
+# build --repo_env=DEVELOPER_DIR=/Applications/Xcode16.2.app/Contents/Developer
 # Manage xcode versions with:
 # print current version
 # xcode-select -p
