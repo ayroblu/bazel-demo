@@ -1,0 +1,21 @@
+load("@rules_rust//rust:defs.bzl", "rust_binary")
+
+rust_binary(
+    name = "diff-resolver",
+    deps = [
+        ":diff-resolver-lib",
+    ],
+    srcs = ["main.rs"],
+)
+
+rust_library(
+    name = "diff-resolver-lib",
+    deps = [
+        # "//rust-code/utils",
+        # "@crates//:serde",
+    ],
+    srcs = glob(
+        ["*.rs"],
+        ["main.rs"],
+    ),
+)

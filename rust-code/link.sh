@@ -11,6 +11,6 @@ rsync .bazel/bin/rust-code/editor-tools/ternary-condition/ternary-condition ~/bi
 rsync .bazel/bin/rust-code/editor-tools/lang-move/lang-move ~/bin/
 rsync .bazel/bin/rust-code/bazel-args/ibazel-args ~/bin/
 rsync .bazel/bin/rust-code/bazel-args/bazel-args ~/bin/
-rsync .bazel/bin/rust-code/terraform-targets ~/bin/
+rsync .bazel/bin/rust-code/terraform-targets/terraform-targets ~/bin/
 cd rust-code
 ./setup-rust-analyzer
