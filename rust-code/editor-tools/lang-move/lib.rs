@@ -17,6 +17,9 @@ use types::Lang;
 pub fn edit(input: &Input) -> Option<String> {
     let mut parser = Parser::new();
     match input.lang {
+        Lang::Go => parser
+            .set_language(&tree_sitter_go::LANGUAGE.into())
+            .expect("Error loading Go grammar"),
         Lang::TypeScript => parser
             .set_language(&tree_sitter_typescript::LANGUAGE_TSX.into())
             .expect("Error loading TypeScript grammar"),
