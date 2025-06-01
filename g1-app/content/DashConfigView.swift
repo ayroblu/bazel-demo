@@ -7,7 +7,6 @@ struct DashConfigView: View {
   @StateObject var vm: MainVM
   @Environment(\.modelContext) private var modelContext
   @State var forceRerender = 0
-  // @AppStorage(SELECTED_REMINDER_LISTS) var reminderListIds: [String]?
 
   var body: some View {
     List {
@@ -121,6 +120,26 @@ struct DashConfigView: View {
         }
       }
       .environment(\.editMode, Binding.constant(EditMode.active))
+
+      Section(header: Text("Notifications")) {
+        let notifDirectPush = Binding(
+          get: { vm.notifDirectPush },
+          set: {
+            vm.notifDirectPush = $0
+            vm.connectionManager.sendNotifConfig()
+          })
+        Toggle(isOn: notifDirectPush) {
+          Text("Direct push")
+        }
+        NavigationLink("Apps") {
+          LazyView {
+            NotifAppsView(vm: vm)
+          }
+        }
+        Button("Allow notifs") {
+          vm.connectionManager.sendAllowNotifs()
+        }
+      }
     }
   }
 

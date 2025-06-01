@@ -13,6 +13,7 @@ struct MainApp: App {
       GlassesModel.self,
       NoteModel.self,
       LogEntry.self,
+      NotifAppsModel.self,
     ])
   }
 }

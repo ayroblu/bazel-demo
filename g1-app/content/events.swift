@@ -3,9 +3,6 @@ import Log
 import SwiftUI
 import utils
 
-let SELECTED_REMINDER_LIST = "reminder-list"
-let SELECTED_REMINDER_LISTS = "reminder-lists"
-
 extension ConnectionManager {
   func requestCalendarAccessIfNeeded() {
     let authorizationStatus = EKEventStore.authorizationStatus(for: .event)
@@ -157,7 +154,7 @@ extension ConnectionManager {
   }
 
   func getSelectedReminderLists() -> [EKCalendar] {
-    let listIds = UserDefaults.standard.stringArray(forKey: SELECTED_REMINDER_LISTS)
+    let listIds = ReminderListsState.get()
     guard let listIds else {
       return [eventStore.defaultCalendarForNewReminders()].compactMap { $0 }
     }
@@ -176,7 +173,7 @@ extension ConnectionManager {
   }
 
   func setReminderLists(_ value: [String]) {
-    UserDefaults.standard.set(value, forKey: SELECTED_REMINDER_LISTS)
+    ReminderListsState.set(value)
   }
 
   private func fetchSelectedReminders() async -> [SelectedReminder] {

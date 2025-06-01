@@ -18,7 +18,7 @@ struct G1Cmd {
     }
   }
   struct Info {
-    static func batteryData(battery: Bool) -> Data {
+    static func batteryData() -> Data {
       return Data([SendCmd.Battery.rawValue, 0x02])
     }
     static func glassesStateData() -> Data {
@@ -26,6 +26,15 @@ struct G1Cmd {
     }
     static func firmwareData() -> Data {
       return Data([SendCmd.FirmwareInfo.rawValue, 0x74])
+    }
+    static func restartData() -> Data {
+      return Data([SendCmd.FirmwareInfo.rawValue, 0x72])
+    }
+    static func lensSerialNumberData() -> Data {
+      return Data([SendCmd.LensSerialNumber.rawValue])
+    }
+    static func deviceSerialNumberData() -> Data {
+      return Data([SendCmd.DeviceSerialNumber.rawValue])
     }
   }
   struct Config {
@@ -234,14 +243,14 @@ struct G1Cmd {
   }
   struct Notify {
     static var notifyId: UInt8 = 0x00
-    static func allowData(id: String, name: String) -> [Data] {
+    static func allowData(apps: [(id: String, name: String)]) -> [Data] {
       let dict: [String: Any] = [
         "calendar_enable": true,
         "call_enable": true,
         "msg_enable": true,
         "ios_mail_enable": true,
         "app": [
-          "list": [["id": id, "name": name]],
+          "list": apps.map { (id, name) in ["id": id, "name": name] },
           "enable": true,
         ],
       ]
@@ -284,6 +293,10 @@ struct G1Cmd {
       }
       notifyId &+= 1
       return result
+    }
+    static func configData(directPush: Bool, durationS: UInt8) -> Data {
+      let directPushByte: UInt8 = directPush ? 1 : 0
+      return Data([SendCmd.NotifConfig.rawValue, directPushByte, durationS])
     }
   }
   struct Navigate {
@@ -453,11 +466,14 @@ enum SendCmd: UInt8 {
   case GlassesState = 0x2B
   case Battery = 0x2C
   case HeadsUp = 0x32
+  case LensSerialNumber = 0x33
+  case DeviceSerialNumber = 0x34
   case Uptime = 0x37
   case DashPosition = 0x3B
-  case Text = 0x4E
   case Notif = 0x4B
   case Ping = 0x4D
+  case Text = 0x4E
+  case NotifConfig = 0x4F
 }
 enum BLE_REC: UInt8 {
   case ERROR = 0x00
@@ -480,11 +496,14 @@ enum BLE_REC: UInt8 {
   case HEARTBEAT = 0x25
   case GlassesState = 0x2B
   case HeadsUp = 0x32
+  case LensSerialNumber = 0x33
+  case DeviceSerialNumber = 0x34
   case Uptime = 0x37
   case DashPosition = 0x3B
   case NOTIF = 0x4B
   case PING = 0x4D
   case TEXT = 0x4E
+  case NotifConfig = 0x4F
   case NOTIF_SETTING = 0xF6
 }
 enum DEVICE_CMD: UInt8 {
@@ -600,6 +619,30 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
     // Right only after opening settings
     // 0x326d1501
     mainVm?.headsUpAngle = data[2]
+  case .LensSerialNumber:
+    let serialNumber = data.subdata(in: 1..<data.count).ascii()
+    log("Glasses Serial Number: \(name) \(data.hex) \(serialNumber ?? "nil")")
+    if isLeft {
+      mainVm?.connectionManager.glasses?.leftLensSerialNumber = serialNumber
+    } else {
+      mainVm?.connectionManager.glasses?.rightLensSerialNumber = serialNumber
+    }
+  case .DeviceSerialNumber:
+    let serialNumber = data.subdata(in: 1..<data.count).ascii()
+    log("Device Serial Number: \(name) \(data.hex) \(serialNumber ?? "nil")")
+    let frameCode = data.subdata(in: 2..<6).ascii()
+    let colorCode = data.subdata(in: 7..<8).ascii()
+    guard let frameCode, let colorCode else { break }
+    let frame =
+      frameCode == "S100" ? "Round" : frameCode == "S110" ? "Square" : "Unknown " + frameCode
+    let color =
+      colorCode == "A"
+      ? "Grey"
+      : colorCode == "B"
+        ? "Brown"
+        : colorCode == "C" ? "Green" : "Unknown " + colorCode
+    log("Frame \(frame), color \(color)")
+    mainVm?.connectionManager.glasses?.deviceSerialNumber = serialNumber
   case .Uptime:
     // time since boot in seconds?
     // 0x3737e1bc000001
@@ -746,6 +789,8 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
   case .HEARTBEAT:
     // log("got heartbeat", data.hex)
     break
+  case .NotifConfig:
+    logFailure(code: data[1], type: "notif config", name: name, data: data)
   case .PING:
     log("ping", data.hex)
     break
@@ -775,6 +820,11 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
     if let list = f6Data[peripheral], seq == parts - 1 {
       let data = Data(list.joined())
       log("0xF6: \(name) [\(data.count)]", data.ascii() ?? "<>")
+      if let mainVm {
+        Task {
+          try? await onNewNotif(manager: mainVm.connectionManager, data: data)
+        }
+      }
     }
     break
   case .none:

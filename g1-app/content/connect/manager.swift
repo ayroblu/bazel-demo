@@ -183,11 +183,17 @@ public class ConnectionManager {
     }
   }
 
+  public func sendAllowNotifs() {
+    Task {
+      let apps = try await fetchNotifApps()
+      let allowData = G1Cmd.Notify.allowData(apps: apps.map { app in (app.id, app.name) })
+      for data in allowData {
+        manager.transmitBoth(data)
+      }
+    }
+  }
+
   public func sendNotif() {
-    // let allowData = G1Cmd.Notify.allowData(id: Info.id, name: Info.name)
-    // for data in allowData {
-    //   manager.transmitBoth(data)
-    // }
     let data = G1Cmd.Notify.data(
       notifyData: NotifyData(
         title: "New product!",
@@ -195,6 +201,13 @@ public class ConnectionManager {
     for data in data {
       manager.transmitBoth(data)
     }
+  }
+
+  public func sendNotifConfig() {
+    guard let mainVm else { return }
+    manager.transmitBoth(
+      G1Cmd.Notify.configData(
+        directPush: mainVm.notifDirectPush, durationS: mainVm.notifDurationSeconds))
   }
 
   public func toggleSilentMode() {
@@ -268,10 +281,17 @@ public class ConnectionManager {
   }
 
   func deviceInfo() {
-    manager.readLeft(Data([SendCmd.GlassesState.rawValue]))
-    manager.readBoth(Data([BLE_REC.BATTERY.rawValue, 0x02]))
+    manager.readLeft(G1Cmd.Info.glassesStateData())
+    manager.readLeft(G1Cmd.Info.batteryData())
     manager.readRight(Data([SendCmd.BrightnessState.rawValue]))
     manager.readRight(Data([SendCmd.DashPosition.rawValue]))
     manager.readRight(Data([SendCmd.HeadsUp.rawValue]))
+    guard let glasses else { return }
+    if glasses.leftLensSerialNumber == nil || glasses.rightLensSerialNumber == nil {
+      manager.readBoth(G1Cmd.Info.lensSerialNumberData())
+    }
+    if glasses.deviceSerialNumber == nil {
+      manager.readLeft(G1Cmd.Info.deviceSerialNumberData())
+    }
   }
 }

@@ -2,37 +2,24 @@ import CoreLocation
 import Foundation
 import Log
 
-let USER_LAT = "user-lat"
-let USER_LNG = "user-lng"
-
 extension ConnectionManager {
   func checkWeather() {
     guard isStale() else { return }
     Task {
-      let loc = getCurrentLocation()
-      if let loc {
-        UserDefaults.standard.set(loc.coordinate.latitude, forKey: USER_LAT)
-        UserDefaults.standard.set(loc.coordinate.longitude, forKey: USER_LNG)
+      if let weather = await getWeather() {
+        let weatherData = G1Cmd.Config.dashTimeWeatherData(
+          weatherIcon: parseWeatherIcon(
+            code: weather.current.weather_code, isDay: weather.current.is_day == 1),
+          temp: UInt8(round(weather.current.temperature_2m)))
+        manager.transmitBoth(weatherData)
+        lastFetch = Date()
       } else {
-        log("failed to pull location")
+        let weatherData = G1Cmd.Config.dashTimeWeatherData(
+          weatherIcon: G1Cmd.Config.WeatherIcon.Sunny,
+          temp: UInt8(25))
+        manager.transmitBoth(weatherData)
+        lastFetch = Date()
       }
-      guard let lat = loc?.coordinate.latitude ?? udDouble(forKey: USER_LAT)
-      else { return }
-      guard let lng = loc?.coordinate.longitude ?? udDouble(forKey: USER_LNG)
-      else { return }
-      let latStr = String(format: "%.2f", lat)
-      let lngStr = String(format: "%.2f", lng)
-      guard let weather = await fetchWeather(lat: latStr, lng: lngStr) else {
-        log("failed to fetch weather")
-        return
-      }
-      log("fetched weather", weather)
-      let weatherData = G1Cmd.Config.dashTimeWeatherData(
-        weatherIcon: parseWeatherIcon(
-          code: weather.current.weather_code, isDay: weather.current.is_day == 1),
-        temp: UInt8(round(weather.current.temperature_2m)))
-      manager.transmitBoth(weatherData)
-      lastFetch = Date()
     }
   }
 }
@@ -42,12 +29,26 @@ func isStale() -> Bool {
   return Date().timeIntervalSince(lastFetch) > 3600
 }
 
-func udDouble(forKey: String) -> Double? {
-  if UserDefaults.standard.object(forKey: forKey) != nil {
-    return UserDefaults.standard.double(forKey: forKey)
+func getWeather() async -> WeatherResult? {
+  let loc = getCurrentLocation()
+  if let loc {
+    UserLatState.set(loc.coordinate.latitude)
+    UserLngState.set(loc.coordinate.longitude)
   } else {
+    log("failed to pull location")
+  }
+  guard let lat = loc?.coordinate.latitude ?? UserLatState.get()
+  else { return nil }
+  guard let lng = loc?.coordinate.longitude ?? UserLngState.get()
+  else { return nil }
+  let latStr = String(format: "%.2f", lat)
+  let lngStr = String(format: "%.2f", lng)
+  guard let weather = await fetchWeather(lat: latStr, lng: lngStr) else {
+    log("failed to fetch weather")
     return nil
   }
+  log("fetched weather", weather)
+  return weather
 }
 
 struct CurrentWeather: Codable {

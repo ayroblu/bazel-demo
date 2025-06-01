@@ -21,6 +21,10 @@ class MainVM: ObservableObject {
   @Published var dashDistance: UInt8 = 2
   @Published var glassesAppState: GlassesAppState?
   @Published var charging: Bool = false
+  @PublishedState(state: notifDirectPushState, defaultValue: true)
+  var notifDirectPush: Bool
+  @PublishedState(state: notifDurationSecondsState, defaultValue: 10)
+  var notifDurationSeconds: UInt8
   var battery: Int? {
     if let leftBattery, let rightBattery {
       return min(leftBattery, rightBattery)

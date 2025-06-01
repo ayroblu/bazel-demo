@@ -142,7 +142,7 @@ extension Data {
   public func trimEnd() -> Data {
     let data = self
     var lastNonZero = data.count - 1
-    while lastNonZero >= 0 && data[lastNonZero] == 0 {
+    while lastNonZero >= 0 && (data[lastNonZero] == 0 || data[lastNonZero] == 0xFF) {
       lastNonZero -= 1
     }
     if lastNonZero < 0 {
