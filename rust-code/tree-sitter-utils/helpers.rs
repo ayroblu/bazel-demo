@@ -40,9 +40,9 @@ pub fn strip_semi(text: String) -> String {
 
 #[macro_export]
 macro_rules! fn_get_ancestor_node {
-    ($name:ident, $kind:ident) => {
+    ($name:ident, $($kind:ident),+ ) => {
         fn $name(node: Node) -> Option<Node> {
-            if node.kind() == stringify!($kind) {
+            if matches!(node.kind(), $(stringify!($kind))|+) {
                 return Some(node);
             }
             return node.parent().and_then($name);

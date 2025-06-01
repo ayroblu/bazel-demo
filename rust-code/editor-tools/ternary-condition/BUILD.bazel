@@ -22,6 +22,10 @@ rust_library(
         "//rust-code/utils",
         "@crates//:serde",
         "@crates//:tree-sitter",
+        "@crates//:tree-sitter-go",
+        "@crates//:tree-sitter-rust",
+        "@crates//:tree-sitter-scala",
+        "@crates//:tree-sitter-swift",
         "@crates//:tree-sitter-typescript",
     ],
 )

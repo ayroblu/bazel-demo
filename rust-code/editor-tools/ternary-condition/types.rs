@@ -12,8 +12,13 @@ pub struct Input {
 pub enum Action {
     Ternary,
     Condition,
+    Resolve,
 }
 #[derive(Serialize, Deserialize)]
 pub enum Lang {
     TypeScript,
+    Rust,
+    Swift,
+    Scala,
+    Go,
 }

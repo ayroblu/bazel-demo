@@ -17,7 +17,15 @@ pub(crate) fn convert(input: &Input, item: &Node, is_else: bool) -> Option<Strin
                     "statement_block" => node.named_child(0),
                     _ => Some(node),
                 })
-                .is_some_and(|node| node.kind() == "return_statement");
+                .is_some_and(|node| {
+                    matches!(
+                        node.kind(),
+                        // TS
+                        "return_statement" |
+                        // Swift
+                        "control_transfer_statement"
+                    )
+                });
             let condition = item
                 .child_by_field_name("condition")
                 .map(|node| to_text(&node, source_bytes))
@@ -94,6 +102,7 @@ pub(crate) fn convert(input: &Input, item: &Node, is_else: bool) -> Option<Strin
                 ))
             }
         }
+        Action::Resolve => None,
     }
 }
 

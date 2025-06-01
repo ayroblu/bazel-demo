@@ -22,6 +22,18 @@ pub fn edit(input: &Input) -> Option<String> {
         Lang::TypeScript => parser
             .set_language(&tree_sitter_typescript::LANGUAGE_TSX.into())
             .expect("Error loading TypeScript grammar"),
+        Lang::Rust => parser
+            .set_language(&tree_sitter_rust::LANGUAGE.into())
+            .expect("Error loading Rust grammar"),
+        Lang::Swift => parser
+            .set_language(&tree_sitter_swift::LANGUAGE.into())
+            .expect("Error loading Swift grammar"),
+        Lang::Scala => parser
+            .set_language(&tree_sitter_scala::LANGUAGE.into())
+            .expect("Error loading Scala grammar"),
+        Lang::Go => parser
+            .set_language(&tree_sitter_go::LANGUAGE.into())
+            .expect("Error loading Go grammar"),
     }
     let tree = parser.parse(&input.source, None).unwrap();
     let mut cursor = tree.root_node().walk();
