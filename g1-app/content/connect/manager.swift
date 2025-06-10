@@ -52,8 +52,8 @@ public class ConnectionManager {
   func stopPairing() {
     if pairing != nil {
       pairing = nil
-      centralManager.stopScan()
     }
+    centralManager.stopScan()
   }
 
   var leftPeripheral: CBPeripheral?
@@ -185,10 +185,12 @@ public class ConnectionManager {
 
   public func sendAllowNotifs() {
     Task {
+      let notifConfig = getNotifConfig()
       let apps = try await fetchNotifApps()
-      let allowData = G1Cmd.Notify.allowData(apps: apps.map { app in (app.id, app.name) })
+      let allowData = G1Cmd.Notify.allowData(
+        notifConfig: notifConfig, apps: apps.map { app in (app.id, app.name) })
       for data in allowData {
-        manager.transmitBoth(data)
+        manager.readLeft(data)
       }
     }
   }

@@ -36,8 +36,10 @@ extension ConnectionManager {
       let location = try await getUserLocation()
       let lat = location.coordinate.latitude
       let lng = location.coordinate.longitude
-      if isSignificantlyDifferent(loc: (lat, lng), prevLoc: prevLocation) || i % 10 == 0 {
-        try await sendRoadMap(loc: location, route: route, roads: roads)
+      if isSignificantlyDifferent(loc: (lat, lng), prevLoc: prevLocation) || i % 5 == 0 {
+        if let done = try await sendRoadMap(loc: location, route: route, roads: roads), done {
+          break
+        }
         log("sent road map", i)
         prevLocation = (lat, lng)
       } else {
@@ -53,17 +55,17 @@ extension ConnectionManager {
   }
 
   func sendRoadMap(loc: CLLocation, route: MKRoute, roads: OverpassResult)
-    async throws
+    async throws -> Bool?
   {
     let lat = loc.coordinate.latitude
     let lng = loc.coordinate.longitude
 
     let progress = calculateRouteProgress(route: route, currentLocation: loc)
     if progress.remainingDistance < 10 {
-      throw NavigationError.arrived
+      return true
     }
-    guard let step = progress.currentStep else { return }
-    guard let remainingStepDistance = progress.remainingStepDistance else { return }
+    guard let step = progress.currentStep else { return nil }
+    guard let remainingStepDistance = progress.remainingStepDistance else { return nil }
 
     let bounds = ElementBounds(
       minlat: lat - padding, minlng: lng - padding,
@@ -103,6 +105,7 @@ extension ConnectionManager {
       try await Task.sleep(for: .milliseconds(8))
     }
 
+    return nil
   }
 }
 enum NavigationError: Error {

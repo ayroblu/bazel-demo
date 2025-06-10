@@ -13,3 +13,24 @@ struct NotifAppInfo: Codable {
   let app_identifier: String  // com.ayroblu.g1-app
   let display_name: String  // G1 Bazel App
 }
+
+func getNotifConfig() -> NotifConfig {
+  return NotifConfig(
+    calendar: notifConfigCalendarState.get(),
+    call: notifConfigCallState.get(),
+    msg: notifConfigMsgState.get(),
+    iosMail: notifConfigIosMailState.get(),
+    apps: notifConfigAppsState.get()
+  )
+}
+struct NotifConfig {
+  let calendar: Bool
+  let call: Bool
+  let msg: Bool
+  let iosMail: Bool
+  let apps: Bool
+}
+// struct NotifApp {
+//   let id: String
+//   let name: String
+// }

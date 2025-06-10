@@ -140,6 +140,9 @@ public struct ContentView: View {
           .onAppear {
             vm.connectionManager.syncUnknown(modelContext: modelContext)
           }
+          .onDisappear {
+            vm.connectionManager.stopPairing()
+          }
           .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase == .active {
               log("Active")

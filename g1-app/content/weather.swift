@@ -32,14 +32,14 @@ func isStale() -> Bool {
 func getWeather() async -> WeatherResult? {
   let loc = getCurrentLocation()
   if let loc {
-    UserLatState.set(loc.coordinate.latitude)
-    UserLngState.set(loc.coordinate.longitude)
+    userLatState.set(loc.coordinate.latitude)
+    userLngState.set(loc.coordinate.longitude)
   } else {
     log("failed to pull location")
   }
-  guard let lat = loc?.coordinate.latitude ?? UserLatState.get()
+  guard let lat = loc?.coordinate.latitude ?? userLatState.get()
   else { return nil }
-  guard let lng = loc?.coordinate.longitude ?? UserLngState.get()
+  guard let lng = loc?.coordinate.longitude ?? userLngState.get()
   else { return nil }
   let latStr = String(format: "%.2f", lat)
   let lngStr = String(format: "%.2f", lng)

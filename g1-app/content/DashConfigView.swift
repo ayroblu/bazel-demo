@@ -2,11 +2,17 @@ import EventKit
 import Log
 import SwiftData
 import SwiftUI
+import jotai
 
 struct DashConfigView: View {
   @StateObject var vm: MainVM
   @Environment(\.modelContext) private var modelContext
   @State var forceRerender = 0
+  @StateObject var calendarEnabled = AtomValue(notifConfigCalendarAtom)
+  @StateObject var callEnabled = AtomValue(notifConfigCallAtom)
+  @StateObject var msgEnabled = AtomValue(notifConfigMsgAtom)
+  @StateObject var iosMailEnabled = AtomValue(notifConfigIosMailAtom)
+  @StateObject var appsEnabled = AtomValue(notifConfigAppsAtom)
 
   var body: some View {
     List {
@@ -130,6 +136,21 @@ struct DashConfigView: View {
           })
         Toggle(isOn: notifDirectPush) {
           Text("Direct push")
+        }
+        Toggle(isOn: calendarEnabled.binding) {
+          Text("Calendar")
+        }
+        Toggle(isOn: callEnabled.binding) {
+          Text("Calls")
+        }
+        Toggle(isOn: msgEnabled.binding) {
+          Text("Messages")
+        }
+        Toggle(isOn: iosMailEnabled.binding) {
+          Text("Mail")
+        }
+        Toggle(isOn: appsEnabled.binding) {
+          Text("Apps")
         }
         NavigationLink("Apps") {
           LazyView {

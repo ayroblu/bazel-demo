@@ -1,23 +1,15 @@
 import Foundation
+import jotai
 
-// @propertyWrapper
-// struct StatePersisted<T> {
-//   let state: Persist<T>
-
-//   var wrappedValue: T {
-//     get { state.get() }
-//     set { state.set(newValue) }
-//   }
-// }
 @propertyWrapper
 class PublishedState<T> {
   let state: PersistWithDefaultState<T>
 
   @Published var value: T
 
-  init(state: PersistWithDefaultState<T>, defaultValue: T) {
+  init(state: PersistWithDefaultState<T>) {
     self.state = state
-    value = state.get(defaultValue: defaultValue)
+    value = state.get()
   }
 
   var wrappedValue: T {
@@ -29,55 +21,89 @@ class PublishedState<T> {
   }
 }
 
-// struct Persist<T> {
-//   let key: String
-//   func get() -> T? {
-//     return UserDefaults.standard.object(forKey: key) as? T
+@MainActor
+func userDefaultsAtom<T>(state: PersistWithDefaultState<T>) -> Atom<T> {
+  return Atom({ state.get() }, { value in state.set(value) })
+}
+@MainActor
+let notifDirectPushAtom = userDefaultsAtom(state: notifDurationSecondsState)
+@MainActor
+let notifDurationSecondsAtom = userDefaultsAtom(state: notifDurationSecondsState)
+@MainActor
+let notifConfigCalendarAtom = userDefaultsAtom(state: notifConfigCalendarState)
+@MainActor
+let notifConfigCallAtom = userDefaultsAtom(state: notifConfigCallState)
+@MainActor
+let notifConfigMsgAtom = userDefaultsAtom(state: notifConfigMsgState)
+@MainActor
+let notifConfigIosMailAtom = userDefaultsAtom(state: notifConfigIosMailState)
+@MainActor
+let notifConfigAppsAtom = userDefaultsAtom(state: notifConfigAppsState)
+// @propertyWrapper
+// struct PersistedState<T> {
+//   private var value: T
+//   private let subject = PassthroughSubject<T, Never>()
+
+//   init(wrappedValue: T) {
+//     self.value = wrappedValue
 //   }
-//   func set(_ value: T) {
-//     UserDefaults.standard.set(value, forKey: key)
+
+//   var wrappedValue: T {
+//     get { value }
+//     set {
+//       value = newValue
+//       subject.send(newValue)
+//     }
+//   }
+
+//   var projectedValue: AnyPublisher<T, Never> {
+//     subject.eraseToAnyPublisher()
+//   }
+
+//   var binding: Binding<T> {
+//     Binding(
+//       get: { self.value },
+//       set: { newValue in self.wrappedValue = newValue }
+//     )
 //   }
 // }
+
+struct Persist<T> {
+  let key: String
+  func get() -> T? {
+    return UserDefaults.standard.object(forKey: key) as? T
+  }
+  func set(_ value: T) {
+    UserDefaults.standard.set(value, forKey: key)
+  }
+}
 struct PersistWithDefaultState<T> {
   let key: String
-  func get(defaultValue: T) -> T {
+  let defaultValue: T
+  func get() -> T {
     return UserDefaults.standard.object(forKey: key) as? T ?? defaultValue
   }
   func set(_ value: T) {
     UserDefaults.standard.set(value, forKey: key)
   }
 }
-let notifDirectPushState = PersistWithDefaultState<Bool>(key: "notif-direct-push")
-let notifDurationSecondsState = PersistWithDefaultState<UInt8>(key: "notif-duration-seconds")
 
-struct ReminderListsState {
-  static let key = "reminder-lists"
-  typealias StateType = [String]
-  static func get() -> StateType? {
-    return UserDefaults.standard.object(forKey: key) as? StateType
-  }
-  static func set(_ value: StateType) {
-    UserDefaults.standard.set(value, forKey: key)
-  }
-}
+let notifDirectPushState = PersistWithDefaultState<Bool>(
+  key: "notif-direct-push", defaultValue: true)
+let notifDurationSecondsState = PersistWithDefaultState<UInt8>(
+  key: "notif-duration-seconds", defaultValue: 10)
 
-struct UserLatState {
-  static let key = "user-lat"
-  typealias StateType = Double
-  static func get() -> StateType? {
-    return UserDefaults.standard.object(forKey: key) as? StateType
-  }
-  static func set(_ value: StateType) {
-    UserDefaults.standard.set(value, forKey: key)
-  }
-}
-struct UserLngState {
-  static let key = "user-lng"
-  typealias StateType = Double
-  static func get() -> StateType? {
-    return UserDefaults.standard.object(forKey: key) as? StateType
-  }
-  static func set(_ value: StateType) {
-    UserDefaults.standard.set(value, forKey: key)
-  }
-}
+let notifConfigCalendarState = PersistWithDefaultState<Bool>(
+  key: "notif-config-calendar", defaultValue: true)
+let notifConfigCallState = PersistWithDefaultState<Bool>(
+  key: "notif-config-call", defaultValue: true)
+let notifConfigMsgState = PersistWithDefaultState<Bool>(key: "notif-config-msg", defaultValue: true)
+let notifConfigIosMailState = PersistWithDefaultState<Bool>(
+  key: "notif-config-ios-mail", defaultValue: true)
+let notifConfigAppsState = PersistWithDefaultState<Bool>(
+  key: "notif-config-apps", defaultValue: true)
+
+let reminderListsState = Persist<[String]>(key: "reminder-lists")
+
+let userLatState = Persist<Double>(key: "user-lat")
+let userLngState = Persist<Double>(key: "user-lng")

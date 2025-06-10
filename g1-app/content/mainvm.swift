@@ -3,6 +3,8 @@ import MapKit
 import SwiftUI
 import utils
 
+let manager = ConnectionManager()
+
 class MainVM: ObservableObject {
   @Published var devices: [String] = []
   @Published private var _text: String = "Hi there!"
@@ -21,9 +23,9 @@ class MainVM: ObservableObject {
   @Published var dashDistance: UInt8 = 2
   @Published var glassesAppState: GlassesAppState?
   @Published var charging: Bool = false
-  @PublishedState(state: notifDirectPushState, defaultValue: true)
+  @PublishedState(state: notifDirectPushState)
   var notifDirectPush: Bool
-  @PublishedState(state: notifDurationSecondsState, defaultValue: 10)
+  @PublishedState(state: notifDurationSecondsState)
   var notifDurationSeconds: UInt8
   var battery: Int? {
     if let leftBattery, let rightBattery {
@@ -59,7 +61,7 @@ class MainVM: ObservableObject {
   var locationSub: (() -> Void)?
   var locationSubInner: (() -> Void)?
 
-  var connectionManager = ConnectionManager()
+  var connectionManager = manager
   init() {
     connectionManager.mainVm = self
   }

@@ -243,15 +243,15 @@ struct G1Cmd {
   }
   struct Notify {
     static var notifyId: UInt8 = 0x00
-    static func allowData(apps: [(id: String, name: String)]) -> [Data] {
+    static func allowData(notifConfig: NotifConfig, apps: [(id: String, name: String)]) -> [Data] {
       let dict: [String: Any] = [
-        "calendar_enable": true,
-        "call_enable": true,
-        "msg_enable": true,
-        "ios_mail_enable": true,
+        "calendar_enable": notifConfig.calendar,
+        "call_enable": notifConfig.call,
+        "msg_enable": notifConfig.msg,
+        "ios_mail_enable": notifConfig.iosMail,
         "app": [
           "list": apps.map { (id, name) in ["id": id, "name": name] },
-          "enable": true,
+          "enable": notifConfig.apps,
         ],
       ]
 

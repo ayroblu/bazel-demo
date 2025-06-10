@@ -154,7 +154,7 @@ extension ConnectionManager {
   }
 
   func getSelectedReminderLists() -> [EKCalendar] {
-    let listIds = ReminderListsState.get()
+    let listIds = reminderListsState.get()
     guard let listIds else {
       return [eventStore.defaultCalendarForNewReminders()].compactMap { $0 }
     }
@@ -173,7 +173,7 @@ extension ConnectionManager {
   }
 
   func setReminderLists(_ value: [String]) {
-    ReminderListsState.set(value)
+    reminderListsState.set(value)
   }
 
   private func fetchSelectedReminders() async -> [SelectedReminder] {

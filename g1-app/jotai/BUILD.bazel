@@ -1,0 +1,24 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library", "swift_test")
+
+package(default_visibility = ["//g1-app:__subpackages__"])
+
+swift_library(
+    name = "jotai",
+    srcs = glob(
+        ["*.swift"],
+        ["*Tests.swift"],
+    ),
+    module_name = "jotai",
+    deps = [
+        "//g1-app/Log",
+        "//g1-app/utils",
+    ],
+)
+
+swift_test(
+    name = "jotai-tests",
+    srcs = glob(["*Tests.swift"]),
+    deps = [
+        ":jotai",
+    ],
+)

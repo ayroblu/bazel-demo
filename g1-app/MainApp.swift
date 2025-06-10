@@ -7,13 +7,19 @@ import content
 struct MainApp: App {
   var body: some Scene {
     WindowGroup {
-      ContentView()
+      MainView()
     }
-    .modelContainer(for: [
-      GlassesModel.self,
-      NoteModel.self,
-      LogEntry.self,
-      NotifAppsModel.self,
-    ])
+  }
+}
+
+struct MainView: View {
+  var body: some View {
+    let modelContainer = getModelContainer()
+    if let modelContainer {
+      ContentView()
+        .modelContainer(modelContainer)
+    } else {
+      Text("failed to get model container")
+    }
   }
 }

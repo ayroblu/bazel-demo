@@ -14,23 +14,41 @@ public class NotifAppsModel {
   }
 }
 
-var cachedContext: ModelContext?
+var cachedContainer: ModelContainer?
 
+public func getModelContainer() -> ModelContainer? {
+  do {
+    return try getModelContainerThrows()
+  } catch {
+    log("getModelContainer", error)
+    return nil
+  }
+}
+func getModelContainerThrows() throws -> ModelContainer {
+  if let cachedContainer {
+    return cachedContainer
+  }
+  let container = try ModelContainer(
+    for:
+      GlassesModel.self,
+    NoteModel.self,
+    LogEntry.self,
+    NotifAppsModel.self
+  )
+  cachedContainer = container
+  return container
+}
 @MainActor
 func getModelContext() throws -> ModelContext {
-  if let cachedContext {
-    return cachedContext
-  }
-  let container = try ModelContainer(for: NotifAppsModel.self)
-  let context = container.mainContext
-  cachedContext = context
-  return context
+  return try getModelContainerThrows().mainContext
 }
 
 @MainActor
 func fetchNotifApps() throws -> [NotifAppsModel] {
   let context = try getModelContext()
-  let descriptor = FetchDescriptor<NotifAppsModel>(sortBy: [SortDescriptor(\.name)])
+  let predicate = #Predicate<NotifAppsModel> { $0.enabled == true }
+  let descriptor = FetchDescriptor<NotifAppsModel>(
+    predicate: predicate, sortBy: [SortDescriptor(\.name)])
   return try context.fetch(descriptor)
 }
 
