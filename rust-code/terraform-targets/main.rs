@@ -3,7 +3,8 @@ use std::io::{self, BufRead};
 
 fn main() {
     let stdin = io::stdin();
-    let re = Regex::new(r#"(?:(resource) +"(\w+)" +"(\w+)" *\{|(module) +"(\w+)" +\{)$"#).unwrap();
+    let re =
+        Regex::new(r#"(?:(resource|data) +"(\w+)" +"(\w+)" *\{|(module) +"(\w+)" +\{)$"#).unwrap();
     let mut is_first = true;
     for line in stdin.lock().lines() {
         let line_text = line.unwrap();
