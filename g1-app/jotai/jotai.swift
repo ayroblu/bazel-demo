@@ -24,7 +24,7 @@ public class JotaiStore {
     let value = atom.getValue(getter)
     map[key] = Value(value: value)
 
-    depsManager.propagateDeps(atom: atom, value: value, tracked: getter.tracked, store: self)
+    depsManager.propagateDeps(atom: atom, tracked: getter.tracked)
 
     if isStale, let cachedValue, value == cachedValue.value {
       return value
@@ -42,7 +42,7 @@ public class JotaiStore {
     }
     map[key] = Value(value: value)
 
-    depsManager.propagateStale(key: key)
+    depsManager.propagateStale(atom: atom, store: self)
     subs[key]?.executeAll()
   }
   public func set<T: Equatable, Arg>(atom: WritableAtom<T, Arg, Void>, value: Arg) {
@@ -73,33 +73,27 @@ public class JotaiStore {
 @MainActor
 class DepsManager {
   // All the atoms that were "get"
-  private var atomDeps = [ObjectIdentifier: Set<ObjectIdentifier>]()
+  private var atomDeps = [ObjectIdentifier: [ObjectIdentifier: () -> Bool]]()
   // Reverse graph of atomDeps
   private var revDeps = [ObjectIdentifier: Set<ObjectIdentifier>]()
   // Reevaluate "stale" dependent atoms. If they changed, then discard cached value
   private var staleAtoms = [ObjectIdentifier: Set<ObjectIdentifier>]()
-  // all keys in atomDeps, a func to check if they are stale
-  private var staleCheckFuncs = [ObjectIdentifier: () -> Bool]()
 
-  func propagateDeps<T: Equatable>(
-    atom: Atom<T>, value: T, tracked: Set<ObjectIdentifier>, store: JotaiStore
-  ) {
+  func propagateDeps<T: Equatable>(atom: Atom<T>, tracked: [ObjectIdentifier: () -> Bool]) {
     let key = ObjectIdentifier(atom)
     if let atomTrackedValues = atomDeps[key] {
-      for t in atomTrackedValues {
+      for t in atomTrackedValues.keys {
         revDeps[t]!.remove(key)
       }
     }
     atomDeps[key] = tracked
-    for t in tracked {
+    for t in tracked.keys {
       revDeps[t, default: Set<ObjectIdentifier>()].insert(key)
-    }
-    staleCheckFuncs[key] = {
-      return store.get(atom: atom) != value
     }
   }
 
-  func propagateStale(key: ObjectIdentifier) {
+  func propagateStale<T: Equatable>(atom: Atom<T>, store: JotaiStore) {
+    let key = ObjectIdentifier(atom)
     var seenAtoms = Set<ObjectIdentifier>()
     func staleRevDep(atomKey: ObjectIdentifier) {
       guard !seenAtoms.contains(atomKey) else { return }
@@ -118,7 +112,7 @@ class DepsManager {
     guard !staleDeps.isEmpty else { return false }
     staleAtoms[key] = nil
     for dep in staleDeps {
-      if let f = staleCheckFuncs[dep], f() {
+      if let f = atomDeps[key]?[dep], f() {
         return true
       }
     }
@@ -168,10 +162,13 @@ public class Getter {
   init(store: JotaiStore) {
     self.store = store
   }
-  var tracked = Set<ObjectIdentifier>()
+  var tracked: [ObjectIdentifier: () -> Bool] = [:]
   public func get<T: Equatable>(atom: Atom<T>) -> T {
-    tracked.insert(ObjectIdentifier(atom))
-    return store.get(atom: atom)
+    let value = store.get(atom: atom)
+    tracked[ObjectIdentifier(atom)] = {
+      return self.store.get(atom: atom) != value
+    }
+    return value
   }
 }
 @MainActor
