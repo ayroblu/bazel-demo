@@ -16,7 +16,6 @@ swift_library(
     deps = [
         "//g1-app/Log",
         "//g1-app/jotai",
-        "//g1-app/jotai-example",
         "//g1-app/log-utils",
         "//g1-app/maps",
         "//g1-app/utils",
