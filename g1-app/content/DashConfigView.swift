@@ -8,6 +8,8 @@ struct DashConfigView: View {
   @StateObject var vm: MainVM
   @Environment(\.modelContext) private var modelContext
   @State var forceRerender = 0
+  @AtomState(notifDirectPushAtom) var notifDirectPush: Bool
+  @AtomState(notifDurationSecondsDoubleAtom) var notifDurationSeconds: Double
   @AtomState(notifConfigCalendarAtom) var calendarEnabled: Bool
   @AtomState(notifConfigCallAtom) var callEnabled: Bool
   @AtomState(notifConfigMsgAtom) var msgEnabled: Bool
@@ -128,14 +130,13 @@ struct DashConfigView: View {
       .environment(\.editMode, Binding.constant(EditMode.active))
 
       Section(header: Text("Notifications")) {
-        let notifDirectPush = Binding(
-          get: { vm.notifDirectPush },
-          set: {
-            vm.notifDirectPush = $0
-            vm.connectionManager.sendNotifConfig()
-          })
-        Toggle(isOn: notifDirectPush) {
+        Toggle(isOn: $notifDirectPush) {
           Text("Direct push")
+        }
+        Slider(value: $notifDurationSeconds, in: 5...20, step: 5) { editing in
+          if !editing {
+            manager.sendNotifConfig()
+          }
         }
         Toggle(isOn: $calendarEnabled) {
           Text("Calendar")

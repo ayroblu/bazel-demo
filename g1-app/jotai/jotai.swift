@@ -2,7 +2,7 @@ import Foundation
 
 @MainActor
 public class JotaiStore {
-  static let shared = JotaiStore()
+  public static let shared = JotaiStore()
 
   private var map = [ObjectIdentifier: Any]()
   private var subs = [ObjectIdentifier: ClosureStore]()

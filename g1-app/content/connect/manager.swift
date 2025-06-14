@@ -205,11 +205,11 @@ public class ConnectionManager {
     }
   }
 
+  @MainActor
   public func sendNotifConfig() {
-    guard let mainVm else { return }
     manager.transmitBoth(
       G1Cmd.Notify.configData(
-        directPush: mainVm.notifDirectPush, durationS: mainVm.notifDurationSeconds))
+        directPush: notifDirectPush, durationS: notifDurationSeconds))
   }
 
   public func toggleSilentMode() {
