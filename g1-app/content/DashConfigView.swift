@@ -8,11 +8,11 @@ struct DashConfigView: View {
   @StateObject var vm: MainVM
   @Environment(\.modelContext) private var modelContext
   @State var forceRerender = 0
-  @StateObject var calendarEnabled = AtomValue(notifConfigCalendarAtom)
-  @StateObject var callEnabled = AtomValue(notifConfigCallAtom)
-  @StateObject var msgEnabled = AtomValue(notifConfigMsgAtom)
-  @StateObject var iosMailEnabled = AtomValue(notifConfigIosMailAtom)
-  @StateObject var appsEnabled = AtomValue(notifConfigAppsAtom)
+  @AtomState(notifConfigCalendarAtom) var calendarEnabled: Bool
+  @AtomState(notifConfigCallAtom) var callEnabled: Bool
+  @AtomState(notifConfigMsgAtom) var msgEnabled: Bool
+  @AtomState(notifConfigIosMailAtom) var iosMailEnabled: Bool
+  @AtomState(notifConfigAppsAtom) var appsEnabled: Bool
 
   var body: some View {
     List {
@@ -137,19 +137,19 @@ struct DashConfigView: View {
         Toggle(isOn: notifDirectPush) {
           Text("Direct push")
         }
-        Toggle(isOn: calendarEnabled.binding) {
+        Toggle(isOn: $calendarEnabled) {
           Text("Calendar")
         }
-        Toggle(isOn: callEnabled.binding) {
+        Toggle(isOn: $callEnabled) {
           Text("Calls")
         }
-        Toggle(isOn: msgEnabled.binding) {
+        Toggle(isOn: $msgEnabled) {
           Text("Messages")
         }
-        Toggle(isOn: iosMailEnabled.binding) {
+        Toggle(isOn: $iosMailEnabled) {
           Text("Mail")
         }
-        Toggle(isOn: appsEnabled.binding) {
+        Toggle(isOn: $appsEnabled) {
           Text("Apps")
         }
         NavigationLink("Apps") {

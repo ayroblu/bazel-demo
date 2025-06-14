@@ -1,46 +1,65 @@
-import Combine
+import Foundation
 import SwiftUI
 
-extension ObservableObjectPublisher: Subscriber {
-  public func receiveUpdate() {
-    send()
+@MainActor
+@propertyWrapper
+public class AtomValue<T: Equatable> {
+  private let atom: Atom<T>
+  private var value: T
+  private var dispose: (() -> Void)?
+  private var store: JotaiStore
+  public init(_ atom: Atom<T>, store: JotaiStore? = nil) {
+    self.atom = atom
+    self.store = store ?? JotaiStore.shared
+    self.value = self.store.get(atom: atom)
+  }
+  deinit {
+    dispose?()
+  }
+
+  public var wrappedValue: T {
+    if dispose == nil {
+      dispose = store.sub(atom: atom) {
+        self.value = self.store.get(atom: self.atom)
+      }
+    }
+    return value
   }
 }
 
 @MainActor
-public class AtomValue<T>: ObservableObject where T: Equatable {
-  public let objectWillChange = ObservableObjectPublisher()
+@propertyWrapper
+public class AtomState<T: Equatable> {
+  private let atom: WritableAtom<T, T, Void>
+  private var value: T
+  private var dispose: (() -> Void)?
+  private var store: JotaiStore
+  public init(_ atom: WritableAtom<T, T, Void>, store: JotaiStore? = nil) {
+    self.atom = atom
+    self.store = store ?? JotaiStore.shared
+    self.value = self.store.get(atom: atom)
+  }
+  deinit {
+    dispose?()
+  }
 
-  public let store: Store
-  public let atom: Atom<T>
-
-  private let disposer: Disposable
-
-  public var value: T {
+  public var wrappedValue: T {
     get {
-      return store.get(atom)
+      if dispose == nil {
+        dispose = store.sub(atom: atom) {
+          self.value = self.store.get(atom: self.atom)
+        }
+      }
+      return value
     }
     set {
-      store.set(atom, value: newValue)
+      store.set(atom: atom, value: newValue)
     }
   }
-
-  public var binding: Binding<T> {
-    .init {
-      self.value
-    } set: {
-      self.value = $0
-    }
-  }
-
-  deinit {
-    disposer.dispose()
-  }
-
-  public init(_ atom: Atom<T>) {
-    self.store = Store.shared
-    self.atom = atom
-
-    self.disposer = store.subscribe(atom: atom, subscriber: objectWillChange)
+  public var projectedValue: Binding<T> {
+    Binding(
+      get: { self.wrappedValue },
+      set: { newValue in self.wrappedValue = newValue }
+    )
   }
 }

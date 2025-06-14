@@ -22,8 +22,15 @@ class PublishedState<T> {
 }
 
 @MainActor
-func userDefaultsAtom<T>(state: PersistWithDefaultState<T>) -> Atom<T> {
-  return Atom({ state.get() }, { value in state.set(value) })
+func userDefaultsAtom<T>(state: PersistWithDefaultState<T>) -> WritableAtom<T, T, Void> {
+  let dataAtom = PrimitiveAtom(state.get())
+  return WritableAtom(
+    { getter in getter.get(atom: dataAtom) },
+    { (setter, value) in
+      state.set(value)
+      setter.set(atom: dataAtom, value: value)
+    })
+  // return WritableAtom({ state.get() }, { value in state.set(value) })
 }
 @MainActor
 let notifDirectPushAtom = userDefaultsAtom(state: notifDurationSecondsState)
