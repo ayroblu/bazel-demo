@@ -2,64 +2,48 @@ import Foundation
 import SwiftUI
 
 @MainActor
-@propertyWrapper
-public class AtomValue<T: Equatable> {
-  private let atom: Atom<T>
-  private var value: T
-  private var dispose: (() -> Void)?
-  private var store: JotaiStore
-  public init(_ atom: Atom<T>, store: JotaiStore? = nil) {
-    self.atom = atom
-    self.store = store ?? JotaiStore.shared
-    self.value = self.store.get(atom: atom)
+private class ValueModel<T: Equatable>: ObservableObject {
+  @Published var value: T
+  var dispose: (() -> Void)?
+  init(value: T) {
+    self.value = value
+  }
+  func listen(store: JotaiStore, atom: Atom<T>) {
+    print("listening")
+    dispose = store.sub(atom: atom) {
+      self.value = store.get(atom: atom)
+    }
   }
   deinit {
+    print("dispose")
     dispose?()
-  }
-
-  public var wrappedValue: T {
-    if dispose == nil {
-      dispose = store.sub(atom: atom) {
-        self.value = self.store.get(atom: self.atom)
-      }
-    }
-    return value
   }
 }
 
 @MainActor
 @propertyWrapper
-public class AtomState<T: Equatable> {
+public struct AtomState<T: Equatable>: DynamicProperty {
+  @StateObject private var model: ValueModel<T>
+  private let store: JotaiStore
   private let atom: WritableAtom<T, T, Void>
-  private var value: T
-  private var dispose: (() -> Void)?
-  private var store: JotaiStore
-  public init(_ atom: WritableAtom<T, T, Void>, store: JotaiStore? = nil) {
+
+  public init(_ atom: WritableAtom<T, T, Void>, store maybeStore: JotaiStore? = nil) {
     self.atom = atom
-    self.store = store ?? JotaiStore.shared
-    self.value = self.store.get(atom: atom)
-  }
-  deinit {
-    dispose?()
+    self.store = maybeStore ?? JotaiStore.shared
+    let valueModel = ValueModel(value: store.get(atom: atom))
+    valueModel.listen(store: store, atom: atom)
+    self._model = StateObject(wrappedValue: valueModel)
   }
 
   public var wrappedValue: T {
-    get {
-      if dispose == nil {
-        dispose = store.sub(atom: atom) {
-          self.value = self.store.get(atom: self.atom)
-        }
-      }
-      return value
-    }
-    set {
-      store.set(atom: atom, value: newValue)
-    }
+    get { self.store.get(atom: self.atom) }
+    nonmutating set { self.store.set(atom: self.atom, value: newValue) }
   }
+
   public var projectedValue: Binding<T> {
     Binding(
-      get: { self.wrappedValue },
-      set: { newValue in self.wrappedValue = newValue }
+      get: { wrappedValue },
+      set: { wrappedValue = $0 }
     )
   }
 }

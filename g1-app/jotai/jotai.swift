@@ -16,6 +16,11 @@ public class JotaiStore {
     let isStale = depsManager.checkStale(key: key)
 
     let cachedValue = map[key] as? Value<T>
+    #if DEBUG
+      if atom.isDebug {
+        print("[jotai debug] get", cachedValue, isStale)
+      }
+    #endif
     if !isStale, let cachedValue {
       return cachedValue.value
     }
@@ -95,11 +100,11 @@ class DepsManager {
   func propagateStale<T: Equatable>(atom: Atom<T>, store: JotaiStore) {
     let key = ObjectIdentifier(atom)
     var seenAtoms = Set<ObjectIdentifier>()
+    seenAtoms.insert(key)
     func staleRevDep(atomKey: ObjectIdentifier) {
-      guard !seenAtoms.contains(atomKey) else { return }
-      seenAtoms.insert(atomKey)
       for dep in revDeps[atomKey, default: Set<ObjectIdentifier>()] {
         guard !seenAtoms.contains(dep) else { continue }
+        seenAtoms.insert(dep)
         staleAtoms[dep, default: Set<ObjectIdentifier>()].insert(atomKey)
         staleRevDep(atomKey: dep)
       }
@@ -130,6 +135,9 @@ public class Atom<T: Equatable> {
   public init(_ getValue: @escaping (Getter) -> T) {
     self.getValue = getValue
   }
+  #if DEBUG
+    public var isDebug: Bool = false
+  #endif
 }
 
 public class WritableAtom<T: Equatable, Arg, Result>: Atom<T> {
