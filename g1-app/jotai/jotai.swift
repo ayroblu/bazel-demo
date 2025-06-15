@@ -18,7 +18,9 @@ public class JotaiStore {
     let cachedValue = map[key] as? Value<T>
     #if DEBUG
       if atom.isDebug {
-        print("[jotai debug] get", cachedValue, isStale)
+        if let cachedValue {
+          print("[jotai debug] get", cachedValue, isStale)
+        }
       }
     #endif
     if !isStale, let cachedValue {

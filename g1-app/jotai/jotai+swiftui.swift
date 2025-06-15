@@ -9,13 +9,13 @@ private class ValueModel<T: Equatable>: ObservableObject {
     self.value = value
   }
   func listen(store: JotaiStore, atom: Atom<T>) {
-    print("listening")
-    dispose = store.sub(atom: atom) {
+    dispose = store.sub(atom: atom) { [weak self, weak atom, weak store] in
+      guard let self, let atom, let store else { return }
       self.value = store.get(atom: atom)
     }
   }
   deinit {
-    print("dispose")
+    // TODO: write a test to validate this
     dispose?()
   }
 }

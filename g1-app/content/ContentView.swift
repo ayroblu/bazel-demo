@@ -80,9 +80,7 @@ public struct ContentView: View {
             }
           }
           NavigationLink("Dash Config") {
-            LazyView {
-              DashConfigView(vm: vm)
-            }
+            NavigationLazyView(DashConfigView(vm: vm))
           }
           NavigationLink("Text Editor") {
             TextEditor(

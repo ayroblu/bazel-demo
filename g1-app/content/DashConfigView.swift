@@ -133,7 +133,7 @@ struct DashConfigView: View {
         Toggle(isOn: $notifDirectPush) {
           Text("Direct push")
         }
-        VStack {
+        VStack(alignment: .leading) {
           Text("Notification duration: \(Int(notifDurationSeconds)) seconds")
           Slider(value: $notifDurationSeconds, in: 5...20, step: 5) { editing in
             if !editing {
