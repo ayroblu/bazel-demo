@@ -80,7 +80,9 @@ public struct ContentView: View {
             }
           }
           NavigationLink("Dash Config") {
-            NavigationLazyView(DashConfigView(vm: vm))
+            NavigationLazyView {
+              DashConfigView(vm: vm)
+            }
           }
           NavigationLink("Text Editor") {
             TextEditor(
@@ -92,10 +94,14 @@ public struct ContentView: View {
             .background(Color(red: 0.1, green: 0.1, blue: 0.1))
           }
           NavigationLink("Navigate test") {
-            NavigateSearchView(vm: vm)
+            NavigationLazyView {
+              NavigateSearchView(vm: vm)
+            }
           }
           NavigationLink("Navigate") {
-            NavigateView(vm: vm)
+            NavigationLazyView {
+              NavigateView(vm: vm)
+            }
           }
           NavigationLink("Notifications") {
             Button("Send notification") {
@@ -122,7 +128,9 @@ public struct ContentView: View {
           }
           #if DEBUG
             NavigationLink("Logs") {
-              LogsUi()
+              NavigationLazyView {
+                LogsUi()
+              }
             }
           #endif
         }
