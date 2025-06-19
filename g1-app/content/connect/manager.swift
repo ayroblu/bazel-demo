@@ -297,3 +297,18 @@ public class ConnectionManager {
     }
   }
 }
+
+let timer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { timer in
+  log("Poll connection fired!")
+  guard let left = manager.leftPeripheral, let right = manager.rightPeripheral else {
+    log("peripheral not found")
+    return
+  }
+  for p in [left, right] {
+    if p.state != .connected {
+      manager.centralManager.connect(
+        p, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+      log("Connecting to", p.name ?? "<unknown>")
+    }
+  }
+}
