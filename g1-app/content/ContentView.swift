@@ -136,6 +136,7 @@ public struct ContentView: View {
         }
       }
       .onAppear {
+        print(WatchConnectivityManager.shared)
         #if DEBUG
           initLogDb(modelContext)
         #endif

@@ -41,6 +41,8 @@ watchos_application(
     bundle_id = "com.ayroblu.g1-app",
     infoplists = ["//g1-app/watch-app:Info.plist"],
     minimum_os_version = "10.0",
+    provisioning_profile = "5bc6ee9b-186f-4f5c-8525-0382a219531e.mobileprovision",
+    visibility = ["//visibility:public"],
     deps = ["//g1-app/watch-app"],
 )
 
