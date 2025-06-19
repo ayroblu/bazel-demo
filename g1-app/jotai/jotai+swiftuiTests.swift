@@ -3,7 +3,6 @@ import XCTest
 
 @testable import jotai
 
-@MainActor
 class JotaiSwiftUITests: XCTestCase {
   func testJotaiSwiftUi() {
     let view = ExampleView()
@@ -17,11 +16,8 @@ class JotaiSwiftUITests: XCTestCase {
   }
 }
 
-@MainActor
 let store = JotaiStore()
-@MainActor
 let testAtom = PrimitiveAtom(2)
-@MainActor
 let testToggleAtom = PrimitiveAtom(true)
 
 struct ExampleView: View {

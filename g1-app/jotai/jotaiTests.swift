@@ -2,7 +2,6 @@ import XCTest
 
 @testable import jotai
 
-@MainActor
 class JotaiTests: XCTestCase {
   func testJotaiBasic() {
     let store = JotaiStore()

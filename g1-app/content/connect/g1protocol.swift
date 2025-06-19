@@ -229,7 +229,7 @@ struct G1Cmd {
     static func data() -> Data {
       let length: UInt8 = 6
       let dataArr: [UInt8] = [
-        0x25,
+        SendCmd.Heartbeat.rawValue,
         length,
         length >> 8,
         heartbeatSeq,
@@ -460,6 +460,7 @@ enum SendCmd: UInt8 {
   case Exit = 0x18
   case Notes = 0x1E
   case FirmwareInfo = 0x23
+  case Heartbeat = 0x25
   case DashConfig = 0x26
   case WearDetection = 0x27  // 01 for on
   case BrightnessState = 0x29

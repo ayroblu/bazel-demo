@@ -141,7 +141,6 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
     peripheral.writeValue(data, for: characteristic, type: type)
   }
 
-  var isConnected = false
   func peripheral(
     _ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?
   ) {
@@ -176,8 +175,10 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
       guard let rightPeripheral else { return }
       guard transmitLeftCharacteristic != nil else { return }
       guard transmitLeftCharacteristic != nil else { return }
-      if !isConnected {
-        isConnected = true
+      if manager?.mainVm?.isConnected == false {
+        manager?.mainVm?.isConnected = true
+        manager?.leftPeripheral = leftPeripheral
+        manager?.rightPeripheral = rightPeripheral
         manager?.onConnect()
         manager?.centralManager.registerForConnectionEvents(
           options: [

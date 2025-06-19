@@ -1,6 +1,5 @@
 import Foundation
 
-@MainActor
 public class JotaiStore {
   public static let shared = JotaiStore()
 
@@ -77,9 +76,8 @@ public class JotaiStore {
   }
 }
 
-@MainActor
+// Note that ideally we would isolate these to one thread, MainActor is a little heavy handed
 class DepsManager {
-  // All the atoms that were "get"
   private var atomDeps = [ObjectIdentifier: [ObjectIdentifier: () -> Bool]]()
   // Reverse graph of atomDeps
   private var revDeps = [ObjectIdentifier: Set<ObjectIdentifier>]()
@@ -131,7 +129,6 @@ struct Value<T> {
   let value: T
 }
 
-@MainActor
 public class Atom<T: Equatable> {
   let getValue: (Getter) -> T
   public init(_ getValue: @escaping (Getter) -> T) {
@@ -166,7 +163,6 @@ public class WriteAtom<Arg, Result>: WritableAtom<Int, Arg, Result> {
   }
 }
 
-@MainActor
 public class Getter {
   let store: JotaiStore
   init(store: JotaiStore) {
@@ -181,7 +177,6 @@ public class Getter {
     return value
   }
 }
-@MainActor
 public class Setter: Getter {
   public func set<T: Equatable>(atom: PrimitiveAtom<T>, value: T) {
     store.set(atom: atom, value: value)
@@ -196,7 +191,6 @@ public class Setter: Getter {
   }
 }
 
-// @MainActor
 // protocol AnyAtom {
 //   associatedtype Value: Equatable
 //   var getValue: (Getter) -> Value { get }

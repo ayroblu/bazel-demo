@@ -1,7 +1,6 @@
 import Foundation
 import SwiftUI
 
-@MainActor
 private class ValueModel<T: Equatable>: ObservableObject {
   @Published var value: T
   var dispose: (() -> Void)?
@@ -20,7 +19,6 @@ private class ValueModel<T: Equatable>: ObservableObject {
   }
 }
 
-@MainActor
 @propertyWrapper
 public struct AtomState<T: Equatable>: DynamicProperty {
   @StateObject private var model: ValueModel<T>
