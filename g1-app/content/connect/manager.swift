@@ -184,9 +184,9 @@ public class ConnectionManager {
   }
 
   public func sendAllowNotifs() {
-    Task {
+    Task { @MainActor in
       let notifConfig = getNotifConfig()
-      let apps = try await fetchNotifApps()
+      let apps = try fetchNotifApps()
       let allowData = G1Cmd.Notify.allowData(
         notifConfig: notifConfig, apps: apps.map { app in (app.id, app.name) })
       for data in allowData {

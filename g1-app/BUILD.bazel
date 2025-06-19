@@ -1,5 +1,6 @@
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
+load("@build_bazel_rules_apple//apple:watchos.bzl", "watchos_application")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 load(
     "@rules_xcodeproj//xcodeproj:defs.bzl",
@@ -35,6 +36,14 @@ ios_application(
     deps = [":lib"],
 )
 
+watchos_application(
+    name = "watch-app",
+    bundle_id = "com.ayroblu.g1-app",
+    infoplists = ["//g1-app/watch-app:Info.plist"],
+    minimum_os_version = "10.0",
+    deps = ["//g1-app/watch-app"],
+)
+
 # filegroup(
 #     name = "Assets.xcassets",
 #     srcs = glob(["Assets.xcassets/**"]),
@@ -63,6 +72,13 @@ xcodeproj(
     top_level_targets = [
         top_level_target(
             ":g1-app",
+            target_environments = [
+                "device",
+                "simulator",
+            ],
+        ),
+        top_level_target(
+            ":watch-app",
             target_environments = [
                 "device",
                 "simulator",
