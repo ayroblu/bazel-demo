@@ -1,6 +1,7 @@
-import jotai
-import utils
+import CoreBluetooth
 import Foundation
+import Log
+import jotai
 
 struct Config {
   static func brightnessData(brightness: UInt8, auto: Bool) -> Data {
@@ -43,6 +44,10 @@ struct Config {
     return dashModeGeneralData(
       DashModeConfig.Layout,
       [mode.rawValue, mode == DashMode.Minimal ? null : subMode.rawValue])
+    // return Data([
+    //   Cmd.DashMode.rawValue, 0x07, 0x00, 0x06, mode.rawValue,
+    //   mode == DashMode.Minimal ? 0x00 : subMode.rawValue,
+    // ])
   }
   enum WeatherIcon: UInt8 {
     case Night = 0x01
@@ -72,6 +77,12 @@ struct Config {
     return dashModeGeneralData(
       DashModeConfig.WeatherTime,
       epochTime32 + epochTime64 + [weatherIcon.rawValue, temp, fahrenheit, twelveHour])
+    // return Data(
+    //   [
+    //     Cmd.DashMode.rawValue, 0x15, 0x00, 0x07, 0x01,
+    //   ] + epochTime32 + epochTime64 + [
+    //     weatherIcon.rawValue, temp, fahrenheit, twelveHour,
+    //   ])
   }
   static func headTiltData(angle: UInt8) -> Data? {
     guard angle >= 0 && angle <= 60 else { return nil }
@@ -117,6 +128,14 @@ struct Config {
       fixedData + [UInt8(0x01), nameLength] + nameData + [UInt8(0x02), timeLength] + timeData
       + [UInt8(0x03), locationLength] + locationData
     return dashModeGeneralData(DashModeConfig.Calendar, eventData)
+    // let fixedData: [UInt8] = [
+    //   0x00, 0x99, 0x03, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x03, 0x01,
+    // ]
+    // let eventData: [UInt8] =
+    //   fixedData + [UInt8(0x01), nameLength] + nameData + [UInt8(0x02), timeLength] + timeData
+    //   + [UInt8(0x03), locationLength] + locationData
+    // let totalLength: UInt8 = UInt8(eventData.count + 2)
+    // return Data([Cmd.DashMode.rawValue, totalLength] + eventData)
   }
   static private func mapDataParts(_ bytes: [UInt8]) -> [Data] {
     let maxLength = 182
@@ -172,6 +191,51 @@ struct Config {
     }
   }
 }
+let configListeners: [Cmd: Listener] = [
+  Cmd.Brightness: { (peripheral, data, side, store) in
+    guard let name = peripheral.name else { return }
+    logFailure(code: data[1], type: "autobrightness", name: name, data: data)
+  },
+  Cmd.SilentMode: { (peripheral, data, side, store) in
+    guard let name = peripheral.name else { return }
+    // 0x03c9
+    logFailure(code: data[1], type: "silent mode", name: name, data: data)
+  },
+  Cmd.DashMode: { (peripheral, data, side, store) in
+    switch data[1] {
+    case 0x07:
+      // mode: (full dual minimal)
+      // 0x0607003b06
+      break
+    case 0x15:
+      // dash time and weather
+      // 0x0615003801
+      break
+    default:
+      // Probably calendar?
+      // log("unknown dash cmd: \(name) \(data.hex)")
+      break
+    }
+  },
+  Cmd.HeadsUp: { (peripheral, data, side, store) in
+    // Right only after opening settings
+    // 0x326d1501
+    store.set(atom: headsUpAngleAtom, value: data[2])
+  },
+  Cmd.DashPosition: { (peripheral, data, side, store) in
+    // on load, right only
+    // 0x3bc90203
+    if data[1] == 0xC9 {
+      store.set(atom: dashVerticalAtom, value: data[2])
+      store.set(atom: dashDistanceAtom, value: data[3])
+    }
+  },
+]
+
+let headsUpAngleAtom = PrimitiveAtom<UInt8>(30)
+
+let dashVerticalAtom = PrimitiveAtom<UInt8>(3)
+let dashDistanceAtom = PrimitiveAtom<UInt8>(2)
 
 let headsUpDashInternalAtom = PrimitiveAtom(true)
 let headsUpDashAtom = WritableAtom<Bool, Bool, Void>(

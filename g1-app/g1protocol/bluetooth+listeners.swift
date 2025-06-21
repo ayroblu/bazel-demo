@@ -3,14 +3,6 @@ import Log
 import jotai
 
 extension BluetoothManager {
-  func onValue(peripheral: CBPeripheral, data: Data) {
-    guard let cmd = Cmd(rawValue: data[0]) else {
-      log("unknown cmd", data[0])
-      return
-    }
-    listeners[cmd]?.executeAll(peripheral: peripheral, data: data, side: .left, store: store)
-  }
-
   func addOnConnectListener(listener: @escaping () -> Void) -> () -> Void {
     let result = onConnectListener.add(listener)
     if store.get(atom: isConnectedAtom) {
@@ -19,8 +11,33 @@ extension BluetoothManager {
     return result
   }
 }
-
 var onConnectListener = ClosureStore()
+
+extension BluetoothManager {
+  func onValue(peripheral: CBPeripheral, data: Data) {
+    guard let cmd = Cmd(rawValue: data[0]) else {
+      log("unknown cmd", data[0])
+      return
+    }
+    listeners[cmd]?.executeAll(peripheral: peripheral, data: data, side: peripheral == leftPeripheral ? .left : .right, store: store)
+  }
+}
+let allListeners = [infoListeners]
+
+func addListener(key: Cmd, listener: @escaping Listener) -> () -> Void {
+  if listeners[key] == nil {
+    listeners[key] = ListenerClosureStore()
+  }
+  return listeners[key, default: ListenerClosureStore()].add(listener)
+}
+
+func addListeners() {
+  for listeners in allListeners {
+    for (key, value) in listeners {
+      let _ = addListener(key: key, listener: value)
+    }
+  }
+}
 
 enum Side {
   case left
@@ -32,20 +49,6 @@ var listeners = [
   Cmd: ListenerClosureStore
 ]()
 
-func addListener(key: Cmd, listener: @escaping Listener) -> () -> Void {
-  if listeners[key] == nil {
-    listeners[key] = ListenerClosureStore()
-  }
-  return listeners[key, default: ListenerClosureStore()].add(listener)
-}
-
-func addListeners() {
-  for listeners in [infoListeners] {
-    for (key, value) in listeners {
-      let _ = addListener(key: key, listener: value)
-    }
-  }
-}
 
 class ListenerClosureStore {
   private var closures: Set<UUID> = []

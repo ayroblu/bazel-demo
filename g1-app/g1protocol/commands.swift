@@ -1,4 +1,5 @@
 enum Cmd: UInt8 {
+  case Error = 0x00
   case Brightness = 0x01
   case SilentMode = 0x03
   case AddNotif = 0x04
@@ -28,4 +29,5 @@ enum Cmd: UInt8 {
   case Ping = 0x4D
   case Text = 0x4E
   case NotifConfig = 0x4F
+  case FirmwareInfoRes = 0x6E
 }
