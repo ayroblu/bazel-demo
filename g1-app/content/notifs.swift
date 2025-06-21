@@ -36,7 +36,6 @@ struct NotifConfig {
 //   let name: String
 // }
 
-@MainActor
 func userDefaultsAtom<T>(state: PersistWithDefaultState<T>, f: (() -> Void)? = nil)
   -> WritableAtom<T, T, Void>
 {
@@ -49,44 +48,31 @@ func userDefaultsAtom<T>(state: PersistWithDefaultState<T>, f: (() -> Void)? = n
       f?()
     })
 }
-@MainActor
 func notifConfigAtom<T>(state: PersistWithDefaultState<T>) -> WritableAtom<T, T, Void> {
   return userDefaultsAtom(state: state) {
     manager.sendNotifConfig()
   }
 }
-@MainActor
 var notifDirectPush: Bool {
   JotaiStore.shared.get(atom: notifDirectPushAtom)
 }
-@MainActor
 var notifDurationSeconds: UInt8 {
   JotaiStore.shared.get(atom: notifDurationSecondsAtom)
 }
-@MainActor
 let notifDirectPushAtom = notifConfigAtom(state: notifDirectPushState)
-@MainActor
 let notifDurationSecondsAtom = userDefaultsAtom(state: notifDurationSecondsState)
-@MainActor
 let notifDurationSecondsDoubleAtom = DoubleUInt8CastAtom(atom: notifDurationSecondsAtom)
-@MainActor
 func notifAllowlistAtom<T>(state: PersistWithDefaultState<T>) -> WritableAtom<T, T, Void> {
   return userDefaultsAtom(state: state) {
     manager.sendAllowNotifs()
   }
 }
-@MainActor
 let notifConfigCalendarAtom = notifAllowlistAtom(state: notifConfigCalendarState)
-@MainActor
 let notifConfigCallAtom = notifAllowlistAtom(state: notifConfigCallState)
-@MainActor
 let notifConfigMsgAtom = notifAllowlistAtom(state: notifConfigMsgState)
-@MainActor
 let notifConfigIosMailAtom = notifAllowlistAtom(state: notifConfigIosMailState)
-@MainActor
 let notifConfigAppsAtom = notifAllowlistAtom(state: notifConfigAppsState)
 
-@MainActor
 func DoubleUInt8CastAtom(atom: WritableAtom<UInt8, UInt8, Void>) -> WritableAtom<
   Double, Double, Void
 > {

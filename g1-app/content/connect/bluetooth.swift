@@ -118,6 +118,10 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
     transmit(data, for: left, type: .withoutResponse)
     transmit(data, for: right, type: .withoutResponse)
   }
+  func transmitRight(_ data: Data) {
+    guard let right = rightPeripheral else { return }
+    transmit(data, for: right, type: .withoutResponse)
+  }
   func readBoth(_ data: Data) {
     guard let left = leftPeripheral else { return }
     guard let right = rightPeripheral else { return }

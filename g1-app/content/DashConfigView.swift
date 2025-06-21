@@ -8,6 +8,7 @@ struct DashConfigView: View {
   @StateObject var vm: MainVM
   @Environment(\.modelContext) private var modelContext
   @State var forceRerender = 0
+  @AtomState(headsUpDashAtom) var headsUpDash: Bool
   @AtomState(notifDirectPushAtom) var notifDirectPush: Bool
   @AtomState(notifDurationSecondsDoubleAtom) var notifDurationSeconds: Double
   @AtomState(notifConfigCalendarAtom) var calendarEnabled: Bool
@@ -32,6 +33,10 @@ struct DashConfigView: View {
             vm.connectionManager.headsUpAngle(angle: vm.headsUpAngle)
           }
         }
+      }
+
+      Toggle(isOn: $headsUpDash) {
+        Text("Heads Up Dashboard")
       }
 
       let dashVertical = Binding(

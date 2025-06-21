@@ -205,7 +205,6 @@ public class ConnectionManager {
     }
   }
 
-  @MainActor
   public func sendNotifConfig() {
     manager.transmitBoth(
       G1Cmd.Notify.configData(
@@ -231,6 +230,16 @@ public class ConnectionManager {
   public func headsUpAngle(angle: UInt8) {
     guard let data = G1Cmd.Config.headTiltData(angle: angle) else { return }
     manager.transmitBoth(data)
+  }
+
+  func headsUpConfig(_ config: G1Cmd.Config.HeadsUpConfig) {
+    let data = G1Cmd.Config.headsUpConfig(config)
+    manager.transmitRight(data)
+  }
+
+  func getHeadsUpConfig() {
+    let data = G1Cmd.Config.getHeadsUpConfig()
+    manager.readRight(data)
   }
 
   public func dashPosition(isShow: Bool, vertical: UInt8, distance: UInt8) {
@@ -289,6 +298,7 @@ public class ConnectionManager {
     manager.readRight(Data([SendCmd.BrightnessState.rawValue]))
     manager.readRight(Data([SendCmd.DashPosition.rawValue]))
     manager.readRight(Data([SendCmd.HeadsUp.rawValue]))
+    getHeadsUpConfig()
     guard let glasses else { return }
     if glasses.leftLensSerialNumber == nil || glasses.rightLensSerialNumber == nil {
       manager.readBoth(G1Cmd.Info.lensSerialNumberData())

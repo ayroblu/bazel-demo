@@ -2,26 +2,6 @@ import Foundation
 import MapKit
 import utils
 
-// let padding = 0.001
-// public func fetchRoadMap(bounds: ElementBounds, width: Int, height: Int) async throws -> [Bool] {
-//   let dlat = bounds.maxlat - bounds.minlat
-//   let dlng = bounds.maxlng - bounds.minlng
-//   let paddingWidth = Int(ceil(padding / dlng * Double(width)))
-//   let paddingHeight = Int(ceil(padding / dlat * Double(height)))
-//   let largerWidth = width + paddingWidth * 2
-//   let largerHeight = height + paddingHeight * 2
-//   let largerBounds = ElementBounds(
-//     minlat: bounds.minlat - padding, minlng: bounds.minlng - padding,
-//     maxlat: bounds.maxlat + padding, maxlng: bounds.maxlng + padding)
-
-//   let roads = try await fetchRoads(bounds: largerBounds)
-//   var mapBoard = MapBoard(width: largerWidth, height: largerHeight)
-//   mapBoard.render(data: roads, bounds: largerBounds)
-//   mapBoard.crop(start: (paddingWidth, paddingHeight), dim: (width, height))
-
-//   return mapBoard.board.flatMap { $0 }
-// }
-
 extension OverpassResult {
   public func renderMap(bounds: ElementBounds, dim: (width: Int, height: Int)) -> [Bool] {
     let (width, height) = dim

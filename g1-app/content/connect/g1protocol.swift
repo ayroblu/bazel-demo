@@ -2,6 +2,7 @@ import CoreBluetooth
 import Foundation
 import Log
 import Pcm
+import jotai
 import utils
 import zlib
 
@@ -45,6 +46,22 @@ struct G1Cmd {
     static func silentModeData(enabled: Bool) -> Data {
       return Data([SendCmd.SilentMode.rawValue, enabled ? 0x0C : 0x0A, 0x00])
     }
+    static func wearDetectionData(enabled: Bool) -> Data {
+      return Data([SendCmd.WearDetection.rawValue, enabled ? 0x01 : 0x00])
+    }
+    enum DashModeConfig: UInt8 {
+      case WeatherTime = 0x01
+      case Calendar = 0x03
+      case Layout = 0x06
+      case Map = 0x07
+    }
+    static private var dashModeSeq: UInt8 = 0x00
+    static private func dashModeGeneralData(_ config: DashModeConfig, _ data: [UInt8]) -> Data {
+      let data: [UInt8] = [null, dashModeSeq, config.rawValue] + data
+      dashModeSeq &+= 1
+      let length: UInt8 = UInt8(data.count + 2)
+      return Data([SendCmd.DashMode.rawValue, length] + data)
+    }
     enum DashMode: UInt8 {
       case Full = 0x00
       case Dual = 0x01
@@ -59,10 +76,13 @@ struct G1Cmd {
       case Map = 0x05
     }
     static func dashModeData(mode: DashMode, subMode: DashSubMode) -> Data {
-      return Data([
-        SendCmd.DashMode.rawValue, 0x07, 0x00, 0x06, mode.rawValue,
-        mode == DashMode.Minimal ? 0x00 : subMode.rawValue,
-      ])
+      return dashModeGeneralData(
+        DashModeConfig.Layout,
+        [mode.rawValue, mode == DashMode.Minimal ? null : subMode.rawValue])
+      // return Data([
+      //   SendCmd.DashMode.rawValue, 0x07, 0x00, 0x06, mode.rawValue,
+      //   mode == DashMode.Minimal ? 0x00 : subMode.rawValue,
+      // ])
     }
     enum WeatherIcon: UInt8 {
       case Night = 0x01
@@ -89,16 +109,29 @@ struct G1Cmd {
       let fahrenheit: UInt8 = 0x00  // 00 is C, 01 is F
       let twelveHour: UInt8 = 0x00  // 00 is 24h, 01 is 12h
       // Value: 0615 0007 013B 1ECA 6723 1786 6D95 0100 0001 0B00 00
-      return Data(
-        [
-          SendCmd.DashMode.rawValue, 0x15, 0x00, 0x07, 0x01,
-        ] + epochTime32 + epochTime64 + [
-          weatherIcon.rawValue, temp, fahrenheit, twelveHour,
-        ])
+      return dashModeGeneralData(
+        DashModeConfig.WeatherTime,
+        epochTime32 + epochTime64 + [weatherIcon.rawValue, temp, fahrenheit, twelveHour])
+      // return Data(
+      //   [
+      //     SendCmd.DashMode.rawValue, 0x15, 0x00, 0x07, 0x01,
+      //   ] + epochTime32 + epochTime64 + [
+      //     weatherIcon.rawValue, temp, fahrenheit, twelveHour,
+      //   ])
     }
     static func headTiltData(angle: UInt8) -> Data? {
       guard angle >= 0 && angle <= 60 else { return nil }
       return Data([SendCmd.HeadTilt.rawValue, UInt8(angle), 0x01])
+    }
+    enum HeadsUpConfig: UInt8 {
+      case dashboard = 0x00
+      case none = 0x02
+    }
+    static func headsUpConfig(_ config: HeadsUpConfig) -> Data {
+      return Data([SendCmd.HeadsUpConfig.rawValue, 0x06, null, null, 0x03, config.rawValue])
+    }
+    static func getHeadsUpConfig() -> Data {
+      return Data([SendCmd.HeadsUpConfig.rawValue, 0x06, null, null, 0x04, null])
     }
     static func dashData(isShow: Bool, vertical: UInt8, distance: UInt8) -> Data? {
       let cmd: UInt8 = 0x02
@@ -124,14 +157,41 @@ struct G1Cmd {
       let locationData: [UInt8] = event.location.uint8()
       let locationLength: UInt8 = UInt8(locationData.count)
       let fixedData: [UInt8] = [
-        0x00, 0x99, 0x03, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x03, 0x01,
+        0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x03, 0x01,
       ]
-      // need part + event data split for swift type checker
-      let partData: [UInt8] = fixedData + [0x01, nameLength] + nameData
-      let partData2: [UInt8] = partData + [0x02, timeLength] + timeData
-      let eventData: [UInt8] = partData2 + [0x03, locationLength] + locationData
-      let totalLength: UInt8 = UInt8(eventData.count + 2)
-      return Data([SendCmd.DashMode.rawValue, totalLength] + eventData)
+      let eventData: [UInt8] =
+        fixedData + [UInt8(0x01), nameLength] + nameData + [UInt8(0x02), timeLength] + timeData
+        + [UInt8(0x03), locationLength] + locationData
+      return dashModeGeneralData(DashModeConfig.Calendar, eventData)
+      // let fixedData: [UInt8] = [
+      //   0x00, 0x99, 0x03, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x03, 0x01,
+      // ]
+      // let eventData: [UInt8] =
+      //   fixedData + [UInt8(0x01), nameLength] + nameData + [UInt8(0x02), timeLength] + timeData
+      //   + [UInt8(0x03), locationLength] + locationData
+      // let totalLength: UInt8 = UInt8(eventData.count + 2)
+      // return Data([SendCmd.DashMode.rawValue, totalLength] + eventData)
+    }
+    static private func mapDataParts(_ bytes: [UInt8]) -> [Data] {
+      let maxLength = 182
+      let chunks = bytes.chunk(into: maxLength)
+      let packetCount: UInt8 = UInt8(chunks.count)
+      return chunks.enumerated().map { (index, chunk) in
+        let packetNum: UInt8 = UInt8(index + 1)
+        return dashModeGeneralData(
+          DashModeConfig.Map, [packetCount, null, packetNum, null] + chunk)
+      }
+    }
+    static func mapData(image: [Bool], overlay: [Bool]) -> [Data] {
+      let mapSomething: UInt8 = 0x04
+      let signalParts = mapDataParts([null, null, mapSomething, null])
+      // ((0xbd-9)*0x1c-3)*16/2=40296
+      // image is 138 x 292 probably
+      let imageBytes: [UInt8] = (image + overlay).toBytes().runLengthEncode()
+      let mainParts = mapDataParts([null, mapSomething, UInt8(0x02)] + imageBytes)
+      // 132 bytes of something I'm not sure what
+      let finalParts = mapDataParts([null, mapSomething, UInt8(0x03)] + [UInt8(0x01)])
+      return signalParts + mainParts + finalParts
     }
     struct Note {
       let title: String
@@ -208,7 +268,7 @@ struct G1Cmd {
       }
     }
     static func endData() -> Data {
-      return Data([0x20, 0x0D, 0x0E])
+      return Data([SendCmd.BmpDone.rawValue, 0x0D, 0x0E])
     }
     static func crcData(inputData: Data) -> Data {
       let crc: UInt32 = (address + inputData).toCrc32()
@@ -452,6 +512,7 @@ enum SendCmd: UInt8 {
   case SilentMode = 0x03
   case AddNotif = 0x04
   case DashMode = 0x06
+  case HeadsUpConfig = 0x08
   case Navigate = 0x0A
   case HeadTilt = 0x0B
   case Mic = 0x0E
@@ -459,6 +520,7 @@ enum SendCmd: UInt8 {
   case Crc = 0x16
   case Exit = 0x18
   case Notes = 0x1E
+  case BmpDone = 0x20
   case FirmwareInfo = 0x23
   case Heartbeat = 0x25
   case DashConfig = 0x26
@@ -482,6 +544,7 @@ enum BLE_REC: UInt8 {
   case SilentMode = 0x03
   case AddNotif = 0x04
   case DashMode = 0x06
+  case HeadsUpConfig = 0x08
   case Navigate = 0x0A
   case HeadTilt = 0x0B
   case Notes = 0x1E
@@ -780,6 +843,12 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
     // 0x2606000102c9
     // log("dash control \(data.hex)")
     break
+  case .HeadsUpConfig:
+    // on pairing
+    // 0x080600000400 dashboard
+    // 0x080600000402 none
+    let result = G1Cmd.Config.HeadsUpConfig(rawValue: data[5])
+    JotaiStore.shared.set(atom: headsUpDashInternalAtom, value: result == .dashboard)
   case .BmpDone:
     log("bmp done \(name), isSuccess: \(data[1] == 0xC9)")
     mainVm?.glassesAppState = .Bmp
@@ -830,10 +899,6 @@ func onValue(_ peripheral: CBPeripheral, data: Data, mainVm: MainVM?) {
     break
   case .none:
     switch data[0] {
-    case 0x08:
-      // on pairing
-      // 0x0806000004
-      break
     case 0x14:
       // After opening notifications
       // 0x14c9

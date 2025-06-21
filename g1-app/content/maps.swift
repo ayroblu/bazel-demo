@@ -24,7 +24,6 @@ extension ConnectionManager {
 
   func sendNavigateInner(route: MKRoute) async throws {
     let secondaryBounds = routeBounds(route: route)
-    let roads = try await fetchRoads(bounds: secondaryBounds)
 
     log("starting navigate")
 
@@ -37,6 +36,7 @@ extension ConnectionManager {
       let lat = location.coordinate.latitude
       let lng = location.coordinate.longitude
       if isSignificantlyDifferent(loc: (lat, lng), prevLoc: prevLocation) || i % 5 == 0 {
+        let roads = try await fetchRoads(bounds: secondaryBounds)
         if let done = try await sendRoadMap(loc: location, route: route, roads: roads), done {
           break
         }
@@ -216,7 +216,7 @@ func getSearchResults(
           try await getDirections(
             from: here, to: location,
             transportType: transportType)
-        }
+       }
         guard let route else { return nil }
         return LocSearchResult.from(item: location, route: route)
       }
