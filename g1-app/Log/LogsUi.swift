@@ -29,7 +29,12 @@ public struct LogsUi: View {
     .navigationTitle("Logs")
     .toolbar {
       if logItems.count > 0 {
-        ToolbarItem(placement: .navigationBarTrailing) {
+    #if os(iOS)
+        let placement: ToolbarItemPlacement = .topBarTrailing
+    #else
+        let placement: ToolbarItemPlacement = .automatic
+    #endif
+        ToolbarItem(placement: placement) {
           Button(action: {
             try? deleteAll()
           }) {

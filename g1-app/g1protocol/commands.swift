@@ -1,0 +1,31 @@
+enum Cmd: UInt8 {
+  case Brightness = 0x01
+  case SilentMode = 0x03
+  case AddNotif = 0x04
+  case DashMode = 0x06
+  case HeadsUpConfig = 0x08
+  case Navigate = 0x0A
+  case HeadTilt = 0x0B
+  case Mic = 0x0E
+  case Bmp = 0x15
+  case Crc = 0x16
+  case Exit = 0x18
+  case Notes = 0x1E
+  case BmpDone = 0x20
+  case FirmwareInfo = 0x23
+  case Heartbeat = 0x25
+  case DashConfig = 0x26
+  case WearDetection = 0x27  // 01 for on
+  case BrightnessState = 0x29
+  case GlassesState = 0x2B
+  case Battery = 0x2C
+  case HeadsUp = 0x32
+  case LensSerialNumber = 0x33
+  case DeviceSerialNumber = 0x34
+  case Uptime = 0x37
+  case DashPosition = 0x3B
+  case Notif = 0x4B
+  case Ping = 0x4D
+  case Text = 0x4E
+  case NotifConfig = 0x4F
+}

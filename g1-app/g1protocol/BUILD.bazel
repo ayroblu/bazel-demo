@@ -1,0 +1,26 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library", "swift_test")
+
+package(default_visibility = ["//g1-app:__subpackages__"])
+
+swift_library(
+    name = "g1protocol",
+    srcs = glob(
+        ["*.swift"],
+        ["*Tests.swift"],
+    ),
+    module_name = "g1protocol",
+    deps = [
+        "//g1-app/Log",
+        "//g1-app/jotai",
+        "//g1-app/utils",
+        "//g1-app/vendor-pcm",
+    ],
+)
+
+swift_test(
+    name = "g1protocol-tests",
+    srcs = glob(["*Tests.swift"]),
+    deps = [
+        ":g1protocol",
+    ],
+)

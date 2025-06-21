@@ -1,5 +1,37 @@
 import CoreBluetooth
-import SwiftData
+import Log
+import jotai
+
+extension BluetoothManager {
+  func syncUnknown() {
+    let pairing = Pairing(connect: connect)
+    self.pairing = pairing
+
+    startPairingScan()
+  }
+
+  private func startPairingScan() {
+    guard let pairing else { return }
+    let peripherals = manager.retrieveConnectedPeripherals(withServices: [
+      uartServiceCbuuid
+    ])
+    for peripheral in peripherals {
+      if pairing.onPeripheral(peripheral: peripheral) {
+        return
+      }
+    }
+    log("No paired peripherals found")
+    // manager.scanForPeripherals(withServices: [uartServiceCbuuid])
+    manager.scanForPeripherals(withServices: nil)
+  }
+
+  func stopPairing() {
+    if pairing != nil {
+      pairing = nil
+    }
+    manager.stopScan()
+  }
+}
 
 struct LeftRight {
   let left: CBPeripheral?
