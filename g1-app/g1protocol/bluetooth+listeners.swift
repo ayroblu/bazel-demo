@@ -15,14 +15,19 @@ var onConnectListener = ClosureStore()
 
 extension BluetoothManager {
   func onValue(peripheral: CBPeripheral, data: Data) {
+    let side: Side = peripheral == leftPeripheral ? .left : .right
     guard let cmd = Cmd(rawValue: data[0]) else {
-      log("unknown cmd", data[0])
+      handleUnknownCommands(peripheral: peripheral, data: data, side: side, store: store)
       return
     }
-    listeners[cmd]?.executeAll(peripheral: peripheral, data: data, side: peripheral == leftPeripheral ? .left : .right, store: store)
+    if let listeners = listeners[cmd] {
+      listeners.executeAll(peripheral: peripheral, data: data, side: side, store: store)
+    } else {
+      log("No listeners:", cmd, data)
+    }
   }
 }
-let allListeners = [infoListeners]
+let allListeners: [[Cmd: Listener]] = [infoListeners, configListeners, deviceListeners]
 
 func addListener(key: Cmd, listener: @escaping Listener) -> () -> Void {
   if listeners[key] == nil {
@@ -45,10 +50,7 @@ enum Side {
 }
 typealias Listener = (_ peripheral: CBPeripheral, _ data: Data, _ side: Side, _ store: JotaiStore)
   -> Void
-var listeners = [
-  Cmd: ListenerClosureStore
-]()
-
+var listeners: [Cmd: ListenerClosureStore] = [:]
 
 class ListenerClosureStore {
   private var closures: Set<UUID> = []

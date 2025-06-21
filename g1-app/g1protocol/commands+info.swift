@@ -82,6 +82,8 @@ let infoListeners: [Cmd: Listener] = [
       log("unknown mode state \(name) \(data.hex)")
     }
   },
+  Cmd.FirmwareInfo: { (peripheral, data, side, store) in
+  },
   Cmd.FirmwareInfoRes: { (peripheral, data, side, store) in
     // let text = data.ascii() ?? "<>"
     // log("firmware: \(name) \(text.trim())")
@@ -119,7 +121,7 @@ let infoListeners: [Cmd: Listener] = [
   Cmd.Uptime: { (peripheral, data, side, store) in
     // time since boot in seconds?
     // 0x3737e1bc000001
-  }
+  },
 ]
 
 let leftBatteryAtom = PrimitiveAtom<Int?>(nil)

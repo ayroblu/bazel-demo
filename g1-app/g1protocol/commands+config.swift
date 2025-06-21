@@ -196,10 +196,21 @@ let configListeners: [Cmd: Listener] = [
     guard let name = peripheral.name else { return }
     logFailure(code: data[1], type: "autobrightness", name: name, data: data)
   },
+  Cmd.BrightnessState: { (peripheral, data, side, store) in
+    // On open even app from [0x29] send
+    let brightness = data[2]
+    let isAutoBrightness = data[3] == 0x01
+    // Max brightness: 42
+    store.set(atom: brightnessAtom, value: brightness)
+    store.set(atom: autoBrightnessAtom, value: isAutoBrightness)
+    // log("auto brightness \(name) \(brightness) \(isAutoBrightness) | \(data.hex)")
+  },
   Cmd.SilentMode: { (peripheral, data, side, store) in
     guard let name = peripheral.name else { return }
     // 0x03c9
     logFailure(code: data[1], type: "silent mode", name: name, data: data)
+  },
+  Cmd.WearDetection: { (peripheral, data, side, store) in
   },
   Cmd.DashMode: { (peripheral, data, side, store) in
     switch data[1] {
@@ -230,7 +241,36 @@ let configListeners: [Cmd: Listener] = [
       store.set(atom: dashDistanceAtom, value: data[3])
     }
   },
+  Cmd.HeadTilt: { (peripheral, data, side, store) in
+    // Right only
+    // 0x0bc9
+    guard let name = peripheral.name else { return }
+    logFailure(code: data[1], type: "head tilt", name: name, data: data)
+  },
+  Cmd.DashConfig: { (peripheral, data, side, store) in
+    // dash control
+    // 0x2606000102c9
+    // log("dash control \(data.hex)")
+  },
+  Cmd.HeadsUpConfig: { (peripheral, data, side, store) in
+    // on pairing
+    // 0x080600000400 dashboard
+    // 0x080600000402 none
+    let result = HeadsUpConfig(rawValue: data[5])
+    store.set(atom: headsUpDashInternalAtom, value: result == .dashboard)
+  },
+  Cmd.NotifSetting: { (peripheral, data, side, store) in
+    // New App notif discovered:
+    // {"whitelist_app_add": {"app_identifier":  "com.ayroblu.g1-app","display_name": "G1 Bazel App"}}
+    notifSettingHandler.handle(peripheral: peripheral, data: data) { data in
+      guard let name = peripheral.name else { return }
+      log("0xF6: \(name) [\(data.count)]", data.ascii() ?? "<>")
+    }
+  },
 ]
+
+let brightnessAtom = PrimitiveAtom<UInt8>(6)
+let autoBrightnessAtom = PrimitiveAtom(true)
 
 let headsUpAngleAtom = PrimitiveAtom<UInt8>(30)
 
@@ -246,14 +286,29 @@ let headsUpDashAtom = WritableAtom<Bool, Bool, Void>(
     bluetoothManager.transmitRight(data)
   })
 
-let isBluetoothEnabledAtom = PrimitiveAtom(false)
-
-let isConnectedAtom = PrimitiveAtom(false)
-
-enum GlassesAppState {
-  case Text
-  case Navigation
-  case Dash
-  case Bmp
+enum HeadsUpConfig: UInt8 {
+  case dashboard = 0x00
+  case none = 0x02
 }
-let glassesAppStateAtom = PrimitiveAtom<GlassesAppState?>(nil)
+
+var notifSettingHandler = NotifSettingHandler()
+struct NotifSettingHandler {
+  var f6Data: [CBPeripheral: [Data]] = [:]
+  mutating func handle(peripheral: CBPeripheral, data: Data, onDone: (Data) -> Void) {
+    let parts = data[1]
+    let seq = data[2]
+    let rest = data.subdata(in: 3..<data.count)
+    if seq == 0 {
+      f6Data[peripheral] = [rest]
+    } else {
+      if var list = f6Data[peripheral], list.count == seq {
+        list.append(rest)
+        f6Data[peripheral] = list
+      }
+    }
+    if let list = f6Data[peripheral], seq == parts - 1 {
+      let data = Data(list.joined())
+      onDone(data)
+    }
+  }
+}

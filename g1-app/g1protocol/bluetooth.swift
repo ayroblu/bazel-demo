@@ -315,3 +315,7 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
 
   var pairing: Pairing?
 }
+
+let isBluetoothEnabledAtom = PrimitiveAtom(false)
+
+let isConnectedAtom = PrimitiveAtom(false)
