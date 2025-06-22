@@ -1,6 +1,6 @@
 import Foundation
-import jotai
 import g1protocol
+import jotai
 
 func onNewNotif(manager: ConnectionManager, data: Data) async throws {
   let notif = try JSONDecoder().decode(NewNotif.self, from: data)
@@ -69,10 +69,15 @@ let notifConfigMsgAtom = notifAllowlistAtom(state: notifConfigMsgState)
 let notifConfigIosMailAtom = notifAllowlistAtom(state: notifConfigIosMailState)
 let notifConfigAppsAtom = notifAllowlistAtom(state: notifConfigAppsState)
 
-func DoubleUInt8CastAtom(atom: WritableAtom<UInt8, UInt8, Void>) -> WritableAtom<
-  Double, Double, Void
-> {
+func DoubleUInt8CastAtom(atom: WritableAtom<UInt8, UInt8, Void>, onSet: ((Setter, UInt8) -> Void)? = nil)
+  -> WritableAtom<
+    Double, Double, Void
+  >
+{
   return WritableAtom(
     { getter in Double(getter.get(atom: atom)) },
-    { (setter, value) in setter.set(atom: atom, value: UInt8(value)) })
+    { (setter, value) in
+      setter.set(atom: atom, value: UInt8(value))
+      onSet?(setter, UInt8(value))
+    })
 }

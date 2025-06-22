@@ -3,6 +3,15 @@ import Log
 import SwiftData
 import SwiftUI
 import g1protocol
+import jotai
+
+let brightnessDoubleAtom = DoubleUInt8CastAtom(atom: brightnessAtom)
+let autoBrightnessActAtom = WritableAtom(
+  { getter in getter.get(atom: autoBrightnessAtom) },
+  { (setter, newValue) in
+    setter.set(atom: autoBrightnessAtom, value: newValue)
+    manager.sendBrightness()
+  })
 
 public struct ContentView: View {
   @StateObject var vm = MainVM()
@@ -12,6 +21,11 @@ public struct ContentView: View {
   @Query private var allGlasses: [GlassesModel]
   private var glasses: GlassesModel? { allGlasses.first }
   @Environment(\.modelContext) private var modelContext
+  @AtomState(silentModeAtom) var silentMode: Bool
+  @AtomState(brightnessAtom) var brightness: UInt8
+  @AtomState(brightnessDoubleAtom) var brightnessDouble: Double
+  @AtomState(autoBrightnessAtom) var autoBrightness: Bool
+  @AtomState(isBluetoothEnabledAtom) var isBluetoothEnabled: Bool
 
   public init() {}
 
@@ -26,7 +40,7 @@ public struct ContentView: View {
     } else if let glasses {
       NavigationStack {
         List {
-          GlassesInfoView(mainVm: vm, glasses: glasses)
+          GlassesInfoView(glasses: glasses)
             .onChange(of: scenePhase) { oldPhase, newPhase in
               if newPhase == .active {
                 log("syncKnown")
@@ -39,9 +53,9 @@ public struct ContentView: View {
             }
           HStack {
             Button(
-              "Silent Mode", systemImage: vm.silentMode ? "moon.circle.fill" : "moon.circle"
+              "Silent Mode", systemImage: silentMode ? "moon.circle.fill" : "moon.circle"
             ) {
-              vm.connectionManager.toggleSilentMode()
+              manager.toggleSilentMode()
             }
             .lineLimit(1)
             .layoutPriority(1)
@@ -49,22 +63,12 @@ public struct ContentView: View {
             .buttonStyle(.bordered)
 
           }
-          let brightness = Binding(
-            get: { Double(vm.brightness) },
-            set: { vm.brightness = UInt8($0) }
-          )
-          let autoBrightness = Binding(
-            get: { vm.autoBrightness },
-            set: {
-              vm.autoBrightness = $0
-              vm.connectionManager.sendBrightness()
-            })
-          Toggle(isOn: autoBrightness) {
+          Toggle(isOn: $autoBrightness) {
             Text("Auto brightness")
           }
-          if !vm.autoBrightness {
+          if !autoBrightness {
             Slider(
-              value: brightness,
+              value: $brightnessDouble,
               in: 0...42,
               step: 1,
               label: { Text("Brightness") },
@@ -143,7 +147,7 @@ public struct ContentView: View {
         #endif
       }
     } else {
-      if vm.isBluetoothEnabled {
+      if isBluetoothEnabled {
         Text("Searching...")
           .onAppear {
             bluetoothManager.syncUnknown()

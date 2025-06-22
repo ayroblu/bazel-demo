@@ -3,15 +3,19 @@ import Log
 import jotai
 
 extension BluetoothManager {
-  func addOnConnectListener(listener: @escaping () -> Void) -> () -> Void {
+  public func addOnConnectListener(_ listener: @escaping (String, String) -> Void) -> () -> Void {
     let result = onConnectListener.add(listener)
     if manager.store.get(atom: isConnectedAtom) {
-      onConnectListener.executeAll()
+      guard let left = manager.leftPeripheral, let right = manager.rightPeripheral else {
+        return result
+      }
+      onConnectListener.executeAll(
+        left.identifier.uuidString, right.identifier.uuidString)
     }
     return result
   }
 }
-var onConnectListener = ClosureStore()
+var onConnectListener = OnConnectClosureStore()
 
 extension G1BluetoothManager {
   func onValue(peripheral: CBPeripheral, data: Data) {
@@ -23,40 +27,40 @@ extension G1BluetoothManager {
     if let listeners = listeners[cmd] {
       listeners.executeAll(peripheral: peripheral, data: data, side: side, store: store)
     } else {
-      log("No listeners:", cmd, data)
+      log("No listeners:", cmd, data.hex)
     }
   }
 }
 let allListeners: [[Cmd: Listener]] = [infoListeners, configListeners, deviceListeners]
-
-public func addListener(key: Cmd, listener: @escaping Listener) -> () -> Void {
-  if listeners[key] == nil {
-    listeners[key] = ListenerClosureStore()
-  }
-  return listeners[key, default: ListenerClosureStore()].add(listener)
-}
-
-func addListeners() {
-  for listeners in allListeners {
-    for (key, value) in listeners {
-      let _ = addListener(key: key, listener: value)
+var isFirst = true
+var listeners: [Cmd: ListenerClosureStore] {
+  if isFirst {
+    isFirst = false
+    for l in allListeners {
+      for (key, value) in l {
+        let _ = addListener(key: key, listener: value)
+      }
     }
   }
+  return _listeners
 }
-class Temp {
-  init() {
-    addListeners()
+
+public func addListener(key: Cmd, listener: @escaping Listener) -> () -> Void {
+  if _listeners[key] == nil {
+    _listeners[key] = ListenerClosureStore()
   }
+  return _listeners[key, default: ListenerClosureStore()].add(listener)
 }
-let t = Temp()
 
 public enum Side {
   case left
   case right
 }
-public typealias Listener = (_ peripheral: CBPeripheral, _ data: Data, _ side: Side, _ store: JotaiStore)
+public typealias Listener = (
+  _ peripheral: CBPeripheral, _ data: Data, _ side: Side, _ store: JotaiStore
+)
   -> Void
-var listeners: [Cmd: ListenerClosureStore] = [:]
+var _listeners: [Cmd: ListenerClosureStore] = [:]
 
 class ListenerClosureStore {
   private var closures: Set<UUID> = []
@@ -78,8 +82,8 @@ class ListenerClosureStore {
   }
 }
 
-class ClosureStore {
-  typealias Closure = () -> Void
+class OnConnectClosureStore {
+  typealias Closure = (String, String) -> Void
   private var closures: Set<UUID> = []
   private var closureMap: [UUID: Closure] = [:]
 
@@ -94,7 +98,7 @@ class ClosureStore {
     }
   }
 
-  func executeAll() {
-    closureMap.values.forEach { $0() }
+  func executeAll(_ left: String, _ right: String) {
+    closureMap.values.forEach { $0(left, right) }
   }
 }

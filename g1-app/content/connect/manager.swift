@@ -5,6 +5,7 @@ import Pcm
 import Speech
 import SwiftData
 import g1protocol
+import jotai
 
 public class ConnectionManager {
   // let uartServiceCbuuid = CBUUID(string: uartServiceUuid)
@@ -17,6 +18,7 @@ public class ConnectionManager {
   public init() {
     requestCalendarAccessIfNeeded()
     requestReminderAccessIfNeeded()
+    let _ = bluetoothManager.addOnConnectListener(onConnect)
   }
 
   var glasses: GlassesModel?
@@ -47,7 +49,7 @@ public class ConnectionManager {
     Task {
       deviceInfo()
       try? await Task.sleep(for: .milliseconds(100))
-      guard let battery = mainVm?.battery else { return }
+      guard let battery = store.get(atom: batteryAtom) else { return }
       sendText("                    Glasses initialized [\(battery)%]")
       try? await Task.sleep(for: .seconds(2))
 
@@ -105,19 +107,18 @@ public class ConnectionManager {
   }
 
   public func toggleSilentMode() {
-    if let mainVm {
-      let data = Config.silentModeData(enabled: !mainVm.silentMode)
-      bluetoothManager.transmitBoth(data)
-      mainVm.silentMode = !mainVm.silentMode
-    }
+    store.set(atom: silentModeAtom) { silentMode in !silentMode }
+    let silentMode = store.get(atom: silentModeAtom)
+    let data = Config.silentModeData(enabled: silentMode)
+    bluetoothManager.transmitBoth(data)
   }
 
+  let store = JotaiStore.shared
   public func sendBrightness() {
-    if let mainVm {
-      let data = Config.brightnessData(
-        brightness: mainVm.brightness, auto: mainVm.autoBrightness)
-      bluetoothManager.readRight(data)
-    }
+    let brightness = store.get(atom: brightnessAtom)
+    let autoBrightness = store.get(atom: autoBrightnessAtom)
+    let data = Config.brightnessData(brightness: brightness, auto: autoBrightness)
+    bluetoothManager.readRight(data)
   }
 
   public func headsUpAngle(angle: UInt8) {
@@ -166,6 +167,7 @@ public class ConnectionManager {
   }
 
   func onConnect(left: String, right: String) {
+    log("onConnect")
     Task { @MainActor in
       if glasses == nil {
         log("onConnect - inserting GlassesModel")

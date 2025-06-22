@@ -465,6 +465,6 @@ enum GlassesAppState {
   case Bmp
 }
 let glassesAppStateAtom = PrimitiveAtom<GlassesAppState?>(nil)
-let chargingAtom = PrimitiveAtom(false)
-let caseBatteryAtom = PrimitiveAtom<Int?>(nil)
+public let chargingAtom = PrimitiveAtom(false)
+public let caseBatteryAtom = PrimitiveAtom<Int?>(nil)
 let caseChargingAtom = PrimitiveAtom(false)

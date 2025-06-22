@@ -1,35 +1,40 @@
 import SwiftUI
-import jotai
 import g1protocol
+import jotai
 
 struct GlassesInfoView: View {
   @Environment(\.colorScheme) var colorScheme
-  @StateObject var mainVm: MainVM
   @AtomState(glassesStateAtom) var glassesState: GlassesState
+  @AtomValue(batteryAtom) var battery: Int?
+  @AtomState(chargingAtom) var charging: Bool
+  @AtomState(caseBatteryAtom) var caseBattery: Int?
   let glasses: GlassesModel
 
   var body: some View {
     ZStack {
-      Image(uiImage: getImage(mainVm: mainVm, glassesState: glassesState, isDark: colorScheme == .dark))
-        .resizable()
-        .aspectRatio(contentMode: .fit)
+      Image(
+        uiImage: getImage(
+          store: JotaiStore.shared, glassesState: glassesState, isDark: colorScheme == .dark)
+      )
+      .resizable()
+      .aspectRatio(contentMode: .fit)
       VStack {
-        if let battery = mainVm.battery {
+        if let battery {
           HStack {
             Spacer()
             Image(
-              systemName: mainVm.charging
+              systemName: charging
                 ? "battery.100percent.bolt" : getBatterySymbol(battery: battery))
             Text("\(battery)%")
           }
         }
         switch glassesState {
         case .CaseOpen, .CaseClosed:
-          if let battery = mainVm.caseBattery {
+          if let battery = caseBattery {
             HStack {
               Spacer()
               Image(
-                systemName: mainVm.charging
+                systemName: charging
                   ? "battery.100percent.bolt" : getBatterySymbol(battery: battery))
               Text("\(battery)%")
             }
@@ -56,22 +61,22 @@ func getBatterySymbol(battery: Int) -> String {
         : "battery.0percent"
 }
 
-func getImage(mainVm: MainVM, glassesState: GlassesState, isDark: Bool) -> UIImage {
+func getImage(store: JotaiStore, glassesState: GlassesState, isDark: Bool) -> UIImage {
   let images = GlassesImages(isDark: isDark)
-  if mainVm.isConnected {
+  if store.get(atom: isConnectedAtom) {
     switch glassesState {
     case .Off:
       return images.folded
     case .Wearing:
       return images.wearing
     case .CaseOpen:
-      if mainVm.caseBattery != 100 {
+      if store.get(atom: caseBatteryAtom) != 100 {
         return images.caseOpenCharging
       } else {
         return images.caseOpenFull
       }
     case .CaseClosed:
-      if mainVm.caseBattery != 100 {
+      if store.get(atom: caseBatteryAtom) != 100 {
         return images.caseCloseCharging
       } else {
         return images.caseCloseFull

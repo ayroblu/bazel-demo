@@ -149,8 +149,20 @@ let infoListeners: [Cmd: Listener] = [
 
 let leftBatteryAtom = PrimitiveAtom<Int?>(nil)
 let rightBatteryAtom = PrimitiveAtom<Int?>(nil)
-
-let silentModeAtom = PrimitiveAtom<Bool>(false)
+public let batteryAtom = Atom<Int?> { getter in
+  let leftBattery = getter.get(atom: leftBatteryAtom)
+  let rightBattery = getter.get(atom: rightBatteryAtom)
+  if let leftBattery, let rightBattery {
+    return min(leftBattery, rightBattery)
+  }
+  if let leftBattery {
+    return leftBattery
+  }
+  if let rightBattery {
+    return rightBattery
+  }
+  return nil
+}
 
 public let glassesStateAtom = PrimitiveAtom(GlassesState.Off)
 public enum GlassesState {
@@ -159,4 +171,3 @@ public enum GlassesState {
   case CaseOpen
   case CaseClosed
 }
-

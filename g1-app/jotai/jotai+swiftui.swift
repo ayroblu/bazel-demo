@@ -45,3 +45,22 @@ public struct AtomState<T: Equatable>: DynamicProperty {
     )
   }
 }
+
+@propertyWrapper
+public struct AtomValue<T: Equatable>: DynamicProperty {
+  @StateObject private var model: ValueModel<T>
+  private let store: JotaiStore
+  private let atom: Atom<T>
+
+  public init(_ atom: Atom<T>, store maybeStore: JotaiStore? = nil) {
+    self.atom = atom
+    self.store = maybeStore ?? JotaiStore.shared
+    let valueModel = ValueModel(value: store.get(atom: atom))
+    valueModel.listen(store: store, atom: atom)
+    self._model = StateObject(wrappedValue: valueModel)
+  }
+
+  public var wrappedValue: T {
+    self.store.get(atom: self.atom)
+  }
+}

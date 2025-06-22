@@ -258,13 +258,15 @@ let configListeners: [Cmd: Listener] = [
   },
 ]
 
-let brightnessAtom = PrimitiveAtom<UInt8>(6)
-let autoBrightnessAtom = PrimitiveAtom(true)
+public let brightnessAtom = PrimitiveAtom<UInt8>(6)
+public let autoBrightnessAtom = PrimitiveAtom(true)
 
-let headsUpAngleAtom = PrimitiveAtom<UInt8>(30)
+public let silentModeAtom = PrimitiveAtom<Bool>(false)
 
-let dashVerticalAtom = PrimitiveAtom<UInt8>(3)
-let dashDistanceAtom = PrimitiveAtom<UInt8>(2)
+public let headsUpAngleAtom = PrimitiveAtom<UInt8>(30)
+
+public let dashVerticalAtom = PrimitiveAtom<UInt8>(3)
+public let dashDistanceAtom = PrimitiveAtom<UInt8>(2)
 
 let headsUpDashInternalAtom = PrimitiveAtom(true)
 public let headsUpDashAtom = WritableAtom<Bool, Bool, Void>(

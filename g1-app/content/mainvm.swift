@@ -6,36 +6,9 @@ import utils
 let manager = ConnectionManager()
 
 class MainVM: ObservableObject {
-  @Published var devices: [String] = []
   @Published private var _text: String = "Hi there!"
   @Published var selection: TextSelection? = nil
   private var previous: String = ""
-  @Published var isConnected: Bool = false
-  @Published var leftBattery: Int?
-  @Published var rightBattery: Int?
-  @Published var silentMode: Bool = false
-  @Published var brightness: UInt8 = 6
-  @Published var autoBrightness: Bool = true
-  @Published var isBluetoothEnabled: Bool = false
-  @Published var headsUpAngle: UInt8 = 30
-  @Published var dashVertical: UInt8 = 3
-  @Published var dashDistance: UInt8 = 2
-  @Published var glassesAppState: GlassesAppState?
-  @Published var charging: Bool = false
-  var battery: Int? {
-    if let leftBattery, let rightBattery {
-      return min(leftBattery, rightBattery)
-    }
-    if let leftBattery {
-      return leftBattery
-    }
-    if let rightBattery {
-      return rightBattery
-    }
-    return nil
-  }
-  @Published var caseBattery: Int?
-  @Published var caseCharging: Bool = false
   var text: String {
     get {
       if let selection {

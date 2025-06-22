@@ -18,7 +18,10 @@ public struct BluetoothManager {
       left.state == .connected && right.state == .connected
     {
       manager.store.set(atom: isConnectedAtom, value: true)
-      onConnectListener.executeAll()
+      onConnectListener.executeAll(
+        left.identifier.uuidString,
+        right.identifier.uuidString,
+      )
       return
     }
     manager.store.set(atom: isConnectedAtom, value: false)
@@ -206,7 +209,10 @@ class G1BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
         if pairing != nil {
           self.pairing = nil
         }
-        onConnectListener.executeAll()
+        onConnectListener.executeAll(
+          leftPeripheral.identifier.uuidString,
+          rightPeripheral.identifier.uuidString,
+        )
         #if os(iOS)
           manager.registerForConnectionEvents(
             options: [
@@ -350,6 +356,6 @@ class G1BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
   var pairing: Pairing?
 }
 
-let isBluetoothEnabledAtom = PrimitiveAtom(false)
+public let isBluetoothEnabledAtom = PrimitiveAtom(false)
 
-let isConnectedAtom = PrimitiveAtom(false)
+public let isConnectedAtom = PrimitiveAtom(false)

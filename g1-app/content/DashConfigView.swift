@@ -2,13 +2,30 @@ import EventKit
 import Log
 import SwiftData
 import SwiftUI
-import jotai
 import g1protocol
+import jotai
 
+let headsUpAngleDoubleAtom = DoubleUInt8CastAtom(atom: headsUpAngleAtom)
+let dashVerticalDoubleAtom = DoubleUInt8CastAtom(atom: dashVerticalAtom) { (setter, newValue) in
+  let dashVertical = setter.get(atom: dashVerticalAtom)
+  let dashDistance = setter.get(atom: dashDistanceAtom)
+  manager.dashPosition(isShow: true, vertical: dashVertical, distance: dashDistance)
+}
+let dashDistanceDoubleAtom = DoubleUInt8CastAtom(atom: dashDistanceAtom) { (setter, newValue) in
+  let dashVertical = setter.get(atom: dashVerticalAtom)
+  let dashDistance = setter.get(atom: dashDistanceAtom)
+  manager.dashPosition(isShow: true, vertical: dashVertical, distance: dashDistance)
+}
 struct DashConfigView: View {
   @StateObject var vm: MainVM
   @Environment(\.modelContext) private var modelContext
   @State var forceRerender = 0
+  @AtomState(dashVerticalAtom) var dashVertical: UInt8
+  @AtomState(dashVerticalDoubleAtom) var dashVerticalDouble: Double
+  @AtomState(dashDistanceAtom) var dashDistance: UInt8
+  @AtomState(dashDistanceDoubleAtom) var dashDistanceDouble: Double
+  @AtomState(headsUpAngleAtom) var headsUpAngle: UInt8
+  @AtomState(headsUpAngleDoubleAtom) var headsUpAngleDouble: Double
   @AtomState(headsUpDashAtom) var headsUpDash: Bool
   @AtomState(notifDirectPushAtom) var notifDirectPush: Bool
   @AtomState(notifDurationSecondsDoubleAtom) var notifDurationSeconds: Double
@@ -20,18 +37,14 @@ struct DashConfigView: View {
 
   var body: some View {
     List {
-      let headsUpAngle = Binding(
-        get: { Double(vm.headsUpAngle) },
-        set: { vm.headsUpAngle = UInt8($0) }
-      )
-      Section(header: Text("Dash angle: \(vm.headsUpAngle)°")) {
+      Section(header: Text("Dash angle: \(headsUpAngle)°")) {
         Slider(
-          value: headsUpAngle,
+          value: $headsUpAngleDouble,
           in: 0...60,
           step: 1
         ) { editing in
           if !editing {
-            vm.connectionManager.headsUpAngle(angle: vm.headsUpAngle)
+            manager.headsUpAngle(angle: headsUpAngle)
           }
         }
       }
@@ -40,44 +53,26 @@ struct DashConfigView: View {
         Text("Heads Up Dashboard")
       }
 
-      let dashVertical = Binding(
-        get: { Double(vm.dashVertical) },
-        set: {
-          vm.dashVertical = UInt8($0)
-          vm.connectionManager.dashPosition(
-            isShow: true, vertical: vm.dashVertical, distance: vm.dashDistance)
-        }
-      )
-      Section(header: Text("Dash vertical: \(vm.dashVertical)")) {
+      Section(header: Text("Dash vertical: \(dashVertical)")) {
         Slider(
-          value: dashVertical,
+          value: $dashVerticalDouble,
           in: 1...8,
           step: 1
         ) { editing in
           if !editing {
-            vm.connectionManager.dashPosition(
-              isShow: editing, vertical: vm.dashVertical, distance: vm.dashDistance)
+            manager.dashPosition(isShow: editing, vertical: dashVertical, distance: dashDistance)
           }
         }
       }
-      let dashDistance = Binding(
-        get: { Double(vm.dashDistance) },
-        set: {
-          vm.dashDistance = UInt8($0)
-          vm.connectionManager.dashPosition(
-            isShow: true, vertical: vm.dashVertical, distance: vm.dashDistance)
-        }
-      )
-      let dashDistanceLabel = NSString(format: "%.01f", Double(vm.dashDistance) / 2)
+      let dashDistanceLabel = NSString(format: "%.01f", Double(dashDistance) / 2)
       Section(header: Text("Dash distance: \(dashDistanceLabel)m")) {
         Slider(
-          value: dashDistance,
+          value: $dashDistanceDouble,
           in: 1...9,
           step: 1
         ) { editing in
           if !editing {
-            vm.connectionManager.dashPosition(
-              isShow: editing, vertical: vm.dashVertical, distance: vm.dashDistance)
+            manager.dashPosition(isShow: editing, vertical: dashVertical, distance: dashDistance)
           }
         }
       }
