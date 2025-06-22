@@ -2,6 +2,7 @@ import EventKit
 import Log
 import SwiftUI
 import utils
+import g1protocol
 
 extension ConnectionManager {
   func requestCalendarAccessIfNeeded() {
@@ -39,14 +40,14 @@ extension ConnectionManager {
   func syncEvents() {
     if let event = fetchEvents().filter({ !$0.isAllDay }).first {
       let time = dateToText(startDate: event.startDate, endDate: event.endDate)
-      let configEvent = G1Cmd.Config.Event(
+      let configEvent = Config.Event(
         name: event.title, time: time, location: event.location ?? "")
-      let data = G1Cmd.Config.calendarData(event: configEvent)
-      manager.transmitBoth(data)
+      let data = Config.calendarData(event: configEvent)
+      bluetoothManager.transmitBoth(data)
     } else {
-      manager.transmitBoth(
-        G1Cmd.Config.calendarData(
-          event: G1Cmd.Config.Event(name: "No events", time: "", location: "")))
+      bluetoothManager.transmitBoth(
+        Config.calendarData(
+          event: Config.Event(name: "No events", time: "", location: "")))
     }
   }
 
@@ -143,7 +144,7 @@ extension ConnectionManager {
       let selectedReminders = await fetchSelectedReminders()
       let notes = selectedReminders.map {
         let text = $0.reminders.prefix(4).map { $0.title.prefix(50) }.joined(separator: "\n")
-        return G1Cmd.Config.Note(title: String($0.list.title.prefix(50)), text: text)
+        return Config.Note(title: String($0.list.title.prefix(50)), text: text)
       }
       dashNotes(notes: notes)
     }

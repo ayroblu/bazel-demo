@@ -3,12 +3,12 @@ import Foundation
 import Log
 import jotai
 
-struct Device {
-  static func exitData() -> Data {
+public struct Device {
+  public static func exitData() -> Data {
     return Data([Cmd.Exit.rawValue])
   }
-  struct Mic {
-    static func data(enable: Bool) -> Data {
+  public struct Mic {
+    public static func data(enable: Bool) -> Data {
       return Data([Cmd.Mic.rawValue, enable ? 1 : 0])
     }
     struct MicResp {
@@ -20,8 +20,8 @@ struct Device {
       return MicResp(isSuccess: data[1] == 0xC9 ? true : false, enable: data[2] == 1)
     }
   }
-  struct Text {
-    static func data(text: String) -> Data? {
+  public struct Text {
+    public static func data(text: String) -> Data? {
       guard let textData = text.data(using: .utf8) else { return nil }
       let cmd = Cmd.Text.rawValue
       let seq: UInt8 = 0x00
@@ -37,10 +37,10 @@ struct Device {
       return Data(controlArr) + textData
     }
   }
-  struct Bmp {
+  public struct Bmp {
     static let maxLength = 194
     static let address: [UInt8] = [0x00, 0x1C, 0x00, 0x00]
-    static func data(image: Data) -> [Data] {
+    public static func data(image: Data) -> [Data] {
       let cmd = Cmd.Bmp.rawValue
       return image.chunk(into: maxLength).enumerated().map { (seq, chunk) in
         let address: [UInt8] = seq == 0 ? address : []
@@ -48,10 +48,10 @@ struct Device {
         return Data(controlarr) + chunk
       }
     }
-    static func endData() -> Data {
+    public static func endData() -> Data {
       return Data([Cmd.BmpDone.rawValue, 0x0D, 0x0E])
     }
-    static func crcData(inputData: Data) -> Data {
+    public static func crcData(inputData: Data) -> Data {
       let crc: UInt32 = (address + inputData).toCrc32()
       log("crc data", crc.bytes())
       return Data([Cmd.Crc.rawValue] + crc.bytes())
@@ -65,9 +65,9 @@ struct Device {
       return data.count > 4 && data[5] != 0xC9
     }
   }
-  struct Heartbeat {
+  public struct Heartbeat {
     static private var heartbeatSeq: UInt8 = 0x00
-    static func data() -> Data {
+    public static func data() -> Data {
       let length: UInt8 = 6
       let dataArr: [UInt8] = [
         Cmd.Heartbeat.rawValue,
@@ -82,9 +82,26 @@ struct Device {
       return data
     }
   }
-  struct Notify {
+  public struct Notify {
     static var notifyId: UInt8 = 0x00
-    static func allowData(notifConfig: NotifConfig) -> [Data] {
+    public struct NotifConfig {
+      let calendar: Bool
+      let call: Bool
+      let msg: Bool
+      let iosMail: Bool
+      let apps: [(id: String, name: String)]?
+      public init(
+        calendar: Bool, call: Bool, msg: Bool, iosMail: Bool, apps: [(id: String, name: String)]?
+      ) {
+        self.calendar = calendar
+        self.call = call
+        self.msg = msg
+        self.iosMail = iosMail
+        self.apps = apps
+      }
+
+    }
+    public static func allowData(notifConfig: NotifConfig) -> [Data] {
       let dict: [String: Any] = [
         "calendar_enable": notifConfig.calendar,
         "call_enable": notifConfig.call,
@@ -105,7 +122,23 @@ struct Device {
       }
       return result
     }
-    static func data(notifyData: NotifyData) -> [Data] {
+
+    public struct NotifyData {
+      let msgId: Int = 1_234_567_890
+      let appIdentifier: String = Bundle.main.bundleIdentifier ?? ""
+      let title: String
+      var subtitle: String?
+      var message: String?
+      let timestamp: Int = Int(Date().timeIntervalSince1970 * 1000)
+      let displayName: String =
+        Bundle.main.infoDictionary?[kCFBundleNameKey as String] as? String ?? ""
+      public init(title: String, subtitle: String? = nil, message: String? = nil) {
+        self.title = title
+        self.subtitle = subtitle
+        self.message = message
+      }
+    }
+    public static func data(notifyData: NotifyData) -> [Data] {
       let dict = [
         "ncs_notification": [
           "msg_id": 1_234_567_890, "app_identifier": "com.even.test", "title": "Even Realities",
@@ -135,17 +168,17 @@ struct Device {
       notifyId &+= 1
       return result
     }
-    static func configData(directPush: Bool, durationS: UInt8) -> Data {
+    public static func configData(directPush: Bool, durationS: UInt8) -> Data {
       let directPushByte: UInt8 = directPush ? 1 : 0
       return Data([Cmd.NotifConfig.rawValue, directPushByte, durationS])
     }
   }
-  struct Navigate {
+  public struct Navigate {
     static var seqId: UInt8 = 0x00
     static func parseExampleImage(image: String) -> [Bool] {
       return image.parseHex().convertToBits()
     }
-    static func initData() -> Data {
+    public static func initData() -> Data {
       // Note saw also right before start:
       // Both: [0x39, 0x05, 0x00, 0x7C, 0x01]
       // Right: [0x50, 0x06, 0x00, 0x00, 0x01, 0x01]
@@ -153,13 +186,6 @@ struct Device {
       let data = Data([Cmd.Navigate.rawValue, UInt8(part.count + 2)] + part)
       seqId &+= 1
       return data
-    }
-    static func directionsDataExample() -> Data {
-      // x is 0 -> 488
-      // y is 0 -> 136
-      return directionsData(
-        totalDuration: "6min", totalDistance: "529m", direction: "Turn right onto the walkway",
-        distance: "18 m", speed: "0km/h", x: 488.bytes(byteCount: 2), y: 0x00)
     }
     struct DirectionTurn {
       static let StraightDot: UInt8 = 0x01
@@ -198,7 +224,7 @@ struct Device {
       static let SlightRightAtFork: UInt8 = 0x22
       static let SlightLeftAtFork: UInt8 = 0x23
     }
-    static func directionsData(
+    public static func directionsData(
       totalDuration: String, totalDistance: String, direction: String, distance: String,
       speed: String, x: [UInt8], y: UInt8
     ) -> Data {
@@ -216,7 +242,7 @@ struct Device {
       let data = Data([Cmd.Navigate.rawValue, UInt8(part.count + 2)] + part)
       return data
     }
-    static func primaryImageData(image: [Bool], overlay: [Bool]) -> [Data] {
+    public static func primaryImageData(image: [Bool], overlay: [Bool]) -> [Data] {
       // image and overlay must be 136 * 136 long
       let partType2: UInt8 = 0x02
       let imageBytes: [UInt8] = (image + overlay).toBytes().runLengthEncode()
@@ -230,7 +256,7 @@ struct Device {
         return Data([Cmd.Navigate.rawValue, UInt8(part.count + 2)] + part)
       }
     }
-    static func secondaryImageData(image: [Bool], overlay: [Bool]) -> [Data] {
+    public static func secondaryImageData(image: [Bool], overlay: [Bool]) -> [Data] {
       // image must be 488 * 136 (w x h)
       let partType3: UInt8 = 0x03
       let imageBytes: [UInt8] = (image + overlay).toBytes()
@@ -246,7 +272,7 @@ struct Device {
       }
     }
     static var pollerSeqId: UInt8 = 0x01
-    static func pollerData() -> Data {
+    public static func pollerData() -> Data {
       let partType4: UInt8 = 0x04
       let part: [UInt8] = [null, seqId, partType4, pollerSeqId]
       seqId &+= 1
@@ -254,7 +280,7 @@ struct Device {
       let data = Data([Cmd.Navigate.rawValue, UInt8(part.count + 2)] + part)
       return data
     }
-    static func endData() -> Data {
+    public static func endData() -> Data {
       let partType5: UInt8 = 0x05
       let part: [UInt8] = [null, seqId, partType5, 0x01]
       seqId &+= 1
@@ -449,20 +475,3 @@ let glassesAppStateAtom = PrimitiveAtom<GlassesAppState?>(nil)
 let chargingAtom = PrimitiveAtom(false)
 let caseBatteryAtom = PrimitiveAtom<Int?>(nil)
 let caseChargingAtom = PrimitiveAtom(false)
-
-struct NotifConfig {
-  let calendar: Bool
-  let call: Bool
-  let msg: Bool
-  let iosMail: Bool
-  let apps: [(id: String, name: String)]?
-}
-struct NotifyData {
-  let msgId: Int = 1_234_567_890
-  let appIdentifier: String = Bundle.main.bundleIdentifier ?? ""
-  let title: String
-  var subtitle: String?
-  var message: String?
-  let timestamp: Int = Int(Date().timeIntervalSince1970 * 1000)
-  let displayName: String = Bundle.main.infoDictionary?[kCFBundleNameKey as String] as? String ?? ""
-}

@@ -5,7 +5,7 @@ import jotai
 extension BluetoothManager {
   func addOnConnectListener(listener: @escaping () -> Void) -> () -> Void {
     let result = onConnectListener.add(listener)
-    if store.get(atom: isConnectedAtom) {
+    if manager.store.get(atom: isConnectedAtom) {
       onConnectListener.executeAll()
     }
     return result
@@ -13,7 +13,7 @@ extension BluetoothManager {
 }
 var onConnectListener = ClosureStore()
 
-extension BluetoothManager {
+extension G1BluetoothManager {
   func onValue(peripheral: CBPeripheral, data: Data) {
     let side: Side = peripheral == leftPeripheral ? .left : .right
     guard let cmd = Cmd(rawValue: data[0]) else {

@@ -3,11 +3,20 @@ import Foundation
 import Log
 import jotai
 
-struct Info {
-  static func batteryData() -> Data {
+public struct Info {
+  public static func brightnessStateData() -> Data {
+    return Data([Cmd.BrightnessState.rawValue])
+  }
+  public static func dashPositionData() -> Data {
+    return Data([Cmd.DashPosition.rawValue])
+  }
+  public static func headsUpData() -> Data {
+    return Data([Cmd.HeadsUp.rawValue])
+  }
+  public static func batteryData() -> Data {
     return Data([Cmd.Battery.rawValue, 0x02])
   }
-  static func glassesStateData() -> Data {
+  public static func glassesStateData() -> Data {
     return Data([Cmd.GlassesState.rawValue])
   }
   static func firmwareData() -> Data {
@@ -16,10 +25,10 @@ struct Info {
   static func restartData() -> Data {
     return Data([Cmd.FirmwareInfo.rawValue, 0x72])
   }
-  static func lensSerialNumberData() -> Data {
+  public static func lensSerialNumberData() -> Data {
     return Data([Cmd.LensSerialNumber.rawValue])
   }
-  static func deviceSerialNumberData() -> Data {
+  public static func deviceSerialNumberData() -> Data {
     return Data([Cmd.DeviceSerialNumber.rawValue])
   }
 }
@@ -29,6 +38,28 @@ let infoListeners: [Cmd: Listener] = [
     let code = data[1]
     let msg = data.subdata(in: 2..<data.count).ascii() ?? "<>"
     log("00: \(name) \(code.hex) \(msg)")
+  },
+  Cmd.BrightnessState: { (peripheral, data, side, store) in
+    // On open even app from [0x29] send
+    let brightness = data[2]
+    let isAutoBrightness = data[3] == 0x01
+    // Max brightness: 42
+    store.set(atom: brightnessAtom, value: brightness)
+    store.set(atom: autoBrightnessAtom, value: isAutoBrightness)
+    // log("auto brightness \(name) \(brightness) \(isAutoBrightness) | \(data.hex)")
+  },
+  Cmd.DashPosition: { (peripheral, data, side, store) in
+    // on load, right only
+    // 0x3bc90203
+    if data[1] == 0xC9 {
+      store.set(atom: dashVerticalAtom, value: data[2])
+      store.set(atom: dashDistanceAtom, value: data[3])
+    }
+  },
+  Cmd.HeadsUp: { (peripheral, data, side, store) in
+    // Right only after opening settings
+    // 0x326d1501
+    store.set(atom: headsUpAngleAtom, value: data[2])
   },
   Cmd.Battery: { (peripheral, data, side, store) in
     switch data[1] {
@@ -92,12 +123,13 @@ let infoListeners: [Cmd: Listener] = [
     guard let name = peripheral.name else { return }
     let serialNumber = data.subdata(in: 1..<data.count).ascii()
     log("Glasses Serial Number: \(name) \(data.hex) \(serialNumber ?? "nil")")
-    let glasses = store.get(atom: glassesModelAtom)
-    if side == .left {
-      glasses?.leftLensSerialNumber = serialNumber
-    } else {
-      glasses?.rightLensSerialNumber = serialNumber
-    }
+    // TODO:
+    // let glasses = store.get(atom: glassesModelAtom)
+    // if side == .left {
+    //   glasses?.leftLensSerialNumber = serialNumber
+    // } else {
+    //   glasses?.rightLensSerialNumber = serialNumber
+    // }
   },
   Cmd.DeviceSerialNumber: { (peripheral, data, side, store) in
     guard let name = peripheral.name else { return }
@@ -115,8 +147,9 @@ let infoListeners: [Cmd: Listener] = [
         ? "Brown"
         : colorCode == "C" ? "Green" : "Unknown " + colorCode
     log("Frame \(frame), color \(color)")
-    let glasses = store.get(atom: glassesModelAtom)
-    glasses?.deviceSerialNumber = serialNumber
+    // TODO:
+    // let glasses = store.get(atom: glassesModelAtom)
+    // glasses?.deviceSerialNumber = serialNumber
   },
   Cmd.Uptime: { (peripheral, data, side, store) in
     // time since boot in seconds?
@@ -129,12 +162,11 @@ let rightBatteryAtom = PrimitiveAtom<Int?>(nil)
 
 let silentModeAtom = PrimitiveAtom<Bool>(false)
 
-let glassesStateAtom = PrimitiveAtom(GlassesState.Off)
-enum GlassesState {
+public let glassesStateAtom = PrimitiveAtom(GlassesState.Off)
+public enum GlassesState {
   case Wearing
   case Off
   case CaseOpen
   case CaseClosed
 }
 
-let glassesModelAtom = PrimitiveAtom<GlassesModel?>(nil)

@@ -3,18 +3,18 @@ import Foundation
 import Log
 import jotai
 
-struct Config {
-  static func brightnessData(brightness: UInt8, auto: Bool) -> Data {
+public struct Config {
+  public static func brightnessData(brightness: UInt8, auto: Bool) -> Data {
     let brightness: UInt8 = brightness > 63 ? 63 : brightness
     return Data([Cmd.Brightness.rawValue, brightness, auto ? 1 : 0])
   }
-  static func silentModeData(enabled: Bool) -> Data {
+  public static func silentModeData(enabled: Bool) -> Data {
     return Data([Cmd.SilentMode.rawValue, enabled ? 0x0C : 0x0A, 0x00])
   }
-  static func wearDetectionData(enabled: Bool) -> Data {
+  public static func wearDetectionData(enabled: Bool) -> Data {
     return Data([Cmd.WearDetection.rawValue, enabled ? 0x01 : 0x00])
   }
-  enum DashModeConfig: UInt8 {
+  public enum DashModeConfig: UInt8 {
     case WeatherTime = 0x01
     case Calendar = 0x03
     case Layout = 0x06
@@ -27,12 +27,12 @@ struct Config {
     let length: UInt8 = UInt8(data.count + 2)
     return Data([Cmd.DashMode.rawValue, length] + data)
   }
-  enum DashMode: UInt8 {
+  public enum DashMode: UInt8 {
     case Full = 0x00
     case Dual = 0x01
     case Minimal = 0x02
   }
-  enum DashSubMode: UInt8 {
+  public enum DashSubMode: UInt8 {
     case Notes = 0x00
     case Stock = 0x01
     case News = 0x02
@@ -40,7 +40,7 @@ struct Config {
     case Navigation = 0x04
     case Map = 0x05
   }
-  static func dashModeData(mode: DashMode, subMode: DashSubMode) -> Data {
+  public static func dashModeData(mode: DashMode, subMode: DashSubMode) -> Data {
     return dashModeGeneralData(
       DashModeConfig.Layout,
       [mode.rawValue, mode == DashMode.Minimal ? null : subMode.rawValue])
@@ -49,7 +49,7 @@ struct Config {
     //   mode == DashMode.Minimal ? 0x00 : subMode.rawValue,
     // ])
   }
-  enum WeatherIcon: UInt8 {
+  public enum WeatherIcon: UInt8 {
     case Night = 0x01
     case Clouds = 0x02
     case Drizzle = 0x03
@@ -67,7 +67,7 @@ struct Config {
     case Freezing = 0x0F
     case Sunny = 0x10
   }
-  static func dashTimeWeatherData(weatherIcon: WeatherIcon, temp: UInt8) -> Data {
+  public static func dashTimeWeatherData(weatherIcon: WeatherIcon, temp: UInt8) -> Data {
     let currentTime = Date().adjustToCurrentTimeZone().timeIntervalSince1970
     let epochTime32: [UInt8] = withUnsafeBytes(of: Int32(currentTime)) { Array($0) }
     let epochTime64: [UInt8] = withUnsafeBytes(of: Int64(currentTime * 1000)) { Array($0) }
@@ -84,21 +84,21 @@ struct Config {
     //     weatherIcon.rawValue, temp, fahrenheit, twelveHour,
     //   ])
   }
-  static func headTiltData(angle: UInt8) -> Data? {
+  public static func headTiltData(angle: UInt8) -> Data? {
     guard angle >= 0 && angle <= 60 else { return nil }
     return Data([Cmd.HeadTilt.rawValue, UInt8(angle), 0x01])
   }
-  enum HeadsUpConfig: UInt8 {
+  public enum HeadsUpConfig: UInt8 {
     case dashboard = 0x00
     case none = 0x02
   }
-  static func headsUpConfig(_ config: HeadsUpConfig) -> Data {
+  public static func headsUpConfig(_ config: HeadsUpConfig) -> Data {
     return Data([Cmd.HeadsUpConfig.rawValue, 0x06, null, null, 0x03, config.rawValue])
   }
-  static func getHeadsUpConfig() -> Data {
+  public static func getHeadsUpConfig() -> Data {
     return Data([Cmd.HeadsUpConfig.rawValue, 0x06, null, null, 0x04, null])
   }
-  static func dashData(isShow: Bool, vertical: UInt8, distance: UInt8) -> Data? {
+  public static func dashData(isShow: Bool, vertical: UInt8, distance: UInt8) -> Data? {
     let cmd: UInt8 = 0x02
     let show: UInt8 = isShow ? 0x01 : 0x00
     guard vertical >= 1 && vertical <= 0x08 else { return nil }
@@ -109,12 +109,18 @@ struct Config {
       cmd, show, vertical, distance,
     ])
   }
-  struct Event {
+  public struct Event {
     let name: String
     let time: String
     let location: String
+
+    public init(name: String, time: String, location: String) {
+      self.name = name
+      self.time = time
+      self.location = location
+    }
   }
-  static func calendarData(event: Event) -> Data {
+  public static func calendarData(event: Event) -> Data {
     let nameData: [UInt8] = event.name.uint8()
     let nameLength: UInt8 = UInt8(nameData.count)
     let timeData: [UInt8] = event.time.uint8()
@@ -158,12 +164,17 @@ struct Config {
     let finalParts = mapDataParts([null, mapSomething, UInt8(0x03)] + [UInt8(0x01)])
     return signalParts + mainParts + finalParts
   }
-  struct Note {
+  public struct Note {
     let title: String
     let text: String
+
+    public init(title: String, text: String) {
+      self.title = title
+      self.text = text
+    }
   }
   static var noteId: UInt8 = 0x00
-  static func notesData(notes: [Note]) -> [Data] {
+  public static func notesData(notes: [Note]) -> [Data] {
     return (0..<4).map { idx in
       noteId &+= 1
       let noteIdx: UInt8 = UInt8(idx + 1)
@@ -196,15 +207,6 @@ let configListeners: [Cmd: Listener] = [
     guard let name = peripheral.name else { return }
     logFailure(code: data[1], type: "autobrightness", name: name, data: data)
   },
-  Cmd.BrightnessState: { (peripheral, data, side, store) in
-    // On open even app from [0x29] send
-    let brightness = data[2]
-    let isAutoBrightness = data[3] == 0x01
-    // Max brightness: 42
-    store.set(atom: brightnessAtom, value: brightness)
-    store.set(atom: autoBrightnessAtom, value: isAutoBrightness)
-    // log("auto brightness \(name) \(brightness) \(isAutoBrightness) | \(data.hex)")
-  },
   Cmd.SilentMode: { (peripheral, data, side, store) in
     guard let name = peripheral.name else { return }
     // 0x03c9
@@ -226,19 +228,6 @@ let configListeners: [Cmd: Listener] = [
       // Probably calendar?
       // log("unknown dash cmd: \(name) \(data.hex)")
       break
-    }
-  },
-  Cmd.HeadsUp: { (peripheral, data, side, store) in
-    // Right only after opening settings
-    // 0x326d1501
-    store.set(atom: headsUpAngleAtom, value: data[2])
-  },
-  Cmd.DashPosition: { (peripheral, data, side, store) in
-    // on load, right only
-    // 0x3bc90203
-    if data[1] == 0xC9 {
-      store.set(atom: dashVerticalAtom, value: data[2])
-      store.set(atom: dashDistanceAtom, value: data[3])
     }
   },
   Cmd.HeadTilt: { (peripheral, data, side, store) in
@@ -278,7 +267,7 @@ let dashVerticalAtom = PrimitiveAtom<UInt8>(3)
 let dashDistanceAtom = PrimitiveAtom<UInt8>(2)
 
 let headsUpDashInternalAtom = PrimitiveAtom(true)
-let headsUpDashAtom = WritableAtom<Bool, Bool, Void>(
+public let headsUpDashAtom = WritableAtom<Bool, Bool, Void>(
   { getter in getter.get(atom: headsUpDashInternalAtom) },
   { (setter, value) in
     setter.set(atom: headsUpDashInternalAtom, value: value)

@@ -2,6 +2,7 @@ import CoreBluetooth
 import Log
 import SwiftData
 import SwiftUI
+import g1protocol
 
 public struct ContentView: View {
   @StateObject var vm = MainVM()
@@ -29,7 +30,7 @@ public struct ContentView: View {
             .onChange(of: scenePhase) { oldPhase, newPhase in
               if newPhase == .active {
                 log("syncKnown")
-                vm.connectionManager.syncKnown(glasses: glasses)
+                bluetoothManager.syncKnown(glasses: (glasses.left, glasses.right))
               } else if newPhase == .inactive {
                 log("Inactive")
               } else if newPhase == .background {
@@ -145,10 +146,10 @@ public struct ContentView: View {
       if vm.isBluetoothEnabled {
         Text("Searching...")
           .onAppear {
-            vm.connectionManager.syncUnknown(modelContext: modelContext)
+            bluetoothManager.syncUnknown()
           }
           .onDisappear {
-            vm.connectionManager.stopPairing()
+            bluetoothManager.stopPairing()
           }
           .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase == .active {
@@ -157,7 +158,7 @@ public struct ContentView: View {
               log("Inactive")
             } else if newPhase == .background {
               log("Background")
-              vm.connectionManager.stopPairing()
+              bluetoothManager.stopPairing()
             }
           }
       } else {

@@ -3,17 +3,17 @@ import Log
 import jotai
 
 extension BluetoothManager {
-  func syncUnknown() {
-    let pairing = Pairing(connect: connect)
-    self.pairing = pairing
+  public func syncUnknown() {
+    let pairing = Pairing(connect: manager.connect)
+    manager.pairing = pairing
 
     startPairingScan()
   }
 
   private func startPairingScan() {
-    guard let pairing else { return }
-    let peripherals = manager.retrieveConnectedPeripherals(withServices: [
-      uartServiceCbuuid
+    guard let pairing = manager.pairing else { return }
+    let peripherals = manager.manager.retrieveConnectedPeripherals(withServices: [
+      manager.uartServiceCbuuid
     ])
     for peripheral in peripherals {
       if pairing.onPeripheral(peripheral: peripheral) {
@@ -22,14 +22,14 @@ extension BluetoothManager {
     }
     log("No paired peripherals found")
     // manager.scanForPeripherals(withServices: [uartServiceCbuuid])
-    manager.scanForPeripherals(withServices: nil)
+    manager.manager.scanForPeripherals(withServices: nil)
   }
 
-  func stopPairing() {
-    if pairing != nil {
-      pairing = nil
+  public func stopPairing() {
+    if manager.pairing != nil {
+      manager.pairing = nil
     }
-    manager.stopScan()
+    manager.manager.stopScan()
   }
 }
 

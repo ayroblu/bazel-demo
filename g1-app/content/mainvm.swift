@@ -11,7 +11,6 @@ class MainVM: ObservableObject {
   @Published var selection: TextSelection? = nil
   private var previous: String = ""
   @Published var isConnected: Bool = false
-  @Published var glassesState: GlassesState = GlassesState.Off
   @Published var leftBattery: Int?
   @Published var rightBattery: Int?
   @Published var silentMode: Bool = false
@@ -62,31 +61,26 @@ class MainVM: ObservableObject {
     connectionManager.mainVm = self
   }
 
-  func connect() {
-    Task {
-      await connectionManager.scanConnected()
-    }
-  }
+  // func connect() {
+  //   Task {
+  //     await connectionManager.scanConnected()
+  //   }
+  // }
 
-  func list() {
-    let connected = connectionManager.getConnected()
-    let newDevices: [String] = connected.compactMap { device in
-      guard let name = device.name else { return nil }
-      return name
-    }
-    devices = newDevices
-  }
+  // func list() {
+  //   let connected = connectionManager.getConnected()
+  //   let newDevices: [String] = connected.compactMap { device in
+  //     guard let name = device.name else { return nil }
+  //     return name
+  //   }
+  //   devices = newDevices
+  // }
   func sendImage() {
     connectionManager.sendImage()
   }
 
   func sendNotif() {
     connectionManager.sendNotif()
-  }
-
-  func disconnect() {
-    devices = []
-    connectionManager.disconnect()
   }
 
   private func sendText(_ text: String) {

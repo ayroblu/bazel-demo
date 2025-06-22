@@ -1,150 +1,46 @@
-import CoreBluetooth
 import EventKit
 import Log
 import MapKit
 import Pcm
 import Speech
 import SwiftData
+import g1protocol
 
 public class ConnectionManager {
-  let uartServiceCbuuid = CBUUID(string: uartServiceUuid)
-  let manager = BluetoothManager()
+  // let uartServiceCbuuid = CBUUID(string: uartServiceUuid)
   let eventStore = EKEventStore()
-  // let calendar = CalendarManager()
-  let centralManager: CBCentralManager
   var mainVm: MainVM?
-  var connectedPeripherals: [CBPeripheral] {
-    return [manager.leftPeripheral, manager.rightPeripheral].compactMap { $0 }
-  }
+  // var connectedPeripherals: [CBPeripheral] {
+  //   return [manager.leftPeripheral, manager.rightPeripheral].compactMap { $0 }
+  // }
 
   public init() {
-    let options = [CBCentralManagerOptionRestoreIdentifierKey: "central-manager-identifier"]
-    centralManager = CBCentralManager(delegate: manager, queue: nil, options: options)
-    manager.manager = self
     requestCalendarAccessIfNeeded()
     requestReminderAccessIfNeeded()
   }
 
-  var pairing: Pairing?
-
-  func syncUnknown(modelContext: ModelContext) {
-    let pairing = Pairing(modelContext: modelContext, connect: connect)
-    self.pairing = pairing
-
-    startScan()
-  }
-
-  private func startScan() {
-    guard let pairing else { return }
-    let peripherals = centralManager.retrieveConnectedPeripherals(withServices: [
-      uartServiceCbuuid
-    ])
-    for peripheral in peripherals {
-      if pairing.onPeripheral(peripheral: peripheral) {
-        return
-      }
-    }
-    log("No paired peripherals found")
-    // centralManager.scanForPeripherals(withServices: [uartServiceCbuuid])
-    centralManager.scanForPeripherals(withServices: nil)
-  }
-
-  func stopPairing() {
-    if pairing != nil {
-      pairing = nil
-    }
-    centralManager.stopScan()
-  }
-
-  var leftPeripheral: CBPeripheral?
-  var rightPeripheral: CBPeripheral?
-  func connect(left: CBPeripheral, right: CBPeripheral) {
-    if let name = left.name {
-      log("connecting to \(name) (state: \(left.state.rawValue))")
-    }
-    if let name = right.name {
-      log("connecting to \(name) (state: \(right.state.rawValue))")
-    }
-    leftPeripheral = left
-    rightPeripheral = right
-    left.delegate = manager
-    right.delegate = manager
-    centralManager.connect(
-      left, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
-    centralManager.connect(
-      right, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
-    centralManager.stopScan()
-  }
-
   var glasses: GlassesModel?
-  func syncKnown(glasses: GlassesModel) {
-    if let left = manager.leftPeripheral, let right = manager.rightPeripheral,
-      left.state == .connected && right.state == .connected
-    {
-      mainVm?.isConnected = true
-      deviceInfo()
-      return
-    }
-    mainVm?.isConnected = false
-    if centralManager.state == .poweredOn {
-      reconnectKnown(glasses: glasses)
-    } else {
-      self.glasses = glasses
-    }
-  }
 
-  func reconnectKnown(glasses: GlassesModel) {
-    let peripherals = centralManager.retrievePeripherals(withIdentifiers: [
-      UUID(uuidString: glasses.left)!,
-      UUID(uuidString: glasses.right)!,
-    ])
-    if peripherals.count == 2 {
-      connect(left: peripherals[0], right: peripherals[1])
-    } else {
-      log("reconnectKnown missing peripherals: \(peripherals)")
-    }
-  }
+  // public func getConnected() -> [CBPeripheral] {
+  //   let peripherals = centralManager.retrieveConnectedPeripherals(withServices: [uartServiceCbuuid])
+  //   for peripheral in peripherals {
+  //     guard let name = peripheral.name else { continue }
+  //     guard name.contains("Even") else { continue }
+  //     // guard peripheral.state == .disconnected else { continue }
+  //     log("connecting to \(name) (state: \(peripheral.state.rawValue))")
+  //     peripheral.delegate = manager
+  //     centralManager.connect(
+  //       peripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+  //   }
 
-  public func getConnected() -> [CBPeripheral] {
-    let peripherals = centralManager.retrieveConnectedPeripherals(withServices: [uartServiceCbuuid])
-    for peripheral in peripherals {
-      guard let name = peripheral.name else { continue }
-      guard name.contains("Even") else { continue }
-      // guard peripheral.state == .disconnected else { continue }
-      log("connecting to \(name) (state: \(peripheral.state.rawValue))")
-      peripheral.delegate = manager
-      centralManager.connect(
-        peripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
-    }
-
-    return peripherals
-  }
-
-  public func scanConnected() async {
-    guard centralManager.state == .poweredOn else {
-      log("bluetooth not connected")
-      return
-    }
-    centralManager.scanForPeripherals(withServices: [uartServiceCbuuid], options: nil)
-    log("scanning")
-    try? await Task.sleep(for: .seconds(7))
-    centralManager.stopScan()
-    log("stop scanning")
-  }
-
-  public func disconnect() {
-    manager.transmitBoth(G1Cmd.Exit.data())
-    for peripheral in connectedPeripherals {
-      centralManager.cancelPeripheralConnection(peripheral)
-    }
-    log("disconnected")
-  }
+  //   return peripherals
+  // }
 
   var currentTask: Task<(), Never>?
 
   public func sendText(_ text: String) {
-    guard let textData = G1Cmd.Text.data(text: text) else { return }
-    manager.transmitBoth(textData)
+    guard let textData = Device.Text.data(text: text) else { return }
+    bluetoothManager.transmitBoth(textData)
   }
 
   public func sendWearMessage() {
@@ -155,103 +51,96 @@ public class ConnectionManager {
       sendText("                    Glasses initialized [\(battery)%]")
       try? await Task.sleep(for: .seconds(2))
 
-      let data = G1Cmd.Exit.data()
-      manager.transmitBoth(data)
+      let data = Device.exitData()
+      bluetoothManager.transmitBoth(data)
     }
   }
 
   public func sendImage() {
     guard let image = image1() else { return }
     Task {
-      // manager.readBoth(G1Cmd.Heartbeat.data())
+      // bluetoothManager.readBoth(Device.Heartbeat.data())
       // try? await Task.sleep(for: .milliseconds(50))
       // log("finished waiting for heartbeat")
 
-      // let dataItems = G1Cmd.Bmp.data(image: image)
+      // let dataItems = Device.Bmp.data(image: image)
       // log("sending \(dataItems.count) items")
 
       log("start sending bmp")
-      for data in G1Cmd.Bmp.data(image: image) {
-        manager.transmitBoth(data)
+      for data in Device.Bmp.data(image: image) {
+        bluetoothManager.transmitBoth(data)
         try? await Task.sleep(for: .milliseconds(8))
       }
       log("finished sending parts")
-      manager.readBoth(G1Cmd.Bmp.endData())
+      bluetoothManager.readBoth(Device.Bmp.endData())
       try? await Task.sleep(for: .milliseconds(100))
-      manager.readBoth(G1Cmd.Bmp.crcData(inputData: image))
+      bluetoothManager.readBoth(Device.Bmp.crcData(inputData: image))
       log("sent crc")
     }
   }
 
   public func sendAllowNotifs() {
     Task { @MainActor in
-      let notifConfig = getNotifConfig()
-      let apps = try fetchNotifApps()
-      let allowData = G1Cmd.Notify.allowData(
-        notifConfig: notifConfig, apps: apps.map { app in (app.id, app.name) })
+      let notifConfig = try getNotifConfig()
+      let allowData = Device.Notify.allowData(notifConfig: notifConfig)
       for data in allowData {
-        manager.readLeft(data)
+        bluetoothManager.readLeft(data)
       }
     }
   }
 
   public func sendNotif() {
-    let data = G1Cmd.Notify.data(
-      notifyData: NotifyData(
+    let data = Device.Notify.data(
+      notifyData: Device.Notify.NotifyData(
         title: "New product!",
         subtitle: "hello!", message: "message?"))
     for data in data {
-      manager.transmitBoth(data)
+      bluetoothManager.transmitBoth(data)
     }
   }
 
   public func sendNotifConfig() {
-    manager.transmitBoth(
-      G1Cmd.Notify.configData(
+    bluetoothManager.transmitBoth(
+      Device.Notify.configData(
         directPush: notifDirectPush, durationS: notifDurationSeconds))
   }
 
   public func toggleSilentMode() {
     if let mainVm {
-      let data = G1Cmd.Config.silentModeData(enabled: !mainVm.silentMode)
-      manager.transmitBoth(data)
+      let data = Config.silentModeData(enabled: !mainVm.silentMode)
+      bluetoothManager.transmitBoth(data)
       mainVm.silentMode = !mainVm.silentMode
     }
   }
 
   public func sendBrightness() {
     if let mainVm {
-      let data = G1Cmd.Config.brightnessData(
+      let data = Config.brightnessData(
         brightness: mainVm.brightness, auto: mainVm.autoBrightness)
-      manager.readRight(data)
+      bluetoothManager.readRight(data)
     }
   }
 
   public func headsUpAngle(angle: UInt8) {
-    guard let data = G1Cmd.Config.headTiltData(angle: angle) else { return }
-    manager.transmitBoth(data)
+    guard let data = Config.headTiltData(angle: angle) else { return }
+    bluetoothManager.transmitBoth(data)
   }
 
-  func headsUpConfig(_ config: G1Cmd.Config.HeadsUpConfig) {
-    let data = G1Cmd.Config.headsUpConfig(config)
-    manager.transmitRight(data)
-  }
-
-  func getHeadsUpConfig() {
-    let data = G1Cmd.Config.getHeadsUpConfig()
-    manager.readRight(data)
+  func headsUpConfig(_ config: Config.HeadsUpConfig) {
+    let data = Config.headsUpConfig(config)
+    bluetoothManager.transmitRight(data)
   }
 
   public func dashPosition(isShow: Bool, vertical: UInt8, distance: UInt8) {
-    guard let data = G1Cmd.Config.dashData(isShow: isShow, vertical: vertical, distance: distance)
+    guard let data = Config.dashData(isShow: isShow, vertical: vertical, distance: distance)
     else { return }
-    manager.transmitBoth(data)
+    bluetoothManager.transmitBoth(data)
   }
 
-  func dashNotes(notes: [G1Cmd.Config.Note]) {
-    let data = G1Cmd.Config.notesData(notes: notes)
+  func dashNotes(notes: [Config.Note]) {
+    let data = Config.notesData(notes: notes)
     for data in data {
-      manager.transmitBoth(data)
+      bluetoothManager.transmitBoth(data)
     }
   }
 
@@ -261,71 +150,50 @@ public class ConnectionManager {
     if let speech = speechRecognizer {
       speech.stopRecognition()
       speechRecognizer = nil
-      manager.readRight(G1Cmd.Mic.data(enable: false))
-      manager.transmitBoth(G1Cmd.Exit.data())
+      bluetoothManager.readRight(Device.Mic.data(enable: false))
+      bluetoothManager.transmitBoth(Device.exitData())
       return
     }
     speechRecognizer = SpeechRecognizer { text in
       log("recognized", text)
-      guard let textData = G1Cmd.Text.data(text: text) else { return }
-      self.manager.transmitBoth(textData)
+      guard let textData = Device.Text.data(text: text) else { return }
+      bluetoothManager.transmitBoth(textData)
     }
-    manager.readRight(G1Cmd.Mic.data(enable: true))
+    bluetoothManager.readRight(Device.Mic.data(enable: true))
     speechRecognizer?.startRecognition(locale: Locale(identifier: "en-US"))
-    guard let textData = G1Cmd.Text.data(text: "Listening...") else { return }
-    manager.transmitBoth(textData)
+    guard let textData = Device.Text.data(text: "Listening...") else { return }
+    bluetoothManager.transmitBoth(textData)
     log("listening")
   }
 
-  func onConnect() {
-    if let pairing, let left = manager.leftPeripheral, let right = manager.rightPeripheral {
-      log("onConnect - inserting GlassesModel")
-      pairing.modelContext.insert(
-        GlassesModel(left: left.identifier.uuidString, right: right.identifier.uuidString))
-      self.pairing = nil
+  func onConnect(left: String, right: String) {
+    Task { @MainActor in
+      if glasses == nil {
+        log("onConnect - inserting GlassesModel")
+        if let glassesModel = try? insertOrUpdateGlassesModel(left: left, right: right) {
+          glasses = glassesModel
+        }
+      }
     }
 
     deviceInfo()
     syncReminders()
-    startTimer()
-
-    mainVm?.isConnected = true
+    bluetoothManager.startTimer()
   }
 
   func deviceInfo() {
-    manager.readLeft(G1Cmd.Info.glassesStateData())
-    manager.readLeft(G1Cmd.Info.batteryData())
-    manager.readRight(Data([SendCmd.BrightnessState.rawValue]))
-    manager.readRight(Data([SendCmd.DashPosition.rawValue]))
-    manager.readRight(Data([SendCmd.HeadsUp.rawValue]))
-    getHeadsUpConfig()
+    bluetoothManager.readLeft(Info.glassesStateData())
+    bluetoothManager.readLeft(Info.batteryData())
+    bluetoothManager.readRight(Info.brightnessStateData())
+    bluetoothManager.readRight(Info.dashPositionData())
+    bluetoothManager.readRight(Info.headsUpData())
+    bluetoothManager.readRight(Config.getHeadsUpConfig())
     guard let glasses else { return }
     if glasses.leftLensSerialNumber == nil || glasses.rightLensSerialNumber == nil {
-      manager.readBoth(G1Cmd.Info.lensSerialNumberData())
+      bluetoothManager.readBoth(Info.lensSerialNumberData())
     }
     if glasses.deviceSerialNumber == nil {
-      manager.readLeft(G1Cmd.Info.deviceSerialNumberData())
+      bluetoothManager.readLeft(Info.deviceSerialNumberData())
     }
-  }
-}
-
-var timer: Timer?
-func startTimer() {
-  timer?.invalidate()
-  log("start timer")
-  timer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { timer in
-    log("Poll connection fired!")
-    guard let left = manager.leftPeripheral, let right = manager.rightPeripheral else {
-      log("peripheral not found")
-      return
-    }
-    for p in [left, right] {
-      if p.state != .connected {
-        manager.centralManager.connect(
-          p, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
-        log("Connecting to", p.name ?? "<unknown>")
-      }
-    }
-    manager.manager.transmitBoth(G1Cmd.Heartbeat.data())
   }
 }

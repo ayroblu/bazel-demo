@@ -3,6 +3,7 @@ import Log
 import SwiftData
 import SwiftUI
 import jotai
+import g1protocol
 
 struct DashConfigView: View {
   @StateObject var vm: MainVM
@@ -194,7 +195,7 @@ struct NoteEditView: View {
   }
 }
 extension NoteModel {
-  func toG1Cmd() -> G1Cmd.Config.Note {
-    return G1Cmd.Config.Note(title: self.title, text: self.text)
+  func toG1Cmd() -> Config.Note {
+    return Config.Note(title: self.title, text: self.text)
   }
 }

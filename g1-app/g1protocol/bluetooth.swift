@@ -8,9 +8,47 @@ let uartRxCharacteristicUuid = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 let smpServiceUuid = "8D53DC1D-1DB7-4CD3-868B-8A527460AA84"
 let smpCharacteristicUuid = "DA2E7828-FBCE-4E01-AE9E-261174997C48"
 
-let bluetoothManager = BluetoothManager(store: JotaiStore.shared)
+public let bluetoothManager = BluetoothManager()
 
-class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
+public struct BluetoothManager {
+  let manager = G1BluetoothManager(store: JotaiStore.shared)
+
+  public func syncKnown(glasses: (String, String)) {
+    if let left = manager.leftPeripheral, let right = manager.rightPeripheral,
+      left.state == .connected && right.state == .connected
+    {
+      manager.store.set(atom: isConnectedAtom, value: true)
+      onConnectListener.executeAll()
+      return
+    }
+    manager.store.set(atom: isConnectedAtom, value: false)
+    if manager.manager.state == .poweredOn {
+      manager.reconnectKnown(glasses: glasses)
+    }
+  }
+
+  public func disconnect() {
+    transmitBoth(Device.exitData())
+    for peripheral in [manager.leftPeripheral, manager.rightPeripheral].compactMap({ $0 }) {
+      manager.manager.cancelPeripheralConnection(peripheral)
+    }
+    log("disconnected")
+  }
+
+  public func scanConnected() async {
+    guard manager.manager.state == .poweredOn else {
+      log("bluetooth not connected")
+      return
+    }
+    manager.manager.scanForPeripherals(withServices: [manager.uartServiceCbuuid], options: nil)
+    log("scanning")
+    try? await Task.sleep(for: .seconds(7))
+    manager.manager.stopScan()
+    log("stop scanning")
+  }
+}
+
+class G1BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
   let uartServiceCbuuid = CBUUID(string: uartServiceUuid)
   let uartTxCharacteristicCbuuid = CBUUID(string: uartTxCharacteristicUuid)
   let uartRxCharacteristicCbuuid = CBUUID(string: uartRxCharacteristicUuid)
@@ -166,7 +204,7 @@ class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
       if !store.get(atom: isConnectedAtom) {
         store.set(atom: isConnectedAtom, value: true)
         if pairing != nil {
-          log("onConnect - inserting GlassesModel")
+          // log("onConnect - inserting GlassesModel")
           // TODO:
           // pairing.modelContext.insert(
           //   GlassesModel(left: left.identifier.uuidString, right: right.identifier.uuidString))

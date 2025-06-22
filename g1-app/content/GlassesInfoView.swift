@@ -1,13 +1,16 @@
 import SwiftUI
+import jotai
+import g1protocol
 
 struct GlassesInfoView: View {
   @Environment(\.colorScheme) var colorScheme
   @StateObject var mainVm: MainVM
+  @AtomState(glassesStateAtom) var glassesState: GlassesState
   let glasses: GlassesModel
 
   var body: some View {
     ZStack {
-      Image(uiImage: getImage(mainVm: mainVm, isDark: colorScheme == .dark))
+      Image(uiImage: getImage(mainVm: mainVm, glassesState: glassesState, isDark: colorScheme == .dark))
         .resizable()
         .aspectRatio(contentMode: .fit)
       VStack {
@@ -20,7 +23,7 @@ struct GlassesInfoView: View {
             Text("\(battery)%")
           }
         }
-        switch mainVm.glassesState {
+        switch glassesState {
         case .CaseOpen, .CaseClosed:
           if let battery = mainVm.caseBattery {
             HStack {
@@ -38,7 +41,7 @@ struct GlassesInfoView: View {
       }
     }
     .onTapGesture {
-      mainVm.connectionManager.syncKnown(glasses: glasses)
+      bluetoothManager.syncKnown(glasses: (glasses.left, glasses.right))
     }
   }
 }
@@ -53,10 +56,10 @@ func getBatterySymbol(battery: Int) -> String {
         : "battery.0percent"
 }
 
-func getImage(mainVm: MainVM, isDark: Bool) -> UIImage {
+func getImage(mainVm: MainVM, glassesState: GlassesState, isDark: Bool) -> UIImage {
   let images = GlassesImages(isDark: isDark)
   if mainVm.isConnected {
-    switch mainVm.glassesState {
+    switch glassesState {
     case .Off:
       return images.folded
     case .Wearing:

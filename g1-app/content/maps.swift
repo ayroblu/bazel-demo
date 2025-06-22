@@ -4,6 +4,7 @@ import LogUtils
 import MapKit
 import maps
 import utils
+import g1protocol
 
 let padding = 0.002
 extension ConnectionManager {
@@ -13,8 +14,8 @@ extension ConnectionManager {
         try await sendNavigateInner(route: route)
       } catch {
         log(error)
-        let data = G1Cmd.Navigate.endData()
-        manager.transmitBoth(data)
+        let data = Device.Navigate.endData()
+        bluetoothManager.transmitBoth(data)
       }
     }
   }
@@ -27,7 +28,7 @@ extension ConnectionManager {
 
     log("starting navigate")
 
-    manager.transmitBoth(G1Cmd.Navigate.initData())
+    bluetoothManager.transmitBoth(Device.Navigate.initData())
     try await Task.sleep(for: .milliseconds(8))
 
     var prevLocation: (lat: Double, lng: Double)?
@@ -43,14 +44,14 @@ extension ConnectionManager {
         log("sent road map", i)
         prevLocation = (lat, lng)
       } else {
-        let data = G1Cmd.Navigate.pollerData()
-        manager.transmitBoth(data)
+        let data = Device.Navigate.pollerData()
+        bluetoothManager.transmitBoth(data)
         log("sent poll", i)
       }
       try await Task.sleep(for: .seconds(1))
     }
-    let data = G1Cmd.Navigate.endData()
-    manager.transmitBoth(data)
+    let data = Device.Navigate.endData()
+    bluetoothManager.transmitBoth(data)
     log("ending navigate")
   }
 
@@ -73,13 +74,13 @@ extension ConnectionManager {
     let secondaryBounds = routeBounds(route: route)
     let pos = getPosInBoundsClamped(dim: (488, 136), pos: (lat, lng), bounds: secondaryBounds)
 
-    let directionsData = G1Cmd.Navigate.directionsData(
+    let directionsData = Device.Navigate.directionsData(
       totalDuration: progress.remainingDuration.prettyPrint(),
       totalDistance: "\(Int(progress.remainingDistance))m",
       direction: step.instructions,
       distance: "\(Int(remainingStepDistance))m", speed: getPrettySpeed(),
       x: pos.x.bytes(byteCount: 2), y: UInt8(pos.y))
-    manager.transmitBoth(directionsData)
+    bluetoothManager.transmitBoth(directionsData)
     try await Task.sleep(for: .milliseconds(8))
 
     let roadMap = roads.renderMap(bounds: bounds, dim: (136, 136))
@@ -88,9 +89,9 @@ extension ConnectionManager {
       // -getAngle: bearing is clockwise, but rotations are counter clockwise
       selfArrow: SelfArrow(lat: lat, lng: lng, angle: getSpeed() > 1 ? -getAngle() : nil))
 
-    let primaryImageData = G1Cmd.Navigate.primaryImageData(image: roadMap, overlay: selfMap)
+    let primaryImageData = Device.Navigate.primaryImageData(image: roadMap, overlay: selfMap)
     for data in primaryImageData {
-      manager.transmitBoth(data)
+      bluetoothManager.transmitBoth(data)
       try await Task.sleep(for: .milliseconds(8))
     }
 
@@ -98,10 +99,10 @@ extension ConnectionManager {
     let secondarySelfMap = getSelfMap(
       dim: (488, 136), route: route, bounds: secondaryBounds)
 
-    let secondaryImageData = G1Cmd.Navigate.secondaryImageData(
+    let secondaryImageData = Device.Navigate.secondaryImageData(
       image: secondaryRoadMap, overlay: secondarySelfMap)
     for data in secondaryImageData {
-      manager.transmitBoth(data)
+      bluetoothManager.transmitBoth(data)
       try await Task.sleep(for: .milliseconds(8))
     }
 

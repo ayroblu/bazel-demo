@@ -1,23 +1,24 @@
 import CoreLocation
 import Foundation
 import Log
+import g1protocol
 
 extension ConnectionManager {
   func checkWeather() {
     guard isStale() else { return }
     Task {
       if let weather = await getWeather() {
-        let weatherData = G1Cmd.Config.dashTimeWeatherData(
+        let weatherData = Config.dashTimeWeatherData(
           weatherIcon: parseWeatherIcon(
             code: weather.current.weather_code, isDay: weather.current.is_day == 1),
           temp: UInt8(round(weather.current.temperature_2m)))
-        manager.transmitBoth(weatherData)
+        bluetoothManager.transmitBoth(weatherData)
         lastFetch = Date()
       } else {
-        let weatherData = G1Cmd.Config.dashTimeWeatherData(
-          weatherIcon: G1Cmd.Config.WeatherIcon.Sunny,
+        let weatherData = Config.dashTimeWeatherData(
+          weatherIcon: Config.WeatherIcon.Sunny,
           temp: UInt8(25))
-        manager.transmitBoth(weatherData)
+        bluetoothManager.transmitBoth(weatherData)
         lastFetch = Date()
       }
     }
@@ -90,41 +91,41 @@ func getCurrentLocation() -> CLLocation? {
   }
 }
 
-func parseWeatherIcon(code: Int, isDay: Bool) -> G1Cmd.Config.WeatherIcon {
+func parseWeatherIcon(code: Int, isDay: Bool) -> Config.WeatherIcon {
   // See: `WMO Weather interpretation codes (WW)` of https://open-meteo.com/en/docs
   switch code {
   case 0, 1:
-    return isDay ? G1Cmd.Config.WeatherIcon.Sunny : G1Cmd.Config.WeatherIcon.Night
+    return isDay ? Config.WeatherIcon.Sunny : Config.WeatherIcon.Night
   case 2, 3:
-    return G1Cmd.Config.WeatherIcon.Clouds
+    return Config.WeatherIcon.Clouds
   case 45, 48:
-    return G1Cmd.Config.WeatherIcon.Fog
+    return Config.WeatherIcon.Fog
   case 51, 53, 56:
-    return G1Cmd.Config.WeatherIcon.Drizzle
+    return Config.WeatherIcon.Drizzle
   case 55, 57:
-    return G1Cmd.Config.WeatherIcon.HeavyDrizzle
+    return Config.WeatherIcon.HeavyDrizzle
   case 61, 63, 66, 80, 81, 82:
-    return G1Cmd.Config.WeatherIcon.Rain
+    return Config.WeatherIcon.Rain
   case 65, 67:
-    return G1Cmd.Config.WeatherIcon.HeavyRain
+    return Config.WeatherIcon.HeavyRain
   case 95, 96:
-    return G1Cmd.Config.WeatherIcon.Thunder
+    return Config.WeatherIcon.Thunder
   case 99:
-    return G1Cmd.Config.WeatherIcon.ThunderStorm
+    return Config.WeatherIcon.ThunderStorm
   case 71, 73, 75, 77, 85, 86:
-    return G1Cmd.Config.WeatherIcon.Snow
+    return Config.WeatherIcon.Snow
   default:
     log("Unknown weather code", code)
-    return G1Cmd.Config.WeatherIcon.Tornado
+    return Config.WeatherIcon.Tornado
   // case 0:
-  //   return G1Cmd.Config.WeatherIcon.Mist
+  //   return Config.WeatherIcon.Mist
   // case 0:
-  //   return G1Cmd.Config.WeatherIcon.Sand
+  //   return Config.WeatherIcon.Sand
   // case 0:
-  //   return G1Cmd.Config.WeatherIcon.Squalls
+  //   return Config.WeatherIcon.Squalls
   // case 0:
-  //   return G1Cmd.Config.WeatherIcon.Tornado
+  //   return Config.WeatherIcon.Tornado
   // case 0:
-  //   return G1Cmd.Config.WeatherIcon.Freezing
+  //   return Config.WeatherIcon.Freezing
   }
 }

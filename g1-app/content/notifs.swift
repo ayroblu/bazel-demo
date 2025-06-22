@@ -1,5 +1,6 @@
 import Foundation
 import jotai
+import g1protocol
 
 func onNewNotif(manager: ConnectionManager, data: Data) async throws {
   let notif = try JSONDecoder().decode(NewNotif.self, from: data)
@@ -15,21 +16,16 @@ struct NotifAppInfo: Codable {
   let display_name: String  // G1 Bazel App
 }
 
-func getNotifConfig() -> NotifConfig {
-  return NotifConfig(
+@MainActor
+func getNotifConfig() throws -> Device.Notify.NotifConfig {
+  let apps = notifConfigAppsState.get() ? try fetchNotifApps() : []
+  return Device.Notify.NotifConfig(
     calendar: notifConfigCalendarState.get(),
     call: notifConfigCallState.get(),
     msg: notifConfigMsgState.get(),
     iosMail: notifConfigIosMailState.get(),
-    apps: notifConfigAppsState.get()
+    apps: apps.map { app in (app.id, app.name) },
   )
-}
-struct NotifConfig {
-  let calendar: Bool
-  let call: Bool
-  let msg: Bool
-  let iosMail: Bool
-  let apps: Bool
 }
 // struct NotifApp {
 //   let id: String
