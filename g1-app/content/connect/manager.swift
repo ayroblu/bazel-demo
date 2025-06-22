@@ -183,6 +183,7 @@ public class ConnectionManager {
   }
 
   func deviceInfo() {
+    log("reading deviceInfo")
     bluetoothManager.readLeft(Info.glassesStateData())
     bluetoothManager.readLeft(Info.batteryData())
     bluetoothManager.readRight(Info.brightnessStateData())

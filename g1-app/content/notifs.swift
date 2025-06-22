@@ -69,6 +69,18 @@ let notifConfigMsgAtom = notifAllowlistAtom(state: notifConfigMsgState)
 let notifConfigIosMailAtom = notifAllowlistAtom(state: notifConfigIosMailState)
 let notifConfigAppsAtom = notifAllowlistAtom(state: notifConfigAppsState)
 
+func DoubleUInt8CastAtom(atom: PrimitiveAtom<UInt8>, onSet: ((Setter, UInt8) -> Void)? = nil)
+  -> WritableAtom<
+    Double, Double, Void
+  >
+{
+  return WritableAtom(
+    { getter in Double(getter.get(atom: atom)) },
+    { (setter, value) in
+      setter.set(atom: atom, value: UInt8(value))
+      onSet?(setter, UInt8(value))
+    })
+}
 func DoubleUInt8CastAtom(atom: WritableAtom<UInt8, UInt8, Void>, onSet: ((Setter, UInt8) -> Void)? = nil)
   -> WritableAtom<
     Double, Double, Void

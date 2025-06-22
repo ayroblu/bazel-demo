@@ -141,6 +141,7 @@ public struct ContentView: View {
         }
       }
       .onAppear {
+        manager.glasses = glasses
         print(WatchConnectivityManager.shared)
         #if DEBUG
           initLogDb(modelContext)

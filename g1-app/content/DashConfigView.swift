@@ -37,7 +37,7 @@ struct DashConfigView: View {
 
   var body: some View {
     List {
-      Section(header: Text("Dash angle: \(headsUpAngle)°")) {
+      Section(header: Text("Heads up angle: \(headsUpAngle)°")) {
         Slider(
           value: $headsUpAngleDouble,
           in: 0...60,
@@ -53,26 +53,28 @@ struct DashConfigView: View {
         Text("Heads Up Dashboard")
       }
 
-      Section(header: Text("Dash vertical: \(dashVertical)")) {
-        Slider(
-          value: $dashVerticalDouble,
-          in: 1...8,
-          step: 1
-        ) { editing in
-          if !editing {
-            manager.dashPosition(isShow: editing, vertical: dashVertical, distance: dashDistance)
+      if headsUpDash {
+        Section(header: Text("Dash vertical: \(dashVertical)")) {
+          Slider(
+            value: $dashVerticalDouble,
+            in: 1...8,
+            step: 1
+          ) { editing in
+            if !editing {
+              manager.dashPosition(isShow: editing, vertical: dashVertical, distance: dashDistance)
+            }
           }
         }
-      }
-      let dashDistanceLabel = NSString(format: "%.01f", Double(dashDistance) / 2)
-      Section(header: Text("Dash distance: \(dashDistanceLabel)m")) {
-        Slider(
-          value: $dashDistanceDouble,
-          in: 1...9,
-          step: 1
-        ) { editing in
-          if !editing {
-            manager.dashPosition(isShow: editing, vertical: dashVertical, distance: dashDistance)
+        let dashDistanceLabel = NSString(format: "%.01f", Double(dashDistance) / 2)
+        Section(header: Text("Dash distance: \(dashDistanceLabel)m")) {
+          Slider(
+            value: $dashDistanceDouble,
+            in: 1...9,
+            step: 1
+          ) { editing in
+            if !editing {
+              manager.dashPosition(isShow: editing, vertical: dashVertical, distance: dashDistance)
+            }
           }
         }
       }

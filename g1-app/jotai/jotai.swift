@@ -41,17 +41,37 @@ public class JotaiStore {
     return value
   }
 
-  public func set<T: Equatable>(atom: PrimitiveAtom<T>, value: T) {
+  private func setPrimitive<T: Equatable>(atom: PrimitiveAtom<T>, value: T) {
     let key = ObjectIdentifier(atom)
     if let cachedValue = map[key] as? Value<T>, value == cachedValue.value {
       return
     }
+    #if DEBUG
+      if atom.isDebug {
+        print("[jotai debug] set primitive", key, map[key] ?? "nil", "new value", value)
+      }
+    #endif
     map[key] = Value(value: value)
 
     depsManager.propagateStale(atom: atom, store: self)
     subs[key]?.executeAll()
   }
+  public func set<T: Equatable>(atom: PrimitiveAtom<T>, value: T) {
+    setPrimitive(atom: atom, value: value)
+  }
   public func set<T: Equatable, Arg>(atom: WritableAtom<T, Arg, Void>, value: Arg) {
+    #if DEBUG
+      if atom.isDebug {
+        print("[jotai debug] set", value)
+      }
+    #endif
+    if let atom = atom as? PrimitiveAtom<T> {
+      // This shouldn't happen except where there's a bug in type defs
+      // For example a function that takes a WritableAtom, but you need override function to handle the PrimitiveAtom case
+      print("invalid primitve atom in writable atom", atom, value)
+      setPrimitive(atom: atom, value: value as! T)
+      return
+    }
     let setter = Setter(store: self)
     atom.setValue(setter, value)
   }
@@ -155,6 +175,7 @@ public class PrimitiveAtom<T: Equatable>: WritableAtom<T, T, Void> {
   public init(_ defaultValue: T) {
     super.init(defaultValue) { (store, value) in }
   }
+  // You could add a special case where you pass in a setValue, and so if you self yourself in a set value, this is special cased to set the cached value
 }
 
 public class WriteAtom<Arg, Result>: WritableAtom<Int, Arg, Result> {

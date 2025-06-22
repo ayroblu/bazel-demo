@@ -204,6 +204,8 @@ class G1BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
       guard let rightPeripheral else { return }
       guard transmitLeftCharacteristic != nil else { return }
       guard transmitLeftCharacteristic != nil else { return }
+      guard leftPeripheral.state == .connected else { return }
+      guard rightPeripheral.state == .connected else { return }
       if !store.get(atom: isConnectedAtom) {
         store.set(atom: isConnectedAtom, value: true)
         if pairing != nil {
