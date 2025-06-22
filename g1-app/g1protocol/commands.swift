@@ -3,7 +3,7 @@ import Foundation
 import Log
 import jotai
 
-enum Cmd: UInt8, CaseIterable {
+public enum Cmd: UInt8, CaseIterable {
   case Error = 0x00
   case Brightness = 0x01
   case SilentMode = 0x03

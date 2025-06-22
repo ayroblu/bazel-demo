@@ -123,13 +123,6 @@ let infoListeners: [Cmd: Listener] = [
     guard let name = peripheral.name else { return }
     let serialNumber = data.subdata(in: 1..<data.count).ascii()
     log("Glasses Serial Number: \(name) \(data.hex) \(serialNumber ?? "nil")")
-    // TODO:
-    // let glasses = store.get(atom: glassesModelAtom)
-    // if side == .left {
-    //   glasses?.leftLensSerialNumber = serialNumber
-    // } else {
-    //   glasses?.rightLensSerialNumber = serialNumber
-    // }
   },
   Cmd.DeviceSerialNumber: { (peripheral, data, side, store) in
     guard let name = peripheral.name else { return }
@@ -147,9 +140,6 @@ let infoListeners: [Cmd: Listener] = [
         ? "Brown"
         : colorCode == "C" ? "Green" : "Unknown " + colorCode
     log("Frame \(frame), color \(color)")
-    // TODO:
-    // let glasses = store.get(atom: glassesModelAtom)
-    // glasses?.deviceSerialNumber = serialNumber
   },
   Cmd.Uptime: { (peripheral, data, side, store) in
     // time since boot in seconds?

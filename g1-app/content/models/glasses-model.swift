@@ -15,7 +15,7 @@ public class GlassesModel {
 }
 
 @MainActor
-func insertOrUpdateGlassesModel(left: String, right: String) throws -> GlassesModel {
+func fetchGlassesModel() throws -> GlassesModel? {
   let context = try getModelContext()
   let descriptor = FetchDescriptor<GlassesModel>()
   let existingModels = try context.fetch(descriptor)
@@ -24,8 +24,13 @@ func insertOrUpdateGlassesModel(left: String, right: String) throws -> GlassesMo
       context.delete(model)
     }
   }
+  return existingModels.first
+}
 
-  if let existingModel = existingModels.first {
+@MainActor
+func insertOrUpdateGlassesModel(left: String, right: String) throws -> GlassesModel {
+  let context = try getModelContext()
+  if let existingModel = try fetchGlassesModel() {
     existingModel.left = left
     existingModel.right = right
     try context.save()

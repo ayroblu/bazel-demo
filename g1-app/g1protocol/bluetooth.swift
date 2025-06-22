@@ -204,10 +204,6 @@ class G1BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
       if !store.get(atom: isConnectedAtom) {
         store.set(atom: isConnectedAtom, value: true)
         if pairing != nil {
-          // log("onConnect - inserting GlassesModel")
-          // TODO:
-          // pairing.modelContext.insert(
-          //   GlassesModel(left: left.identifier.uuidString, right: right.identifier.uuidString))
           self.pairing = nil
         }
         onConnectListener.executeAll()

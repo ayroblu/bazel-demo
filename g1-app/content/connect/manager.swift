@@ -51,8 +51,7 @@ public class ConnectionManager {
       sendText("                    Glasses initialized [\(battery)%]")
       try? await Task.sleep(for: .seconds(2))
 
-      let data = Device.exitData()
-      bluetoothManager.transmitBoth(data)
+      bluetoothManager.transmitBoth(Device.exitData())
     }
   }
 
@@ -174,11 +173,11 @@ public class ConnectionManager {
           glasses = glassesModel
         }
       }
+      let _ = infoListeners()
+      deviceInfo()
+      syncReminders()
+      bluetoothManager.startTimer()
     }
-
-    deviceInfo()
-    syncReminders()
-    bluetoothManager.startTimer()
   }
 
   func deviceInfo() {
@@ -194,6 +193,67 @@ public class ConnectionManager {
     }
     if glasses.deviceSerialNumber == nil {
       bluetoothManager.readLeft(Info.deviceSerialNumberData())
+    }
+  }
+}
+var disposeInfoListeners: (() -> Void)?
+@MainActor
+func infoListeners() {
+  guard disposeInfoListeners == nil else { return }
+  let disposeLensSerialNumber = addListener(key: Cmd.LensSerialNumber) {
+    (peripheral, data, side, store) in
+    guard let glasses = try? fetchGlassesModel() else { return }
+    let serialNumber = data.subdata(in: 1..<data.count).ascii()
+    if side == .left {
+      glasses.leftLensSerialNumber = serialNumber
+    } else {
+      glasses.rightLensSerialNumber = serialNumber
+    }
+  }
+  let disposeDeviceSerialNumber = addListener(key: Cmd.DeviceSerialNumber) {
+    (peripheral, data, side, store) in
+    let serialNumber = data.subdata(in: 1..<data.count).ascii()
+    guard let glasses = try? fetchGlassesModel() else { return }
+    glasses.deviceSerialNumber = serialNumber
+  }
+
+  disposeInfoListeners = {
+    disposeLensSerialNumber()
+    disposeDeviceSerialNumber()
+  }
+}
+
+var disposeDeviceListeners: (() -> Void)?
+extension ConnectionManager {
+  @MainActor
+  func deviceListeners() {
+    guard disposeDeviceListeners == nil else { return }
+
+    let disposeMicData = addListener(key: Cmd.MicData) { (peripheral, data, side, store) in
+      let effectiveData = data.subdata(in: 2..<data.count)
+      let pcmConverter = PcmConverter()
+      let pcmData = pcmConverter.decode(effectiveData)
+
+      let inputData = pcmData as Data
+      manager.speechRecognizer?.appendPcmData(inputData)
+    }
+
+    let disposeDevice = addListener(key: Cmd.Device) { (peripheral, data, side, store) in
+      let cmd = DeviceCmd(rawValue: data[1])
+      switch cmd {
+      case .DashShown:
+        self.syncEvents()
+        self.checkWeather()
+      case .WearOn:
+        self.sendWearMessage()
+      default:
+        break
+      }
+    }
+
+    disposeDeviceListeners = {
+      disposeMicData()
+      disposeDevice()
     }
   }
 }

@@ -303,7 +303,6 @@ let deviceListeners: [Cmd: Listener] = [
     log("mic action success: \(resp.isSuccess), enabled: \(resp.enable)")
   },
   Cmd.MicData: { (peripheral, data, side, store) in
-    // TODO:
     // let effectiveData = data.subdata(in: 2..<data.count)
     // let pcmConverter = PcmConverter()
     // let pcmData = pcmConverter.decode(effectiveData)
@@ -370,11 +369,6 @@ let deviceListeners: [Cmd: Listener] = [
       log("not silent mode", name)
     case .LookUp:
       log("look up", name, data.hex)
-      if store.get(atom: glassesAppStateAtom) == nil {
-        // TODO:
-        // mainVm?.connectionManager.syncEvents()
-        // mainVm?.connectionManager.checkWeather()
-      }
 
     // let text = "Looked up!"
     // guard let textData = G1Cmd.Text.data(text: text) else { break }
@@ -409,7 +403,6 @@ let deviceListeners: [Cmd: Listener] = [
     case .WearOn:
       log("wear on: \(name) \(data.hex)")
       store.set(atom: glassesStateAtom, value: .Wearing)
-      // TODO:
       // mainVm?.connectionManager.sendWearMessage()
       // 0xf506
       break
@@ -447,7 +440,7 @@ let deviceListeners: [Cmd: Listener] = [
   },
 ]
 
-enum DeviceCmd: UInt8 {
+public enum DeviceCmd: UInt8 {
   case SingleTap = 0x01
   case DoubleTap = 0x00
   case TripleTapSilent = 0x04

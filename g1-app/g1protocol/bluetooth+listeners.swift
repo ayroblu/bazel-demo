@@ -29,7 +29,7 @@ extension G1BluetoothManager {
 }
 let allListeners: [[Cmd: Listener]] = [infoListeners, configListeners, deviceListeners]
 
-func addListener(key: Cmd, listener: @escaping Listener) -> () -> Void {
+public func addListener(key: Cmd, listener: @escaping Listener) -> () -> Void {
   if listeners[key] == nil {
     listeners[key] = ListenerClosureStore()
   }
@@ -43,12 +43,18 @@ func addListeners() {
     }
   }
 }
+class Temp {
+  init() {
+    addListeners()
+  }
+}
+let t = Temp()
 
-enum Side {
+public enum Side {
   case left
   case right
 }
-typealias Listener = (_ peripheral: CBPeripheral, _ data: Data, _ side: Side, _ store: JotaiStore)
+public typealias Listener = (_ peripheral: CBPeripheral, _ data: Data, _ side: Side, _ store: JotaiStore)
   -> Void
 var listeners: [Cmd: ListenerClosureStore] = [:]
 
