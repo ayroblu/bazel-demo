@@ -33,11 +33,11 @@ struct NavigateSearchView: View {
             NavigationDetails(vm: vm, route: result.route)
               .navigationTitle(result.title)
               .onAppear {
-                vm.connectionManager.sendNavigate(route: result.route)
+                manager.sendNavigate(route: result.route)
                 vm.locationSubInner = LocationManager.shared.subLocation()
               }
               .onDisappear {
-                vm.connectionManager.stopNavigate()
+                manager.stopNavigate()
                 vm.locationSubInner?()
               }
           } label: {

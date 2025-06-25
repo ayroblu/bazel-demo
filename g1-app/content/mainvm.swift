@@ -15,7 +15,7 @@ class MainVM: ObservableObject {
         let toSend = textWithCursor(text: _text, selection: selection)
         if toSend != previous {
           previous = toSend
-          sendText(toSend)
+          manager.sendText(toSend)
         }
       }
       return _text
@@ -28,37 +28,6 @@ class MainVM: ObservableObject {
 
   var locationSub: (() -> Void)?
   var locationSubInner: (() -> Void)?
-
-  var connectionManager = manager
-  init() {
-    connectionManager.mainVm = self
-  }
-
-  // func connect() {
-  //   Task {
-  //     await connectionManager.scanConnected()
-  //   }
-  // }
-
-  // func list() {
-  //   let connected = connectionManager.getConnected()
-  //   let newDevices: [String] = connected.compactMap { device in
-  //     guard let name = device.name else { return nil }
-  //     return name
-  //   }
-  //   devices = newDevices
-  // }
-  func sendImage() {
-    connectionManager.sendImage()
-  }
-
-  func sendNotif() {
-    connectionManager.sendNotif()
-  }
-
-  private func sendText(_ text: String) {
-    connectionManager.sendText(text)
-  }
 }
 
 func textWithCursor(text: String, selection: TextSelection) -> String {

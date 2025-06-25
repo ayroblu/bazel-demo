@@ -7,17 +7,21 @@ extension ConnectionManager {
   func checkWeather() {
     guard isStale() else { return }
     Task {
+      let weatherIcon =
+        Config.WeatherIcon(rawValue: weatherIconState.get()) ?? Config.WeatherIcon.Sunny
+      let temp = weatherTempState.get()
+      let weatherData = Config.dashTimeWeatherData(weatherIcon: weatherIcon, temp: temp)
+      bluetoothManager.transmitBoth(weatherData)
+
+      log("check weather")
+
       if let weather = await getWeather() {
-        let weatherData = Config.dashTimeWeatherData(
-          weatherIcon: parseWeatherIcon(
-            code: weather.current.weather_code, isDay: weather.current.is_day == 1),
-          temp: UInt8(round(weather.current.temperature_2m)))
-        bluetoothManager.transmitBoth(weatherData)
-        lastFetch = Date()
-      } else {
-        let weatherData = Config.dashTimeWeatherData(
-          weatherIcon: Config.WeatherIcon.Sunny,
-          temp: UInt8(25))
+        let weatherIcon = parseWeatherIcon(
+          code: weather.current.weather_code, isDay: weather.current.is_day == 1)
+        let temp = UInt8(round(weather.current.temperature_2m))
+        weatherIconState.set(weatherIcon.rawValue)
+        weatherTempState.set(temp)
+        let weatherData = Config.dashTimeWeatherData(weatherIcon: weatherIcon, temp: temp)
         bluetoothManager.transmitBoth(weatherData)
         lastFetch = Date()
       }

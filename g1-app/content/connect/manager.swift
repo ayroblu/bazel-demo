@@ -176,8 +176,10 @@ public class ConnectionManager {
         }
       }
       let _ = infoListeners()
+      checkWeather()
       deviceInfo()
       syncReminders()
+      sendAllowNotifs()
       bluetoothManager.startTimer()
     }
   }

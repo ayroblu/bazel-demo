@@ -2,7 +2,6 @@ import SwiftData
 import SwiftUI
 
 struct NotifAppsView: View {
-  @StateObject var vm: MainVM
   @Query(sort: \NotifAppsModel.name) var apps: [NotifAppsModel]
   @Environment(\.modelContext) private var modelContext
 

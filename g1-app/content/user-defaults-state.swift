@@ -39,3 +39,6 @@ let reminderListsState = Persist<[String]>(key: "reminder-lists")
 
 let userLatState = Persist<Double>(key: "user-lat")
 let userLngState = Persist<Double>(key: "user-lng")
+
+let weatherIconState = PersistWithDefaultState<UInt8>(key: "weather-icon", defaultValue: 0x10)
+let weatherTempState = PersistWithDefaultState<UInt8>(key: "weather-temp", defaultValue: 25)

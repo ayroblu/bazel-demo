@@ -43,7 +43,7 @@ public struct ContentView: View {
           GlassesInfoView(glasses: glasses)
             .onChange(of: scenePhase) { oldPhase, newPhase in
               if newPhase == .active {
-                log("syncKnown")
+                log("Active: syncKnown")
                 bluetoothManager.syncKnown(glasses: (glasses.left, glasses.right))
               } else if newPhase == .inactive {
                 log("Inactive")
@@ -80,13 +80,13 @@ public struct ContentView: View {
               }
             ) { editing in
               if !editing {
-                vm.connectionManager.sendBrightness()
+                manager.sendBrightness()
               }
             }
           }
           NavigationLink("Dash Config") {
             NavigationLazyView {
-              DashConfigView(vm: vm)
+              DashConfigView()
             }
           }
           NavigationLink("Text Editor") {
@@ -98,31 +98,25 @@ public struct ContentView: View {
             .scrollContentBackground(.hidden)
             .background(Color(red: 0.1, green: 0.1, blue: 0.1))
           }
-          NavigationLink("Navigate test") {
+          NavigationLink("Navigate") {
             NavigationLazyView {
               NavigateSearchView(vm: vm)
             }
           }
-          NavigationLink("Navigate") {
-            NavigationLazyView {
-              NavigateView(vm: vm)
-            }
-          }
-          NavigationLink("Notifications") {
-            Button("Send notification") {
-              vm.sendNotif()
-            }
-            .buttonStyle(.bordered)
-          }
+          // NavigationLink("Navigate") {
+          //   NavigationLazyView {
+          //     NavigateView(vm: vm)
+          //   }
+          // }
           NavigationLink("Demo") {
             Button("Send Image") {
-              vm.sendImage()
+              manager.sendImage()
             }
             .buttonStyle(.bordered)
           }
           NavigationLink("Listen") {
             Button("Listen") {
-              vm.connectionManager.listenAudio()
+              manager.listenAudio()
             }
             .buttonStyle(.bordered)
             Button("Play") {

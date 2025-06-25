@@ -16,8 +16,8 @@ func logFailure(code: UInt8, type: String, name: String, data: Data) {
 }
 enum RespCode: UInt8 {
   case Success = 0xC9
-  case Continue = 0xCA
-  case Failure = 0xCB
+  case Continue = 0xCB
+  case Failure = 0xCA
 }
 
 extension Array where Element == Bool {

@@ -17,7 +17,6 @@ let dashDistanceDoubleAtom = DoubleUInt8CastAtom(atom: dashDistanceAtom) { (sett
   manager.dashPosition(isShow: true, vertical: dashVertical, distance: dashDistance)
 }
 struct DashConfigView: View {
-  @StateObject var vm: MainVM
   @Environment(\.modelContext) private var modelContext
   @State var forceRerender = 0
   @AtomState(dashVerticalAtom) var dashVertical: UInt8
@@ -80,8 +79,8 @@ struct DashConfigView: View {
       }
 
       Section(header: Text("Notes")) {
-        let selectedReminderLists = vm.connectionManager.getSelectedReminderLists()
-        let reminderLists = vm.connectionManager.getReminderLists()
+        let selectedReminderLists = manager.getSelectedReminderLists()
+        let reminderLists = manager.getReminderLists()
         var reminderListIds = selectedReminderLists.map { $0.calendarIdentifier }
         ForEach(selectedReminderLists, id: \.calendarIdentifier) { reminderList in
           if let idx = selectedReminderLists.firstIndex(of: reminderList) {
@@ -94,9 +93,9 @@ struct DashConfigView: View {
                 } else {
                   reminderListIds.append(identifier)
                 }
-                vm.connectionManager.setReminderLists(reminderListIds)
+                manager.setReminderLists(reminderListIds)
                 forceRerender += 1
-                vm.connectionManager.syncReminders()
+                manager.syncReminders()
               }
             )
             let pickerReminderLists = reminderLists.filter {
@@ -112,7 +111,7 @@ struct DashConfigView: View {
               if idx != 0 {
                 Button(role: .destructive) {
                   reminderListIds.remove(at: idx)
-                  vm.connectionManager.setReminderLists(reminderListIds)
+                  manager.setReminderLists(reminderListIds)
                 } label: {
                   Label("Delete", systemImage: "trash")
                 }
@@ -125,7 +124,7 @@ struct DashConfigView: View {
         if let nextReminderList = eligibleReminderLists.first, selectedReminderLists.count < 4 {
           Button("Add", systemImage: "plus.circle.fill") {
             reminderListIds.append(nextReminderList.calendarIdentifier)
-            vm.connectionManager.setReminderLists(reminderListIds)
+            manager.setReminderLists(reminderListIds)
             forceRerender += 1
           }
         }
@@ -161,11 +160,15 @@ struct DashConfigView: View {
         }
         NavigationLink("Apps") {
           LazyView {
-            NotifAppsView(vm: vm)
+            NotifAppsView()
           }
         }
+        Button("Send test notification") {
+          manager.sendNotif()
+        }
+        .buttonStyle(.bordered)
         Button("Allow notifs") {
-          vm.connectionManager.sendAllowNotifs()
+          manager.sendAllowNotifs()
         }
       }
     }
