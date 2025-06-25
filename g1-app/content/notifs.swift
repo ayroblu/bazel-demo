@@ -1,11 +1,13 @@
 import Foundation
 import g1protocol
 import jotai
+import Log
 
-func onNewNotif(manager: ConnectionManager, data: Data) async throws {
+func onNewNotif(data: Data) async throws {
   let notif = try JSONDecoder().decode(NewNotif.self, from: data)
   let appInfo = notif.whitelist_app_add
   try await insertOrUpdateNotifApp(id: appInfo.app_identifier, name: appInfo.display_name)
+  log("Inserted \(appInfo.app_identifier)")
   manager.sendAllowNotifs()
 }
 struct NewNotif: Codable {

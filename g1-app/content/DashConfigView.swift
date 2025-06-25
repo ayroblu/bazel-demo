@@ -164,7 +164,7 @@ struct DashConfigView: View {
           }
         }
         Button("Send test notification") {
-          manager.sendNotif()
+          manager.sendTestNotif()
         }
         .buttonStyle(.bordered)
         Button("Allow notifs") {

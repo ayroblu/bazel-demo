@@ -283,9 +283,10 @@ enum HeadsUpConfig: UInt8 {
 }
 
 var notifSettingHandler = NotifSettingHandler()
-struct NotifSettingHandler {
+public struct NotifSettingHandler {
   var f6Data: [CBPeripheral: [Data]] = [:]
-  mutating func handle(peripheral: CBPeripheral, data: Data, onDone: (Data) -> Void) {
+  public init () {}
+  public mutating func handle(peripheral: CBPeripheral, data: Data, onDone: (Data) -> Void) {
     let parts = data[1]
     let seq = data[2]
     let rest = data.subdata(in: 3..<data.count)

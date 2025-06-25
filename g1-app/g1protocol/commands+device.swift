@@ -124,40 +124,31 @@ public struct Device {
     }
 
     public struct NotifyData {
-      let msgId: Int = 1_234_567_890
       let appIdentifier: String = Bundle.main.bundleIdentifier ?? ""
       let title: String
-      var subtitle: String?
-      var message: String?
-      let timestamp: Int = Int(Date().timeIntervalSince1970 * 1000)
+      let subtitle: String
+      let message: String
+      let timestamp: UInt64 = UInt64(Date().timeIntervalSince1970) * 1000
       let displayName: String =
         Bundle.main.infoDictionary?[kCFBundleNameKey as String] as? String ?? ""
-      public init(title: String, subtitle: String? = nil, message: String? = nil) {
+      public init(title: String, subtitle: String, message: String) {
         self.title = title
         self.subtitle = subtitle
         self.message = message
       }
     }
     public static func data(notifyData: NotifyData) -> [Data] {
-      let dict = [
+      let dict: [String: Any] = [
         "ncs_notification": [
-          "msg_id": 1_234_567_890, "app_identifier": "com.even.test", "title": "Even Realities",
-          "subtitle": "Notify", "message": "This is a notification",
-          "time_s": Int(Date().timeIntervalSince1970 * 1000),
-          "display_name": "Even",
+          "msg_id": 1_234_567_890,
+          "app_identifier": notifyData.appIdentifier,
+          "title": notifyData.title,
+          "subtitle": notifyData.subtitle,
+          "message": notifyData.message,
+          "time_s": notifyData.timestamp,
+          "display_name": notifyData.displayName,
         ]
       ]
-      // let dict: [String: Any] = [
-      //   "ncs_notification": [
-      //     "msg_id": notifyData.msgId,
-      //     "app_identifier": notifyData.appIdentifier,
-      //     "title": notifyData.title,
-      //     "subtitle": notifyData.subtitle ?? "",
-      //     "message": notifyData.message ?? "",
-      //     "time_s": notifyData.timestamp,
-      //     "display_name": notifyData.displayName,
-      //   ]
-      // ]
       guard let json = toJson(dict: dict) else { return [] }
       log("JSON", String(data: json, encoding: .utf8) ?? "?")
       let chunks = json.chunk(into: 176)

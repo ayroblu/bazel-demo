@@ -90,13 +90,13 @@ public class ConnectionManager {
     }
   }
 
-  public func sendNotif() {
+  public func sendTestNotif() {
     let data = Device.Notify.data(
       notifyData: Device.Notify.NotifyData(
-        title: "New product!",
-        subtitle: "hello!", message: "message?"))
+        title: "Test notification",
+        subtitle: "Just a test", message: "Is it working?"))
     for data in data {
-      bluetoothManager.transmitBoth(data)
+      bluetoothManager.readLeft(data)
     }
   }
 
@@ -176,6 +176,7 @@ public class ConnectionManager {
         }
       }
       let _ = infoListeners()
+      let _ = deviceListeners()
       checkWeather()
       deviceInfo()
       syncReminders()
@@ -243,6 +244,17 @@ extension ConnectionManager {
       manager.speechRecognizer?.appendPcmData(inputData)
     }
 
+    let disposeNotifSetting = addListener(key: Cmd.NotifSetting) {
+      (peripheral, data, side, store) in
+      // New App notif discovered:
+      // {"whitelist_app_add": {"app_identifier":  "com.ayroblu.g1-app","display_name": "G1 Bazel App"}}
+      notifSettingHandler.handle(peripheral: peripheral, data: data) { data in
+        Task {
+          try? await onNewNotif(data: data)
+        }
+      }
+    }
+
     let disposeDevice = addListener(key: Cmd.Device) { (peripheral, data, side, store) in
       let cmd = DeviceCmd(rawValue: data[1])
       switch cmd {
@@ -258,7 +270,9 @@ extension ConnectionManager {
 
     disposeDeviceListeners = {
       disposeMicData()
+      disposeNotifSetting()
       disposeDevice()
     }
   }
 }
+var notifSettingHandler = NotifSettingHandler()
