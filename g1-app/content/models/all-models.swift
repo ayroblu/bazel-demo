@@ -22,6 +22,7 @@ func getModelContainerThrows() throws -> ModelContainer {
     NoteModel.self,
     LogEntry.self,
     NotifAppsModel.self,
+    SearchHistoryModel.self,
   )
   cachedContainer = container
   return container

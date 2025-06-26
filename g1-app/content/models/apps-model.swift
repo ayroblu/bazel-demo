@@ -3,8 +3,8 @@ import Log
 import SwiftData
 
 @Model
-public class NotifAppsModel {
-  @Attribute(.unique) public var id: String
+class NotifAppsModel {
+  @Attribute(.unique) var id: String
   var name: String
   var enabled: Bool = true
 

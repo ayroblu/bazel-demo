@@ -159,7 +159,7 @@ struct DashConfigView: View {
           Text("Apps")
         }
         NavigationLink("Apps") {
-          LazyView {
+          NavigationLazyView {
             NotifAppsView()
           }
         }

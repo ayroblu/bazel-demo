@@ -2,9 +2,9 @@ import Foundation
 import Log
 import LogUtils
 import MapKit
+import g1protocol
 import maps
 import utils
-import g1protocol
 
 let padding = 0.002
 extension ConnectionManager {
@@ -175,7 +175,7 @@ extension MKRoute {
     return ElementBounds(minlat: minlat, minlng: minlng, maxlat: maxlat, maxlng: maxlng)
   }
 }
-struct LocSearchResult: Identifiable {
+struct LocSearchResult: Identifiable, Equatable {
   let id: String
   let item: MKMapItem
   let route: MKRoute
@@ -195,6 +195,10 @@ struct LocSearchResult: Identifiable {
     ]
     .compactMap { $0 }.joined(separator: " ")
     return LocSearchResult(id: id, item: item, route: route, title: title, subtitle: subtitle)
+  }
+
+  public static func == (lhs: LocSearchResult, rhs: LocSearchResult) -> Bool {
+    return lhs.id == rhs.id
   }
 }
 private func prettyPrintDistance(_ distance: Double) -> String {
@@ -217,7 +221,7 @@ func getSearchResults(
           try await getDirections(
             from: here, to: location,
             transportType: transportType)
-       }
+        }
         guard let route else { return nil }
         return LocSearchResult.from(item: location, route: route)
       }

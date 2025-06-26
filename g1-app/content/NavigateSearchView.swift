@@ -29,25 +29,7 @@ struct NavigateSearchView: View {
 
       List {
         ForEach(vm.searchResults) { result in
-          NavigationLink {
-            NavigationDetails(vm: vm, route: result.route)
-              .navigationTitle(result.title)
-              .onAppear {
-                manager.sendNavigate(route: result.route)
-                vm.locationSubInner = LocationManager.shared.subLocation()
-              }
-              .onDisappear {
-                manager.stopNavigate()
-                vm.locationSubInner?()
-              }
-          } label: {
-            VStack(alignment: .leading) {
-              Text(result.title)
-              Text(result.subtitle)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
-          }
+          SearchResultView(vm: vm, result: result)
         }
       }
       .scrollDismissesKeyboard(.immediately)
@@ -71,6 +53,35 @@ struct NavigateSearchView: View {
     .onDisappear {
       vm.locationSub?()
       vm.locationSub = nil
+    }
+  }
+}
+
+struct SearchResultView: View {
+  @StateObject var vm: MainVM
+  let result: LocSearchResult
+
+  var body: some View {
+    NavigationLink {
+      NavigationLazyView {
+        NavigationDetails(route: result.route)
+          .navigationTitle(result.title)
+          .onAppear {
+            manager.sendNavigate(route: result.route)
+            vm.locationSubInner = LocationManager.shared.subLocation()
+          }
+          .onDisappear {
+            manager.stopNavigate()
+            vm.locationSubInner?()
+          }
+      }
+    } label: {
+      VStack(alignment: .leading) {
+        Text(result.title)
+        Text(result.subtitle)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .contentShape(Rectangle())
     }
   }
 }
@@ -123,7 +134,6 @@ enum TransportOption: String, CaseIterable, Identifiable {
 }
 
 struct NavigationDetails: View {
-  @StateObject var vm: MainVM
   let route: MKRoute
 
   var body: some View {

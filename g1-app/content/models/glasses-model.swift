@@ -1,7 +1,7 @@
 import SwiftData
 
 @Model
-public class GlassesModel {
+class GlassesModel {
   @Attribute(.unique) var left: String
   @Attribute(.unique) var right: String
   var deviceSerialNumber: String?

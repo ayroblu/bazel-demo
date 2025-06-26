@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 @Model
-public class NoteModel {
+class NoteModel {
   var title: String = ""
   var text: String = ""
 

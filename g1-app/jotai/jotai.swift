@@ -30,7 +30,7 @@ public class JotaiStore {
     let value = atom.getValue(getter)
     map[key] = Value(value: value)
 
-    depsManager.propagateDeps(atom: atom, tracked: getter.tracked)
+    depsManager.propagateDeps(key: key, tracked: getter.tracked)
 
     if isStale, let cachedValue, value == cachedValue.value {
       return value
@@ -104,8 +104,7 @@ class DepsManager {
   // Reevaluate "stale" dependent atoms. If they changed, then discard cached value
   private var staleAtoms = [ObjectIdentifier: Set<ObjectIdentifier>]()
 
-  func propagateDeps<T: Equatable>(atom: Atom<T>, tracked: [ObjectIdentifier: () -> Bool]) {
-    let key = ObjectIdentifier(atom)
+  func propagateDeps(key: ObjectIdentifier, tracked: [ObjectIdentifier: () -> Bool]) {
     if let atomTrackedValues = atomDeps[key] {
       for t in atomTrackedValues.keys {
         revDeps[t]!.remove(key)
@@ -236,3 +235,4 @@ class ClosureStore {
     closureMap.values.forEach { $0() }
   }
 }
+
