@@ -1,21 +1,23 @@
 import CoreBluetooth
 import Log
 import jotai
+import utils
 
 extension BluetoothManager {
   public func addOnConnectListener(_ listener: @escaping (String, String) -> Void) -> () -> Void {
-    let result = onConnectListener.add(listener)
+    let unsub = onConnectListener.sub(listener)
     if manager.store.get(atom: isConnectedAtom) {
       guard let left = manager.leftPeripheral, let right = manager.rightPeripheral else {
-        return result
+        return unsub
       }
-      onConnectListener.executeAll(
-        left.identifier.uuidString, right.identifier.uuidString)
+      onConnectListener.dispatch { f in
+        f(left.identifier.uuidString, right.identifier.uuidString)
+      }
     }
-    return result
+    return unsub
   }
 }
-var onConnectListener = OnConnectClosureStore()
+var onConnectListener = SubscriptionSet<(String, String) -> Void>()
 
 extension G1BluetoothManager {
   func onValue(peripheral: CBPeripheral, data: Data) {
@@ -25,7 +27,9 @@ extension G1BluetoothManager {
       return
     }
     if let listeners = listeners[cmd] {
-      listeners.executeAll(peripheral: peripheral, data: data, side: side, store: store)
+      listeners.dispatch { f in
+        f(peripheral, data, side, store)
+      }
     } else {
       log("No listeners:", cmd, data.hex)
     }
@@ -33,7 +37,7 @@ extension G1BluetoothManager {
 }
 let allListeners: [[Cmd: Listener]] = [infoListeners, configListeners, deviceListeners]
 var isFirst = true
-var listeners: [Cmd: ListenerClosureStore] {
+var listeners: [Cmd: SubscriptionSet<(CBPeripheral, Data, Side, JotaiStore) -> Void>] {
   if isFirst {
     isFirst = false
     for l in allListeners {
@@ -47,9 +51,9 @@ var listeners: [Cmd: ListenerClosureStore] {
 
 public func addListener(key: Cmd, listener: @escaping Listener) -> () -> Void {
   if _listeners[key] == nil {
-    _listeners[key] = ListenerClosureStore()
+    _listeners[key] = SubscriptionSet()
   }
-  return _listeners[key, default: ListenerClosureStore()].add(listener)
+  return _listeners[key, default: SubscriptionSet()].sub(listener)
 }
 
 public enum Side {
@@ -60,45 +64,4 @@ public typealias Listener = (
   _ peripheral: CBPeripheral, _ data: Data, _ side: Side, _ store: JotaiStore
 )
   -> Void
-var _listeners: [Cmd: ListenerClosureStore] = [:]
-
-class ListenerClosureStore {
-  private var closures: Set<UUID> = []
-  private var closureMap: [UUID: Listener] = [:]
-
-  func add(_ closure: @escaping Listener) -> () -> Void {
-    let id = UUID()
-    closures.insert(id)
-    closureMap[id] = closure
-
-    return { [weak self] in
-      self?.closures.remove(id)
-      self?.closureMap.removeValue(forKey: id)
-    }
-  }
-
-  func executeAll(peripheral: CBPeripheral, data: Data, side: Side, store: JotaiStore) {
-    closureMap.values.forEach { $0(peripheral, data, side, store) }
-  }
-}
-
-class OnConnectClosureStore {
-  typealias Closure = (String, String) -> Void
-  private var closures: Set<UUID> = []
-  private var closureMap: [UUID: Closure] = [:]
-
-  func add(_ closure: @escaping Closure) -> () -> Void {
-    let id = UUID()
-    closures.insert(id)
-    closureMap[id] = closure
-
-    return { [weak self] in
-      self?.closures.remove(id)
-      self?.closureMap.removeValue(forKey: id)
-    }
-  }
-
-  func executeAll(_ left: String, _ right: String) {
-    closureMap.values.forEach { $0(left, right) }
-  }
-}
+var _listeners: [Cmd: SubscriptionSet<(CBPeripheral, Data, Side, JotaiStore) -> Void>] = [:]

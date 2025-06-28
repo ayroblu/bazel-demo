@@ -4,7 +4,7 @@ public class JotaiStore {
   public static let shared = JotaiStore()
 
   private var map = [ObjectIdentifier: Any]()
-  private var subs = [ObjectIdentifier: ClosureStore]()
+  private var subs = [ObjectIdentifier: SubscriptionSet<() -> Void>]()
 
   private let depsManager = DepsManager()
 
@@ -36,7 +36,9 @@ public class JotaiStore {
       return value
     }
 
-    subs[key]?.executeAll()
+    if let closures = subs[key] {
+      closures.dispatch { f in f() }
+    }
 
     return value
   }
@@ -54,7 +56,9 @@ public class JotaiStore {
     map[key] = Value(value: value, expireTtl: atom.getExpireTtl())
 
     depsManager.propagateStale(atom: atom, store: self)
-    subs[key]?.executeAll()
+    if let closures = subs[key] {
+      closures.dispatch { f in f() }
+    }
   }
   public func set<T: Equatable>(atom: PrimitiveAtom<T>, value: T) {
     setPrimitive(atom: atom, value: value)
@@ -90,9 +94,9 @@ public class JotaiStore {
     let key = ObjectIdentifier(atom)
     if subs[key] == nil {
       // Not sure why this is necessary, the default should have done it automatically
-      subs[key] = ClosureStore()
+      subs[key] = SubscriptionSet()
     }
-    return subs[key, default: ClosureStore()].add(onChange)
+    return subs[key, default: SubscriptionSet()].sub(onChange)
   }
 }
 
@@ -232,30 +236,5 @@ public class Setter: Getter {
     -> Result
   {
     return store.set(atom: atom, value: value)
-  }
-}
-
-// protocol AnyAtom {
-//   associatedtype Value: Equatable
-//   var getValue: (Getter) -> Value { get }
-// }
-
-class ClosureStore {
-  private var closures: Set<UUID> = []
-  private var closureMap: [UUID: () -> Void] = [:]
-
-  func add(_ closure: @escaping () -> Void) -> () -> Void {
-    let id = UUID()
-    closures.insert(id)
-    closureMap[id] = closure
-
-    return { [weak self] in
-      self?.closures.remove(id)
-      self?.closureMap.removeValue(forKey: id)
-    }
-  }
-
-  func executeAll() {
-    closureMap.values.forEach { $0() }
   }
 }
