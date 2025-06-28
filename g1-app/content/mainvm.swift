@@ -24,7 +24,6 @@ class MainVM: ObservableObject {
       _text = newValue
     }
   }
-  @Published var searchResults: [LocSearchResult] = []
 
   var locationSub: (() -> Void)?
   var locationSubInner: (() -> Void)?

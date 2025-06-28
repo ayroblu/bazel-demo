@@ -52,7 +52,6 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
   func locationManager(
     _ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]
   ) {
-    log("did update location")
     // if locationContinuation != nil { log("did update location") }
     guard let location = locations.last else { return }
     self.location = location

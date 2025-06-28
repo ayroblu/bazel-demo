@@ -22,13 +22,13 @@ public class JotaiStore {
         }
       }
     #endif
-    if !isStale, let cachedValue {
+    if !isStale, let cachedValue, cachedValue.isValid() {
       return cachedValue.value
     }
 
     let getter = Getter(store: self)
     let value = atom.getValue(getter)
-    map[key] = Value(value: value)
+    map[key] = Value(value: value, expireTtl: atom.getExpireTtl())
 
     depsManager.propagateDeps(key: key, tracked: getter.tracked)
 
@@ -51,7 +51,7 @@ public class JotaiStore {
         print("[jotai debug] set primitive", key, map[key] ?? "nil", "new value", value)
       }
     #endif
-    map[key] = Value(value: value)
+    map[key] = Value(value: value, expireTtl: atom.getExpireTtl())
 
     depsManager.propagateStale(atom: atom, store: self)
     subs[key]?.executeAll()
@@ -146,11 +146,35 @@ class DepsManager {
 
 struct Value<T> {
   let value: T
+  let expireTtl: Date?
+}
+extension Value {
+  func isValid() -> Bool {
+    if let expireTtl {
+      return expireTtl > Date()
+    } else {
+      return true
+    }
+  }
+}
+extension Atom {
+  internal func getExpireTtl() -> Date? {
+    if let ttlS {
+      return Date().addingTimeInterval(ttlS)
+    }
+    return nil
+  }
 }
 
 public class Atom<T: Equatable> {
   let getValue: (Getter) -> T
+  let ttlS: Double?
+  public init(ttlS: Double?, _ getValue: @escaping (Getter) -> T) {
+    self.ttlS = ttlS
+    self.getValue = getValue
+  }
   public init(_ getValue: @escaping (Getter) -> T) {
+    self.ttlS = nil
     self.getValue = getValue
   }
   #if DEBUG
@@ -235,4 +259,3 @@ class ClosureStore {
     closureMap.values.forEach { $0() }
   }
 }
-

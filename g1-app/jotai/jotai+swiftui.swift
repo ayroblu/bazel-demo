@@ -10,7 +10,10 @@ private class ValueModel<T: Equatable>: ObservableObject {
   func listen(store: JotaiStore, atom: Atom<T>) {
     dispose = store.sub(atom: atom) { [weak self, weak atom, weak store] in
       guard let self, let atom, let store else { return }
-      self.value = store.get(atom: atom)
+      // DispatchQueue: Publishing changes from within view updates is not allowed, this will cause undefined behavior
+      DispatchQueue.main.async {
+        self.value = store.get(atom: atom)
+      }
     }
   }
   deinit {

@@ -5,9 +5,10 @@ import SwiftUI
 let navigationOptions: [MKDirectionsTransportType] = [.automobile, .transit, .walking]
 struct NavigateSearchView: View {
   @StateObject var vm: MainVM
-  @State var text: String = "Sainsburys"
+  @State var text: String = ""
   @State private var selectedOption: TransportOption = .walking
   @Environment(\.scenePhase) var scenePhase
+  @State var searchResults: [LocSearchResult]? = nil
 
   var body: some View {
     VStack {
@@ -21,19 +22,30 @@ struct NavigateSearchView: View {
       .padding(.horizontal)
       SearchTextField(placeholder: "Where you want to go...", searchText: $text) {
         Task {
-          vm.searchResults = await getSearchResults(
+          searchResults = await getSearchResults(
             textQuery: text, transportType: selectedOption.transportType)
         }
       }
       .padding(.horizontal)
 
-      List {
-        ForEach(vm.searchResults) { result in
-          SearchResultView(vm: vm, result: result)
+      if let searchResults {
+        List {
+          ForEach(searchResults) { result in
+            SearchResultView(vm: vm, result: result) {
+              if let mapItem = result.mapItem {
+                try? insertOrUpdateSearchHistory(
+                  id: result.id, title: result.title, thoroughfare: mapItem.thoroughfare,
+                  subThoroughfare: mapItem.subThoroughfare,
+                  lat: mapItem.lat, lng: mapItem.lng)
+              }
+            }
+          }
         }
+        .scrollDismissesKeyboard(.immediately)
+        .contentMargins(.top, 0)
+      } else {
+        SearchHistoryView(vm: vm)
       }
-      .scrollDismissesKeyboard(.immediately)
-      .contentMargins(.top, 0)
     }
     .onChange(of: scenePhase) { oldPhase, newPhase in
       if newPhase == .active {
@@ -60,6 +72,7 @@ struct NavigateSearchView: View {
 struct SearchResultView: View {
   @StateObject var vm: MainVM
   let result: LocSearchResult
+  var onAppear: (() -> Void)? = nil
 
   var body: some View {
     NavigationLink {
@@ -69,6 +82,7 @@ struct SearchResultView: View {
           .onAppear {
             manager.sendNavigate(route: result.route)
             vm.locationSubInner = LocationManager.shared.subLocation()
+            onAppear?()
           }
           .onDisappear {
             manager.stopNavigate()

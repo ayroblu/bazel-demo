@@ -117,34 +117,11 @@ private func isSignificantlyDifferent(
   loc: (lat: Double, lng: Double), prevLoc: (lat: Double, lng: Double)?
 ) -> Bool {
   if let prevLoc {
-    return calculateDistance(lat1: loc.lat, lon1: loc.lng, lat2: prevLoc.lat, lon2: prevLoc.lng)
-      > 10
+    return CLLocation(latitude: loc.lat, longitude: loc.lng).distance(
+      from: CLLocation(latitude: prevLoc.lat, longitude: prevLoc.lng)) < 10
   } else {
     return true
   }
-}
-
-func calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double) -> Double {
-  // in meters
-  let earthRadius = 6371000.0
-
-  let lat1Rad = lat1 * .pi / 180
-  let lon1Rad = lon1 * .pi / 180
-  let lat2Rad = lat2 * .pi / 180
-  let lon2Rad = lon2 * .pi / 180
-
-  let deltaLat = lat2Rad - lat1Rad
-  let deltaLon = lon2Rad - lon1Rad
-
-  let a =
-    sin(deltaLat / 2) * sin(deltaLat / 2) + cos(lat1Rad) * cos(lat2Rad) * sin(deltaLon / 2)
-    * sin(deltaLon / 2)
-
-  let c = 2 * atan2(sqrt(a), sqrt(1 - a))
-
-  let distance = earthRadius * c
-
-  return distance
 }
 
 private func routeBounds(route: MKRoute) -> ElementBounds {
@@ -175,12 +152,20 @@ extension MKRoute {
     return ElementBounds(minlat: minlat, minlng: minlng, maxlat: maxlat, maxlng: maxlng)
   }
 }
+struct MyMapItem {
+  let lat: Double
+  let lng: Double
+  let thoroughfare: String?
+  let subThoroughfare: String?
+}
 struct LocSearchResult: Identifiable, Equatable {
   let id: String
-  let item: MKMapItem
   let route: MKRoute
   let title: String
   let subtitle: String
+
+  // Just for persistence purposes
+  var mapItem: MyMapItem? = nil
 
   static func from(item: MKMapItem, route: MKRoute) -> LocSearchResult? {
     let id = item.identifier?.rawValue ?? UUID().uuidString
@@ -194,14 +179,17 @@ struct LocSearchResult: Identifiable, Equatable {
       thoroughfare,
     ]
     .compactMap { $0 }.joined(separator: " ")
-    return LocSearchResult(id: id, item: item, route: route, title: title, subtitle: subtitle)
+    let mapItem = MyMapItem(
+      lat: item.placemark.coordinate.latitude, lng: item.placemark.coordinate.longitude,
+      thoroughfare: thoroughfare, subThoroughfare: subThoroughfare)
+    return LocSearchResult(id: id, route: route, title: title, subtitle: subtitle, mapItem: mapItem)
   }
 
   public static func == (lhs: LocSearchResult, rhs: LocSearchResult) -> Bool {
     return lhs.id == rhs.id
   }
 }
-private func prettyPrintDistance(_ distance: Double) -> String {
+func prettyPrintDistance(_ distance: Double) -> String {
   if distance > 1000 {
     return String(format: "%.1fkm", distance / 1000.0)
   } else {
