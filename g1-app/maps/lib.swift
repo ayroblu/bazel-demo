@@ -12,7 +12,7 @@ extension OverpassResult {
 }
 
 public func getSelfMap(
-  dim: (width: Int, height: Int), route: MKRoute, bounds: ElementBounds, selfArrow: SelfArrow? = nil
+  dim: (width: Int, height: Int), route: MKRoute, bounds: ElementBounds, history: [((Double, Double), (Double, Double))], selfArrow: SelfArrow? = nil
 ) -> [Bool] {
   let (width, height) = dim
   var board = MapBoard(width: width, height: height)
@@ -26,6 +26,7 @@ public func getSelfMap(
     }
   }
   board.renderRoute(route: route, bounds: bounds)
+  board.renderDashedPath(path: history, bounds: bounds)
   return board.board.flatMap { $0 }
 }
 

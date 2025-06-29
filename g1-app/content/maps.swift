@@ -86,8 +86,10 @@ extension ConnectionManager {
     let roadMap = roads.renderMap(bounds: bounds, dim: (136, 136))
     let selfMap = getSelfMap(
       dim: (136, 136), route: route, bounds: bounds,
+      history: LocationManager.shared.locationHistory.toTuple(),
       // -getAngle: bearing is clockwise, but rotations are counter clockwise
-      selfArrow: SelfArrow(lat: lat, lng: lng, angle: getSpeed() > 1 ? -getAngle() : nil))
+      selfArrow: SelfArrow(lat: lat, lng: lng, angle: getSpeed() > 1 ? -getAngle() : nil),
+    )
 
     let primaryImageData = Device.Navigate.primaryImageData(image: roadMap, overlay: selfMap)
     for data in primaryImageData {
@@ -97,7 +99,8 @@ extension ConnectionManager {
 
     let secondaryRoadMap = roads.renderMap(bounds: secondaryBounds, dim: (488, 136))
     let secondarySelfMap = getSelfMap(
-      dim: (488, 136), route: route, bounds: secondaryBounds)
+      dim: (488, 136), route: route, bounds: secondaryBounds,
+      history: LocationManager.shared.locationHistory.toTuple())
 
     let secondaryImageData = Device.Navigate.secondaryImageData(
       image: secondaryRoadMap, overlay: secondarySelfMap)

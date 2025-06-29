@@ -87,17 +87,17 @@ func getUserLocation() async throws -> CLLocation {
 
 struct LocationHistory {
   private var history: Deque<CLLocation> = []
+  let keepDuration = 60.0
+  let speedDuration = 20.0
 
   mutating func updateLocation(location: CLLocation) {
     let now = Date()
-    if let timestamp = history.last?.timestamp,
-      now.timeIntervalSince(timestamp) < 1
-    {
+    if let timestamp = history.last?.timestamp, now.timeIntervalSince(timestamp) < 1 {
     } else {
-      history.append(location)
+      history.prepend(location)
     }
-    while let firstLoc = history.first, now.timeIntervalSince(firstLoc.timestamp) > 20 {
-      let _ = history.popFirst()
+    while let loc = history.last, now.timeIntervalSince(loc.timestamp) > keepDuration {
+      let _ = history.popLast()
     }
   }
 
@@ -106,8 +106,10 @@ struct LocationHistory {
     guard history.count > 1 else { return 0 }
     // either moving average of points, or first - last / time
     guard let first = history.first else { return 0 }
-    guard let last = history.last else { return 0 }
-    let timeInterval = last.timestamp.timeIntervalSince(first.timestamp)
+    let now = Date()
+    guard let last = history.last(where: { now.timeIntervalSince($0.timestamp) < speedDuration })
+    else { return 0 }
+    let timeInterval = first.timestamp.timeIntervalSince(last.timestamp)
     guard timeInterval > 0 else { return 0 }
     return first.distance(from: last) / timeInterval
   }
@@ -116,7 +118,12 @@ struct LocationHistory {
     guard history.count > 1 else { return 0 }
     guard let first = history.first else { return 0 }
     guard let last = history.last else { return 0 }
-    return calculateAngle(from: first, to: last)
+    return calculateAngle(from: last, to: first)
+  }
+
+  func toTuple() -> [((Double, Double), (Double, Double))] {
+    let tuples = history.filteredByMinimumDistance().map { ($0.coordinate.latitude, $0.coordinate.longitude) }
+    return zip(tuples, tuples.dropFirst()).map { ($0, $1) }
   }
 }
 
@@ -134,4 +141,22 @@ func calculateAngle(from startLocation: CLLocation, to endLocation: CLLocation) 
   let bearing = atan2(y, x)
 
   return bearing
+}
+
+extension Deque where Element == CLLocation {
+  func filteredByMinimumDistance(_ minDistance: CLLocationDistance = 5.0) -> [CLLocation] {
+    guard let first = self.first else { return [] }
+
+    var result: [CLLocation] = [first]
+    var lastIncluded = first
+
+    for location in self.dropFirst() {
+      if location.distance(from: lastIncluded) >= minDistance {
+        result.append(location)
+        lastIncluded = location
+      }
+    }
+
+    return result
+  }
 }
