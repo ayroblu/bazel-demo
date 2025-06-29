@@ -103,6 +103,11 @@ public struct ContentView: View {
               NavigateSearchView(vm: vm)
             }
           }
+          NavigationLink("Teleprompt") {
+            NavigationLazyView {
+              Teleprompt()
+            }
+          }
           // NavigationLink("Navigate") {
           //   NavigationLazyView {
           //     NavigateView(vm: vm)

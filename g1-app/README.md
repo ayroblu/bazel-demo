@@ -22,7 +22,7 @@ Note that for bazel and sourcekit-lsp, we manually add each package to our vim c
 
 ## Even app features
 
-* [ ] Preview
+* [ ] In App Preview
 * [x] QuickNote
 * [ ] Translate (I think this needs to be online)
 * [x] Navigate

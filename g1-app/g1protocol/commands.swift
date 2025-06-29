@@ -10,6 +10,7 @@ public enum Cmd: UInt8, CaseIterable {
   case AddNotif = 0x04
   case DashMode = 0x06
   case HeadsUpConfig = 0x08
+  case Teleprompter = 0x09
   case Navigate = 0x0A
   case HeadTilt = 0x0B
   case Mic = 0x0E
@@ -65,7 +66,9 @@ func handleUnknownCommands(peripheral: CBPeripheral, data: Data, side: Side, sto
     break
   case 0x39:
     // on dash control
-    // 0x390500cf01
+    // Send and receive
+    // 0x3905 00cf 01
+    // 0x3905 0023 01
     break
   case 0x3E:
     // Very long, only after ping, only right
@@ -82,7 +85,8 @@ func handleUnknownCommands(peripheral: CBPeripheral, data: Data, side: Side, sto
     break
   case 0x50:
     // right only
-    // 0x500600000101
+    // Send and received:
+    // 0x5006 0000 0101
     break
   default:
     guard let name = peripheral.name else { return }

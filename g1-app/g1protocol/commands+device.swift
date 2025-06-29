@@ -37,6 +37,55 @@ public struct Device {
       return Data(controlArr) + textData
     }
   }
+
+  public struct Teleprompt {
+    static private var seq: UInt8 = 0x00
+    public static func data(
+      isFirst: Bool, visibleText: String, nextText: String, completedPercent: UInt8
+    )
+      -> [Data]?
+    {
+      guard let visibleTextData = visibleText.data(using: .utf8) else { return nil }
+      guard let nextTextData = nextText.data(using: .utf8) else { return nil }
+      let newScreen: UInt8 = isFirst ? 0x01 : 0x07  // manual is 03
+      let unknown1: UInt8 = isFirst ? 0x08 : null
+      let parts = [visibleTextData, nextTextData]
+      let numPackets: UInt8 = UInt8(parts.count)
+      return parts.enumerated().map { (index, part) in
+        let partIdx: UInt8 = UInt8(index + 1)
+        let controlArr: [UInt8] =
+          [null, seq, newScreen, numPackets, null, partIdx, null, completedPercent, unknown1, null]
+        seq &+= 1
+        let len: UInt8 = UInt8(controlArr.count + part.count + 2)
+        return Data([Cmd.Teleprompter.rawValue, len] + controlArr) + part
+      }
+    }
+
+    public static func customEndData() -> Data {
+      let messageData: Data = "Teleprompt Closed".data(using: .utf8)!
+      let manualCmd: UInt8 = 0x03
+      let numPackets: UInt8 = 0x01
+      let partIdx = numPackets
+      let completedPercent: UInt8 = 0x64  // 100
+      let controlArr: [UInt8] =
+        [null, seq, manualCmd, numPackets, null, partIdx, null, completedPercent, null, null]
+      seq &+= 1
+      let lf: UInt8 = 0x0A
+      let space: UInt8 = 0x20
+      let spaces = Array(repeating: space, count: 19)
+      let mainData = Data(controlArr + [lf, lf] + spaces) + messageData + Data(spaces)
+      let len: UInt8 = UInt8(mainData.count + 2)
+      return Data([Cmd.Teleprompter.rawValue, len] + mainData)
+    }
+
+    public static func endData() -> Data {
+      let cmd: UInt8 = 0x06
+      let subCmd: UInt8 = 0x05  // 1248 bit mask maybe?
+      let finish: UInt8 = 0x01
+      return Data([Cmd.Teleprompter.rawValue, cmd, null, seq, subCmd, finish])
+    }
+  }
+
   public struct Bmp {
     static let maxLength = 194
     static let address: [UInt8] = [0x00, 0x1C, 0x00, 0x00]
