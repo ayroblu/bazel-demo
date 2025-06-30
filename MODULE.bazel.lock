@@ -13458,8 +13458,8 @@
     },
     "@@rules_xcodeproj~//xcodeproj:extensions.bzl%internal": {
       "general": {
-        "bzlTransitiveDigest": "i1lrbSZdEtSIIB37qxNqsQwuiafzQcJDaaurniIuqMY=",
-        "usagesDigest": "aDa/Rr1IdZSqr0jWgewmy3wuBSvi8xuPTSIl0MdRoLI=",
+        "bzlTransitiveDigest": "Gy3zZkLv2cXbIbwPAGP9KIYjwdxy9NqUImZk4URsNks=",
+        "usagesDigest": "YpsSXQWkSNecBTmPtnuzvB6FS1KrqkB2oowbQGCywuo=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -13481,8 +13481,8 @@
     },
     "@@rules_xcodeproj~//xcodeproj:extensions.bzl%non_module_deps": {
       "general": {
-        "bzlTransitiveDigest": "i1lrbSZdEtSIIB37qxNqsQwuiafzQcJDaaurniIuqMY=",
-        "usagesDigest": "aYhphi2R6CopTIZKXdzRp+WQ/ugHXJKkQjg/ZKH4iJ8=",
+        "bzlTransitiveDigest": "Gy3zZkLv2cXbIbwPAGP9KIYjwdxy9NqUImZk4URsNks=",
+        "usagesDigest": "h+Xw3gzLlil9w2tuSBqd/2T55mdtxvJ9PC08iPJ5cLA=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},

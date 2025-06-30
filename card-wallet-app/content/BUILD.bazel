@@ -15,5 +15,6 @@ swift_library(
     deps = [
         "//swift-shared/Jotai",
         "//swift-shared/LogUtils",
+        "//swift-shared/SwiftUIUtils",
     ],
 )

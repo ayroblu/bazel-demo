@@ -1,18 +1,20 @@
 import SwiftUI
+import SwiftUIUtils
 
 struct ContentView: View {
   var body: some View {
     NavigationStack {
       CardListView()
-        .navigationTitle("Card Wallet View")
+        .navigationTitle("Card Wallet")
         .toolbar {
           ToolbarItem(placement: .automatic) {
-            Button(action: {
-              // Add a card
-            }) {
+            NavigationLink {
+              NavigationLazyView {
+                AddCardView()
+              }
+            } label: {
               Image(systemName: "plus")
             }
-
           }
         }
     }
