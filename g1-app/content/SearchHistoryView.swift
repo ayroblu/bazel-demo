@@ -3,7 +3,7 @@ import LogUtils
 import MapKit
 import SwiftData
 import SwiftUI
-import jotai
+import Jotai
 import utils
 
 let searchHistoryResultAtom = atomFamily({ (key: SearchHistoryModel) in

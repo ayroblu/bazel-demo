@@ -1,7 +1,7 @@
 import CoreBluetooth
 import Foundation
 import Log
-import jotai
+import Jotai
 
 public struct Config {
   public static func brightnessData(brightness: UInt8, auto: Bool) -> Data {

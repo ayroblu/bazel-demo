@@ -1,6 +1,6 @@
 import CoreBluetooth
 import Log
-import jotai
+import Jotai
 import utils
 
 extension BluetoothManager {

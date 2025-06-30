@@ -1,9 +1,9 @@
 import EventKit
+import Jotai
 import Log
 import SwiftData
 import SwiftUI
 import g1protocol
-import jotai
 
 let headsUpAngleDoubleAtom = DoubleUInt8CastAtom(atom: headsUpAngleAtom)
 let dashVerticalDoubleAtom = DoubleUInt8CastAtom(atom: dashVerticalAtom) { (setter, newValue) in

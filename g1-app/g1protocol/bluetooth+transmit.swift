@@ -1,6 +1,6 @@
 import CoreBluetooth
 import Log
-import jotai
+import Jotai
 
 extension BluetoothManager {
   public func transmitBoth(_ data: Data) {

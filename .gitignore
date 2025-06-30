@@ -1,5 +1,11 @@
 /.bazel
 /rust-project.json
 /node_modules
+
 # swift
-/.build
+.build
+*.xcodeproj
+DerivedData
+*.mobileprovision
+
+

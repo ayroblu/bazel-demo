@@ -1,7 +1,7 @@
 import CoreBluetooth
 import Foundation
 import Log
-import jotai
+import Jotai
 
 public enum Cmd: UInt8, CaseIterable {
   case Error = 0x00

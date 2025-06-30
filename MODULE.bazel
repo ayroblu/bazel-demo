@@ -22,8 +22,9 @@ bazel_dep(
     dev_dependency = True,
 )
 
-bazel_dep(name = "swiftlint", version = "0.58.2", repo_name = "SwiftLint")
-bazel_dep(name = "aspect_rules_lint", version = "0.19.0")
+bazel_dep(name = "swiftlint", version = "0.59.1", repo_name = "SwiftLint")
+
+bazel_dep(name = "aspect_rules_lint", version = "1.4.4")
 
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
@@ -50,7 +51,7 @@ http_archive(
     url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.49.17/swiftformat.zip",
 )
 
-bazel_dep(name = "rules_swift_package_manager", version = "0.47.2")
+bazel_dep(name = "rules_swift_package_manager", version = "1.2.0")
 
 swift_deps = use_extension(
     "@rules_swift_package_manager//:extensions.bzl",

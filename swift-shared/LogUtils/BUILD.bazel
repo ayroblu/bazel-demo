@@ -1,12 +1,12 @@
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
-package(default_visibility = ["//g1-app:__subpackages__"])
+package(default_visibility = ["//visibility:public"])
 
 swift_library(
-    name = "log-utils",
+    name = "LogUtils",
     srcs = glob(
         ["*.swift"],
     ),
     module_name = "LogUtils",
-    deps = ["//g1-app/Log"],
+    deps = ["//swift-shared/Log"],
 )

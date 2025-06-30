@@ -10,8 +10,8 @@ swift_library(
     ),
     module_name = "maps",
     deps = [
-        "//g1-app/Log",
         "//g1-app/utils",
+        "//swift-shared/Log",
     ],
 )
 

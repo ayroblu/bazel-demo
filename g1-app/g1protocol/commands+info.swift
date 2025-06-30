@@ -1,7 +1,7 @@
 import CoreBluetooth
 import Foundation
 import Log
-import jotai
+import Jotai
 
 public struct Info {
   public static func brightnessStateData() -> Data {

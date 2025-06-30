@@ -1,6 +1,6 @@
 import SwiftUI
 import g1protocol
-import jotai
+import Jotai
 
 struct GlassesInfoView: View {
   @Environment(\.colorScheme) var colorScheme

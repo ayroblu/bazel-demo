@@ -1,26 +1,19 @@
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library", "swift_test")
 
-package(default_visibility = ["//g1-app:__subpackages__"])
+package(default_visibility = ["//card-wallet-app:__subpackages__"])
 
 swift_library(
     name = "content",
     srcs = glob(
-        ["**/*.swift"],
-        ["**/*Tests.swift"],
+        ["*.swift"],
+        ["*Tests.swift"],
     ),
     copts = select({
         "//conditions:default": ["-DDEBUG"],
         "//:release_build": ["-DRELEASE"],
     }),
-    module_name = "content",
     deps = [
-        "//g1-app/g1protocol",
-        "//g1-app/maps",
-        "//g1-app/utils",
-        "//g1-app/vendor-pcm",
         "//swift-shared/Jotai",
-        "//swift-shared/Log",
         "//swift-shared/LogUtils",
-        "@swiftpkg_swift_collections//:Collections",
     ],
 )

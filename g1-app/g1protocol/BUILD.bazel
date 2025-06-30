@@ -10,10 +10,10 @@ swift_library(
     ),
     module_name = "g1protocol",
     deps = [
-        "//g1-app/Log",
-        "//g1-app/jotai",
         "//g1-app/utils",
         "//g1-app/vendor-pcm",
+        "//swift-shared/Jotai",
+        "//swift-shared/Log",
     ],
 )
 

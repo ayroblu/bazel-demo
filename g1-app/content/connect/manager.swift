@@ -5,7 +5,7 @@ import Pcm
 import Speech
 import SwiftData
 import g1protocol
-import jotai
+import Jotai
 
 public class ConnectionManager {
   // let uartServiceCbuuid = CBUUID(string: uartServiceUuid)

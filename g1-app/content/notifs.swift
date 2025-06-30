@@ -1,6 +1,6 @@
 import Foundation
 import g1protocol
-import jotai
+import Jotai
 import Log
 
 func onNewNotif(data: Data) async throws {

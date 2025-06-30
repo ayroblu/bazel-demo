@@ -3,7 +3,7 @@ import Log
 import SwiftData
 import SwiftUI
 import g1protocol
-import jotai
+import Jotai
 
 let brightnessDoubleAtom = DoubleUInt8CastAtom(atom: brightnessAtom)
 let autoBrightnessActAtom = WritableAtom(
