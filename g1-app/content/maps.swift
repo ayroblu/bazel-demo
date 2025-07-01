@@ -24,8 +24,8 @@ extension ConnectionManager {
   }
 
   func sendNavigateInner(route: MKRoute) async throws {
-    let secondaryBounds = routeBounds(route: route)
-
+    log("warming up roads cache")
+    let _ = try await fetchRoadsTiled(bounds: routeBounds(route: route))
     log("starting navigate")
 
     bluetoothManager.transmitBoth(Device.Navigate.initData())
@@ -37,8 +37,7 @@ extension ConnectionManager {
       let lat = location.coordinate.latitude
       let lng = location.coordinate.longitude
       if isSignificantlyDifferent(loc: (lat, lng), prevLoc: prevLocation) || i % 5 == 0 {
-        let roads = try await fetchRoadsTiled(bounds: secondaryBounds)
-        if let done = try await sendRoadMap(loc: location, route: route, roads: roads), done {
+        if let done = try await sendRoadMap(loc: location, route: route), done {
           break
         }
         log("sent road map", i)
@@ -55,7 +54,7 @@ extension ConnectionManager {
     log("ending navigate")
   }
 
-  func sendRoadMap(loc: CLLocation, route: MKRoute, roads: OverpassResult)
+  func sendRoadMap(loc: CLLocation, route: MKRoute)
     async throws -> Bool?
   {
     let lat = loc.coordinate.latitude
@@ -83,7 +82,8 @@ extension ConnectionManager {
     bluetoothManager.transmitBoth(directionsData)
     try await Task.sleep(for: .milliseconds(8))
 
-    let roadMap = roads.renderMap(bounds: bounds, dim: (136, 136))
+    let selfRoads = try await fetchRoadsTiled(bounds: bounds)
+    let roadMap = selfRoads.renderMap(bounds: bounds, dim: (136, 136))
     let selfMap = getSelfMap(
       dim: (136, 136), route: route, bounds: bounds,
       history: LocationManager.shared.locationHistory.toTuple(),
@@ -97,7 +97,8 @@ extension ConnectionManager {
       try await Task.sleep(for: .milliseconds(8))
     }
 
-    let secondaryRoadMap = roads.renderMap(bounds: secondaryBounds, dim: (488, 136))
+    let secondaryRoads = try await fetchRoadsTiled(bounds: secondaryBounds)
+    let secondaryRoadMap = secondaryRoads.renderMap(bounds: secondaryBounds, dim: (488, 136))
     let secondarySelfMap = getSelfMap(
       dim: (488, 136), route: route, bounds: secondaryBounds,
       history: LocationManager.shared.locationHistory.toTuple())
@@ -114,14 +115,13 @@ extension ConnectionManager {
 }
 
 func fetchRoadsTiled(bounds: ElementBounds) async throws -> OverpassResult {
-  // ± 0.001
-  let radius = 0.001
-  let minlat = Int(bounds.minlat / radius / 2) * 2
-  let minlng = Int(bounds.minlng / radius / 2) * 2
-  let maxlat = Int(bounds.maxlat / radius / 2) * 2
-  let maxlng = Int(bounds.maxlng / radius / 2) * 2
-  let latlngs = Array(minlat...maxlat).flatMap { lat in
-    Array(minlng...maxlng).map { lng in (Double(lat), Double(lng)) }
+  let minlat = Int(floor(bounds.minlat / tileWidth))
+  let minlng = Int(floor(bounds.minlng / tileWidth))
+  let maxlat = Int(floor(bounds.maxlat / tileWidth))
+  let maxlng = Int(floor(bounds.maxlng / tileWidth))
+  let latlngs: [(Double, Double)] = Array(minlat...maxlat).flatMap { lat in
+    Array(minlng...maxlng).map { lng in (Double(lat) * tileWidth, Double(lng) * tileWidth)
+    }
   }
   var errors: [any Error] = []
   let result: [OverpassResult] =
@@ -131,7 +131,7 @@ func fetchRoadsTiled(bounds: ElementBounds) async throws -> OverpassResult {
           do {
             return try await fetchRoadsWithCache(
               bounds: ElementBounds(
-                minlat: lat, minlng: lng, maxlat: lat + radius * 2, maxlng: lng + radius * 2))
+                minlat: lat, minlng: lng, maxlat: lat + tileWidth, maxlng: lng + tileWidth))
           } catch {
             errors.append(error)
             return nil
@@ -349,17 +349,18 @@ func getAngle() -> Double {
   return LocationManager.shared.locationHistory.getAngle()
 }
 
+let tileWidth = 0.005
 let roadsCache = GetCache<OverpassResult>()
 func fetchRoadsWithCache(bounds: ElementBounds) async throws -> OverpassResult {
-  let radius = 0.001
-  let minlat = Int(bounds.minlat / radius / 2) * 2
-  let minlng = Int(bounds.minlng / radius / 2) * 2
+  let minlat = Int(floor(bounds.minlat / tileWidth))
+  let minlng = Int(floor(bounds.minlng / tileWidth))
   let key = "\(minlat),\(minlng)"
   return try await roadsCache.get(key: key) {
     let foundValue = try await getWithCache(key: key) {
       let result = try await fetchRoads(bounds: bounds)
       if let resultString = String(data: try JSONEncoder().encode(result), encoding: .utf8) {
-        return (resultString, nil)
+        let future = Calendar.current.date(byAdding: .day, value: 90, to: Date())
+        return (resultString, future)
       }
       throw FetchError.invalidResult
     }

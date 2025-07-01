@@ -23,6 +23,7 @@ func getModelContainerThrows() throws -> ModelContainer {
     LogEntry.self,
     NotifAppsModel.self,
     SearchHistoryModel.self,
+    KvCacheModel.self,
   )
   cachedContainer = container
   return container
