@@ -37,7 +37,7 @@ extension ConnectionManager {
       let lat = location.coordinate.latitude
       let lng = location.coordinate.longitude
       if isSignificantlyDifferent(loc: (lat, lng), prevLoc: prevLocation) || i % 5 == 0 {
-        let roads = try await fetchRoads(bounds: secondaryBounds)
+        let roads = try await fetchRoadsTiled(bounds: secondaryBounds)
         if let done = try await sendRoadMap(loc: location, route: route, roads: roads), done {
           break
         }
@@ -112,8 +112,39 @@ extension ConnectionManager {
     return nil
   }
 }
-enum NavigationError: Error {
-  case arrived
+
+func fetchRoadsTiled(bounds: ElementBounds) async throws -> OverpassResult {
+  // ± 0.001
+  let radius = 0.001
+  let minlat = Int(bounds.minlat / radius / 2) * 2
+  let minlng = Int(bounds.minlng / radius / 2) * 2
+  let maxlat = Int(bounds.maxlat / radius / 2) * 2
+  let maxlng = Int(bounds.maxlng / radius / 2) * 2
+  let latlngs = Array(minlat...maxlat).flatMap { lat in
+    Array(minlng...maxlng).map { lng in (Double(lat), Double(lng)) }
+  }
+  var errors: [any Error] = []
+  let result: [OverpassResult] =
+    (await asyncAll(
+      latlngs.map { (lat, lng) in
+        {
+          do {
+            return try await fetchRoadsWithCache(
+              bounds: ElementBounds(
+                minlat: lat, minlng: lng, maxlat: lat + radius * 2, maxlng: lng + radius * 2))
+          } catch {
+            errors.append(error)
+            return nil
+          }
+        }
+      })).compactMap { $0 }
+  if errors.count > 0 {
+    throw MultipleErrors(errors: errors)
+  }
+  return result.merge() ?? OverpassResult.empty()
+}
+struct MultipleErrors: Error {
+  let errors: [Error]
 }
 
 private func isSignificantlyDifferent(
@@ -316,4 +347,39 @@ func getSpeed() -> Double {
 }
 func getAngle() -> Double {
   return LocationManager.shared.locationHistory.getAngle()
+}
+
+let roadsCache = GetCache<OverpassResult>()
+func fetchRoadsWithCache(bounds: ElementBounds) async throws -> OverpassResult {
+  let radius = 0.001
+  let minlat = Int(bounds.minlat / radius / 2) * 2
+  let minlng = Int(bounds.minlng / radius / 2) * 2
+  let key = "\(minlat),\(minlng)"
+  return try await roadsCache.get(key: key) {
+    let foundValue = try await getWithCache(key: key) {
+      let result = try await fetchRoads(bounds: bounds)
+      if let resultString = String(data: try JSONEncoder().encode(result), encoding: .utf8) {
+        return (resultString, nil)
+      }
+      throw FetchError.invalidResult
+    }
+    return try JSONDecoder().decode(OverpassResult.self, from: foundValue.data(using: .utf8)!)
+  }
+}
+class GetCache<T> {
+  private var store: [String: Value<T>] = [:]
+  func get(key: String, onMiss: () async throws -> T) async rethrows -> T {
+    if let value = store[key] {
+      return value.value
+    }
+    let value = try await onMiss()
+    store[key] = Value(value: value)
+    return value
+  }
+}
+struct Value<T> {
+  let value: T
+}
+enum FetchError: Error {
+  case invalidResult
 }

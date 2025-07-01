@@ -18,7 +18,7 @@ class KvCacheModel {
 }
 
 @MainActor
-func getWithCache(key: String, onCacheMiss: () async -> (String, Date?)) async throws -> String {
+func getWithCache(key: String, onCacheMiss: () async throws -> (String, Date?)) async throws -> String {
   let context = try getModelContext()
   let predicate = #Predicate<KvCacheModel> { $0.key == key }
   let descriptor = FetchDescriptor<KvCacheModel>(predicate: predicate)
@@ -33,7 +33,7 @@ func getWithCache(key: String, onCacheMiss: () async -> (String, Date?)) async t
     }
     context.delete(first)
   }
-  let (newValue, ttl) = await onCacheMiss()
+  let (newValue, ttl) = try await onCacheMiss()
   let model = KvCacheModel(key: key, value: newValue, ttl: ttl)
   context.insert(model)
   try context.save()

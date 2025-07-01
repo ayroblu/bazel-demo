@@ -50,7 +50,11 @@ public struct OverpassResult: Codable {
   let version: Double
   let generator: String
   // let osm3s: Osm3s
-  let elements: [OverpassElement]
+  var elements: [OverpassElement]
+
+  public static func empty() -> OverpassResult {
+    return OverpassResult(version: 0.0, generator: "", elements: [])
+  }
 }
 
 func fetchPost<T>(_ type: T.Type, urlPath: String, body: String?) async throws -> T
@@ -65,3 +69,15 @@ where T: Decodable {
   let decoder = JSONDecoder()
   return try decoder.decode(type, from: data)
 }
+
+extension Array where Element == OverpassResult {
+  public func merge() -> OverpassResult? {
+    if self.count <= 1 {
+      return self.first
+    }
+    let first = self.first!
+    let elements = self.flatMap { $0.elements }
+    return OverpassResult(version: first.version, generator: first.generator, elements: elements)
+  }
+}
+
