@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import jotai
+@testable import Jotai
 
 class JotaiTests: XCTestCase {
   func testJotaiBasic() {

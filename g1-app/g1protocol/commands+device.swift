@@ -390,6 +390,9 @@ let deviceListeners: [Cmd: Listener] = [
     // 0x4ec90001
     store.set(atom: glassesAppStateAtom, value: .Text)
   },
+  Cmd.Teleprompter: { (peripheral, data, side, store) in
+    // log("todo", data.hex)
+  },
   Cmd.Exit: { (peripheral, data, side, store) in
     // ack exit
     // 0x18c9

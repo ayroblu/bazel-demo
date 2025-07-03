@@ -1,9 +1,9 @@
 import CoreBluetooth
+import Jotai
 import Log
 import SwiftData
 import SwiftUI
 import g1protocol
-import Jotai
 
 let brightnessDoubleAtom = DoubleUInt8CastAtom(atom: brightnessAtom)
 let autoBrightnessActAtom = WritableAtom(
@@ -141,7 +141,9 @@ public struct ContentView: View {
       }
       .onAppear {
         manager.glasses = glasses
-        print(WatchConnectivityManager.shared)
+        #if canImport(WatchConnectivity)
+          print(WatchConnectivityManager.shared)
+        #endif
         #if DEBUG
           initLogDb(modelContext)
         #endif

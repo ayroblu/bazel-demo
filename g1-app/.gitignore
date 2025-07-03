@@ -1,1 +1,3 @@
 tmp
+# For swift build, we don't need it for bazel
+Package.resolved

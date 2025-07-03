@@ -1,7 +1,7 @@
 import SwiftUI
 import XCTest
 
-@testable import jotai
+@testable import Jotai
 
 class JotaiSwiftUITests: XCTestCase {
   func testJotaiSwiftUi() {
