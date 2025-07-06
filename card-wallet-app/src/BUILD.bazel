@@ -3,7 +3,7 @@ load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library", "swift_test")
 package(default_visibility = ["//card-wallet-app:__subpackages__"])
 
 swift_library(
-    name = "content",
+    name = "src",
     srcs = glob(
         ["**/*.swift"],
         ["**/*Tests.swift"],

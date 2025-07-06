@@ -10,7 +10,7 @@ let package = Package(
     .macOS("15.2"), .iOS(.v17),
   ],
   targets: [
-    .target(name: "content", dependencies: ["SwiftUIUtils"], path: "content"),
+    .target(name: "src", dependencies: ["SwiftUIUtils"], path: "src"),
     .target(name: "Log", path: "swift-shared/Log"),
     .target(name: "LogUtils", dependencies: ["Log"], path: "swift-shared/LogUtils"),
     .target(name: "Jotai", path: "swift-shared/Jotai"),
