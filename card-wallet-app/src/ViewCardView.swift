@@ -73,7 +73,6 @@ struct ViewCardView: View {
           .frame(width: height, height: width)
         }
       }
-      .animation(.none, value: isLandscape)
     #endif
     .sheet(isPresented: $isShowEditCardSheet) {
       NavigationLazyView {

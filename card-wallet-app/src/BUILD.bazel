@@ -5,14 +5,18 @@ package(default_visibility = ["//card-wallet-app:__subpackages__"])
 swift_library(
     name = "src",
     srcs = glob(
-        ["**/*.swift"],
-        ["**/*Tests.swift"],
+        [
+            "*.swift",
+            "models/*.swift",
+        ],
+        ["*Tests.swift"],
     ),
     copts = select({
         "//conditions:default": ["-DDEBUG"],
         "//:release_build": ["-DRELEASE"],
     }),
     deps = [
+        "//card-wallet-app/src/BarcodeScanner",
         "//swift-shared/Jotai",
         "//swift-shared/LogUtils",
         "//swift-shared/SwiftUIUtils",
