@@ -12,7 +12,6 @@ struct BarcodeView: View {
         .interpolation(.none)
         .resizable()
         .scaledToFit()
-        .padding()
     } else {
       Text("Failed to generate barcode")
         .foregroundColor(.red)

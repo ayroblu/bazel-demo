@@ -1,6 +1,6 @@
+import Jotai
 import SwiftUI
 import SwiftUIUtils
-import Jotai
 
 private let aspectRatio = 16 / 9
 struct AddCardTileView: View {
@@ -14,9 +14,11 @@ struct AddCardTileView: View {
         let side = geometry.size.width
         ZStack {
           Rectangle()
-            .fill(.gray)
+            .fill(Color(uiColor: .secondarySystemBackground))
             .cornerRadius(10)
           Image(systemName: "plus.circle")
+            .foregroundColor(.primary)
+            .font(.title)
         }
         .frame(width: side, height: side / 16 * 9)
       }
