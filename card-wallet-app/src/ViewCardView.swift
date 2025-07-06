@@ -44,7 +44,6 @@ struct ViewCardView: View {
           Button("Delete", role: .destructive) {
             modelContext.delete(card)
             tryFn { try modelContext.save() }
-            print("path", path.count)
             if !path.isEmpty {
               path.removeLast()
             }

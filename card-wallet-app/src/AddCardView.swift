@@ -6,14 +6,18 @@ import SwiftUIUtils
 struct AddCardView: View {
   @State var isManual: Bool = false
   var body: some View {
-    if isManual {
-      AddCardManuallyView()
-        .navigationTitle("Add card manually")
-    } else {
+    NavigationStack {
       Text("Camera + Barcode icon")
-      Text("-- or --")
-      Button("Enter manually") {
-        isManual = true
+      NavigationLink("From photo library") {
+        NavigationLazyView {
+          BarcodeScannerView()
+        }
+      }
+      .buttonStyle(.bordered)
+      NavigationLink("Enter manually") {
+        NavigationLazyView {
+          AddCardManuallyView()
+        }
       }
       .buttonStyle(.bordered)
     }

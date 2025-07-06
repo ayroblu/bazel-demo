@@ -13,9 +13,15 @@ struct AddCardTileView: View {
       GeometryReader { geometry in
         let side = geometry.size.width
         ZStack {
-          Rectangle()
-            .fill(Color(uiColor: .secondarySystemBackground))
-            .cornerRadius(10)
+          #if os(iOS)
+            Rectangle()
+              .fill(Color(uiColor: .secondarySystemBackground))
+              .cornerRadius(10)
+          #else
+            Rectangle()
+              .fill(Color(nsColor: .controlBackgroundColor))
+              .cornerRadius(10)
+          #endif
           Image(systemName: "plus.circle")
             .foregroundColor(.primary)
             .font(.title)
