@@ -22,8 +22,12 @@ struct ViewCardView: View {
             isLandscape = true
           }
         } label: {
-          BarcodeView(barcodeString: card.barcode)
-            .listRowInsets(.init())
+          if card.isQr {
+            QRCodeView(data: card.barcode)
+          } else {
+            BarcodeView(barcodeString: card.barcode)
+              .listRowInsets(.init())
+          }
         }
         Text(card.barcodePretty)
       }

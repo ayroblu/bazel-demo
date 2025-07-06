@@ -10,6 +10,7 @@ struct AddCardView: View {
   @State var isShowCamera: Bool = false
   @AtomState(isShowAddCardSheetAtom) private var isShowAddCardSheet: Bool
   @State var card = CardModel(title: "", barcode: "")
+  @AtomState(navigationPathAtom) private var path: NavigationPath
 
   var body: some View {
     List {
@@ -48,6 +49,7 @@ struct AddCardView: View {
       modelContext.insert(card)
       tryFn { try modelContext.save() }
       isShowAddCardSheet = false
+      path.append(card)
     }
     .buttonStyle(.bordered)
   }
