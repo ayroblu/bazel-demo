@@ -72,7 +72,7 @@ public class JotaiStore {
     if let atom = atom as? PrimitiveAtom<T> {
       // This shouldn't happen except where there's a bug in type defs
       // For example a function that takes a WritableAtom, but you need override function to handle the PrimitiveAtom case
-      print("invalid primitve atom in writable atom", atom, value)
+      print("invalid primitive atom in writable atom", atom, value)
       setPrimitive(atom: atom, value: value as! T)
       return
     }

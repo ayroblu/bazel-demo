@@ -6,6 +6,7 @@ class CardModel {
   var barcode: String
   var colour: String?
   var logo: String?
+  var notes: String = ""
 
   init(title: String, barcode: String, colour: String? = nil, logo: String? = nil) {
     self.title = title

@@ -1,6 +1,5 @@
 import SwiftUI
 
-private let aspectRatio = 16 / 9
 struct CardView: View {
   let card: CardModel
   var body: some View {
@@ -18,3 +17,4 @@ struct CardView: View {
     .aspectRatio(16 / 9, contentMode: .fit)
   }
 }
+private let aspectRatio = 16 / 9

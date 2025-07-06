@@ -28,6 +28,17 @@ public struct AtomState<T: Equatable>: DynamicProperty {
   private let store: JotaiStore
   private let atom: WritableAtom<T, T, Void>
 
+  public init(
+    wrappedValue defaultValue: T, _ atom: WritableAtom<T, T, Void>,
+    store maybeStore: JotaiStore? = nil
+  ) {
+    self.init(atom, store: maybeStore)
+    if let primitiveAtom = self.atom as? PrimitiveAtom<T> {
+      self.store.set(atom: primitiveAtom, value: defaultValue)
+    } else {
+      self.store.set(atom: self.atom, value: defaultValue)
+    }
+  }
   public init(_ atom: WritableAtom<T, T, Void>, store maybeStore: JotaiStore? = nil) {
     self.atom = atom
     self.store = maybeStore ?? JotaiStore.shared
@@ -38,7 +49,13 @@ public struct AtomState<T: Equatable>: DynamicProperty {
 
   public var wrappedValue: T {
     get { self.store.get(atom: self.atom) }
-    nonmutating set { self.store.set(atom: self.atom, value: newValue) }
+    nonmutating set {
+      if let primitiveAtom = self.atom as? PrimitiveAtom<T> {
+        self.store.set(atom: primitiveAtom, value: newValue)
+      } else {
+        self.store.set(atom: self.atom, value: newValue)
+      }
+    }
   }
 
   public var projectedValue: Binding<T> {

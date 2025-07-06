@@ -2,9 +2,9 @@ import Foundation
 import Log
 import SwiftData
 
-let container = LazyValue { try! ModelContainer(for: CardModel.self, LogEntry.self) }
+let modelContainer = LazyValue { try! ModelContainer(for: CardModel.self, LogEntry.self) }
 
 @MainActor
 func getModelContext() throws -> ModelContext {
-  return container.value.mainContext
+  return modelContainer.value.mainContext
 }
