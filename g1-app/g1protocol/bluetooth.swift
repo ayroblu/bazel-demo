@@ -1,6 +1,6 @@
 import CoreBluetooth
-import Log
 import Jotai
+import Log
 
 let uartServiceUuid = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
 let uartTxCharacteristicUuid = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
@@ -132,6 +132,10 @@ class G1BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
     store.set(atom: isConnectedAtom, value: false)
     guard let name = peripheral.name else { return }
     log("didDisconnectPeripheral \(name)", error ?? "")
+    if peripheral == rightPeripheral {
+      manager.connect(
+        peripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
+    }
   }
 
   func centralManager(
