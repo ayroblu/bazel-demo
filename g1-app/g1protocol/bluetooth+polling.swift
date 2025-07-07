@@ -1,7 +1,7 @@
 import CoreBluetooth
 import Log
 
-var timer: Timer?
+private var timer: Timer?
 extension BluetoothManager {
   public func startTimer() {
     timer?.invalidate()

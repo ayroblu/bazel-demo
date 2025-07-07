@@ -42,3 +42,9 @@ let userLngState = Persist<Double>(key: "user-lng")
 
 let weatherIconState = PersistWithDefaultState<UInt8>(key: "weather-icon", defaultValue: 0x10)
 let weatherTempState = PersistWithDefaultState<UInt8>(key: "weather-temp", defaultValue: 25)
+
+let cronTimeEnabledState = PersistWithDefaultState<Bool>(
+  key: "cron-time-enabled", defaultValue: false)
+let cronTimeIntervalMinutesState = PersistWithDefaultState<Int>(
+  key: "cron-time-interval-minutes", defaultValue: 60)
+

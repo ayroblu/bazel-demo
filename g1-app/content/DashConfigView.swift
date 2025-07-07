@@ -33,6 +33,8 @@ struct DashConfigView: View {
   @AtomState(notifConfigMsgAtom) var msgEnabled: Bool
   @AtomState(notifConfigIosMailAtom) var iosMailEnabled: Bool
   @AtomState(notifConfigAppsAtom) var appsEnabled: Bool
+  @AtomState(cronTimeEnabledAtom) var cronTimeEnabled: Bool
+  @AtomState(cronTimeIntervalMinutesAtom) var cronTimeIntervalMinutes: Int
 
   var body: some View {
     List {
@@ -75,6 +77,22 @@ struct DashConfigView: View {
               manager.dashPosition(isShow: editing, vertical: dashVertical, distance: dashDistance)
             }
           }
+        }
+      }
+
+      Section("Interval clock time") {
+        Toggle(isOn: $cronTimeEnabled) {
+          Text("Show time on interval")
+        }
+        if cronTimeEnabled {
+          let numbers = [1, 5, 10, 20, 30, 60, 120]
+          Picker("Interval time", selection: $cronTimeIntervalMinutes) {
+            ForEach(numbers, id: \.self) { number in
+              let text = number >= 60 ? number == 60 ? "every hour" : "every \(number/60) hours" : "every \(number) mins"
+              Text(text).tag(number)
+            }
+          }
+          .pickerStyle(.menu)
         }
       }
 

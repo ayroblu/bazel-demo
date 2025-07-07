@@ -501,13 +501,13 @@ public enum DeviceCmd: UInt8 {
   case Charging = 0x09
 }
 
-enum GlassesAppState {
+public enum GlassesAppState {
   case Text
   case Navigation
   case Dash
   case Bmp
 }
-let glassesAppStateAtom = PrimitiveAtom<GlassesAppState?>(nil)
+public let glassesAppStateAtom = PrimitiveAtom<GlassesAppState?>(nil)
 public let chargingAtom = PrimitiveAtom(false)
 public let caseBatteryAtom = PrimitiveAtom<Int?>(nil)
 let caseChargingAtom = PrimitiveAtom(false)

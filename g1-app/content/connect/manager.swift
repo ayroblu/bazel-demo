@@ -1,11 +1,12 @@
 import EventKit
+import Jotai
 import Log
 import MapKit
 import Pcm
 import Speech
 import SwiftData
 import g1protocol
-import Jotai
+import utils
 
 public class ConnectionManager {
   // let uartServiceCbuuid = CBUUID(string: uartServiceUuid)
@@ -144,6 +145,16 @@ public class ConnectionManager {
     }
   }
 
+  func showTime() {
+    Task {
+      for _ in 0...5 {
+        sendText(formatDate("HH:mm:ss"))
+        try? await Task.sleep(for: .seconds(1))
+      }
+      bluetoothManager.transmitBoth(Device.exitData())
+    }
+  }
+
   var speechRecognizer: SpeechRecognizer?
   // var micOn = false
   public func listenAudio() {
@@ -182,6 +193,7 @@ public class ConnectionManager {
       syncReminders()
       sendAllowNotifs()
       bluetoothManager.startTimer()
+      cronTimer.update()
     }
   }
 
