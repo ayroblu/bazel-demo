@@ -142,7 +142,7 @@ public struct ContentView: View {
       .onAppear {
         manager.glasses = glasses
         #if canImport(WatchConnectivity)
-          print(WatchConnectivityManager.shared)
+          let _ = WatchConnectivityManager.shared
         #endif
         #if DEBUG
           initLogDb(modelContext)

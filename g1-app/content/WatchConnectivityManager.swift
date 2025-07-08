@@ -1,5 +1,6 @@
 #if canImport(WatchConnectivity)
   import WatchConnectivity
+  import Log
 
   class WatchConnectivityManager: NSObject, WCSessionDelegate {
     static let shared = WatchConnectivityManager()
@@ -9,7 +10,7 @@
       super.init()
       session.delegate = self
       session.activate()
-      print("activate")
+      log("WatchConnectivity: activate")
     }
 
     // Handle received message from watch
@@ -17,9 +18,9 @@
       _ session: WCSession, didReceiveMessage message: [String: Any],
       replyHandler: @escaping ([String: Any]) -> Void
     ) {
-      print("didReceiveMessage")
+      log("WatchConnectivity: didReceiveMessage")
       if let integerValue = message["integerValue"] as? Int {
-        print("Received integer from watch: \(integerValue)")
+        log("WatchConnectivity: Received integer from watch: \(integerValue)")
         // Process the integer (e.g., update UI, save to storage)
         replyHandler(["status": "Received"])
       } else {
@@ -33,9 +34,9 @@
       error: Error?
     ) {
       if let error = error {
-        print("Session activation failed: \(error)")
+        log("WatchConnectivity: Session activation failed: \(error)")
       } else {
-        print("Session activated with state: \(activationState.rawValue)")
+        log("WatchConnectivity: Session activated with state: \(activationState.rawValue)")
       }
     }
 
