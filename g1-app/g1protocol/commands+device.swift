@@ -165,7 +165,6 @@ public struct Device {
       guard let json = toJson(dict: dict) else { return [] }
       let chunks = json.chunk(into: 177)
       let numItems: UInt8 = UInt8(chunks.count)
-      log("allowData numItems: \(numItems), dataSize: \(json.count)", json.ascii() ?? "<>")
       let result = chunks.enumerated().map { (index, chunk) in
         Data([Cmd.AddNotif.rawValue, numItems, UInt8(index)]) + chunk
       }

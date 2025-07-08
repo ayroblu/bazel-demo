@@ -1,7 +1,7 @@
 import CoreBluetooth
 import Foundation
-import Log
 import Jotai
+import Log
 
 public struct Info {
   public static func brightnessStateData() -> Data {
@@ -51,7 +51,6 @@ let infoListeners: [Cmd: Listener] = [
   Cmd.DashPosition: { (peripheral, data, side, store) in
     // on load, right only
     // 0x3bc90203
-    log("dash position:", data.hex)
     if data[1] == 0xC9 {
       store.set(atom: dashVerticalAtom, value: data[2])
       store.set(atom: dashDistanceAtom, value: data[3])

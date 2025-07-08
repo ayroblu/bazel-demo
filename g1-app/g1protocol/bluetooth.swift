@@ -109,8 +109,8 @@ class G1BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
   }
 
   func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
-    guard let name = peripheral.name else { return }
-    log("didConnect \(name)")
+    // guard let name = peripheral.name else { return }
+    // log("didConnect \(name)")
     // peripheral.discoverServices(nil)
     if discoverSmb {
       peripheral.discoverServices([uartServiceCbuuid, smpServiceCbuuid])
@@ -186,10 +186,10 @@ class G1BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
       for characteristic in characteristics {
         switch characteristic.uuid {
         case uartRxCharacteristicCbuuid:
-          log("rx \(name)")
+          // log("rx \(name)")
           peripheral.setNotifyValue(true, for: characteristic)
         case uartTxCharacteristicCbuuid:
-          log("tx \(name)")
+          // log("tx \(name)")
           if name.contains("_L_") {
             transmitLeftCharacteristic = characteristic
             leftPeripheral = peripheral
@@ -274,7 +274,7 @@ class G1BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
 
   private func checkConnected() {
     if let leftPeripheral, leftPeripheral.state != .connected {
-      log("trying to connect left")
+      log("BluetoothManager: trying to connect left")
       manager.connect(
         leftPeripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
     }
@@ -283,7 +283,7 @@ class G1BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
       return
     }
     if rightPeripheral.state != .connected {
-      log("trying to connect right")
+      log("BluetoothManager: trying to connect right")
       manager.connect(
         rightPeripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
     }
