@@ -273,7 +273,7 @@ class G1BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
   }
 
   private func checkConnected() {
-    if let leftPeripheral, leftPeripheral.state != .connected {
+    if let leftPeripheral, leftPeripheral.state == .disconnected {
       log("BluetoothManager: trying to connect left")
       manager.connect(
         leftPeripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
@@ -282,7 +282,7 @@ class G1BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
       log("no right peripheral")
       return
     }
-    if rightPeripheral.state != .connected {
+    if rightPeripheral.state == .disconnected {
       log("BluetoothManager: trying to connect right")
       manager.connect(
         rightPeripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: true])
