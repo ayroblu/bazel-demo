@@ -9,6 +9,12 @@ swift_library(
     srcs = [
         "SafariWebExtensionHandler.swift",
     ],
+    linkopts = [
+        "-framework",
+        "SafariServices",
+        "-framework",
+        "WebKit",
+    ],
 )
 
 apple_bundle_version(

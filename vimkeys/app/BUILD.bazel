@@ -1,12 +1,9 @@
-load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
-load("@build_bazel_rules_apple//apple:versioning.bzl", "apple_bundle_version")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 
-# bazel run vimkeys/app:xcodeproj && xed vimkeys/app/xcodeproj
-load("@rules_xcodeproj//xcodeproj:defs.bzl", "xcodeproj")
+package(default_visibility = ["//vimkeys:__subpackages__"])
 
 swift_library(
-    name = "lib",
+    name = "app",
     srcs = [
         "AppDelegate.swift",
         "ViewController.swift",
@@ -15,36 +12,10 @@ swift_library(
         "Main.html",
         "Main.storyboard",
     ],
-)
-
-apple_bundle_version(
-    name = "version",
-    build_version = "1.0",
-)
-
-macos_application(
-    name = "app",
-    app_icons = [":Assets.xcassets"],
-    bundle_id = "com.ayroblu.vimkeys",
-    bundle_name = "vimkeys",
-    entitlements = ":vimkeys.entitlements",
-    extensions = [
-        "//vimkeys/ext",
-    ],
-    infoplists = [":Info.plist"],
-    minimum_os_version = "10.14",
-    resources = glob(["Resources/*"]),
-    version = ":version",
-    visibility = ["//visibility:public"],
-    deps = [":lib"],
-)
-
-xcodeproj(
-    name = "xcodeproj",
-    build_mode = "bazel",
-    project_name = "vimkeys",
-    tags = ["manual"],
-    top_level_targets = [
-        ":app",
+    linkopts = [
+        "-framework",
+        "SafariServices",
+        "-framework",
+        "WebKit",
     ],
 )

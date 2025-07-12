@@ -1,0 +1,37 @@
+load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
+load("@build_bazel_rules_apple//apple:versioning.bzl", "apple_bundle_version")
+
+# bazel run vimkeys:xcodeproj && xed vimkeys/xcodeproj
+load("@rules_xcodeproj//xcodeproj:defs.bzl", "xcodeproj")
+
+apple_bundle_version(
+    name = "version",
+    build_version = "1.0",
+)
+
+macos_application(
+    name = "vimkeys",
+    app_icons = [":Assets.xcassets"],
+    bundle_id = "com.ayroblu.vimkeys",
+    bundle_name = "vimkeys",
+    entitlements = ":vimkeys.entitlements",
+    extensions = [
+        "//vimkeys/ext",
+    ],
+    infoplists = [":Info.plist"],
+    minimum_os_version = "10.14",
+    resources = glob(["Resources/*"]),
+    version = ":version",
+    visibility = ["//visibility:public"],
+    deps = ["//vimkeys/app"],
+)
+
+xcodeproj(
+    name = "xcodeproj",
+    build_mode = "bazel",
+    project_name = "vimkeys",
+    tags = ["manual"],
+    top_level_targets = [
+        ":vimkeys",
+    ],
+)
