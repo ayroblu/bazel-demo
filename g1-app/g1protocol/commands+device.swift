@@ -1,7 +1,7 @@
 import CoreBluetooth
 import Foundation
-import Log
 import Jotai
+import Log
 
 public struct Device {
   public static func exitData() -> Data {
@@ -335,7 +335,7 @@ let deviceListeners: [Cmd: Listener] = [
   },
   Cmd.Navigate: { (peripheral, data, side, store) in
     // response to navigation requests
-    // mainVm?.glassesAppState = .Navigation
+    // store.set(atom: glassesAppStateAtom, value: .Navigation)
   },
   Cmd.Mic: { (peripheral, data, side, store) in
     let resp = Device.Mic.respData(data: data)

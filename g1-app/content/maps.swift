@@ -1,4 +1,5 @@
 import Foundation
+import Jotai
 import Log
 import LogUtils
 import MapKit
@@ -7,6 +8,7 @@ import maps
 import utils
 
 let padding = 0.002
+private let store = JotaiStore.shared
 extension ConnectionManager {
   func sendNavigate(route: MKRoute) {
     currentTask = Task {
@@ -16,6 +18,7 @@ extension ConnectionManager {
         log(error)
         let data = Device.Navigate.endData()
         bluetoothManager.transmitBoth(data)
+        store.set(atom: glassesAppStateAtom, value: nil)
       }
     }
   }
@@ -30,6 +33,7 @@ extension ConnectionManager {
 
     bluetoothManager.transmitBoth(Device.Navigate.initData())
     try await Task.sleep(for: .milliseconds(8))
+    store.set(atom: glassesAppStateAtom, value: .Navigation)
 
     var prevLocation: (lat: Double, lng: Double)?
     for i in 1..<1000 {
@@ -51,6 +55,7 @@ extension ConnectionManager {
     }
     let data = Device.Navigate.endData()
     bluetoothManager.transmitBoth(data)
+    store.set(atom: glassesAppStateAtom, value: nil)
     log("ending navigate")
   }
 
