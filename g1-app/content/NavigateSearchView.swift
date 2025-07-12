@@ -27,6 +27,11 @@ struct NavigateSearchView: View {
         }
       }
       .padding(.horizontal)
+      .onChange(of: text) {
+        if text == "" {
+          searchResults = nil
+        }
+      }
 
       if let searchResults {
         List {
