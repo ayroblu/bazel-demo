@@ -2,6 +2,7 @@ import Jotai
 import LogUtils
 import SwiftUI
 import SwiftUIUtils
+import models
 
 struct EditCardView: View {
   @Bindable var card: CardModel

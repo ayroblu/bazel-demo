@@ -4,6 +4,7 @@ import LogUtils
 import PhotosUI
 import SwiftUI
 import SwiftUIUtils
+import models
 
 struct AddCardView: View {
   @Environment(\.modelContext) private var modelContext

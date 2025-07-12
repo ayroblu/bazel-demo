@@ -12,6 +12,9 @@ package(default_visibility = ["//visibility:public"])
 
 ios_application(
     name = "card-wallet-app",
+    app_intents = [
+        "//card-wallet-app/shortcuts",
+    ],
     bundle_id = "com.ayroblu.card-wallet-app",
     families = [
         "iphone",
@@ -25,7 +28,9 @@ ios_application(
     #     ["Assets/*"],
     #     exclude_directories = 0,
     # ),
-    deps = ["//card-wallet-app/src"],
+    deps = [
+        "//card-wallet-app/src",
+    ],
 )
 
 macos_application(

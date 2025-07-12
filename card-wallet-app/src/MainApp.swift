@@ -1,4 +1,5 @@
 import SwiftUI
+import models
 
 @main
 struct MainApp: App {

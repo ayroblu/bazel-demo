@@ -11,6 +11,7 @@ let package = Package(
   ],
   targets: [
     .target(name: "src", dependencies: ["SwiftUIUtils"], path: "src"),
+    .target(name: "shortcuts", dependencies: ["src"], path: "shortcuts"),
     // .target(name: "BarcodeScanner", path: "src/BarcodeScanner"),
     .target(name: "Log", path: "swift-shared/Log"),
     .target(name: "LogUtils", dependencies: ["Log"], path: "swift-shared/LogUtils"),

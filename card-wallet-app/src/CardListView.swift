@@ -1,11 +1,15 @@
 import Jotai
+import Shortcuts
 import SwiftData
 import SwiftUI
 import SwiftUIUtils
+import models
 
 struct CardListView: View {
   @Query private var cards: [CardModel]
   @State private var searchText = ""
+  @AtomState(navigationPathAtom) private var path: NavigationPath
+  @AtomState(startCardAtom) private var startCard: UUID?
 
   var filteredCards: [CardModel] {
     if searchText.isEmpty {
@@ -34,6 +38,23 @@ struct CardListView: View {
         ViewCardView(card: card)
       }
       .padding()
+      .onChange(of: startCard) { onStart() }
+      .onAppear { onStart() }
+      .onOpenURL { url in
+        // TODO: url
+        if let card = cards.first {
+          path.append(card)
+        }
+      }
     }
+  }
+
+  private func onStart() {
+    guard let startCard else { return }
+    self.startCard = nil
+    let first = cards.first(where: { model in model.id == startCard })
+    guard let first else { return }
+    path.removeLast(path.count)
+    path.append(first)
   }
 }

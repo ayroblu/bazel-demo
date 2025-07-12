@@ -2,6 +2,7 @@ import Jotai
 import LogUtils
 import SwiftUI
 import SwiftUIUtils
+import models
 
 struct ViewCardView: View {
   @State private var isShowEditCardSheet: Bool = false
