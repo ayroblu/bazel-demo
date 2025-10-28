@@ -1,0 +1,2 @@
+build --xcode_version=17A400
+build --repo_env=XCODE_VERSION=17A400
