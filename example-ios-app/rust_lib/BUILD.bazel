@@ -1,0 +1,8 @@
+load("@rules_rust//rust:defs.bzl", "rust_library")
+
+package(default_visibility = ["//example-ios-app:__subpackages__"])
+
+rust_library(
+    name = "rust_lib",
+    srcs = ["lib.rs"],
+)

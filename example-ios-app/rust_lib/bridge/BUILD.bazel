@@ -1,0 +1,21 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+
+package(default_visibility = ["//example-ios-app:__subpackages__"])
+
+objc_library(
+    name = "rust_bridge_objc",
+    hdrs = ["bridge.h"],
+    module_name = "RustBridge",
+    deps = [
+        "//example-ios-app/rust_lib",
+    ],
+)
+
+swift_library(
+    name = "bridge",
+    srcs = ["SwiftLib.swift"],
+    module_name = "SwiftLib",
+    deps = [
+        ":rust_bridge_objc",
+    ],
+)

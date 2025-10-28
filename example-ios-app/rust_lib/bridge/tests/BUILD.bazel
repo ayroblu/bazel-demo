@@ -1,0 +1,11 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_test")
+
+package(default_visibility = ["//example-ios-app:__subpackages__"])
+
+swift_test(
+    name = "tests",
+    srcs = glob(["*.swift"]),
+    deps = [
+        "//example-ios-app/rust_lib/bridge",
+    ],
+)
