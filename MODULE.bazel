@@ -1,4 +1,4 @@
-# iOS
+# --------------------------------------------------------- iOS
 bazel_dep(name = "rules_xcodeproj", version = "3.3.0")
 bazel_dep(
     name = "apple_support",
@@ -76,7 +76,7 @@ use_repo(
 # example, the repository name for apple/swift-nio is `swiftpkg_swift_nio`.
 # Use it like: "@swiftpkg_swift_nio//:NIO",
 
-# Android
+# ----------------------------------------------------------- Android
 bazel_dep(name = "rules_jvm_external", version = "6.6")
 
 _COMPOSE_VERSION = "1.7.6"
@@ -131,7 +131,7 @@ bazel_dep(name = "rules_kotlin", version = "2.0.0")
 # bazel_dep(name = "bazel_skylib", version = "1.7.1")
 # bazel_dep(name = "rules_android", version = "0.6.0")
 
-# JS
+# ------------------------------------------------------------- JS
 bazel_dep(name = "rules_nodejs", version = "6.1.0")
 
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
@@ -177,7 +177,7 @@ rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext", dev_d
 rules_ts_ext.deps()
 use_repo(rules_ts_ext, "npm_typescript")
 
-# Rust
+# --------------------------------------------------------- Rust
 
 bazel_dep(name = "rules_rust", version = "0.54.1")
 
@@ -256,10 +256,10 @@ use_repo(crate, "crates")
 # )
 # use_repo(crate, "rust-code-crates")
 
-# Python
+# ------------------------------------------------------- Python
 
-bazel_dep(name = "aspect_rules_py", version = "0.7.3")
-bazel_dep(name = "rules_python", version = "0.31.0")
+bazel_dep(name = "aspect_rules_py", version = "1.6.6")
+bazel_dep(name = "rules_python", version = "1.3.0")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(

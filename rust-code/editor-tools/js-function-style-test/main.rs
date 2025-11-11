@@ -2,11 +2,11 @@ extern crate direct;
 extern crate runfile;
 
 use assert_cmd::Command;
-use js_function_style_lib::types::ConvertAction;
-use js_function_style_lib::types::Input;
-use serde_json;
-use runfile::runfile_path;
 use direct::direct_path;
+use lib::types::ConvertAction;
+use lib::types::Input;
+use runfile::runfile_path;
+use serde_json;
 
 #[test]
 fn it_converts_example_function_to_block() {
