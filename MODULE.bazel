@@ -1,57 +1,56 @@
 # iOS
-bazel_dep(name = "rules_xcodeproj", version = "2.12.1")
+bazel_dep(name = "rules_xcodeproj", version = "3.3.0")
 bazel_dep(
     name = "apple_support",
-    version = "1.22.0",
+    version = "1.24.4",
     repo_name = "build_bazel_apple_support",
 )
 bazel_dep(
     name = "rules_swift",
-    version = "2.4.0",
+    version = "3.3.0",
     repo_name = "build_bazel_rules_swift",
 )
 bazel_dep(
     name = "rules_apple",
-    version = "4.0.1",
+    version = "4.2.0",
     repo_name = "build_bazel_rules_apple",
 )
 
 bazel_dep(
     name = "buildifier_prebuilt",
-    version = "6.4.0",
+    version = "7.3.1",
     dev_dependency = True,
 )
 
-bazel_dep(name = "swiftlint", version = "0.59.1", repo_name = "SwiftLint")
+# bazel_dep(name = "swiftlint", version = "0.59.1", repo_name = "SwiftLint")
+# bazel_dep(name = "aspect_rules_lint", version = "1.4.4")
 
-bazel_dep(name = "aspect_rules_lint", version = "1.4.4")
+# http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+# http_archive(
+#     name = "swiftformat",
+#     build_file_content = "filegroup(name = \"swiftformat\", srcs=[\"swiftformat_linux\"], visibility=[\"//visibility:public\"])",
+#     patch_cmds = ["chmod u+x swiftformat_linux"],
+#     sha256 = "f62813980c2848cb1941f1456a2a06251c2e2323183623760922058b98c70745",
+#     url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.49.17/swiftformat_linux.zip",
+# )
 
-http_archive(
-    name = "swiftformat",
-    build_file_content = "filegroup(name = \"swiftformat\", srcs=[\"swiftformat_linux\"], visibility=[\"//visibility:public\"])",
-    patch_cmds = ["chmod u+x swiftformat_linux"],
-    sha256 = "f62813980c2848cb1941f1456a2a06251c2e2323183623760922058b98c70745",
-    url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.49.17/swiftformat_linux.zip",
-)
+# http_archive(
+#     name = "swiftformat_mac",
+#     build_file_content = "filegroup(name = \"swiftformat_mac\", srcs=[\"swiftformat\"], visibility=[\"//visibility:public\"])",
+#     patch_cmds = [
+#         # On MacOS, `xattr -c` clears the "Unknown developer" warning when executing a fetched binary
+#         "if command -v xattr > /dev/null; then xattr -c swiftformat; fi",
+#         "chmod u+x swiftformat",
+#         "mv swiftformat swiftformat_orig",
+#         "echo \"$PWD/swiftformat_orig --config tools/.swiftlint \"'\"$@\"'\"\" >> swiftformat",
+#         "chmod u+x swiftformat",
+#     ],
+#     sha256 = "978eaffdc3716bbc0859aecee0d83875cf3ab8d8725779448f0035309d9ad9f3",
+#     url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.49.17/swiftformat.zip",
+# )
 
-http_archive(
-    name = "swiftformat_mac",
-    build_file_content = "filegroup(name = \"swiftformat_mac\", srcs=[\"swiftformat\"], visibility=[\"//visibility:public\"])",
-    patch_cmds = [
-        # On MacOS, `xattr -c` clears the "Unknown developer" warning when executing a fetched binary
-        "if command -v xattr > /dev/null; then xattr -c swiftformat; fi",
-        "chmod u+x swiftformat",
-        "mv swiftformat swiftformat_orig",
-        "echo \"$PWD/swiftformat_orig --config tools/.swiftlint \"'\"$@\"'\"\" >> swiftformat",
-        "chmod u+x swiftformat",
-    ],
-    sha256 = "978eaffdc3716bbc0859aecee0d83875cf3ab8d8725779448f0035309d9ad9f3",
-    url = "https://github.com/nicklockwood/SwiftFormat/releases/download/0.49.17/swiftformat.zip",
-)
-
-bazel_dep(name = "rules_swift_package_manager", version = "1.2.0")
+bazel_dep(name = "rules_swift_package_manager", version = "1.10.0")
 
 swift_deps = use_extension(
     "@rules_swift_package_manager//:extensions.bzl",
@@ -238,7 +237,10 @@ crate.spec(
     package = "assert_cmd",
     version = "2.0.16",
 )
-crate.spec(package = "regex", version = "1.11.1")
+crate.spec(
+    package = "regex",
+    version = "1.11.1",
+)
 crate.from_specs()
 use_repo(crate, "crates")
 
