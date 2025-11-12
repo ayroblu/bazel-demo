@@ -23,6 +23,24 @@ test:log --test_output=all
 test:no_sandbox --spawn_strategy=local
 # test_filter= to restrict to certain tests
 
+# Android
+# https://github.com/bazelbuild/rules_kotlin/blob/master/examples/jetpack_compose/.bazelrc
+# Enable d8 merger
+build --define=android_dexmerger_tool=d8_dexmerger
+
+# Flags for the D8 dexer
+build --define=android_incremental_dexing_tool=d8_dexbuilder
+build --define=android_standalone_dexing_tool=d8_compat_dx
+
+build --platform_mappings=tools/platform_mappings
+build --@rules_kotlin//kotlin/settings:jvm_emit_jdeps=False
+
+build:android --android_platforms=//example-android-app:arm64-v8a
+mobile-install:android --android_platforms=//example-android-app:arm64-v8a
+
+common --java_runtime_version=remotejdk_17
+common --tool_java_runtime_version=remotejdk_17
+
 # Allow the Bazel server to check directory sources for changes. Ensures that the Bazel server
 # notices when a directory changes, if you have a directory listed in the srcs of some target.
 # Recommended when using

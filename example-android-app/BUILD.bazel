@@ -1,11 +1,9 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_tools//tools/jdk:default_java_toolchain.bzl", "default_java_toolchain")
-
-# load("@rules_android//android:rules.bzl", "android_binary")
+load("@rules_android//android:rules.bzl", "android_binary")
 load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain", "kt_compiler_plugin")
 
 # Java Toolchain
-
 default_java_toolchain(
     name = "java_toolchain",
     visibility = ["//visibility:public"],
@@ -13,7 +11,7 @@ default_java_toolchain(
 
 define_kt_toolchain(
     name = "kotlin_toolchain",
-    # jvm_target = "1.8",
+    # jvm_target = "11",
 )
 
 kt_compiler_plugin(
@@ -22,7 +20,7 @@ kt_compiler_plugin(
     target_embedded_compiler = True,
     visibility = ["//visibility:public"],
     deps = [
-        "@maven//:org_jetbrains_kotlin_kotlin_compose_compiler_plugin_embeddable",
+        "@maven_compose//:org_jetbrains_kotlin_kotlin_compose_compiler_plugin_embeddable",
     ],
 )
 

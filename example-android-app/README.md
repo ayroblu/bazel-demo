@@ -10,7 +10,7 @@ Make sure your emulator is running:
 # init-android
 # emulator -list-avds
 # emulator -avd Pixel_3a_API_34_extension_level_7_arm64-v8a -netdelay none -netspeed full
-emulator -avd Pixel_3a_API_34_extension_level_7_arm64-v8a
+emulator -avd Medium_Phone_API_35
 ```
 
 Build
@@ -22,7 +22,9 @@ bazel build :example-android-app
 Install app on device:
 
 ```
-./install
+# Doesn't work anymore?
+# ./install
+bazel mobile-install:android //example-android-app -- --launch_activity=com.example.bazel.MainActivity
 ```
 
 ## Helpful

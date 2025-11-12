@@ -77,15 +77,39 @@ use_repo(
 # Use it like: "@swiftpkg_swift_nio//:NIO",
 
 # ----------------------------------------------------------- Android
-bazel_dep(name = "rules_jvm_external", version = "6.6")
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_kotlin", version = "2.1.10")
+bazel_dep(name = "rules_jvm_external", version = "6.9")
+bazel_dep(name = "rules_android", version = "0.6.6")
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+
+# android_sdk_repository(name = "androidsdk", api_level = 34)
+
+register_toolchains(
+    "@rules_android//toolchains/android:android_default_toolchain",
+    "@rules_android//toolchains/android_sdk:android_sdk_tools",
+)
+
+android_sdk_repository_extension = use_extension("@rules_android//rules/android_sdk_repository:rule.bzl", "android_sdk_repository_extension")
+use_repo(android_sdk_repository_extension, "androidsdk")
+
+register_toolchains("@androidsdk//:sdk-toolchain", "@androidsdk//:all")
+
+bazel_dep(name = "rules_android_ndk", version = "0.1.3")
+
+android_ndk_repository_extension = use_extension("@rules_android_ndk//:extension.bzl", "android_ndk_repository_extension")
+use_repo(android_ndk_repository_extension, "androidndk")
+
+register_toolchains("@androidndk//:all")
 
 _COMPOSE_VERSION = "1.7.6"
 
-_KOTLIN_COMPILER_VERSION = "2.0.0"
-# _KOTLIN_COMPILER_SHA = "ef578730976154fd2c5968d75af8c2703b3de84a78dffe913f670326e149da3b"
+_KOTLIN_COMPILER_VERSION = "2.1.20"
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
+    name = "maven_compose",
+    aar_import_bzl_label = "@rules_android//android:rules.bzl",
     artifacts = [
         "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:{}".format(_KOTLIN_COMPILER_VERSION),
         "org.jetbrains.kotlin:kotlin-stdlib:{}".format(_KOTLIN_COMPILER_VERSION),
@@ -117,19 +141,35 @@ maven.install(
         "androidx.emoji2:emoji2-views-helper:1.3.0",
         "androidx.lifecycle:lifecycle-process:2.8.3",
         "androidx.lifecycle:lifecycle-runtime-ktx:2.8.3",
+        "androidx.lifecycle:lifecycle-common-java8:2.8.3",
     ],
+    # fetch_sources = True,
+    # REPIN=1 bazel run @maven//:pin
+    lock_file = "//:maven_compose.lock.json",
     repositories = [
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
+    use_starlark_android_rules = True,
 )
-use_repo(maven, "maven")
+use_repo(maven, "maven_compose")
 
-bazel_dep(name = "rules_kotlin", version = "2.0.0")
-
-# bazel_dep(name = "rules_java", version = "8.6.3")
-# bazel_dep(name = "bazel_skylib", version = "1.7.1")
-# bazel_dep(name = "rules_android", version = "0.6.0")
+# bazel_dep(name = "rules_java", version = "9.0.3")
+# adds a maven + protobuf dependency as well, and this requires:
+# maven.install(
+#     artifacts = [
+#         # "com.google.protobuf:protobuf-java-util:4.31.1",
+#     ],
+#     known_contributing_modules = [
+#         "",
+#         "bazel_worker_java",
+#     ],
+#     repositories = [
+#         "https://maven.google.com",
+#         "https://repo1.maven.org/maven2",
+#     ],
+# )
+# use_repo(maven, "maven")
 
 # ------------------------------------------------------------- JS
 bazel_dep(name = "rules_nodejs", version = "6.1.0")
@@ -259,7 +299,7 @@ use_repo(crate, "crates")
 # ------------------------------------------------------- Python
 
 bazel_dep(name = "aspect_rules_py", version = "1.6.6")
-bazel_dep(name = "rules_python", version = "1.3.0")
+bazel_dep(name = "rules_python", version = "1.6.3")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
