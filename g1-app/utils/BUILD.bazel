@@ -1,4 +1,5 @@
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library", "swift_test")
+load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
 
 package(default_visibility = ["//g1-app:__subpackages__"])
 
@@ -8,6 +9,7 @@ swift_library(
         ["*.swift"],
         ["**/*Tests.swift"],
     ),
+    copts = STRICT_MAINACTOR_COPTS,
     module_name = "utils",
 )
 

@@ -8,10 +8,12 @@ load(
     "xcodeproj",
 )
 load("@sourcekit_bazel_bsp//rules:setup_sourcekit_bsp.bzl", "setup_sourcekit_bsp")
+load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
 
 swift_library(
     name = "lib",
     srcs = ["MainApp.swift"],
+    copts = STRICT_MAINACTOR_COPTS,
     deps = [
         "//g1-app/content",
         "//g1-app/utils",

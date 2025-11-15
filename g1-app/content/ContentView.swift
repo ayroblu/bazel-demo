@@ -1,6 +1,8 @@
 import CoreBluetooth
 import Jotai
 import Log
+import LogDb
+import LogUi
 import SwiftData
 import SwiftUI
 import g1protocol
@@ -145,7 +147,7 @@ public struct ContentView: View {
           let _ = WatchConnectivityManager.shared
         #endif
         #if DEBUG
-          initLogDb(modelContext)
+          initLogDb()
         #endif
       }
     } else {

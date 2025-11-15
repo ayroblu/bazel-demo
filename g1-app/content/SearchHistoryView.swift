@@ -1,16 +1,16 @@
+import Jotai
+import JotaiUtils
 import Log
-import LogUtils
 import MapKit
 import SwiftData
 import SwiftUI
-import Jotai
 import utils
 
 let searchHistoryResultAtom = atomFamily({ (key: SearchHistoryModel) in
   asyncAtom(ttlS: 120.0) { _ in
     let location = getMKMapItem(lat: key.lat, lng: key.lng)
     log("getting result for", key.id, key.title)
-    let route = await tryFn {
+    let route = await tryLog("searchHistoryResultAtom") {
       try await getDirections(
         from: MKMapItem.forCurrentLocation(), to: location,
         // TODO: get transportType from atom / state
@@ -50,19 +50,16 @@ struct SearchHistoryView: View {
 }
 struct SearchHistoryItemView: View {
   @StateObject var vm: MainVM
-  @AtomValue var loc: AsyncState<LocSearchResult?>
+  @AtomValue var loc: LocSearchResult??
 
   init(vm: MainVM, history: SearchHistoryModel) {
     _vm = StateObject(wrappedValue: vm)
-    _loc = AtomValue(searchHistoryResultAtom(history))
+    _loc = AtomValue(searchHistoryResultAtom(history).resolvedWithCache)
   }
 
   var body: some View {
-    switch loc {
-    case .pending:
-      EmptyView()
-    case .resolved(let data):
-      if let data {
+    if let loc {
+      if let data = loc {
         SearchResultView(vm: vm, result: data)
       } else {
         EmptyView()

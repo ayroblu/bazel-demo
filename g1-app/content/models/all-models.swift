@@ -20,7 +20,6 @@ func getModelContainerThrows() throws -> ModelContainer {
     for:
       GlassesModel.self,
     NoteModel.self,
-    LogEntry.self,
     NotifAppsModel.self,
     SearchHistoryModel.self,
     KvCacheModel.self,
@@ -32,4 +31,3 @@ func getModelContainerThrows() throws -> ModelContainer {
 func getModelContext() throws -> ModelContext {
   return try getModelContainerThrows().mainContext
 }
-

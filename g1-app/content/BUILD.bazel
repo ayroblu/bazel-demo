@@ -1,4 +1,5 @@
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library", "swift_test")
+load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
 
 package(default_visibility = ["//g1-app:__subpackages__"])
 
@@ -8,10 +9,7 @@ swift_library(
         ["**/*.swift"],
         ["**/*Tests.swift"],
     ),
-    copts = select({
-        "//conditions:default": ["-DDEBUG"],
-        "//:release_build": ["-DRELEASE"],
-    }),
+    copts = STRICT_MAINACTOR_COPTS,
     module_name = "content",
     deps = [
         "//g1-app/g1protocol",
@@ -19,8 +17,10 @@ swift_library(
         "//g1-app/utils",
         "//g1-app/vendor-pcm",
         "//swift-shared/Jotai",
+        "//swift-shared/JotaiUtils",
         "//swift-shared/Log",
-        "//swift-shared/LogUtils",
+        "//swift-shared/LogDb",
+        "//swift-shared/LogUi",
         "@swiftpkg_swift_collections//:Collections",
     ],
 )

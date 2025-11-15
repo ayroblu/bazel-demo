@@ -1,10 +1,12 @@
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
 
 package(default_visibility = ["//g1-app:__subpackages__"])
 
 swift_library(
     name = "watch-app",
     srcs = glob(["*.swift"]),
+    copts = STRICT_MAINACTOR_COPTS,
 )
 
 exports_files(["Info.plist"])

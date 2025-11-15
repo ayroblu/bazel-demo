@@ -1,7 +1,6 @@
 import Foundation
 import Jotai
 import Log
-import LogUtils
 import MapKit
 import g1protocol
 import maps
@@ -197,7 +196,7 @@ struct MyMapItem {
   let thoroughfare: String?
   let subThoroughfare: String?
 }
-struct LocSearchResult: Identifiable, Equatable {
+nonisolated struct LocSearchResult: Identifiable, Equatable, @unchecked Sendable {
   let id: String
   let route: MKRoute
   let title: String
@@ -244,7 +243,7 @@ func getSearchResults(
   return await asyncAll(
     locations.map { location in
       return { () -> LocSearchResult? in
-        let route = await tryFn {
+        let route = await tryLog("getSearchResults") {
           try await getDirections(
             from: here, to: location,
             transportType: transportType)
