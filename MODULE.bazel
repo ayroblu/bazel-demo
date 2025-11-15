@@ -15,6 +15,7 @@ bazel_dep(
     version = "4.2.0",
     repo_name = "build_bazel_rules_apple",
 )
+bazel_dep(name = "sourcekit_bazel_bsp", version = "0.3.0", repo_name = "sourcekit_bazel_bsp")
 
 bazel_dep(
     name = "buildifier_prebuilt",
