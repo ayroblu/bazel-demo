@@ -1,4 +1,4 @@
-load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application", "ios_build_test")
 load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
 load("@build_bazel_rules_apple//apple:watchos.bzl", "watchos_application")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
@@ -7,6 +7,7 @@ load(
     "top_level_target",
     "xcodeproj",
 )
+load("@sourcekit_bazel_bsp//rules:setup_sourcekit_bsp.bzl", "setup_sourcekit_bsp")
 
 swift_library(
     name = "lib",
@@ -14,6 +15,14 @@ swift_library(
     deps = [
         "//g1-app/content",
         "//g1-app/utils",
+    ],
+)
+
+ios_build_test(
+    name = "lib_ios_skbsp",
+    minimum_os_version = "18.0",
+    targets = [
+        "lib",
     ],
 )
 
@@ -85,5 +94,38 @@ xcodeproj(
                 "simulator",
             ],
         ),
+    ],
+)
+
+setup_sourcekit_bsp(
+    name = "setup-bsp",
+    bazel_wrapper = "bazelisk",
+    files_to_watch = [
+        "**/*.swift",
+        "**/*.h",
+        "**/*.m",
+    ],
+    index_flags = [
+        "config=index_build",
+    ],
+    targets = [
+        "//g1-app",
+    ],
+)
+
+setup_sourcekit_bsp(
+    name = "setup-bsp-build-test",
+    bazel_wrapper = "bazelisk",
+    compile_top_level = True,
+    files_to_watch = [
+        "**/*.swift",
+        "**/*.h",
+        "**/*.m",
+    ],
+    index_flags = [
+        "config=index_build",
+    ],
+    targets = [
+        "//g1-app:lib_ios_skbsp",
     ],
 )

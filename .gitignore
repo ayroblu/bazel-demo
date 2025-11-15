@@ -8,4 +8,6 @@
 DerivedData
 *.mobileprovision
 
+/.bsp/skbsp.json
+/.bsp/sourcekit-bazel-bsp
 
