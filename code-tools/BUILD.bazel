@@ -1,12 +1,10 @@
-package(default_visibility = ["//code-tools:__subpackages__"])
-
-load("//code-tools/tools:mocha.bzl", "mocha_test")
-load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
-load("@code-tools-npm//:defs.bzl", "npm_link_all_packages")
-load("@aspect_rules_js//js:defs.bzl", "js_binary")
-load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
-load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_run_binary")
 load("@aspect_rules_swc//swc:defs.bzl", "swc")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_config", "ts_project")
+load("@code-tools-npm//:defs.bzl", "npm_link_all_packages")
+load("//code-tools/tools:mocha.bzl", "mocha_test")
+
+package(default_visibility = ["//code-tools:__subpackages__"])
 
 npm_link_all_packages()
 
@@ -33,6 +31,7 @@ ts_project(
         ],
     ),
     declaration = True,
+    out_dir = "dist",
     source_map = True,
     transpiler = swc,
     tsconfig = ":tsconfig",
@@ -89,5 +88,6 @@ js_binary(
 
 js_run_binary(
     name = "remove-unused",
+    tags = ["manual"],
     tool = ":remove-unused-bin",
 )

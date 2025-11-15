@@ -93,7 +93,7 @@ packages:
     dev: false
 
   /@pkgjs/parseargs@0.11.0:
-    resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==, tarball: https://artifactory.twitter.biz/artifactory/api/npm/js-virtual/@pkgjs/parseargs/-/parseargs-0.11.0.tgz}
+    resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
     requiresBuild: true
     dev: false
@@ -392,7 +392,7 @@ packages:
     dev: false
 
   /encoding@0.1.13:
-    resolution: {integrity: sha512-ETBauow1T35Y/WZMkio9jiM0Z5xjHHmJ4XmjZOq1l/dXz3lr2sRn87nJy20RupqSh1F2m3HHPSp8ShIPQJrJ3A==, tarball: https://artifactory.twitter.biz/artifactory/api/npm/js-virtual/encoding/-/encoding-0.1.13.tgz}
+    resolution: {integrity: sha512-ETBauow1T35Y/WZMkio9jiM0Z5xjHHmJ4XmjZOq1l/dXz3lr2sRn87nJy20RupqSh1F2m3HHPSp8ShIPQJrJ3A==}
     requiresBuild: true
     dependencies:
       iconv-lite: 0.6.3
@@ -484,7 +484,7 @@ packages:
     dev: true
 
   /fsevents@2.3.3:
-    resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==, tarball: https://artifactory.twitter.biz/artifactory/api/npm/js-virtual/fsevents/-/fsevents-2.3.3.tgz}
+    resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
     requiresBuild: true
@@ -1255,7 +1255,7 @@ packages:
     dev: true
 
   /tree-sitter-java@0.20.2:
-    resolution: {integrity: sha512-jc6RCnM+JE2ns1AkpErOp2Dp1jOADPbljsrWup0Vj2qTmG8KGYMSTD7HcrVRyZUC6pRLFySPMOh8x7Dn12aynw==, tarball: https://artifactory.twitter.biz/artifactory/api/npm/js-virtual/tree-sitter-java/-/tree-sitter-java-0.20.2.tgz}
+    resolution: {integrity: sha512-jc6RCnM+JE2ns1AkpErOp2Dp1jOADPbljsrWup0Vj2qTmG8KGYMSTD7HcrVRyZUC6pRLFySPMOh8x7Dn12aynw==}
     requiresBuild: true
     dependencies:
       nan: 2.19.0

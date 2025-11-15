@@ -1,7 +1,7 @@
-alias(
-    name = "format",
-    actual = "//tools:format",
-)
+# alias(
+#     name = "format",
+#     actual = "//tools:format",
+# )
 
 config_setting(
     name = "release_build",

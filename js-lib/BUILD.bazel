@@ -1,9 +1,8 @@
-package(default_visibility = ["//visibility:public"])
-
-load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
-load("@js-lib-npm//:defs.bzl", "npm_link_all_packages")
-load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_config", "ts_project")
+load("@js-lib-npm//:defs.bzl", "npm_link_all_packages")
+
+package(default_visibility = ["//visibility:public"])
 
 npm_link_all_packages()
 

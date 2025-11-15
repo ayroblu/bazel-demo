@@ -26,6 +26,7 @@ rust_library(
         "@crates//:tree-sitter-python",
         "@crates//:tree-sitter-rust",
         "@crates//:tree-sitter-scala",
+        "@crates//:tree-sitter-swift",
         "@crates//:tree-sitter-typescript",
     ],
 )

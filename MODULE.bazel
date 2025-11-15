@@ -1,3 +1,10 @@
+# --------------------------------------------------------- bazel
+bazel_dep(
+    name = "buildifier_prebuilt",
+    version = "7.3.1",
+    dev_dependency = True,
+)
+
 # --------------------------------------------------------- iOS
 bazel_dep(name = "rules_xcodeproj", version = "3.3.0")
 bazel_dep(
@@ -16,12 +23,6 @@ bazel_dep(
     repo_name = "build_bazel_rules_apple",
 )
 bazel_dep(name = "sourcekit_bazel_bsp", version = "0.3.0", repo_name = "sourcekit_bazel_bsp")
-
-bazel_dep(
-    name = "buildifier_prebuilt",
-    version = "7.3.1",
-    dev_dependency = True,
-)
 
 # bazel_dep(name = "swiftlint", version = "0.59.1", repo_name = "SwiftLint")
 # bazel_dep(name = "aspect_rules_lint", version = "1.4.4")
@@ -65,7 +66,9 @@ use_repo(
     swift_deps,
     "swift_package",
     "swiftpkg_swift_collections",
+    "swiftpkg_swift_protobuf",
     "swiftpkg_swift_snapshot_testing",
+    "swiftpkg_zip",
 )
 # To add a package:
 # 1. Update Package.swift
@@ -173,12 +176,12 @@ use_repo(maven, "maven_compose")
 # use_repo(maven, "maven")
 
 # ------------------------------------------------------------- JS
-bazel_dep(name = "rules_nodejs", version = "6.1.0")
+bazel_dep(name = "rules_nodejs", version = "6.6.0")
 
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
 node.toolchain(node_version = "20.11.1")
 
-bazel_dep(name = "aspect_rules_js", version = "1.41.2")
+bazel_dep(name = "aspect_rules_js", version = "2.8.1")
 
 # Just so that you have access to pnpm for locking
 pnpm = use_extension("@aspect_rules_js//npm:extensions.bzl", "pnpm", dev_dependency = True)
@@ -211,8 +214,8 @@ js_site_npm.npm_translate_lock(
 )
 use_repo(js_site_npm, "js-site-npm")
 
-bazel_dep(name = "aspect_rules_ts", version = "2.3.0")
-bazel_dep(name = "aspect_rules_swc", version = "1.2.2")
+bazel_dep(name = "aspect_rules_ts", version = "3.7.1")
+bazel_dep(name = "aspect_rules_swc", version = "2.5.0")
 
 rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext", dev_dependency = True)
 rules_ts_ext.deps()

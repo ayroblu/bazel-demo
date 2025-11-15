@@ -19,5 +19,6 @@ pub enum Lang {
     Python,
     Rust,
     Scala,
+    Swift,
     TypeScript,
 }

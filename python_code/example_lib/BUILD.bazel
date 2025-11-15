@@ -1,7 +1,7 @@
-package(default_visibility = ["//python_code:__subpackages__"])
-
-load("@pip//:requirements.bzl", "requirement")
 load("@aspect_rules_py//py:defs.bzl", "py_library")
+load("@pip//:requirements.bzl", "requirement")
+
+package(default_visibility = ["//python_code:__subpackages__"])
 
 py_library(
     name = "example_lib",

@@ -29,6 +29,9 @@ pub fn edit(input: &Input) -> Option<String> {
         Lang::Python => parser
             .set_language(&tree_sitter_python::LANGUAGE.into())
             .expect("Error loading Python grammar"),
+        Lang::Swift => parser
+            .set_language(&tree_sitter_swift::LANGUAGE.into())
+            .expect("Error loading Swift grammar"),
         Lang::Scala => parser
             .set_language(&tree_sitter_scala::LANGUAGE.into())
             .expect("Error loading Scala grammar"),
