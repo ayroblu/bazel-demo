@@ -1,4 +1,5 @@
-load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library", "swift_test")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//swift-shared:concurrency.bzl", "STRICT_NONISOLATED_COPTS")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -8,13 +9,6 @@ swift_library(
         ["*.swift"],
         ["*Tests.swift"],
     ),
+    copts = STRICT_NONISOLATED_COPTS,
     module_name = "Jotai",
-)
-
-swift_test(
-    name = "JotaiTests",
-    srcs = glob(["*Tests.swift"]),
-    deps = [
-        ":Jotai",
-    ],
 )

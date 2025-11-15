@@ -1,84 +1,55 @@
+import DateUtils
 import Foundation
-import SwiftData
-
-@MainActor var modelContext: ModelContext?
-@MainActor public func initLogDb(_ _modelContext: ModelContext) {
-  modelContext = _modelContext
-  setupUncaughtExceptionHandler()
-  try? deleteOldEntries(modelContext: _modelContext)
-}
 
 public func log(key: String, _ args: Any...) {
   log(key: key, args: args)
 }
 public func log(_ args: Any...) {
-  log(key: "INFO", args: args)
+  log(key: "I", args: args)
 }
-func log(key: String, args: [Any]) {
-  let timeString = formatTime(from: Date())
 
-  print(timeString, terminator: " ")
-  for arg in args {
-    print(arg, terminator: " ")
-  }
-  print()
-  Task { @MainActor in
-    if modelContext == nil {
-      print("no model context")
-    }
-    modelContext?.insert(
-      LogEntry(
-        timestamp: Date(), key: key,
-        text: args.map { String(describing: $0) }.joined(separator: " "))
-    )
-    do {
-      try modelContext?.save()
-    } catch {
-      print(error)
-    }
+private func log(key: String, args: [Any]) {
+  log(LogItem(date: Date(), key: key, args: args))
+}
+private func log(_ logItem: LogItem) {
+  for effect in logEffects {
+    effect(logItem)
   }
 }
 
-func formatTime(from: Date) -> String {
-  let formatter = DateFormatter()
-  formatter.dateFormat = "HH:mm:ss.SSS"  // Hours:Minutes:Seconds.Milliseconds
+public struct LogItem: @unchecked Sendable {
+  public let date: Date
+  public let key: String
+  public let args: [Any]
 
-  return formatter.string(from: from)
-}
-
-// Function to delete entries older than 1 week
-func deleteOldEntries(modelContext: ModelContext) throws {
-  // Calculate the date 1 week ago
-  let oneWeekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
-
-  // Create a predicate for entries with timestamp older than 1 week ago
-  let predicate = #Predicate<LogEntry> { entry in
-    entry.timestamp < oneWeekAgo
+  public init(date: Date = Date(), key: String, args: [Any]) {
+    self.date = date
+    self.key = key
+    self.args = args
   }
 
-  // Fetch the entries that match our criteria
-  let descriptor = FetchDescriptor<LogEntry>(predicate: predicate)
-  let oldEntries = try modelContext.fetch(descriptor)
+  public func getFullText() -> String {
+    let timeString = Date().formatTimeWithMillis()
 
-  // Delete each entry
-  for entry in oldEntries {
-    modelContext.delete(entry)
+    let argsText = getText()
+    let text = "\(timeString) \(argsText)"
+    return text
   }
 
-  // Save the changes
-  try modelContext.save()
-
-  if oldEntries.count > 0 {
-    log("Deleted \(oldEntries.count) entries older than 1 week")
+  public func getText() -> String {
+    let argsText = args.map { String(describing: $0) }.joined(separator: " ")
+    return "\(key): \(argsText)"
   }
 }
 
-func setupUncaughtExceptionHandler() {
-  NSSetUncaughtExceptionHandler { exception in
-    let stackTrace = exception.callStackSymbols.joined(separator: "\n")
-    log("UncaughtException: \(exception.name): \(exception.reason ?? "")\n\(stackTrace)")
-  }
-  signal(SIGSEGV) { signal in
-    log("SIGSEGV: \(signal)")
-  }
+public typealias LogEffect = @Sendable (LogItem) -> Void
+
+public func stdoutEffect(_ logItem: LogItem) {
+  print(logItem.getFullText())
+}
+
+nonisolated(unsafe) var logEffects = [stdoutEffect]
+
+public func registerLogEffects(effects: [LogEffect]) {
+  logEffects = effects
 }

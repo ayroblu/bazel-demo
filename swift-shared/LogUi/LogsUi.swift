@@ -1,11 +1,11 @@
-import SwiftData
+import Jotai
+import LogDb
 import SwiftUI
 
 public struct LogsUi: View {
-  @Query(sort: \LogEntry.persistentModelID, order: .reverse) private var logItems: [LogEntry]
-  @Environment(\.modelContext) private var modelContext
+  @AtomValue(selectLogsAtom) private var logItems: [LogModel]
 
-  @State private var position: ScrollPosition = .init(idType: LogEntry.ID.self)
+  @State private var position: ScrollPosition = .init(idType: Int64.self)
 
   public init() {}
 
@@ -22,7 +22,7 @@ public struct LogsUi: View {
                 Text(logItem.text)
                 HStack {
                   Spacer()
-                  Text(formatTime(from: logItem.timestamp))
+                  Text(logItem.createdAt.formatTimeWithMillis())
                     .font(.footnote)
                     .foregroundColor(.gray)
                 }
@@ -47,7 +47,6 @@ public struct LogsUi: View {
   }
 
   func deleteAll() throws {
-    try modelContext.delete(model: LogEntry.self)
-    try modelContext.save()
+    try deleteAllLogsAndInvalidate()
   }
 }

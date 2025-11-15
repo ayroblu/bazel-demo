@@ -7,6 +7,7 @@ private class ValueModel<T: Equatable>: ObservableObject {
   init(value: T) {
     self.value = value
   }
+  @MainActor
   func listen(store: JotaiStore, atom: Atom<T>) {
     dispose = store.sub(atom: atom) { [weak self, weak atom, weak store] in
       guard let self, let atom, let store else { return }
@@ -22,6 +23,7 @@ private class ValueModel<T: Equatable>: ObservableObject {
   }
 }
 
+@MainActor
 @propertyWrapper
 public struct AtomState<T: Equatable>: DynamicProperty {
   @StateObject private var model: ValueModel<T>
@@ -30,6 +32,7 @@ public struct AtomState<T: Equatable>: DynamicProperty {
 
   public init(
     wrappedValue defaultValue: T, _ atom: WritableAtom<T, T, Void>,
+    // todo: why not store: JotaiStore = JotaiStore.shared? Maybe it caused a crash?
     store maybeStore: JotaiStore? = nil
   ) {
     self.init(atom, store: maybeStore)
@@ -66,6 +69,7 @@ public struct AtomState<T: Equatable>: DynamicProperty {
   }
 }
 
+@MainActor
 @propertyWrapper
 public struct AtomValue<T: Equatable>: DynamicProperty {
   @StateObject private var model: ValueModel<T>
@@ -84,3 +88,68 @@ public struct AtomValue<T: Equatable>: DynamicProperty {
     self.store.get(atom: self.atom)
   }
 }
+
+@MainActor
+struct JotaiStoreKey: EnvironmentKey {
+  static let defaultValue: JotaiStore = JotaiStore.shared
+}
+
+extension EnvironmentValues {
+  @MainActor
+  public var jotaiStore: JotaiStore {
+    get { self[JotaiStoreKey.self] }
+    set { self[JotaiStoreKey.self] = newValue }
+  }
+}
+
+// @MainActor
+// @Observable
+// public class OnceAsyncAtomValue<T: Equatable> {
+//   private let atom: WritableAtom<AsyncState<T>, Void, Void>
+//   private let store: JotaiStore
+//   private var isStarted: Bool = false
+//   private var resolvedValue: T?
+//   private var unsub: (() -> Void)?
+
+//   public init(atom: WritableAtom<AsyncState<T>, Void, Void>, store: JotaiStore = JotaiStore.shared)
+//   {
+//     self.atom = atom
+//     self.store = store
+//   }
+
+//   public var value: Async<T> {
+//     if let resolvedValue {
+//       unsub?()
+//       return .resolved(value: resolvedValue)
+//     } else if !isStarted {
+//       isStarted = true
+//       let value = store.get(atom: atom)
+//       if case .resolved(let result) = value {
+//         unsub?()
+//         resolvedValue = result
+//         return .resolved(value: result)
+//       } else {
+//         unsub = store.sub(atom: atom) { [self] in
+//           let value = store.get(atom: atom)
+//           if case .resolved(let result) = value {
+//             unsub?()
+//             resolvedValue = result
+//           }
+//         }
+//       }
+//     }
+//     return .pending
+//   }
+
+//   public func invalidate() {
+//     store.set(atom: atom, value: ())
+//     unsub?()
+//     unsub = nil
+//     isStarted = false
+//     resolvedValue = nil
+//   }
+// }
+// public enum Async<T> {
+//   case pending
+//   case resolved(value: T)
+// }

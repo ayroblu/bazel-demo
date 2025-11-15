@@ -1,13 +1,15 @@
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_binary")
+load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
 
 package(default_visibility = ["//example-ios-app:__subpackages__"])
 
 swift_binary(
     name = "JsWrapExample",
     srcs = glob(["*.swift"]),
+    copts = STRICT_MAINACTOR_COPTS,
     data = ["index.js"],
     deps = [
         "//example-ios-app/JsWrap",
-        "//example-ios-app/Log",
+        "//swift-shared/Log",
     ],
 )

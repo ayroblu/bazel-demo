@@ -1,0 +1,24 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//swift-shared:concurrency.bzl", "STRICT_NONISOLATED_COPTS")
+
+package(default_visibility = ["//visibility:public"])
+
+swift_library(
+    name = "http",
+    srcs = glob(
+        ["*.swift"],
+        [
+            "*Tests.swift",
+            "main.swift",
+        ],
+    ),
+    copts = STRICT_NONISOLATED_COPTS,
+    module_name = "http",
+    deps = [
+        "//swift-shared/ConcurrentUtils",
+        "//swift-shared/FileUtils",
+        "//swift-shared/KVCache",
+        "//swift-shared/Log",
+        "@swiftpkg_swift_protobuf//:SwiftProtobuf",
+    ],
+)

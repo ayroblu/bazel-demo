@@ -7,7 +7,7 @@ public func getJsContext(onException: @escaping (String) -> Void = { _ in }) -> 
   let context: JSContext = JSContext()
   let logHandler: @convention(block) () -> Void = { () in
     guard let args = JSContext.currentArguments() else { return }
-    log(args: ["console.log:"] + args)
+    log(["console.log:"] + args)
   }
   context["console"]?["log"] = logHandler
   context.exceptionHandler = { context, exception in

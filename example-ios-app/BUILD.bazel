@@ -4,14 +4,13 @@ load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 # xcodeproj just to create the xcodeproj directory
 # You need to rerun it regularly to keep XCode updated
 # bazel run example-ios-app:xcodeproj && xed example-ios-app/example-ios-app/xcodeproj
-load(
-    "@rules_xcodeproj//xcodeproj:defs.bzl",
-    "xcodeproj",
-)
+load("@rules_xcodeproj//xcodeproj:defs.bzl", "xcodeproj")
+load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
 
 swift_library(
     name = "lib",
     srcs = ["BazelApp.swift"],
+    copts = STRICT_MAINACTOR_COPTS,
     deps = [
         "//example-ios-app/JsWrap",
         "//example-ios-app/utils",

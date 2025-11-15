@@ -1,4 +1,5 @@
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
 
 package(default_visibility = ["//example-ios-app:__subpackages__"])
 
@@ -7,9 +8,10 @@ swift_library(
     srcs = glob(
         ["*.swift"],
     ),
+    copts = STRICT_MAINACTOR_COPTS,
     module_name = "JsWrap",
     deps = [
-        "//example-ios-app/Log",
         "//example-ios-app/utils",
+        "//swift-shared/Log",
     ],
 )

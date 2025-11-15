@@ -4,6 +4,7 @@ import XCTest
 @testable import Jotai
 
 class JotaiSwiftUITests: XCTestCase {
+  @MainActor
   func testJotaiSwiftUi() {
     let view = ExampleView()
     XCTAssertEqual(view.value, 2)
@@ -11,14 +12,15 @@ class JotaiSwiftUITests: XCTestCase {
     XCTAssertEqual(view.value, 3)
   }
 
+  @MainActor
   func setupView(store: JotaiStore) -> ExampleView {
     return ExampleView()
   }
 }
 
-let store = JotaiStore()
-let testAtom = PrimitiveAtom(2)
-let testToggleAtom = PrimitiveAtom(true)
+@MainActor private let store = JotaiStore()
+@MainActor private let testAtom = PrimitiveAtom(2)
+@MainActor private let testToggleAtom = PrimitiveAtom(true)
 
 struct ExampleView: View {
   @AtomValue(testAtom, store: store) var value: Int

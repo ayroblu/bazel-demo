@@ -1,0 +1,13 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+
+package(default_visibility = ["//visibility:public"])
+
+swift_library(
+    name = "test-lib",
+    srcs = glob(["*.swift"]),
+    always_include_developer_search_paths = True,
+    module_name = "db_test_lib",
+    deps = [
+        "//swift-shared/Sworm",
+    ],
+)

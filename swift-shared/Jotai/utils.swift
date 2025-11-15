@@ -14,6 +14,12 @@ struct Closure<Func>: Hashable {
 }
 class SubscriptionSet<Func> {
   private var closures: Set<Closure<Func>> = []
+  var isEmpty: Bool {
+    closures.isEmpty
+  }
+  var count: Int {
+    closures.count
+  }
   func sub(_ closure: Func) -> () -> Void {
     let closure = Closure(closure: closure)
     closures.insert(closure)
