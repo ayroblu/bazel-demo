@@ -146,6 +146,12 @@ maven.install(
         "androidx.lifecycle:lifecycle-process:2.8.3",
         "androidx.lifecycle:lifecycle-runtime-ktx:2.8.3",
         "androidx.lifecycle:lifecycle-common-java8:2.8.3",
+
+        # For uniffi
+        "net.java.dev.jna:jna:5.18.1",
+
+        # For tests
+        "junit:junit:4.13.2",
     ],
     # fetch_sources = True,
     # REPIN=1 bazel run @maven_compose//:pin
@@ -157,6 +163,20 @@ maven.install(
     use_starlark_android_rules = True,
 )
 use_repo(maven, "maven_compose")
+
+maven.install(
+    name = "maven_compose_android",
+    aar_import_bzl_label = "@rules_android//android:rules.bzl",
+    artifacts = [
+        "net.java.dev.jna:jna:5.18.1@aar",
+    ],
+    repositories = [
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+    ],
+    use_starlark_android_rules = True,
+)
+use_repo(maven, "maven_compose_android")
 
 # bazel_dep(name = "rules_java", version = "9.0.3")
 # adds a maven + protobuf dependency as well, and this requires:
@@ -226,10 +246,18 @@ use_repo(rules_ts_ext, "npm_typescript")
 bazel_dep(name = "rules_rust", version = "0.67.0")
 
 rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
-rust.toolchain(edition = "2021")
+rust.toolchain(
+    edition = "2024",
+    extra_target_triples = [
+        "aarch64-linux-android",
+    ],
+)
 use_repo(rust, "rust_toolchains")
 
-register_toolchains("@rust_toolchains//:all")
+register_toolchains(
+    "@rust_toolchains//:all",
+    "//rust-code/aarch64-linux-android:toolchain",
+)
 
 crate = use_extension("@rules_rust//crate_universe:extension.bzl", "crate")
 crate.spec(
@@ -285,7 +313,16 @@ crate.spec(
     package = "regex",
     version = "1.11.1",
 )
-crate.from_specs()
+crate.spec(
+    default_features = False,
+    features = ["cli"],
+    package = "uniffi",
+    version = "0.30.0",
+)
+crate.from_specs(supported_platform_triples = [
+    "aarch64-apple-darwin",
+    "aarch64-linux-android",
+])
 use_repo(crate, "crates")
 
 # Use Cargo overhead for cargo patch overrides

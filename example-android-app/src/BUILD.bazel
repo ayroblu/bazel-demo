@@ -12,6 +12,7 @@ kt_android_library(
         "//example-android-app:serialization_compiler_plugin",
     ],
     deps = [
+        "//rust-code/example-shared-lib:example-kotlin",
         "@maven_compose//:androidx_activity_activity_compose",
         "@maven_compose//:androidx_activity_activity_ktx",
         "@maven_compose//:androidx_appcompat_appcompat",

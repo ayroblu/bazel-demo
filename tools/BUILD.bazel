@@ -1,3 +1,4 @@
+load("@rules_rust//rust:defs.bzl", "rust_binary")
 load(":node.bzl", "node_lib", "node_platforms")
 # load("@aspect_rules_lint//format:defs.bzl", "format_multirun")
 
@@ -24,3 +25,9 @@ node_platforms()
 #     sha256 = "3a3058cb460899587bf5a3129309826886c704b8ad9ff69d9b55ad99b2c843e2",
 #     version = "v22.2.0",
 # )
+
+rust_binary(
+    name = "uniffi-bindgen",
+    srcs = ["uniffi-bindgen.rs"],
+    deps = ["@crates//:uniffi"],
+)

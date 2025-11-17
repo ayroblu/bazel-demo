@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.bazel.ui.theme.AppTheme
+import uniffi.example.printAndAdd
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,6 +38,7 @@ fun MainApp() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            Text(printAndAdd(1, 2).toString())
             Log.v("Bazel", "render")
             JsEngineButton()
             Log.v("Bazel", "render2")

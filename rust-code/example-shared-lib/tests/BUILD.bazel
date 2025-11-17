@@ -1,0 +1,32 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_test")
+load("@rules_kotlin//kotlin:android.bzl", "kt_android_local_test")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("//swift-shared:concurrency.bzl", "STRICT_NONISOLATED_COPTS")
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":kotlin-tests",
+        ":swift-tests",
+    ],
+)
+
+swift_test(
+    name = "swift-tests",
+    srcs = glob(["*.swift"]),
+    copts = STRICT_NONISOLATED_COPTS,
+    deps = [
+        "//rust-code/example-shared-lib:example-swift",
+    ],
+)
+
+# kt_jvm_test also works for non android
+kt_android_local_test(
+    name = "kotlin-tests",
+    srcs = ["BridgeTests.kt"],
+    test_class = "com.example.BridgeTests",
+    deps = [
+        "//rust-code/example-shared-lib:example-kotlin",
+        "@maven_compose//:junit_junit",
+    ],
+)
