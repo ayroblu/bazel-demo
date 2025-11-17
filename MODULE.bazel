@@ -148,7 +148,7 @@ maven.install(
         "androidx.lifecycle:lifecycle-common-java8:2.8.3",
     ],
     # fetch_sources = True,
-    # REPIN=1 bazel run @maven//:pin
+    # REPIN=1 bazel run @maven_compose//:pin
     lock_file = "//:maven_compose.lock.json",
     repositories = [
         "https://maven.google.com",
@@ -223,7 +223,7 @@ use_repo(rules_ts_ext, "npm_typescript")
 
 # --------------------------------------------------------- Rust
 
-bazel_dep(name = "rules_rust", version = "0.54.1")
+bazel_dep(name = "rules_rust", version = "0.67.0")
 
 rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
 rust.toolchain(edition = "2021")
@@ -289,16 +289,13 @@ crate.from_specs()
 use_repo(crate, "crates")
 
 # Use Cargo overhead for cargo patch overrides
-# crate = use_extension(
-#     "@rules_rust//crate_universe:extension.bzl",
-#     "crate",
+# cargo_crate = use_extension("@rules_rust//crate_universe:extension.bzl", "crate")
+# cargo_crate.from_cargo(
+#     name = "cargo-crates",
+#     cargo_lockfile = "//:Cargo.lock",
+#     manifests = ["//:Cargo.toml"],
 # )
-# crate.from_cargo(
-#     name = "rust-code-crates",
-#     cargo_lockfile = "//rust-code:Cargo.lock",
-#     manifests = ["//rust-code:Cargo.toml"],
-# )
-# use_repo(crate, "rust-code-crates")
+# use_repo(cargo_crate, "cargo-crates")
 
 # ------------------------------------------------------- Python
 

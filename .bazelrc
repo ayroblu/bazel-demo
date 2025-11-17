@@ -1,9 +1,4 @@
-# Respect skipLibCheck
-common --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
-
-# for --ios_device=
-common --flag_alias=ios_device=@build_bazel_rules_apple//apple/build_settings:ios_device
-
+# -------------------------------------- Bazel Config
 build --symlink_prefix=.bazel/
 build:opt -c opt
 
@@ -13,46 +8,19 @@ build:profile --generate_json_trace_profile --profile profile.gz
 
 build:explain --explain=/tmp/explanation.txt --verbose_explanations
 
-build:ios --ios_multi_cpus=arm64
-
 run:quiet --ui_event_filters=-info,-debug,-warning,-stderr,-stdout  --noshow_progress
 
 # test_output=all to always show test output
 # test --test_output=errors
 test:log --test_output=all
-test:no_sandbox --spawn_strategy=local
+common:local --spawn_strategy=local
 # test_filter= to restrict to certain tests
 
-# Android
-# https://github.com/bazelbuild/rules_kotlin/blob/master/examples/jetpack_compose/.bazelrc
-# Enable d8 merger
-build --define=android_dexmerger_tool=d8_dexmerger
+# -------------------------------------- iOS
+# for --ios_device=
+common --flag_alias=ios_device=@build_bazel_rules_apple//apple/build_settings:ios_device
 
-# Flags for the D8 dexer
-build --define=android_incremental_dexing_tool=d8_dexbuilder
-build --define=android_standalone_dexing_tool=d8_compat_dx
-
-build --platform_mappings=tools/platform_mappings
-build --@rules_kotlin//kotlin/settings:jvm_emit_jdeps=False
-
-build:android --android_platforms=//example-android-app:arm64-v8a
-mobile-install:android --android_platforms=//example-android-app:arm64-v8a
-
-common --java_runtime_version=remotejdk_17
-common --tool_java_runtime_version=remotejdk_17
-
-# Allow the Bazel server to check directory sources for changes. Ensures that the Bazel server
-# notices when a directory changes, if you have a directory listed in the srcs of some target.
-# Recommended when using
-# [copy_directory](https://github.com/aspect-build/bazel-lib/blob/main/docs/copy_directory.md) and
-# [rules_js](https://github.com/aspect-build/rules_js) since npm package are source directories
-# inputs to copy_directory actions.
-# Docs: https://bazel.build/reference/command-line-reference#flag--host_jvm_args
-startup --host_jvm_args=-DBAZEL_TRACK_SOURCE_DIRECTORIES=1
-
-# https://www.buildbuddy.io/blog/debugging-slow-bazel-builds
-startup --digest_function=BLAKE3
-common --nolegacy_important_outputs
+build:ios --ios_multi_cpus=arm64
 
 # https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#xcode-version-selection-and-invalidation
 # bash xcode-bazelrc-gen.sh
@@ -61,7 +29,7 @@ import %workspace%/xcode.bazelrc
 # sourcekit-lsp bsp
 common --verbose_failures
 common --cache_computed_file_digests=500000
-common --compilation_mode=dbg
+# common --compilation_mode=dbg
 common --action_cache_store_output_metadata
 common --experimental_use_cpp_compile_action_args_params_file
 common --define=apple.experimental.tree_artifact_outputs=1
@@ -73,12 +41,47 @@ common --features=swift.index_while_building
 common --features=swift.use_global_index_store
 common --features=swift.use_global_module_cache
 common --features=swift.emit_swiftsourceinfo
-build --noworker_sandboxing
-build --spawn_strategy=remote,worker,local
+common:macos --spawn_strategy=remote,worker,darwin-sandbox
+common:linux --spawn_strategy=remote,worker,linux-sandbox
 
 # Only for BSP builds
 common:index_build --experimental_convenience_symlinks=ignore
 common:index_build --bes_backend= --bes_results_url=
 common:index_build --nolegacy_important_outputs
 common:index_build --show_result=0
+
+# -------------------------------------- Android
+# https://github.com/bazelbuild/rules_kotlin/blob/master/examples/jetpack_compose/.bazelrc
+# Enable d8 merger
+build --define=android_dexmerger_tool=d8_dexmerger
+
+# Flags for the D8 dexer
+build --define=android_incremental_dexing_tool=d8_dexbuilder
+build --define=android_standalone_dexing_tool=d8_compat_dx
+
+build --@rules_kotlin//kotlin/settings:jvm_emit_jdeps=False
+
+common:android --platforms=//example-android-app:arm64-v8a
+common:android --android_platforms=//example-android-app:arm64-v8a
+
+common --java_runtime_version=remotejdk_17
+common --tool_java_runtime_version=remotejdk_17
+
+# -------------------------------------- JS
+# Allow the Bazel server to check directory sources for changes. Ensures that the Bazel server
+# notices when a directory changes, if you have a directory listed in the srcs of some target.
+# Recommended when using
+# [copy_directory](https://github.com/aspect-build/bazel-lib/blob/main/docs/copy_directory.md) and
+# [rules_js](https://github.com/aspect-build/rules_js) since npm package are source directories
+# inputs to copy_directory actions.
+# Docs: https://bazel.build/reference/command-line-reference#flag--host_jvm_args
+startup --host_jvm_args=-DBAZEL_TRACK_SOURCE_DIRECTORIES=1
+
+# Respect skipLibCheck
+common --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
+
+# -------------------------------------- Perf
+# https://www.buildbuddy.io/blog/debugging-slow-bazel-builds
+startup --digest_function=BLAKE3
+common --nolegacy_important_outputs
 

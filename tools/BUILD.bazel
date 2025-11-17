@@ -1,7 +1,7 @@
-# load("@aspect_rules_lint//format:defs.bzl", "format_multirun")
 load(":node.bzl", "node_lib", "node_platforms")
+# load("@aspect_rules_lint//format:defs.bzl", "format_multirun")
 
-package(default_visibility = ["//:__pkg__"])
+package(default_visibility = ["//visibility:public"])
 
 # alias(
 #     name = "swiftformat",
