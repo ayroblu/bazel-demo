@@ -61,8 +61,8 @@ build --define=android_standalone_dexing_tool=d8_compat_dx
 
 build --@rules_kotlin//kotlin/settings:jvm_emit_jdeps=False
 
-common:android --platforms=//example-android-app:arm64-v8a
-common:android --android_platforms=//example-android-app:arm64-v8a
+common:android --platforms=//tools/platforms:arm64-v8a
+common:android --android_platforms=//tools/platforms:arm64-v8a
 
 common --java_runtime_version=remotejdk_17
 common --tool_java_runtime_version=remotejdk_17
