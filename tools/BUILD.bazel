@@ -31,3 +31,23 @@ rust_binary(
     srcs = ["uniffi-bindgen.rs"],
     deps = ["@crates//:uniffi"],
 )
+
+# rust_binary(
+#     name = "wasm-bindgen",
+#     srcs = ["wasm-bindgen.rs"],
+#     deps = [
+#         "@crates//:env_logger",
+#         "@crates//:wasm-bindgen-cli",
+#     ],
+# )
+
+genrule(
+    name = "wasm-bindgen",
+    outs = [
+        "wasm-bindgen-file",
+    ],
+    cmd = """
+        curl -L https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.105/wasm-bindgen-0.2.105-aarch64-apple-darwin.tar.gz | tar -xzv
+        mv wasm-bindgen-0.2.105-aarch64-apple-darwin/wasm-bindgen $@
+        """,
+)

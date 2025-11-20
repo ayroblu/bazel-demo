@@ -163,7 +163,6 @@ maven.install(
     use_starlark_android_rules = True,
 )
 use_repo(maven, "maven_compose")
-
 maven.install(
     name = "maven_compose_android",
     aar_import_bzl_label = "@rules_android//android:rules.bzl",
@@ -250,6 +249,7 @@ rust.toolchain(
     edition = "2024",
     extra_target_triples = [
         "aarch64-linux-android",
+        "wasm32-unknown-unknown",
     ],
 )
 use_repo(rust, "rust_toolchains")
@@ -257,6 +257,7 @@ use_repo(rust, "rust_toolchains")
 register_toolchains(
     "@rust_toolchains//:all",
     "//rust-code/aarch64-linux-android:toolchain",
+    "@rules_rust//rust/private/dummy_cc_toolchain:dummy_cc_wasm32_toolchain",
 )
 
 crate = use_extension("@rules_rust//crate_universe:extension.bzl", "crate")
@@ -319,9 +320,14 @@ crate.spec(
     package = "uniffi",
     version = "0.30.0",
 )
+crate.spec(
+    package = "wasm-bindgen",
+    version = "0.2.105",
+)
 crate.from_specs(supported_platform_triples = [
     "aarch64-apple-darwin",
     "aarch64-linux-android",
+    "wasm32-unknown-unknown",
 ])
 use_repo(crate, "crates")
 

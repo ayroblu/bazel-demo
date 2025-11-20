@@ -1,11 +1,15 @@
-load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
-load("@rules_rust//cargo:defs.bzl", "cargo_build_script")
 load("@rules_rust//rust:defs.bzl", "rust_shared_library")
 load("//tools:rust_uniffi.bzl", "rust_uniffi_bindgen")
+load("//tools:rust_wasm.bzl", "rust_wasm_bindgen")
 
 package(default_visibility = ["//visibility:public"])
 
 rust_uniffi_bindgen(
     name = "example",
     srcs = ["lib.rs"],
+)
+
+rust_wasm_bindgen(
+    name = "example-wasm",
+    srcs = ["lib-wasm.rs"],
 )
