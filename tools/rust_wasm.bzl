@@ -20,7 +20,8 @@ def rust_wasm_bindgen(name, srcs, **kwargs):
             name + ".js",
         ],
         cmd = """
-            "$(location //tools:wasm-bindgen)" $(SRCS) --out-dir $(@D) --web --out-name %s
+            "$(location //tools:wasm-bindgen)" $(SRCS) --out-dir $(@D) --target nodejs --out-name %s
+            # echo '{"type": "module"}' > $(@D)/package.json
             # ls -alh $(@D)
             """ % name,
         tools = ["//tools:wasm-bindgen"],

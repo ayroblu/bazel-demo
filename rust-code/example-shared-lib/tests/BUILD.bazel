@@ -1,4 +1,6 @@
+load("@aspect_rules_jest//jest:defs.bzl", "jest_test")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_test")
+load("@example-shared-lib-jest-npm//:defs.bzl", "npm_link_all_packages")
 load("@rules_kotlin//kotlin:android.bzl", "kt_android_local_test")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
 load("//swift-shared:concurrency.bzl", "STRICT_NONISOLATED_COPTS")
@@ -30,3 +32,17 @@ kt_android_local_test(
         "@maven_compose//:junit_junit",
     ],
 )
+
+jest_test(
+    name = "js-tests",
+    data = [
+        "BridgeTests.test.js",
+        "//rust-code/example-shared-lib:example-wasm",
+    ],
+    node_modules = ":node_modules",
+    node_options = [
+        "--experimental-vm-modules",
+    ],
+)
+
+npm_link_all_packages()
