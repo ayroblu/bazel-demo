@@ -1,10 +1,11 @@
 load("@rules_rust//rust:defs.bzl", "rust_shared_library")
 
-def rust_wasm_bindgen(name, srcs, **kwargs):
+def rust_wasm_bindgen(name, srcs, is_debug = False, **kwargs):
     rust_shared_library(
         name = name + "-wasm",
-        srcs = ["lib-wasm.rs"],
+        srcs = srcs,
         platform = "@rules_rust//rust/platform:wasm",
+        rustc_flags = ["-g"] if is_debug else [],
         deps = [
             "@crates//:wasm-bindgen",
         ],
@@ -20,7 +21,7 @@ def rust_wasm_bindgen(name, srcs, **kwargs):
             name + ".js",
         ],
         cmd = """
-            "$(location //tools:wasm-bindgen)" $(SRCS) --out-dir $(@D) --target nodejs --out-name %s
+            "$(location //tools:wasm-bindgen)" $(SRCS) --out-dir $(@D) --keep-debug --target nodejs --out-name %s
             # echo '{"type": "module"}' > $(@D)/package.json
             # ls -alh $(@D)
             """ % name,
