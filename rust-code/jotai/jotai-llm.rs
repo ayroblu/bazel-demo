@@ -18,8 +18,8 @@ impl AtomId {
     }
 }
 
-type Callback = Box<dyn Fn()>;
-type CheckStaleFn = Box<dyn Fn() -> bool>;
+type Callback = Rc<dyn Fn()>;
+type CheckStaleFn = Rc<dyn Fn() -> bool>;
 
 // --- Atoms ---
 
@@ -156,29 +156,29 @@ impl DepsManager {
         }
     }
 
-    //     fn update_deps(
-    //         &mut self,
-    //         key: AtomId,
-    //         tracked: HashMap<AtomId, CheckStaleFn>,
-    //         getter_id: AtomId,
-    //     ) {
-    //         if self.current_getter_id.get(&key) != Some(&getter_id) {
-    //             return;
-    //         }
+    fn update_deps(
+        &mut self,
+        key: AtomId,
+        tracked: HashMap<AtomId, CheckStaleFn>,
+        getter_id: AtomId,
+    ) {
+        if self.current_getter_id.get(&key) != Some(&getter_id) {
+            return;
+        }
 
-    //         // Update reverse deps
-    //         for t_key in tracked.keys() {
-    //             self.rev_deps.entry(*t_key).or_default().insert(key);
-    //         }
+        // Update reverse deps
+        for t_key in tracked.keys() {
+            self.rev_deps.entry(*t_key).or_default().insert(key);
+        }
 
-    //         self.atom_deps.insert(key, tracked);
-    //     }
+        self.atom_deps.insert(key, tracked);
+    }
 
-    fn propagate_stale(&mut self, key: AtomId) {
+    #[must_use]
+    fn propagate_stale(&mut self, key: AtomId) -> Vec<Callback> {
         let mut seen_atoms = HashSet::new();
         seen_atoms.insert(key);
 
-        // Helper stack for recursion to avoid borrowing issues with closure recursion
         let mut stack = vec![key];
 
         while let Some(current_key) = stack.pop() {
@@ -193,11 +193,16 @@ impl DepsManager {
             }
         }
 
+        let mut callbacks = Vec::new();
         for k in seen_atoms {
             if let Some(handler) = self.subs_handlers.get(&k) {
-                handler();
+                // We have to clone the Box<dyn Fn> to return it.
+                // Since Fn isn't cloneable by default, we wrap it in Rc in the storage.
+                // See step B below for the Type definition change.
+                callbacks.push(handler.clone());
             }
         }
+        callbacks
     }
 
     fn check_stale(&mut self, key: AtomId) -> bool {
@@ -225,7 +230,7 @@ impl DepsManager {
     }
 
     fn add_sub<F: Fn() + 'static>(&mut self, key: AtomId, on_stale: F) {
-        self.subs_handlers.insert(key, Box::new(on_stale));
+        self.subs_handlers.insert(key, Rc::new(on_stale));
     }
 
     fn remove_sub(&mut self, key: AtomId) {
@@ -327,7 +332,6 @@ impl JotaiStore {
     fn set_primitive<T: PartialEq + Clone + 'static>(&self, atom: &Atom<T>, value: T) {
         let key = atom.id();
 
-        // Check if value changed
         {
             let state = self.inner.borrow();
             if let Some(cached) = state.map.get(&key).and_then(|v| v.downcast_ref::<T>()) {
@@ -337,17 +341,19 @@ impl JotaiStore {
             }
         }
 
-        #[cfg(debug_assertions)]
-        if atom.is_debug {
-            println!("[jotai debug] set primitive key: {:?} newValue: ?", key);
-        }
-
-        {
+        // 1. Mutate State & Calculate Stale Handlers
+        let deps_handlers = {
             let mut state = self.inner.borrow_mut();
             state.map.insert(key, Box::new(value.clone()));
-            state.deps_manager.propagate_stale(key);
+            state.deps_manager.propagate_stale(key)
+        }; // Borrow drops here
+
+        // 2. Fire Internal Deps Handlers (e.g. derived atoms checking staleness)
+        for handler in deps_handlers {
+            handler();
         }
 
+        // 3. Fire External Subscriptions
         self.dispatch_subs(key);
     }
 
@@ -413,7 +419,7 @@ impl JotaiStore {
             sub_id = state.sub_id_counter;
 
             let entry = state.subs.entry(key).or_default();
-            entry.insert(sub_id, Rc::new(Box::new(on_change)));
+            entry.insert(sub_id, Rc::new(Rc::new(on_change)));
         }
 
         // 2. Register with DepsManager
@@ -453,11 +459,19 @@ impl JotaiStore {
 
     pub fn invalidate<T: 'static>(&self, atom: &Atom<T>) {
         let key = atom.id();
-        {
+        // 1. Mutate State & Calculate Stale Handlers
+        let deps_handlers = {
             let mut state = self.inner.borrow_mut();
             state.map.remove(&key);
-            state.deps_manager.propagate_stale(key);
+            state.deps_manager.propagate_stale(key)
+        };
+
+        // 2. Fire Internal Deps Handlers (e.g. derived atoms checking staleness)
+        for handler in deps_handlers {
+            handler();
         }
+
+        // 3. Fire External Subscriptions
         self.dispatch_subs(key);
     }
 
@@ -498,57 +512,38 @@ impl Getter {
 
     pub fn get<T: PartialEq + Clone + 'static>(&self, atom: &Atom<T>) -> T {
         let value = self.store.get(atom);
-
         let atom_key = atom.id();
 
-        // Create the check closure
-        // Must capture Weak reference to store to avoid cycles if stored in DepsManager?
-        // Actually, DepsManager lives inside Store. If closure holds Store, it's a cycle.
-        // However, the closure is used to check equality.
+        // 1. Create Check Function
         let store_clone = self.store.clone();
         let atom_clone = atom.clone();
         let value_clone = value.clone();
         let debug = self.is_debug || atom.is_debug;
 
-        let check_fn = Box::new(move || {
+        // Note: Rc needed to allow cloning the HashMap later
+        let check_fn: Rc<dyn Fn() -> bool> = Rc::new(move || {
             let current = store_clone.get(&atom_clone);
             if debug {
-                // println! debug logic here
+                // println! ...
             }
             current != value_clone
         });
 
+        // 2. Add to local tracked map
         self.tracked.borrow_mut().insert(atom_key, check_fn);
 
-        // Update deps in the store immediately (or could be done at end of Getter life)
-        // But `Getter` is usually transient in the closure.
-        // Swift does: store.depsManager.updateDeps(...)
-        // But we are inside a borrow context potentially?
-        // `store.get` returns, so lock is released. Safe to borrow_mut store.
+        // 3. CRITICAL FIX: Update Store DepsManager immediately
+        // We must clone the current state of tracked to pass to the store
+        let tracked_clone = self.tracked.borrow().clone();
 
-        // let tracked_snapshot = {
-        //     // We need to clone the HashMap to pass it to deps manager
-        //     // CheckFn is Box<dyn>, so not cloneable easily.
-        //     // In Swift `tracked` is passed by value.
-        //     // Here we might need to architect this so `updateDeps` is called once at the end?
-        //     // Swift calls `updateDeps` *inside* Getter.get().
-        //     // We have to drain or clone the map.
-        //     // To fix the non-cloneable Box, we'd need `Rc<dyn Fn>`.
-        //     // For now, let's just update deps for THIS single atom addition.
-        //     // Wait, Swift overwrites the whole map for the getter Key.
-        //     // So we need to keep accumulating.
-        //     HashMap::new() // Placeholder logic
-        // };
-
-        // Correct Logic: We need to pass the ENTIRE tracked map so far?
-        // No, Swift `updateDeps` just sets `atomDeps[key] = tracked`.
-        // So we need to be able to clone the tracked map.
-        // Changing CheckStaleFn to Rc to allow cloning.
-
-        // *Correction*: In Rust, let's update deps incrementally or share the map.
-        // For this implementation, let's change CheckStaleFn to Rc.
-
-        // (See Refactored CheckStaleFn below)
+        {
+            let mut state = self.store.inner.borrow_mut();
+            state.deps_manager.update_deps(
+                self.id, // The Getter's ID (the derived atom's key)
+                tracked_clone,
+                self.id, // In this simplified port, getter_id == atom_key usually
+            );
+        }
 
         value
     }
