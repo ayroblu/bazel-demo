@@ -1,4 +1,4 @@
-load("@rules_rust//rust:defs.bzl", "rust_shared_library", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_shared_library", "rust_test")
 load("//tools:rust_uniffi.bzl", "rust_uniffi_bindgen")
 load("//tools:rust_wasm.bzl", "rust_wasm_bindgen")
 
@@ -10,6 +10,11 @@ rust_shared_library(
     deps = ["@crates//:weak-table"],
 )
 
+rust_test(
+    name = "jotai-tests",
+    crate = ":jotai",
+)
+
 rust_shared_library(
     name = "jotai-llm",
     srcs = ["jotai-llm.rs"],
@@ -19,6 +24,11 @@ rust_shared_library(
 rust_test(
     name = "jotai-llm-tests",
     crate = ":jotai-llm",
+)
+
+rust_binary(
+    name = "benchmark",
+    srcs = ["benchmark.rs"],
 )
 
 # rust_wasm_bindgen(
