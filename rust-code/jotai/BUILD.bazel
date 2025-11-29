@@ -1,10 +1,10 @@
-load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_shared_library", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_test")
 load("//tools:rust_uniffi.bzl", "rust_uniffi_bindgen")
 load("//tools:rust_wasm.bzl", "rust_wasm_bindgen")
 
 package(default_visibility = ["//visibility:public"])
 
-rust_shared_library(
+rust_library(
     name = "jotai",
     srcs = ["jotai.rs"],
     deps = ["@crates//:weak-table"],
@@ -15,7 +15,7 @@ rust_test(
     crate = ":jotai",
 )
 
-rust_shared_library(
+rust_library(
     name = "jotai-llm",
     srcs = ["jotai-llm.rs"],
     deps = ["@crates//:weak-table"],
@@ -35,3 +35,14 @@ rust_binary(
 #     name = "jotai-wasm",
 #     srcs = ["jotai-wasm.rs"],
 # )
+
+rust_uniffi_bindgen(
+    name = "jotai-uniffi",
+    srcs = [
+        "jotai-uniffi.rs",
+    ],
+    deps = [
+        ":jotai",
+        "@crates//:weak-table",
+    ],
+)

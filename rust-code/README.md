@@ -9,4 +9,4 @@ Run: `./setup-rust-analyzer`
 
 ### Layout
 
-Rust has a really nicer way of managing dependencies with bazel, basically all build targets are importable modules, so you can import it directly with `extern_crate`.
+Rust has a really nicer way of managing dependencies with bazel, basically all build targets are importable modules, so you can import it directly with `extern crate`.

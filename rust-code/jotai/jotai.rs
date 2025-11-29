@@ -1,3 +1,4 @@
+use std::any::Any;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -5,28 +6,38 @@ use std::sync::{Arc, Weak};
 use weak_table::WeakKeyHashMap;
 
 pub struct JotaiStore {
-    map: WeakKeyHashMap<Weak<AtomId>, Arc<u32>>,
+    map: WeakKeyHashMap<Weak<AtomId>, Arc<dyn Any>>,
 }
-
 impl JotaiStore {
     pub fn new() -> Self {
         Self {
-            map: <WeakKeyHashMap<Weak<AtomId>, Arc<u32>>>::new(),
+            map: <WeakKeyHashMap<Weak<AtomId>, Arc<dyn Any>>>::new(),
         }
     }
 
-    pub fn get(&self, atom: &Atom<u32>) -> Arc<u32> {
-        self.map.get(&*atom.id).cloned().unwrap_or_else(|| {
-            Arc::new(match &atom.read {
-                AtomReader::Value(v) => *v,
-                AtomReader::Fn(f) => f(&Getter::new(self)),
+    pub fn get<T: Copy + 'static>(&self, atom: &Atom<T>) -> Arc<T> {
+        self.map
+            .get(&*atom.id)
+            .and_then(|v| v.downcast_ref::<T>())
+            .cloned()
+            .map(|v| Arc::new(v))
+            .unwrap_or_else(|| {
+                Arc::new(match &atom.read {
+                    AtomReader::Value(v) => *v,
+                    AtomReader::Fn(f) => f(&Getter::new(self)),
+                })
             })
-        })
     }
 
-    pub fn set(&mut self, atom: &Atom<u32>, value: Arc<u32>) {
+    pub fn set<T: 'static>(&mut self, atom: &Atom<T>, value: Arc<T>) {
         self.map.insert(atom.id.clone(), value);
     }
+}
+
+// Global, thread-safe counter
+static NEXT_ID: AtomicUsize = AtomicUsize::new(0);
+fn new_id() -> usize {
+    NEXT_ID.fetch_add(1, Ordering::Relaxed)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -36,12 +47,6 @@ impl AtomId {
         Self(new_id())
     }
 }
-// Global, thread-safe counter
-static NEXT_ID: AtomicUsize = AtomicUsize::new(0);
-fn new_id() -> usize {
-    NEXT_ID.fetch_add(1, Ordering::Relaxed)
-}
-
 pub enum AtomReader<T> {
     Fn(Box<dyn Fn(&Getter) -> T>),
     Value(T),
@@ -61,7 +66,6 @@ impl<T> Hash for Atom<T> {
         self.id.hash(state);
     }
 }
-
 impl<T> Atom<T> {
     pub fn new(default_value: T) -> Self {
         Self {
@@ -90,7 +94,7 @@ impl<'a> Getter<'a> {
     fn new(store: &'a JotaiStore) -> Self {
         Self { store }
     }
-    pub fn get(&self, atom: &Atom<u32>) -> Arc<u32> {
+    pub fn get<T: Copy + 'static>(&self, atom: &Atom<T>) -> Arc<T> {
         self.store.get(atom)
     }
 }
@@ -103,7 +107,7 @@ mod tests {
 
     thread_local! {
         pub static DEFAULT_STORE: RefCell<JotaiStore> = RefCell::new(JotaiStore::new());
-        pub static COUNTER_ATOM: RefCell<Arc<Atom<u32>>> = RefCell::new(Arc::new(Atom::new(10)));
+        pub static COUNTER_ATOM: Arc<Atom<u32>> = Arc::new(Atom::new(10));
     }
     // pub static DEFAULT_STORE: LazyLock<Mutex<JotaiStore>> =
     //     LazyLock::new(|| Mutex::new(JotaiStore::new()));
@@ -120,7 +124,7 @@ mod tests {
         DEFAULT_STORE.with(|store_ref| {
             let mut store = store_ref.borrow_mut();
             COUNTER_ATOM.with(|counter_atom_ref| {
-                let counter_atom = counter_atom_ref.borrow();
+                let counter_atom = counter_atom_ref;
                 assert_eq!(*store.get(&*counter_atom), 10);
                 store.set(&counter_atom, Arc::new(20));
                 assert_eq!(*store.get(&*counter_atom), 20);
