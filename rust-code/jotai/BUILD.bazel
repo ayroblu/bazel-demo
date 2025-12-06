@@ -13,6 +13,7 @@ rust_library(
 rust_test(
     name = "jotai-tests",
     crate = ":jotai",
+    env = {"RUST_BACKTRACE": "1"},
 )
 
 rust_library(
