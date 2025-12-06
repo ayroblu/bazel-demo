@@ -37,6 +37,7 @@ EOF
         },
         deps = ["@crates//:uniffi"],
         toolchains = [":%s-cargo-dirname" % name],
+        **kwargs
     )
 
     native.genrule(

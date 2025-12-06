@@ -9,6 +9,7 @@ def rust_wasm_bindgen(name, srcs, is_debug = False, **kwargs):
         deps = [
             "@crates//:wasm-bindgen",
         ],
+        **kwargs
     )
 
     native.genrule(

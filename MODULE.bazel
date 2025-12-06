@@ -163,6 +163,7 @@ maven.install(
     use_starlark_android_rules = True,
 )
 use_repo(maven, "maven_compose")
+
 maven.install(
     name = "maven_compose_android",
     aar_import_bzl_label = "@rules_android//android:rules.bzl",
@@ -324,6 +325,10 @@ crate.spec(
 crate.spec(
     package = "regex",
     version = "1.11.1",
+)
+crate.spec(
+    package = "weak-table",
+    version = "0.3.2",
 )
 crate.spec(
     default_features = False,
