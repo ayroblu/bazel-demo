@@ -340,6 +340,10 @@ crate.spec(
     package = "wasm-bindgen",
     version = "0.2.105",
 )
+crate.spec(
+    package = "unicode-segmentation",
+    version = "1.12.0",
+)
 crate.from_specs(supported_platform_triples = [
     "aarch64-apple-darwin",
     "aarch64-linux-android",

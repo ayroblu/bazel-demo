@@ -1,0 +1,25 @@
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
+
+package(default_visibility = ["//rust-code/editor-tools:__subpackages__"])
+
+rust_binary(
+    name = "func-del",
+    srcs = ["main.rs"],
+    deps = [
+        ":func-del-lib",
+        "@crates//:serde_json",
+    ],
+)
+
+rust_library(
+    name = "func-del-lib",
+    srcs = glob(
+        ["*.rs"],
+        ["main.rs"],
+    ),
+    deps = [
+        "//rust-code/utils",
+        "@crates//:serde",
+        "@crates//:unicode-segmentation",
+    ],
+)

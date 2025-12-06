@@ -1,0 +1,35 @@
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":binary-test",
+        ":lib-test",
+    ],
+)
+
+rust_test(
+    name = "lib-test",
+    srcs = glob(["lib.rs"]),
+    deps = [
+        "//rust-code/editor-tools/func-del:func-del-lib",
+    ],
+    # env = {"RUST_BACKTRACE": "1"},
+)
+
+rust_test(
+    name = "binary-test",
+    srcs = glob(["main.rs"]),
+    deps = [
+        ":direct",
+        "//rust-code/editor-tools/func-del",
+        "//rust-code/editor-tools/func-del:func-del-lib",
+        "@crates//:assert_cmd",
+        "@crates//:serde_json",
+    ],
+)
+
+rust_library(
+    name = "direct",
+    srcs = glob(["direct.rs"]),
+)
