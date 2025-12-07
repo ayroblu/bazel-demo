@@ -1,4 +1,5 @@
 import SwiftUI
+import jotai_example
 
 @main
 struct BazelApp: App {
@@ -11,6 +12,7 @@ struct BazelApp: App {
 
         Tab("Todo", systemImage: "list.bullet") {
           Text("Todo")
+          JotaiExampleView()
         }
 
         Tab("More todo", systemImage: "checklist.unchecked") {
