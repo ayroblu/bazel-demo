@@ -12,7 +12,8 @@ pub struct Input {
 pub enum Action {
     Ternary,
     Condition,
-    Resolve,
+    ResolveTrue,
+    ResolveFalse,
 }
 #[derive(Serialize, Deserialize)]
 pub enum Lang {

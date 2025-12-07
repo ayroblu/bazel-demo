@@ -9,6 +9,7 @@ use ternary_condition_lib::types::Lang;
 
 #[test]
 fn it_converts_example_condition_to_ternary_direct() {
+    #[allow(deprecated)]
     let mut cmd = Command::cargo_bin(direct_path()).unwrap();
     let input_text = serde_json::to_string(&Input {
         source: BEFORE.to_string(),

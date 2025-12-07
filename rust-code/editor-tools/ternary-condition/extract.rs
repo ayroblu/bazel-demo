@@ -21,10 +21,18 @@ pub(crate) fn get_node<'a>(node: Node<'a>, action: &'a Action) -> Option<Node<'a
                 Some(node)
             }
         }),
-        Action::Resolve => get_condition(node),
+        Action::ResolveTrue => get_condition(node),
+        Action::ResolveFalse => get_condition(node),
     }
 }
 
 fn_get_ancestor_node!(get_if_statement, if_statement);
 fn_get_ancestor_node!(get_ternary_expression, ternary_expression);
-fn_get_ancestor_node!(get_condition, if_statement, ternary_expression);
+fn_get_ancestor_node!(
+    get_condition,
+    // js
+    if_statement,
+    ternary_expression,
+    // rust
+    if_expression
+);

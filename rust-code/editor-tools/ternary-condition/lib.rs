@@ -22,12 +22,13 @@ pub fn edit(input: &Input) -> Option<String> {
         Lang::TypeScript => parser
             .set_language(&tree_sitter_typescript::LANGUAGE_TSX.into())
             .expect("Error loading TypeScript grammar"),
-        Lang::Rust => parser
-            .set_language(&tree_sitter_rust::LANGUAGE.into())
-            .expect("Error loading Rust grammar"),
         Lang::Swift => parser
             .set_language(&tree_sitter_swift::LANGUAGE.into())
             .expect("Error loading Swift grammar"),
+        // Rust and Scala only have normal "if" statements
+        Lang::Rust => parser
+            .set_language(&tree_sitter_rust::LANGUAGE.into())
+            .expect("Error loading Rust grammar"),
         Lang::Scala => parser
             .set_language(&tree_sitter_scala::LANGUAGE.into())
             .expect("Error loading Scala grammar"),
@@ -36,6 +37,11 @@ pub fn edit(input: &Input) -> Option<String> {
             .expect("Error loading Go grammar"),
     }
     let tree = parser.parse(&input.source, None).unwrap();
+    #[cfg(debug_assertions)]
+    {
+        // Useful for debugging and adding new languages
+        eprintln!("{}", tree.root_node());
+    }
     let mut cursor = tree.root_node().walk();
 
     extract(&input, &mut cursor).and_then(|item| {

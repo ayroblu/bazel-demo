@@ -1,5 +1,13 @@
 load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 
+test_suite(
+    name = "tests",
+    tests = [
+        ":binary-test",
+        ":lib-test",
+    ],
+)
+
 rust_test(
     name = "lib-test",
     srcs = glob(["lib.rs"]),
