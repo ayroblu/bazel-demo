@@ -61,12 +61,12 @@ class FiltersTests: HttpTestCase {
 }
 
 struct CallbackFilter: HttpFilter {
-  let beforeCallback: () async throws -> Void
-  let afterCallback: () async throws -> Void
+  let beforeCallback: @Sendable () async throws -> Void
+  let afterCallback: @Sendable () async throws -> Void
 
   init(
-    beforeCallback: @escaping () async throws -> Void = {},
-    afterCallback: @escaping () async throws -> Void = {}
+    beforeCallback: @escaping @Sendable () async throws -> Void = {},
+    afterCallback: @escaping @Sendable () async throws -> Void = {}
   ) {
     self.beforeCallback = beforeCallback
     self.afterCallback = afterCallback
@@ -74,7 +74,7 @@ struct CallbackFilter: HttpFilter {
 
   func handler(
     request: HttpRequest,
-    service: (HttpRequest) async throws -> HttpResponse
+    service: @Sendable (HttpRequest) async throws -> HttpResponse
   ) async throws -> HttpResponse {
     try await beforeCallback()
     let result = try await service(request)
