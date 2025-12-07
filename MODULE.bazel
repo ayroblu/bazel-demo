@@ -1,3 +1,5 @@
+module(name = "bazel_demo")
+
 # --------------------------------------------------------- bazel
 bazel_dep(
     name = "buildifier_prebuilt",
@@ -68,7 +70,6 @@ use_repo(
     "swiftpkg_swift_collections",
     "swiftpkg_swift_protobuf",
     "swiftpkg_swift_snapshot_testing",
-    "swiftpkg_zip",
 )
 # To add a package:
 # 1. Update Package.swift
