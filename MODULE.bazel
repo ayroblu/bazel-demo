@@ -1,4 +1,4 @@
-module(name = "bazel_demo")
+module(name = "bazel-demo")
 
 # --------------------------------------------------------- bazel
 bazel_dep(

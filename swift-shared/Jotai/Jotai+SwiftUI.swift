@@ -25,6 +25,7 @@ private class ValueModel<T: Equatable>: ObservableObject {
 
 @MainActor
 @propertyWrapper
+/// Note that if you use this with a dynamic atom value, you must use view.id(atom)
 public struct AtomState<T: Equatable>: DynamicProperty {
   @StateObject private var model: ValueModel<T>
   private let store: JotaiStore
@@ -71,6 +72,7 @@ public struct AtomState<T: Equatable>: DynamicProperty {
 
 @MainActor
 @propertyWrapper
+/// Note that if you use this with a dynamic atom value, you must use view.id(atom)
 public struct AtomValue<T: Equatable>: DynamicProperty {
   @StateObject private var model: ValueModel<T>
   private let store: JotaiStore
@@ -85,7 +87,9 @@ public struct AtomValue<T: Equatable>: DynamicProperty {
   }
 
   public var wrappedValue: T {
-    self.store.get(atom: self.atom)
+    // Surprisingly you don't need this, though it's arguably more correct
+    // _ = model.value
+    store.get(atom: atom)
   }
 }
 
