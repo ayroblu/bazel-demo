@@ -17,16 +17,30 @@ public struct LogsUi: View {
       ScrollViewReader { proxy in
         ScrollView {
           LazyVStack {
-            ForEach(logItems) { logItem in
-              VStack(alignment: .leading) {
-                Text(logItem.text)
-                HStack {
-                  Spacer()
-                  Text(logItem.createdAt.formatTimeWithMillis())
-                    .font(.footnote)
-                    .foregroundColor(.gray)
+            ForEach(Array(logItems.enumerated()), id: \.offset) { index, logItem in
+              let previous = index > 0 ? logItems[index - 1] : nil
+              if let previous {
+                let interval = abs(previous.createdAt.timeIntervalSince(logItem.createdAt))
+                if interval > 60 {
+                  HStack {
+                    Spacer()
+                    Rectangle()
+                      .fill(Color.gray)
+                      .frame(width: 20, height: 1)
+                    Spacer()
+                  }.padding(2)
                 }
               }
+
+              ZStack(alignment: .bottomTrailing) {
+                VStack(alignment: .leading) {
+                  Text(logItem.text + " " + String(repeating: "\u{00A0}", count: 21))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                Text(logItem.createdAt.formatTimeWithMillis())
+                  .font(.footnote)
+                  .foregroundColor(.gray)
+              }.padding(.horizontal)
             }
           }
           .scrollTargetLayout()
