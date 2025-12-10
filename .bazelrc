@@ -21,6 +21,7 @@ common:local --spawn_strategy=local
 common --flag_alias=ios_device=@build_bazel_rules_apple//apple/build_settings:ios_device
 
 build:ios --ios_multi_cpus=arm64
+run:pro --ios_simulator_device="iPhone 17 Pro"
 
 # https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#xcode-version-selection-and-invalidation
 # bash xcode-bazelrc-gen.sh

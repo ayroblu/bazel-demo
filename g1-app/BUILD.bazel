@@ -1,4 +1,4 @@
-load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application", "ios_build_test")
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
 load("@build_bazel_rules_apple//apple:watchos.bzl", "watchos_application")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
@@ -17,14 +17,6 @@ swift_library(
     deps = [
         "//g1-app/content",
         "//g1-app/utils",
-    ],
-)
-
-ios_build_test(
-    name = "lib_ios_skbsp",
-    minimum_os_version = "18.0",
-    targets = [
-        "lib",
     ],
 )
 

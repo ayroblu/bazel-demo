@@ -10,6 +10,7 @@ swift_library(
     copts = STRICT_MAINACTOR_COPTS,
     deps = [
         "//example-ios-app/JsWrap",
+        "//example-ios-app/drag-example",
         "//example-ios-app/jotai-example",
         "//example-ios-app/utils",
     ],

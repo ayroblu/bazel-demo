@@ -1,4 +1,5 @@
 import SwiftUI
+import drag_example
 import jotai_example
 
 @main
@@ -17,6 +18,7 @@ struct BazelApp: App {
 
         Tab("More todo", systemImage: "checklist.unchecked") {
           Text("More todo")
+          DragExampleView()
         }
       }
     }
