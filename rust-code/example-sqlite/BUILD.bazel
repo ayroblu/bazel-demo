@@ -1,0 +1,26 @@
+load("@rules_rust//rust:defs.bzl", "rust_library")
+load("//tools:rust_uniffi.bzl", "rust_uniffi_bindgen")
+load("//tools:rust_wasm.bzl", "rust_wasm_bindgen")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_library(
+    name = "example-sqlite",
+    srcs = ["lib.rs"],
+    deps = [
+        "@crates//:libsqlite3-sys",
+        # "@crates//:rusqlite",
+        "@crates//:thiserror",
+    ],
+)
+
+rust_uniffi_bindgen(
+    name = "uniffi",
+    srcs = ["uniffi.rs"],
+    deps = [":example-sqlite"],
+)
+
+# rust_wasm_bindgen(
+#     name = "example-wasm",
+#     srcs = ["lib-wasm.rs"],
+# )

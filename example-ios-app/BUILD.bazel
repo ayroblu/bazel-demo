@@ -12,6 +12,9 @@ swift_library(
         "//example-ios-app/JsWrap",
         "//example-ios-app/drag-example",
         "//example-ios-app/jotai-example",
+        "//example-ios-app/rust-uniffi-example",
+        "//example-ios-app/rust_lib/bridge",
+        "//example-ios-app/sqlite-example",
         "//example-ios-app/utils",
     ],
 )

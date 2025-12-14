@@ -1,7 +1,7 @@
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 load("@rules_android//android:rules.bzl", "android_library")
 load("@rules_kotlin//kotlin:android.bzl", "kt_android_library")
-load("@rules_rust//rust:defs.bzl", "rust_shared_library")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_shared_library")
 
 def rust_uniffi_bindgen(name, srcs, deps = [], **kwargs):
     native.genrule(
@@ -28,8 +28,19 @@ EOF
         path = ":%s-cargo" % name,
     )
 
-    rust_shared_library(
+    rust_library(
         name = name + "-lib",
+        srcs = srcs,
+        compile_data = [":%s-cargo" % name],
+        rustc_env = {
+            "CARGO_MANIFEST_DIR": "$(DIRNAME)",
+        },
+        deps = ["@crates//:uniffi"] + deps,
+        toolchains = [":%s-cargo-dirname" % name],
+        **kwargs
+    )
+    rust_shared_library(
+        name = name + "-shared-lib",
         srcs = srcs,
         compile_data = [":%s-cargo" % name],
         rustc_env = {
@@ -43,7 +54,7 @@ EOF
     under_name = name.replace("-", "_")
     native.genrule(
         name = name,
-        srcs = [":%s-lib" % name],
+        srcs = [":%s-shared-lib" % name],
         outs = [
             under_name + ".swift",
             under_name + "FFI.h",
@@ -63,7 +74,7 @@ EOF
     native.objc_library(
         name = name + "-objc",
         hdrs = [
-            ":%sFFI.h" % name,
+            ":%sFFI.h" % (under_name),
         ],
         module_name = name + "FFI",
         deps = [
