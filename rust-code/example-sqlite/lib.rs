@@ -1,80 +1,82 @@
-// use rusqlite::Connection;
-// // use thiserror::Error;
-
-// #[derive(Debug)]
-// struct Person {
-//     id: i32,
-//     name: String,
-//     data: Option<Vec<u8>>,
-// }
-
-// fn open_db() -> Result<Connection, rusqlite::Error> {
-//     let conn = Connection::open_in_memory()?;
-//     return Ok(conn);
-// }
-
-// fn example_insert(conn: &Connection) -> Result<(), rusqlite::Error> {
-//     conn.execute(
-//         "CREATE TABLE person (
-//             id    INTEGER PRIMARY KEY,
-//             name  TEXT NOT NULL,
-//             data  BLOB
-//         )",
-//         (), // empty list of parameters.
-//     )?;
-//     let me = Person {
-//         id: 0,
-//         name: "Steven".to_string(),
-//         data: None,
-//     };
-//     conn.execute(
-//         "INSERT INTO person (name, data) VALUES (?1, ?2)",
-//         (&me.name, &me.data),
-//     )?;
-//     Ok(())
-// }
-
-// fn get_saved_persons(conn: &Connection) -> Result<Vec<String>, rusqlite::Error> {
-//     let mut stmt = conn.prepare("SELECT id, name, data FROM person")?;
-//     let person_iter = stmt.query_map([], |row| {
-//         Ok(Person {
-//             id: row.get(0)?,
-//             name: row.get(1)?,
-//             data: row.get(2)?,
-//         })
-//     })?;
-
-//     let person_names = person_iter
-//         .map(|result| result.map(|person| person.name))
-//         .collect::<Result<Vec<String>, rusqlite::Error>>();
-//     person_names
-// }
-
-// pub fn get_saved() -> Result<Vec<String>, rusqlite::Error> {
-//     open_db().and_then(|conn| {
-//         example_insert(&conn)?;
-//         return get_saved_persons(&conn);
-//     })
-// }
+use std::ffi::CString;
+use std::ptr::{null, null_mut};
 
 use libsqlite3_sys::{
-    sqlite3, sqlite3_open_v2, SQLITE_OK, SQLITE_OPEN_CREATE, SQLITE_OPEN_FULLMUTEX,
-    SQLITE_OPEN_READWRITE,
+    sqlite3, sqlite3_finalize, sqlite3_open_v2, sqlite3_prepare_v2, sqlite3_step, sqlite3_stmt,
+    SQLITE_DONE, SQLITE_ROW,
 };
+use libsqlite3_sys::{SQLITE_OK, SQLITE_OPEN_CREATE, SQLITE_OPEN_FULLMUTEX, SQLITE_OPEN_READWRITE};
 use thiserror::Error;
 
+struct DbExecutable {
+    statement: String,
+}
+
 fn open_db() -> Result<sqlite3, SwormError> {
-    let mut db: *mut sqlite3 = std::ptr::null_mut();
+    let mut db: *mut sqlite3 = null_mut();
     let flags = SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX;
     // let file_name = CString::new("my_db.sqlite").expect("CString::new failed");
-    let file_name = std::ptr::null();
-    let open_code = unsafe { sqlite3_open_v2(file_name, &mut db, flags, std::ptr::null()) };
+    let file_name = null();
+    let open_code = unsafe { sqlite3_open_v2(file_name, &mut db, flags, null()) };
     if open_code == SQLITE_OK {
         Ok(unsafe { *db })
     } else {
         Err(SwormError::OpenFailed(open_code))
     }
 }
+fn execute_only(executable: DbExecutable) -> Result<(), SwormError> {
+    // print("executeOnly \(executable.statement)")
+    // temp
+    let mut db = open_db().unwrap();
+
+    let mut stmt: *mut sqlite3_stmt = null_mut();
+    let statement = CString::new(executable.statement.clone()).expect("CString::new failed");
+    let statement_ptr = statement.as_ptr();
+    let prepare_code =
+        unsafe { sqlite3_prepare_v2(&mut db, statement_ptr, -1, &mut stmt, null_mut()) };
+    if prepare_code != SQLITE_OK {
+        return Err(SwormError::PrepareFailed(
+            executable.statement,
+            prepare_code,
+        ));
+    }
+    // injectValues(statementPointer: statementPointer, values: executable.values)
+    let mut step_code = unsafe { sqlite3_step(stmt) };
+    while step_code == SQLITE_ROW {
+        step_code = unsafe { sqlite3_step(stmt) };
+    }
+    if step_code != SQLITE_DONE {
+        return Err(SwormError::StepFailed(executable.statement, step_code));
+    }
+    unsafe { sqlite3_finalize(stmt) };
+    return Ok(());
+}
+fn inject_values<P>(stmt: &sqlite3_stmt, values: P) {}
+// private func injectValues(statementPointer: OpaquePointer?, values: [Any?]) {
+//   var counter: Int32 = 1
+//   for value in values {
+//     defer { counter += 1 }
+//     if let intValue = value as? Int32 {
+//       sqlite3_bind_int(statementPointer, counter, intValue)
+//     } else if let textValue = value as? String {
+//       sqlite3_bind_text(statementPointer, counter, (textValue as NSString).utf8String, -1, nil)
+//     } else if let boolValue = value as? Bool {
+//       sqlite3_bind_int(statementPointer, counter, boolValue ? 1 : 0)
+//     } else if let longValue = value as? Int64 {
+//       sqlite3_bind_int64(statementPointer, counter, longValue)
+//     } else if let doubleValue = value as? Double {
+//       sqlite3_bind_double(statementPointer, counter, doubleValue)
+//     } else if let dateValue = value as? Date {
+//       sqlite3_bind_int64(
+//         statementPointer, counter, Int64(dateValue.timeIntervalSince1970 * 1000))
+//     } else if let blobValue = value as? Data {
+//       _ = blobValue.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) in
+//         sqlite3_bind_blob(
+//           statementPointer, counter, bytes.baseAddress, Int32(blobValue.count), SQLITE_TRANSIENT)
+//       }
+//     }
+//   }
+// }
 pub fn get_saved() -> Option<Vec<String>> {
     Some(vec!["first".to_string()])
 }
