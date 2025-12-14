@@ -8,9 +8,7 @@ rust_library(
     name = "example-sqlite",
     srcs = ["lib.rs"],
     deps = [
-        "@crates//:libsqlite3-sys",
         "@crates//:rusqlite",
-        "@crates//:thiserror",
     ],
 )
 
