@@ -348,7 +348,8 @@ crate.spec(
     version = "1.12.0",
 )
 crate.spec(
-    features = ["bundled"],
+    # feature is transitive, so this will affect libsqlite3-sys
+    # features = ["bundled"],
     package = "rusqlite",
     version = "0.37.0",
 )
