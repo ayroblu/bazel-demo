@@ -6,11 +6,10 @@ package(default_visibility = ["//visibility:public"])
 
 rust_library(
     name = "example-sqlite",
-    srcs = [
-        "db.rs",
-        "lib.rs",
-        "types.rs",
-    ],
+    srcs = glob(
+        ["*.rs"],
+        ["uniffi.rs"],
+    ),
     deps = [
         "@crates//:libsqlite3-sys",
         "@crates//:thiserror",
