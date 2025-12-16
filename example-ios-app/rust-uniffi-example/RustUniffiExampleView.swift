@@ -22,7 +22,7 @@ final class ClosureWrapper: ClosureCallback {
     self.callback = callback
   }
 
-  func notify() {
+  func notif() {
     callback()
   }
 }

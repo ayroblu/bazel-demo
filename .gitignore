@@ -13,3 +13,5 @@ xcode.bazelrc
 /.bsp/skbsp.json
 /.bsp/sourcekit-bazel-bsp
 
+# android
+.aswb/

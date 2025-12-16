@@ -11,7 +11,7 @@ swift_library(
     copts = STRICT_MAINACTOR_COPTS,
     module_name = "sqlite_example",
     deps = [
-        # "//rust-code/example-rusqlite:uniffi-swift",
-        "//rust-code/example-sqlite:uniffi-swift",
+        "//rust-code/example-rusqlite:uniffi-swift",
+        # "//rust-code/example-sqlite:uniffi-swift",
     ],
 )

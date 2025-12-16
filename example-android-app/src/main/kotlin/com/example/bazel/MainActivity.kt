@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.bazel.ui.theme.AppTheme
 import uniffi.example.printAndAdd
+// import uniffi.example_rusqlite.getSaved
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,6 +26,8 @@ class MainActivity : ComponentActivity() {
         Log.v("Bazel", "Hello, Android")
         actionBar?.hide()
         setContent { AppTheme { MainApp() } }
+        // val saved = getSaved()
+        // Log.v("Bazel", saved?.joinToString(", ") ?: "No data saved")
         Log.v("Bazel", "Finish init")
     }
 }

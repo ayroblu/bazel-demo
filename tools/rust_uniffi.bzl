@@ -3,7 +3,9 @@ load("@rules_android//android:rules.bzl", "android_library")
 load("@rules_kotlin//kotlin:android.bzl", "kt_android_library")
 load("@rules_rust//rust:defs.bzl", "rust_library", "rust_shared_library")
 
-def rust_uniffi_bindgen(name, srcs, deps = [], **kwargs):
+def rust_uniffi_bindgen(name, srcs, deps = [], module_name = None, **kwargs):
+    module_name = module_name or name
+    under_module_name = module_name.replace("-", "_")
     native.genrule(
         name = name + "-cargo",
         outs = [
@@ -21,7 +23,7 @@ edition = "2024"
 [lib]
 path = "fake.rs"
 EOF
-""" % name,
+""" % (module_name or name),
     )
     dirname_provider(
         name = name + "-cargo-dirname",
@@ -51,15 +53,14 @@ EOF
         **kwargs
     )
 
-    under_name = name.replace("-", "_")
     native.genrule(
         name = name,
         srcs = [":%s-shared-lib" % name],
         outs = [
-            under_name + ".swift",
-            under_name + "FFI.h",
-            under_name + "FFI.modulemap",
-            "uniffi/%s/%s.kt" % (under_name, under_name),
+            under_module_name + ".swift",
+            under_module_name + "FFI.h",
+            under_module_name + "FFI.modulemap",
+            "uniffi/%s/%s.kt" % (under_module_name, under_module_name),
         ],
         cmd = """
             # echo "--------- Processing $(SRCS)"
@@ -74,9 +75,9 @@ EOF
     native.objc_library(
         name = name + "-objc",
         hdrs = [
-            ":%sFFI.h" % (under_name),
+            ":%sFFI.h" % (under_module_name),
         ],
-        module_name = name + "FFI",
+        module_name = under_module_name + "FFI",
         deps = [
             ":%s-lib" % name,
         ],
@@ -84,14 +85,14 @@ EOF
 
     swift_library(
         name = name + "-swift",
-        srcs = [":%s.swift" % name],
-        module_name = name,
+        srcs = [":%s.swift" % under_module_name],
+        module_name = under_module_name,
         deps = [":%s-objc" % name],
     )
 
     android_library(
         name = name + "-lib-android",
-        exports = [":%s-lib" % name],
+        exports = [":%s-shared-lib" % name],
     )
 
     native.genrule(
@@ -104,7 +105,7 @@ EOF
 
     kt_android_library(
         name = name + "-kotlin",
-        srcs = ["uniffi/%s/%s.kt" % (name, name)],
+        srcs = ["uniffi/%s/%s.kt" % (under_module_name, under_module_name)],
         deps = select({
             "@platforms//os:android": ["@maven_compose_android//:net_java_dev_jna_jna"] + [
                 ":%s-lib-android" % name,

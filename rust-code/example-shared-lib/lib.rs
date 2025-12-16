@@ -10,13 +10,14 @@ pub fn print_and_add(a: i32, b: i32) -> i32 {
 
 #[uniffi::export]
 pub fn subber(thing: Box<dyn ClosureCallback>) -> Arc<Cleanup> {
-    thing.notify();
+    thing.notif();
     return Arc::new(Cleanup {});
 }
 
 #[uniffi::export(callback_interface)]
 pub trait ClosureCallback: Send + Sync + 'static {
-    fn notify(&self);
+    // notify is a reserved word in kotlin 🤦
+    fn notif(&self);
 }
 
 #[derive(uniffi::Object)]

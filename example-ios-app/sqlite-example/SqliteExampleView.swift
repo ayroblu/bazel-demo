@@ -1,5 +1,5 @@
 import SwiftUI
-import uniffi
+import example_rusqlite
 
 public struct SqliteExampleView: View {
   public init() {}

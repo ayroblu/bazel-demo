@@ -15,6 +15,7 @@ rust_library(
 rust_uniffi_bindgen(
     name = "uniffi",
     srcs = ["uniffi.rs"],
+    module_name = "example-rusqlite",
     deps = [":example-sqlite"],
 )
 
