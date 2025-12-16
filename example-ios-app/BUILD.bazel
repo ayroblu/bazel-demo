@@ -27,6 +27,7 @@ ios_application(
         "ipad",
     ],
     infoplists = ["Resources/Info.plist"],
+    linkopts = ["-lsqlite3"],
     minimum_os_version = "18.0",
     visibility = ["//visibility:public"],
     deps = [":lib"],
