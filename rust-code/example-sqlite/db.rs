@@ -79,7 +79,7 @@ impl SqliteDb {
     }
 }
 
-pub struct SqliteRowIterator {
+struct SqliteRowIterator {
     stmt_ptr: *mut sqlite3_stmt,
 }
 impl Iterator for SqliteRowIterator {

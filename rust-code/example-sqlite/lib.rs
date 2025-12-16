@@ -13,7 +13,7 @@ pub use types::*;
 pub fn get_saved() -> Option<Vec<String>> {
     example().ok()
 }
-pub fn example() -> Result<Vec<String>, DbSqliteError> {
+fn example() -> Result<Vec<String>, DbSqliteError> {
     let db = SqliteDb::open(":memory:")?;
 
     let create_table = DbExecutable::new(

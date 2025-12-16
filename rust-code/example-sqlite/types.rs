@@ -34,6 +34,10 @@ impl<T: FromSqlite> DbSelectable<T> {
     }
 }
 
+pub trait FromSqliteValue: Sized {
+    fn get_sqlite_value(self) -> SqliteValue;
+    fn parse(value: SqliteValue) -> Result<Self, DbSqliteError>;
+}
 pub trait IntoSqliteValues {
     fn into_sqlite_values(self) -> Vec<SqliteValue>;
 }
@@ -51,11 +55,6 @@ impl IntoSqliteValues for Vec<SqliteValue> {
     fn into_sqlite_values(self) -> Vec<SqliteValue> {
         self
     }
-}
-
-pub trait FromSqliteValue: Sized {
-    fn get_sqlite_value(self) -> SqliteValue;
-    fn parse(value: SqliteValue) -> Result<Self, DbSqliteError>;
 }
 
 pub trait FromSqlite: Sized {
@@ -102,7 +101,7 @@ pub enum SqliteValue {
 impl SqliteValue {
     #[inline]
     #[must_use]
-    pub fn type_name(&self) -> &str {
+    pub(crate) fn type_name(&self) -> &str {
         match *self {
             SqliteValue::Null => "NULL",
             SqliteValue::Integer(_) => "Integer",
@@ -113,7 +112,7 @@ impl SqliteValue {
     }
 }
 
-pub fn get_sqlite_value(stmt: *mut sqlite3_stmt, column: i32) -> SqliteValue {
+fn get_sqlite_value(stmt: *mut sqlite3_stmt, column: i32) -> SqliteValue {
     let column_type = unsafe { sqlite3_column_type(stmt, column) };
     match column_type {
         SQLITE_NULL => SqliteValue::Null,
@@ -168,7 +167,7 @@ pub struct Row {
     pub(crate) length: i32,
 }
 impl Row {
-    pub fn new(stmt: *mut sqlite3_stmt) -> Self {
+    pub(crate) fn new(stmt: *mut sqlite3_stmt) -> Self {
         let length = unsafe { sqlite3_column_count(stmt) };
         Self { stmt, length }
     }
