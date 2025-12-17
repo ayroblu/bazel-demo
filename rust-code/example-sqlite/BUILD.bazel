@@ -8,7 +8,7 @@ rust_library(
     name = "example-sqlite",
     srcs = glob(
         ["*.rs"],
-        ["uniffi.rs"],
+        ["bindings.rs"],
     ),
     deps = [
         "@crates//:libsqlite3-sys",
@@ -23,8 +23,8 @@ rust_test(
 )
 
 rust_uniffi_bindgen(
-    name = "uniffi",
-    srcs = ["uniffi.rs"],
+    name = "bindings",
+    srcs = ["bindings.rs"],
     deps = [":example-sqlite"],
 )
 

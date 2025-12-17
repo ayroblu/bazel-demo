@@ -26,8 +26,6 @@ class MainActivity : ComponentActivity() {
         Log.v("Bazel", "Hello, Android")
         actionBar?.hide()
         setContent { AppTheme { MainApp() } }
-        // val saved = getSaved()
-        // Log.v("Bazel", saved?.joinToString(", ") ?: "No data saved")
         Log.v("Bazel", "Finish init")
     }
 }
@@ -41,7 +39,7 @@ fun MainApp() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(printAndAdd(1, 2).toString())
+            Text("1 + 2 = " + printAndAdd(1, 2))
             Log.v("Bazel", "render")
             JsEngineButton()
             Log.v("Bazel", "render2")
@@ -51,6 +49,8 @@ fun MainApp() {
             }) {
                 Text(text = jsViewModel.name)
             }
+            // val saved = getSaved()
+            // Text(text = saved?.joinToString(", ") ?: "No data saved")
         }
     }
 }
