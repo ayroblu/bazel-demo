@@ -18,7 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.bazel.ui.theme.AppTheme
 import uniffi.example.printAndAdd
-// import uniffi.example_rusqlite.getSaved
+import uniffi.example_rusqlite.getSaved
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,7 +39,7 @@ fun MainApp() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text("1 + 2 = " + printAndAdd(1, 2))
+            Text("from rust: 1 + 2 = " + printAndAdd(1, 2))
             Log.v("Bazel", "render")
             JsEngineButton()
             Log.v("Bazel", "render2")
@@ -49,8 +49,8 @@ fun MainApp() {
             }) {
                 Text(text = jsViewModel.name)
             }
-            // val saved = getSaved()
-            // Text(text = saved?.joinToString(", ") ?: "No data saved")
+            val saved = getSaved()
+            Text(text = "rusqlite: " + saved?.joinToString(", ") ?: "No data saved")
         }
     }
 }
