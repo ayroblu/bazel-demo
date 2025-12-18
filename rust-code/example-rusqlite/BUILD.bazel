@@ -7,9 +7,10 @@ package(default_visibility = ["//visibility:public"])
 rust_library(
     name = "example-sqlite",
     srcs = ["lib.rs"],
-    deps = [
-        "@crates//:rusqlite",
-    ],
+    deps = select({
+        "@platforms//os:android": ["@crates-android//:rusqlite"],
+        "//conditions:default": ["@crates//:rusqlite"],
+    }),
 )
 
 rust_uniffi_bindgen(

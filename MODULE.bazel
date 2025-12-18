@@ -351,6 +351,13 @@ crate.spec(
     # feature is transitive, so this will affect libsqlite3-sys
     # features = ["bundled"],
     package = "rusqlite",
+    repositories = ["crates"],
+    version = "0.37.0",
+)
+crate.spec(
+    features = ["bundled"],
+    package = "rusqlite",
+    repositories = ["crates-android"],
     version = "0.37.0",
 )
 crate.spec(
@@ -369,7 +376,14 @@ crate.from_specs(supported_platform_triples = [
     "aarch64-linux-android",
     "wasm32-unknown-unknown",
 ])
-use_repo(crate, "crates")
+crate.from_specs(
+    name = "crates-android",
+    supported_platform_triples = [
+        "aarch64-apple-darwin",
+        "aarch64-linux-android",
+    ],
+)
+use_repo(crate, "crates", "crates-android")
 
 # Use Cargo overhead for cargo patch overrides
 # cargo_crate = use_extension("@rules_rust//crate_universe:extension.bzl", "crate")
