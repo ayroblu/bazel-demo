@@ -1,0 +1,12 @@
+load("@rules_rust//rust:defs.bzl", "rust_library")
+load("//tools:rust_uniffi.bzl", "uniffi_rust_library")
+
+package(default_visibility = ["//visibility:public"])
+
+uniffi_rust_library(
+    name = "http-shared",
+    srcs = ["lib.rs"],
+    deps = [
+        "@crates//:thiserror",
+    ],
+)

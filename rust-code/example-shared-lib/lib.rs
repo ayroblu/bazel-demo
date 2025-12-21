@@ -1,3 +1,8 @@
+extern crate http_shared;
+
+use http_shared::HttpMethod;
+use http_shared::HttpRequest;
+use http_shared::GLOBAL_HTTP_PROVIDER;
 use std::sync::Arc;
 
 uniffi::setup_scaffolding!();
@@ -27,4 +32,28 @@ impl Cleanup {
     fn dispose(&self) {
         println!("dispose!");
     }
+}
+
+#[uniffi::export]
+pub async fn check_network() {
+    let Some(http) = GLOBAL_HTTP_PROVIDER.get() else {
+        eprintln!("http provider not found");
+        return;
+    };
+    eprintln!("GET https://api.ipify.org");
+    let result = http
+        .send_request(HttpRequest {
+            url: "https://api.ipify.org".to_string(),
+            method: HttpMethod::Get,
+            headers: None,
+            body: None,
+        })
+        .await;
+    match result {
+        Ok(response) => {
+            eprintln!("HTTP {}", response.status_code);
+            eprintln!("{}", String::from_utf8_lossy(&response.body));
+        }
+        Err(err) => eprintln!("err: {}", err),
+    };
 }

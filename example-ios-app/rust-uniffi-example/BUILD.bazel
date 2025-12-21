@@ -12,5 +12,7 @@ swift_library(
     module_name = "rust_uniffi_example",
     deps = [
         "//rust-code/example-shared-lib:example-swift",
+        "//rust-code/http-shared/swift",
+        "//swift-shared/Log",
     ],
 )

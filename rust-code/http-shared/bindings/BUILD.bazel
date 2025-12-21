@@ -4,8 +4,9 @@ load("//tools:rust_wasm.bzl", "rust_wasm_bindgen")
 package(default_visibility = ["//visibility:public"])
 
 rust_uniffi_bindgen(
-    name = "example",
+    name = "bindings",
     srcs = ["lib.rs"],
+    module_name = "http_shared",
     deps = [
         "//rust-code/http-shared",
         "@crates//:thiserror",

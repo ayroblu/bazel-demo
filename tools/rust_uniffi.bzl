@@ -3,53 +3,24 @@ load("@rules_android//android:rules.bzl", "android_library")
 load("@rules_kotlin//kotlin:android.bzl", "kt_android_library")
 load("@rules_rust//rust:defs.bzl", "rust_library", "rust_shared_library")
 
-def rust_uniffi_bindgen(name, srcs, deps = [], module_name = None, **kwargs):
+def rust_uniffi_bindgen(name, srcs, deps = [], module_name = None, proc_macro_deps = [], **kwargs):
     module_name = module_name or name
     under_module_name = module_name.replace("-", "_")
-    native.genrule(
-        name = name + "-cargo",
-        outs = [
-            name + "/Cargo.toml",
-        ],
-        cmd = """
-echo "creating: $@"
-cat > $@ << 'EOF'
-# @generated just for the name attribute
-[package]
-name = "%s"
-version = "0.1.0"
-edition = "2024"
 
-[lib]
-path = "fake.rs"
-EOF
-""" % (module_name or name),
-    )
-    dirname_provider(
-        name = name + "-cargo-dirname",
-        path = ":%s-cargo" % name,
-    )
+    uniffi_rust_library(name + "-lib", srcs, deps, module_name, proc_macro_deps, **kwargs)
 
-    rust_library(
-        name = name + "-lib",
-        srcs = srcs,
-        compile_data = [":%s-cargo" % name],
-        rustc_env = {
-            "CARGO_MANIFEST_DIR": "$(DIRNAME)",
-        },
-        deps = ["@crates//:uniffi"] + deps,
-        toolchains = [":%s-cargo-dirname" % name],
-        **kwargs
-    )
     rust_shared_library(
         name = name + "-shared-lib",
         srcs = srcs,
-        compile_data = [":%s-cargo" % name],
+        compile_data = [":%s-lib-cargo" % name],
         rustc_env = {
             "CARGO_MANIFEST_DIR": "$(DIRNAME)",
         },
         deps = ["@crates//:uniffi"] + deps,
-        toolchains = [":%s-cargo-dirname" % name],
+        proc_macro_deps = [
+            "@crates//:async-trait",
+        ] + proc_macro_deps,
+        toolchains = [":%s-lib-cargo-dirname" % name],
         **kwargs
     )
 
@@ -117,6 +88,47 @@ EOF
             "//conditions:default": ["%s-lib-macos" % name],
         }),
         resource_strip_prefix = native.package_name(),
+    )
+
+def uniffi_rust_library(name, srcs, deps = [], module_name = None, proc_macro_deps = [], **kwargs):
+    native.genrule(
+        name = name + "-cargo",
+        outs = [
+            name + "/Cargo.toml",
+        ],
+        cmd = """
+# echo "creating: $@"
+cat > $@ << 'EOF'
+# @generated just for the name attribute
+[package]
+name = "%s"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+path = "fake.rs"
+EOF
+""" % (module_name or name),
+    )
+
+    dirname_provider(
+        name = name + "-cargo-dirname",
+        path = ":%s-cargo" % name,
+    )
+
+    rust_library(
+        name = name,
+        srcs = srcs,
+        compile_data = [":%s-cargo" % name],
+        rustc_env = {
+            "CARGO_MANIFEST_DIR": "$(DIRNAME)",
+        },
+        deps = ["@crates//:uniffi"] + deps,
+        proc_macro_deps = [
+            "@crates//:async-trait",
+        ] + proc_macro_deps,
+        toolchains = [":%s-cargo-dirname" % name],
+        **kwargs
     )
 
 def _dirname_provider_impl(ctx):

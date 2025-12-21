@@ -365,6 +365,10 @@ crate.spec(
     version = "0.35.0",
 )
 crate.spec(
+    package = "async-trait",
+    version = "0.1.89",
+)
+crate.spec(
     package = "thiserror",
     version = "2.0.17",
 )
