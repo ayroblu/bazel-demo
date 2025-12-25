@@ -35,10 +35,10 @@ impl Cleanup {
 }
 
 #[uniffi::export]
-pub async fn check_network() {
+pub async fn check_network() -> Option<String> {
     let Some(http) = GLOBAL_HTTP_PROVIDER.get() else {
         eprintln!("http provider not found");
-        return;
+        return None;
     };
     eprintln!("GET https://api.ipify.org");
     let result = http
@@ -52,8 +52,11 @@ pub async fn check_network() {
     match result {
         Ok(response) => {
             eprintln!("HTTP {}", response.status_code);
-            eprintln!("{}", String::from_utf8_lossy(&response.body));
+            let ip = String::from_utf8_lossy(&response.body);
+            eprintln!("{}", ip);
+            return Some(ip.to_string());
         }
         Err(err) => eprintln!("err: {}", err),
     };
+    return None;
 }

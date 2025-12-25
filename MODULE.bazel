@@ -151,6 +151,9 @@ maven.install(
         # For uniffi
         "net.java.dev.jna:jna:5.18.1",
 
+        # for network access
+        "com.squareup.okhttp3:okhttp:5.3.2",
+
         # For tests
         "junit:junit:4.13.2",
     ],

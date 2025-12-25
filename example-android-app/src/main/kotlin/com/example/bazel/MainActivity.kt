@@ -18,7 +18,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.bazel.ui.theme.AppTheme
 import uniffi.example.printAndAdd
+import uniffi.example.checkNetwork
+import uniffi.http_shared.setHttpProvider
+import uniffi.http_shared.HttpRequest
+import uniffi.http_shared.HttpResponse
 import uniffi.example_rusqlite.getSaved
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,6 +39,35 @@ class MainActivity : ComponentActivity() {
         Log.v("Bazel", "Hello, Android")
         actionBar?.hide()
         setContent { AppTheme { MainApp() } }
+        setHttpProvider(object : HttpProvider {
+            override suspend fun sendRequest(request: HttpRequest): HttpResponse {
+                return withContext(Dispatchers.IO) {
+                    val builder = Request.Builder().url(request.url)
+
+                    request.headers?.forEach { (name, value) ->
+                        builder.addHeader(name, value)
+                    }
+
+                    val contentType = request.headers?.get("Content-Type")?.toMediaTypeOrNull()
+
+                    val methodStr = request.method.name
+
+                    if (request.method == HttpMethod.GET || request.method == HttpMethod.HEAD) {
+                        builder.method(methodStr, null)
+                    } else {
+                        val requestBody = (request.body ?: byteArrayOf()).toRequestBody(contentType)
+                        builder.method(methodStr, requestBody)
+                    }
+
+                    client.newCall(builder.build()).execute().use { response ->
+                        HttpResponse(
+                            status = response.code,
+                            body = response.body?.bytes() ?: byteArrayOf()
+                        )
+                    }
+                }
+            }
+        })
         Log.v("Bazel", "Finish init")
     }
 }
@@ -34,6 +76,12 @@ class MainActivity : ComponentActivity() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, name = "Dark Mode")
 @Composable
 fun MainApp() {
+    var result by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        result = checkNetwork()
+    }
+
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -51,6 +99,9 @@ fun MainApp() {
             }
             val saved = getSaved()
             Text(text = "rusqlite: " + saved?.joinToString(", ") ?: "No data saved")
+            result?.let { ip ->
+                Text(text = "ip: $ip")
+            }
         }
     }
 }

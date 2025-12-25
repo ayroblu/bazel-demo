@@ -14,6 +14,7 @@ kt_android_library(
     deps = [
         "//rust-code/example-rusqlite:bindings-kotlin",
         "//rust-code/example-shared-lib:example-kotlin",
+        "//rust-code/http-shared:http-shared-kotlin",
         "@maven_compose//:androidx_activity_activity_compose",
         "@maven_compose//:androidx_activity_activity_ktx",
         "@maven_compose//:androidx_appcompat_appcompat",
@@ -27,6 +28,7 @@ kt_android_library(
         "@maven_compose//:androidx_lifecycle_lifecycle_viewmodel_compose",
         "@maven_compose//:androidx_lifecycle_lifecycle_viewmodel_ktx",
         "@maven_compose//:com_google_guava_guava",
+        "@maven_compose//:com_squareup_okhttp3_okhttp",
         "@maven_compose//:org_jetbrains_kotlin_kotlin_stdlib",
         "@maven_compose//:org_jetbrains_kotlinx_kotlinx_coroutines_guava",
         "@maven_compose//:org_jetbrains_kotlinx_kotlinx_serialization_json",

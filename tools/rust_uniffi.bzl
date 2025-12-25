@@ -82,7 +82,9 @@ def rust_uniffi_bindgen(name, srcs, deps = [], module_name = None, proc_macro_de
                 ":%s-lib-android" % name,
             ],
             "//conditions:default": ["@maven_compose//:net_java_dev_jna_jna"],
-        }),
+        }) + [
+            "@maven_compose//:org_jetbrains_kotlinx_kotlinx_coroutines_android",
+        ],
         resources = select({
             "@platforms//os:android": [],
             "//conditions:default": ["%s-lib-macos" % name],

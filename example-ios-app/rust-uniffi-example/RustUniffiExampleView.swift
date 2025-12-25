@@ -4,6 +4,7 @@ import example
 import http_shared_lib
 
 public struct RustUniffiExampleView: View {
+  @State var ip: String?
   public init() {
     registerUrlSessionHttpProvider()
   }
@@ -16,9 +17,12 @@ public struct RustUniffiExampleView: View {
           })
         cleanup.dispose()
         Task {
-          await checkNetwork()
+          ip = await checkNetwork()
         }
       }
+    if let ip {
+      Text("External ip: \(ip)")
+    }
   }
 }
 
