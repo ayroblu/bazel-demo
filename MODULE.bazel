@@ -278,99 +278,123 @@ register_toolchains(
 crate = use_extension("@rules_rust//crate_universe:extension.bzl", "crate")
 crate.spec(
     package = "tree-sitter",
-    version = "0.23.2",
+    version = "=0.23.2",
 )
 crate.spec(
     package = "tree-sitter-scala",
-    version = "0.23.3",
+    version = "=0.23.3",
 )
 crate.spec(
     package = "tree-sitter-python",
-    version = "0.23.4",
+    version = "=0.23.4",
 )
 crate.spec(
     package = "tree-sitter-typescript",
-    version = "0.23.2",
+    version = "=0.23.2",
 )
 crate.spec(
     package = "tree-sitter-rust",
-    version = "0.23.2",
+    version = "=0.23.2",
 )
 crate.spec(
     package = "tree-sitter-go",
-    version = "0.23.4",
+    version = "=0.23.4",
 )
 crate.spec(
     package = "tree-sitter-swift",
-    version = "0.7.0",
+    version = "=0.7.0",
 )
 crate.spec(
     package = "png",
-    version = "0.17.13",
+    version = "=0.17.13",
 )
 crate.spec(
     package = "const_format",
-    version = "0.2.33",
+    version = "=0.2.33",
 )
 crate.spec(
     package = "serde_json",
-    version = "1.0.133",
+    version = "=1.0.133",
 )
 crate.spec(
     features = ["derive"],
     package = "serde",
-    version = "1.0.215",
+    version = "=1.0.215",
+)
+crate.spec(
+    package = "serde-wasm-bindgen",
+    version = "=0.6.5",
+)
+crate.spec(
+    package = "tsify",
+    version = "=0.5.6",
+)
+crate.spec(
+    package = "js-sys",
+    version = "=0.3.82",
+)
+crate.spec(
+    package = "wasm-bindgen-futures",
+    version = "=0.4.55",
 )
 crate.spec(
     package = "assert_cmd",
-    version = "2.0.16",
+    version = "=2.0.16",
 )
 crate.spec(
     package = "regex",
-    version = "1.11.1",
+    version = "=1.11.1",
 )
 crate.spec(
     package = "weak-table",
-    version = "0.3.2",
+    version = "=0.3.2",
 )
 crate.spec(
     default_features = False,
     features = ["cli"],
     package = "uniffi",
-    version = "0.30.0",
+    version = "=0.30.0",
 )
 crate.spec(
     package = "wasm-bindgen",
-    version = "0.2.105",
+    version = "=0.2.105",
+)
+crate.spec(
+    package = "send_wrapper",
+    version = "=0.6.0",
+)
+crate.spec(
+    package = "futures",
+    version = "=0.3.31",
 )
 crate.spec(
     package = "unicode-segmentation",
-    version = "1.12.0",
+    version = "=1.12.0",
 )
 crate.spec(
     # feature is transitive, so this will affect libsqlite3-sys
     # features = ["bundled"],
     package = "rusqlite",
     repositories = ["crates"],
-    version = "0.37.0",
+    version = "=0.37.0",
 )
 crate.spec(
     features = ["bundled"],
     package = "rusqlite",
     repositories = ["crates-android"],
-    version = "0.37.0",
+    version = "=0.37.0",
 )
 crate.spec(
     package = "libsqlite3-sys",
-    version = "0.35.0",
+    version = "=0.35.0",
 )
 crate.spec(
     package = "async-trait",
-    version = "0.1.89",
+    version = "=0.1.89",
 )
 crate.spec(
     package = "thiserror",
-    version = "2.0.17",
+    version = "=2.0.17",
 )
 crate.from_specs(supported_platform_triples = [
     "aarch64-apple-darwin",

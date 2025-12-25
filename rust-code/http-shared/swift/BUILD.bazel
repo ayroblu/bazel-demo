@@ -11,6 +11,6 @@ swift_library(
     copts = STRICT_NONISOLATED_COPTS,
     module_name = "http_shared_lib",
     deps = [
-        "//rust-code/http-shared/bindings:bindings-swift",
+        "//rust-code/http-shared:http-shared-swift",
     ],
 )

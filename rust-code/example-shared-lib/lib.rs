@@ -1,8 +1,8 @@
-extern crate http_shared;
+extern crate http_shared_lib;
 
-use http_shared::HttpMethod;
-use http_shared::HttpRequest;
-use http_shared::GLOBAL_HTTP_PROVIDER;
+use http_shared_lib::http::HttpMethod;
+use http_shared_lib::http::HttpRequest;
+use http_shared_lib::http::GLOBAL_HTTP_PROVIDER;
 use std::sync::Arc;
 
 uniffi::setup_scaffolding!();

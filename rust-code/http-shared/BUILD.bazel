@@ -1,12 +1,28 @@
 load("@rules_rust//rust:defs.bzl", "rust_library")
-load("//tools:rust_uniffi.bzl", "uniffi_rust_library")
+load("//tools:rust_uniffi.bzl", "rust_uniffi_bindgen")
+load("//tools:rust_wasm.bzl", "rust_wasm_bindgen")
 
 package(default_visibility = ["//visibility:public"])
 
-uniffi_rust_library(
+rust_uniffi_bindgen(
     name = "http-shared",
-    srcs = ["lib.rs"],
+    srcs = glob(["*.rs"]),
     deps = [
         "@crates//:thiserror",
+    ],
+)
+
+rust_wasm_bindgen(
+    name = "http-shared-wasm",
+    srcs = glob(["*.rs"]),
+    deps = [
+        "@crates//:futures",
+        "@crates//:js-sys",
+        "@crates//:send_wrapper",
+        "@crates//:serde",
+        "@crates//:serde-wasm-bindgen",
+        "@crates//:thiserror",
+        "@crates//:tsify",
+        "@crates//:wasm-bindgen-futures",
     ],
 )

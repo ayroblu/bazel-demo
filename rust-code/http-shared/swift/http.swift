@@ -2,7 +2,7 @@ import Foundation
 import http_shared
 
 public func registerUrlSessionHttpProvider() {
-  registerHttpProvider(provider: UrlSessionHttpProvider())
+  setHttpProvider(provider: UrlSessionHttpProvider())
 }
 
 final class UrlSessionHttpProvider: HttpProvider {

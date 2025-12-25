@@ -7,7 +7,7 @@ rust_uniffi_bindgen(
     name = "example",
     srcs = ["lib.rs"],
     deps = [
-        "//rust-code/http-shared",
+        "//rust-code/http-shared:http-shared-lib",
         "@crates//:thiserror",
     ],
 )

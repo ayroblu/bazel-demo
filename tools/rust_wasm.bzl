@@ -1,14 +1,17 @@
 load("@rules_rust//rust:defs.bzl", "rust_shared_library")
 
-def rust_wasm_bindgen(name, srcs, is_debug = False, **kwargs):
+def rust_wasm_bindgen(name, srcs, deps = [], proc_macro_deps = [], is_debug = False, **kwargs):
     rust_shared_library(
         name = name + "-wasm",
         srcs = srcs,
         platform = "@rules_rust//rust/platform:wasm",
         rustc_flags = ["-g"] if is_debug else [],
-        deps = [
+        deps = deps + [
             "@crates//:wasm-bindgen",
         ],
+        proc_macro_deps = [
+            "@crates//:async-trait",
+        ] + proc_macro_deps,
         **kwargs
     )
 
