@@ -1,0 +1,2 @@
+#!/bin/bash
+adb install "$(git root)"/.bazel/bin/simple-android-app/simple-android-app.apk

@@ -1,0 +1,33 @@
+load("@rules_kotlin//kotlin:android.bzl", "kt_android_library")
+
+package(default_visibility = ["//simple-android-app:__subpackages__"])
+
+kt_android_library(
+    name = "src",
+    srcs = glob(["main/kotlin/**/*.kt"]),
+    custom_package = "com.simple.bazel",
+    manifest = "main/AndroidManifest.xml",
+    plugins = [
+        "//simple-android-app:jetpack_compose_compiler_plugin",
+        "//simple-android-app:serialization_compiler_plugin",
+    ],
+    deps = [
+        "@maven_compose//:androidx_activity_activity_compose",
+        "@maven_compose//:androidx_activity_activity_ktx",
+        "@maven_compose//:androidx_appcompat_appcompat",
+        "@maven_compose//:androidx_compose_material3_material3",
+        "@maven_compose//:androidx_compose_runtime_runtime",
+        "@maven_compose//:androidx_compose_ui_ui",
+        "@maven_compose//:androidx_compose_ui_ui_tooling",
+        "@maven_compose//:androidx_core_core_ktx",
+        "@maven_compose//:androidx_javascriptengine_javascriptengine",
+        "@maven_compose//:androidx_lifecycle_lifecycle_runtime_compose",
+        "@maven_compose//:androidx_lifecycle_lifecycle_viewmodel_compose",
+        "@maven_compose//:androidx_lifecycle_lifecycle_viewmodel_ktx",
+        "@maven_compose//:com_google_guava_guava",
+        "@maven_compose//:com_squareup_okhttp3_okhttp",
+        "@maven_compose//:org_jetbrains_kotlin_kotlin_stdlib",
+        "@maven_compose//:org_jetbrains_kotlinx_kotlinx_coroutines_guava",
+        "@maven_compose//:org_jetbrains_kotlinx_kotlinx_serialization_json",
+    ],
+)
