@@ -1,0 +1,18 @@
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_library(
+    name = "logger",
+    srcs = glob(["*.rs"]),
+    deps = select({
+        "@platforms//os:android": [],
+        "//conditions:default": ["@crates//:chrono"],
+    }),
+)
+
+rust_test(
+    name = "logger-tests",
+    crate = ":logger",
+    # env = {"RUST_BACKTRACE": "1"},
+)

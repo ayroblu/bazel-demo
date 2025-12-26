@@ -27,6 +27,20 @@ Install app on device:
 bazel mobile-install:android //example-android-app -- --launch_activity=com.example.bazel.MainActivity
 ```
 
+View logs:
+
+```
+# -c to clear logs
+# adb logcat -c
+adb logcat | grep --line-buffered "Bazel"
+```
+
+View crash logs:
+
+```
+adb logcat --buffer=crash
+```
+
 ## Helpful
 
 Toggle dark mode:

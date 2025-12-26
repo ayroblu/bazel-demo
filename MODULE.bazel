@@ -152,7 +152,7 @@ maven.install(
         "net.java.dev.jna:jna:5.18.1",
 
         # for network access
-        "com.squareup.okhttp3:okhttp:5.3.2",
+        "com.squareup.okhttp3:okhttp:4.12.0",
 
         # For tests
         "junit:junit:4.13.2",
@@ -365,6 +365,10 @@ crate.spec(
 crate.spec(
     package = "send_wrapper",
     version = "=0.6.0",
+)
+crate.spec(
+    package = "chrono",
+    version = "=0.4.42",
 )
 crate.spec(
     package = "futures",

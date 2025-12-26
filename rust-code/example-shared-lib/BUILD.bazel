@@ -6,8 +6,10 @@ package(default_visibility = ["//visibility:public"])
 rust_uniffi_bindgen(
     name = "example",
     srcs = ["lib.rs"],
+    extra_module_names = ["http_shared"],
     deps = [
         "//rust-code/http-shared:http-shared-lib",
+        "//rust-code/logger",
         "@crates//:thiserror",
     ],
 )

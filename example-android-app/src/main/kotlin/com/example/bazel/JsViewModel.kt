@@ -46,8 +46,8 @@ class JsApp(
         data[key] = value.toString()
     }
 
-    override fun emitObject(myParams: MyParams) {
-        Log.v("BazelJs2", "emitObject: $myParams")
+    override fun emitObject(params: MyParams) {
+        Log.v("BazelJs2", "emitObject: $params")
     }
 }
 

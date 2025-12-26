@@ -14,7 +14,6 @@ kt_android_library(
     deps = [
         "//rust-code/example-rusqlite:bindings-kotlin",
         "//rust-code/example-shared-lib:example-kotlin",
-        "//rust-code/http-shared:http-shared-kotlin",
         "@maven_compose//:androidx_activity_activity_compose",
         "@maven_compose//:androidx_activity_activity_ktx",
         "@maven_compose//:androidx_appcompat_appcompat",

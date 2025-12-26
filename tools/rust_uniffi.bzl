@@ -3,16 +3,16 @@ load("@rules_android//android:rules.bzl", "android_library")
 load("@rules_kotlin//kotlin:android.bzl", "kt_android_library")
 load("@rules_rust//rust:defs.bzl", "rust_library", "rust_shared_library")
 
-def rust_uniffi_bindgen(name, srcs, deps = [], module_name = None, proc_macro_deps = [], **kwargs):
+def rust_uniffi_bindgen(name, srcs, deps = [], module_name = None, extra_module_names = [], proc_macro_deps = [], **kwargs):
     module_name = module_name or name
     under_module_name = module_name.replace("-", "_")
 
-    uniffi_rust_library(name + "-lib", srcs, deps, module_name, proc_macro_deps, **kwargs)
+    _uniffi_cargo(name, module_name)
 
-    rust_shared_library(
-        name = name + "-shared-lib",
+    rust_library(
+        name = name + "-lib",
         srcs = srcs,
-        compile_data = [":%s-lib-cargo" % name],
+        compile_data = [":%s-cargo" % name],
         rustc_env = {
             "CARGO_MANIFEST_DIR": "$(DIRNAME)",
         },
@@ -20,19 +20,29 @@ def rust_uniffi_bindgen(name, srcs, deps = [], module_name = None, proc_macro_de
         proc_macro_deps = [
             "@crates//:async-trait",
         ] + proc_macro_deps,
-        toolchains = [":%s-lib-cargo-dirname" % name],
+        toolchains = [":%s-cargo-dirname" % name],
+        **kwargs
+    )
+
+    rust_shared_library(
+        name = name + "-shared-lib",
+        srcs = srcs,
+        compile_data = [":%s-cargo" % name],
+        rustc_env = {
+            "CARGO_MANIFEST_DIR": "$(DIRNAME)",
+        },
+        deps = ["@crates//:uniffi"] + deps,
+        proc_macro_deps = [
+            "@crates//:async-trait",
+        ] + proc_macro_deps,
+        toolchains = [":%s-cargo-dirname" % name],
         **kwargs
     )
 
     native.genrule(
         name = name,
         srcs = [":%s-shared-lib" % name],
-        outs = [
-            under_module_name + ".swift",
-            under_module_name + "FFI.h",
-            under_module_name + "FFI.modulemap",
-            "uniffi/%s/%s.kt" % (under_module_name, under_module_name),
-        ],
+        outs = _uniffi_outs([under_module_name] + extra_module_names),
         cmd = """
             # echo "--------- Processing $(SRCS)"
             # Consider adding --config uniffi.toml
@@ -45,15 +55,30 @@ def rust_uniffi_bindgen(name, srcs, deps = [], module_name = None, proc_macro_de
 
     native.objc_library(
         name = name + "-objc",
-        hdrs = [
-            ":%sFFI.h" % (under_module_name),
-        ],
+        hdrs = [":%sFFI.h" % (under_module_name)],
         module_name = under_module_name + "FFI",
         deps = [
             ":%s-lib" % name,
         ],
     )
 
+    # swift doesn't bundle a shared.so lib and so we can require each library independently
+    # for extra_name in extra_module_names:
+    #     native.objc_library(
+    #         name = name + "-" + extra_name + "-objc",
+    #         hdrs = [":%sFFI.h" % (extra_name)],
+    #         module_name = extra_name + "FFI",
+    #         deps = [
+    #             ":%s-lib" % name,
+    #         ],
+    #     )
+    # extra_deps = [":%s-%s-objc" % (name, extra_name) for extra_name in extra_module_names]
+    # swift_library(
+    #     name = name + "-swift",
+    #     srcs = _uniffi_swift_srcs([under_module_name] + extra_module_names),
+    #     module_name = under_module_name,
+    #     deps = [":%s-objc" % name] + extra_deps,
+    # )
     swift_library(
         name = name + "-swift",
         srcs = [":%s.swift" % under_module_name],
@@ -76,7 +101,7 @@ def rust_uniffi_bindgen(name, srcs, deps = [], module_name = None, proc_macro_de
 
     kt_android_library(
         name = name + "-kotlin",
-        srcs = ["uniffi/%s/%s.kt" % (under_module_name, under_module_name)],
+        srcs = _uniffi_kt_srcs([under_module_name] + extra_module_names),
         deps = select({
             "@platforms//os:android": ["@maven_compose_android//:net_java_dev_jna_jna"] + [
                 ":%s-lib-android" % name,
@@ -92,7 +117,39 @@ def rust_uniffi_bindgen(name, srcs, deps = [], module_name = None, proc_macro_de
         resource_strip_prefix = native.package_name(),
     )
 
-def uniffi_rust_library(name, srcs, deps = [], module_name = None, proc_macro_deps = [], **kwargs):
+def _uniffi_outs(names):
+    return [
+        item
+        for name in names
+        for item in [
+            name + ".swift",
+            name + "FFI.h",
+            name + "FFI.modulemap",
+            "uniffi/%s/%s.kt" % (name, name),
+        ]
+    ]
+
+# def _uniffi_swift_srcs(names):
+#     return [
+#         item
+#         for name in names
+#         for item in [":%s.swift" % under_module_name]
+#     ]
+
+def _uniffi_kt_srcs(names):
+    return [
+        item
+        for name in names
+        for item in [
+            "uniffi/%s/%s.kt" % (name, name),
+        ]
+    ]
+
+def _uniffi_cargo(name, module_name = None):
+    """
+    This is somewhat temporary, but necessary due to uniffi depending on Cargo.toml being present.
+    Ideally in a future version of uniffi, we can remove this
+    """
     native.genrule(
         name = name + "-cargo",
         outs = [
@@ -116,21 +173,6 @@ EOF
     dirname_provider(
         name = name + "-cargo-dirname",
         path = ":%s-cargo" % name,
-    )
-
-    rust_library(
-        name = name,
-        srcs = srcs,
-        compile_data = [":%s-cargo" % name],
-        rustc_env = {
-            "CARGO_MANIFEST_DIR": "$(DIRNAME)",
-        },
-        deps = ["@crates//:uniffi"] + deps,
-        proc_macro_deps = [
-            "@crates//:async-trait",
-        ] + proc_macro_deps,
-        toolchains = [":%s-cargo-dirname" % name],
-        **kwargs
     )
 
 def _dirname_provider_impl(ctx):

@@ -28,7 +28,7 @@ run:pro --ios_simulator_device="iPhone 17 Pro"
 import %workspace%/xcode.bazelrc
 
 # sourcekit-lsp bsp
-common --verbose_failures
+# common --verbose_failures
 common --cache_computed_file_digests=500000
 # common --compilation_mode=dbg
 common --action_cache_store_output_metadata
@@ -62,7 +62,7 @@ build --define=android_standalone_dexing_tool=d8_compat_dx
 
 build --@rules_kotlin//kotlin/settings:jvm_emit_jdeps=False
 
-# common:android --platforms=//tools/platforms:arm64-v8a
+common:android --platforms=//tools/platforms:arm64-v8a
 common:android --android_platforms=//tools/platforms:arm64-v8a
 
 common --java_runtime_version=remotejdk_17

@@ -1,8 +1,10 @@
 extern crate http_shared_lib;
+extern crate logger;
 
 use http_shared_lib::http::HttpMethod;
 use http_shared_lib::http::HttpRequest;
 use http_shared_lib::http::GLOBAL_HTTP_PROVIDER;
+use logger::*;
 use std::sync::Arc;
 
 uniffi::setup_scaffolding!();
@@ -37,10 +39,10 @@ impl Cleanup {
 #[uniffi::export]
 pub async fn check_network() -> Option<String> {
     let Some(http) = GLOBAL_HTTP_PROVIDER.get() else {
-        eprintln!("http provider not found");
+        elog!("http provider not found");
         return None;
     };
-    eprintln!("GET https://api.ipify.org");
+    log!("GET https://api.ipify.org");
     let result = http
         .send_request(HttpRequest {
             url: "https://api.ipify.org".to_string(),
@@ -51,12 +53,12 @@ pub async fn check_network() -> Option<String> {
         .await;
     match result {
         Ok(response) => {
-            eprintln!("HTTP {}", response.status_code);
+            log!("HTTP {}", response.status_code);
             let ip = String::from_utf8_lossy(&response.body);
-            eprintln!("{}", ip);
+            log!("{}", ip);
             return Some(ip.to_string());
         }
-        Err(err) => eprintln!("err: {}", err),
+        Err(err) => elog!("err: {}", err),
     };
     return None;
 }
