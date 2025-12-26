@@ -3,7 +3,9 @@ use chrono::Local;
 #[macro_export]
 macro_rules! log {
     ($($arg:tt)*) => {
-        $crate::log::log_info(format!($($arg)*));
+        $crate::log::log_info(
+            format!("{}:{}: {}", module_path!(), line!(), format_args!($($arg)*))
+        )
     };
 }
 #[macro_export]

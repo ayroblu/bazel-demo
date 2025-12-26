@@ -9,7 +9,9 @@ rust_uniffi_bindgen(
     srcs = glob(["*.rs"]),
     deps = [
         "//rust-code/logger",
+        "@crates//:dashmap",
         "@crates//:thiserror",
+        "@crates//:tokio",
     ],
 )
 

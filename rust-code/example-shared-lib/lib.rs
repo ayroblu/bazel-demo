@@ -12,7 +12,7 @@ uniffi::setup_scaffolding!();
 
 #[uniffi::export]
 pub fn print_and_add(a: i32, b: i32) -> i32 {
-    println!("Hello, World!");
+    log!("Hello, World!");
     a + b
 }
 
@@ -33,13 +33,12 @@ pub struct Cleanup;
 #[uniffi::export]
 impl Cleanup {
     fn dispose(&self) {
-        println!("dispose!");
+        log!("dispose!");
     }
 }
 
 #[uniffi::export]
 pub async fn check_network() -> Option<String> {
-    log!("GET https://api.ipify.org");
     let result = send_request(HttpRequest {
         url: "https://api.ipify.org".to_string(),
         method: HttpMethod::Get,
@@ -48,9 +47,8 @@ pub async fn check_network() -> Option<String> {
         options: HttpRequestOptions(0),
     })
     .await;
-    match result {
+    match &*result {
         Ok(response) => {
-            log!("HTTP {}", response.status_code);
             let ip = String::from_utf8_lossy(&response.body);
             log!("{}", ip);
             return Some(ip.to_string());

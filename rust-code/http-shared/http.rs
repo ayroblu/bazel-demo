@@ -1,5 +1,6 @@
+use std::collections::BTreeMap;
+use std::sync::Arc;
 use std::sync::OnceLock;
-use std::{collections::HashMap, sync::Arc};
 
 use crate::filters::{HttpFilter, DEFAULT_FILTERS};
 
@@ -14,25 +15,27 @@ pub fn register_http_provider(provider: Box<dyn HttpProvider>) {
     GLOBAL_HTTP_PROVIDER.get_or_init(|| Arc::from(provider));
 }
 
-pub async fn send_request(request: HttpRequest) -> Result<HttpResponse, HttpError> {
+pub async fn send_request(request: HttpRequest) -> Arc<Result<HttpResponse, HttpError>> {
     DEFAULT_FILTERS.handle(request).await
 }
 
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct HttpRequest {
     pub url: String,
     pub method: HttpMethod,
-    pub headers: Option<HashMap<String, String>>,
+    pub headers: Option<BTreeMap<String, String>>,
     pub body: Option<Vec<u8>>, // should be None for GET
     pub options: HttpRequestOptions,
 }
 
+#[derive(Debug, Clone)]
 pub struct HttpResponse {
     pub status_code: u16,
-    pub headers: HashMap<String, String>,
+    pub headers: BTreeMap<String, String>,
     pub body: Vec<u8>,
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Clone, thiserror::Error)]
 pub enum HttpError {
     #[error("No provider")]
     NoProvider,
@@ -46,7 +49,7 @@ pub enum HttpError {
     Unknown(String),
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum HttpMethod {
     Get,
     Post,

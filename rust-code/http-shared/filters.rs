@@ -1,16 +1,25 @@
 extern crate logger;
 
-use crate::http::{HttpError, HttpRequest, HttpRequestOptions, HttpResponse, GLOBAL_HTTP_PROVIDER};
+use crate::http::{
+    HttpError, HttpMethod, HttpRequest, HttpRequestOptions, HttpResponse, GLOBAL_HTTP_PROVIDER,
+};
+use dashmap::DashMap;
 use logger::*;
-use std::sync::LazyLock;
+use std::sync::{Arc, LazyLock};
 use std::time::Instant;
+use tokio::sync::OnceCell;
 
-pub trait HttpFilter: Send + Sync {
-    async fn handle(&self, request: HttpRequest) -> Result<HttpResponse, HttpError>;
+pub trait HttpFilter<R = Result<HttpResponse, HttpError>>: Send + Sync {
+    async fn handle(&self, request: HttpRequest) -> R;
 }
 
 pub struct LoggingFilter<H> {
     handler: H,
+}
+impl<H: HttpFilter> LoggingFilter<H> {
+    fn new(handler: H) -> Self {
+        Self { handler }
+    }
 }
 
 impl<H: HttpFilter> HttpFilter for LoggingFilter<H> {
@@ -42,6 +51,44 @@ impl<H: HttpFilter> HttpFilter for LoggingFilter<H> {
     }
 }
 
+pub struct SingleGetFilter<H> {
+    handler: H,
+    cache: Arc<DashMap<HttpRequest, Arc<OnceCell<Arc<Result<HttpResponse, HttpError>>>>>>,
+}
+impl<H: HttpFilter> SingleGetFilter<H> {
+    fn new(handler: H) -> Self {
+        Self {
+            handler,
+            cache: Arc::new(DashMap::new()),
+        }
+    }
+}
+
+impl<H: HttpFilter> HttpFilter<Arc<Result<HttpResponse, HttpError>>> for SingleGetFilter<H> {
+    async fn handle(&self, req: HttpRequest) -> Arc<Result<HttpResponse, HttpError>> {
+        if req.method != HttpMethod::Get {
+            let result = self.handler.handle(req).await;
+            return Arc::new(result);
+        }
+        let cell = self
+            .cache
+            .entry(req.clone())
+            .or_insert_with(|| Arc::new(OnceCell::new()))
+            .value()
+            .clone();
+
+        let result = cell
+            .get_or_init(|| async {
+                let value = self.handler.handle(req.clone()).await;
+                self.cache.remove(&req);
+                return Arc::new(value);
+            })
+            .await;
+
+        result.clone()
+    }
+}
+
 pub struct RequestFilter;
 
 impl HttpFilter for RequestFilter {
@@ -54,21 +101,17 @@ impl HttpFilter for RequestFilter {
 }
 
 /// Essentially
-/// LoggingFilter {
-///     handler: RequestFilter,
-/// }
+/// LoggingFilter::new(RequestFilter)
 #[macro_export]
 macro_rules! compose_filters {
     ($last:expr) => {
         $last
     };
     ($head:ident, $($tail:tt)*) => {
-        $head {
-            handler: compose_filters!($($tail)*),
-        }
+        $head::new(compose_filters!($($tail)*))
     };
 }
 
-type DefaultFilters = LoggingFilter<RequestFilter>;
+type DefaultFilters = SingleGetFilter<LoggingFilter<RequestFilter>>;
 pub static DEFAULT_FILTERS: LazyLock<DefaultFilters> =
-    LazyLock::new(|| compose_filters!(LoggingFilter, RequestFilter));
+    LazyLock::new(|| compose_filters!(SingleGetFilter, LoggingFilter, RequestFilter));

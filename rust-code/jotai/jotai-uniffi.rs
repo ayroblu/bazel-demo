@@ -6,11 +6,6 @@ use std::{cell::RefCell, rc::Rc};
 uniffi::setup_scaffolding!();
 
 #[uniffi::export]
-pub fn print_and_add(a: i32, b: i32) -> i32 {
-    println!("Hello, World!");
-    a + b
-}
-#[uniffi::export]
 pub fn get_counter() -> u32 {
     DEFAULT_STORE.with(|store_ref| {
         let store = store_ref.borrow_mut();

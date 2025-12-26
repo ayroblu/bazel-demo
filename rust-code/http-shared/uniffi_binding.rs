@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 use crate::http;
 use crate::http::{register_http_provider, HttpError, HttpMethod, HttpRequest, HttpResponse};
@@ -47,7 +47,7 @@ impl From<HttpRequest> for UniffiHttpRequest {
         Self {
             url: req.url,
             method: req.method.into(),
-            headers: req.headers,
+            headers: req.headers.map(|h| HashMap::from_iter(h)),
             body: req.body,
         }
     }
@@ -64,7 +64,7 @@ impl From<UniffiHttpResponse> for HttpResponse {
     fn from(res: UniffiHttpResponse) -> Self {
         Self {
             status_code: res.status_code,
-            headers: res.headers,
+            headers: BTreeMap::from_iter(res.headers),
             body: res.body,
         }
     }

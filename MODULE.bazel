@@ -375,6 +375,15 @@ crate.spec(
     version = "=0.3.31",
 )
 crate.spec(
+    package = "dashmap",
+    version = "=6.1.0",
+)
+crate.spec(
+    features = ["sync"],
+    package = "tokio",
+    version = "=1.48.0",
+)
+crate.spec(
     package = "unicode-segmentation",
     version = "=1.12.0",
 )
