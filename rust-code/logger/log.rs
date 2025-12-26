@@ -4,14 +4,16 @@ use chrono::Local;
 macro_rules! log {
     ($($arg:tt)*) => {
         $crate::log::log_info(
-            format!("{}:{}: {}", module_path!(), line!(), format_args!($($arg)*))
+            format!("{}:{} - {}", module_path!(), line!(), format_args!($($arg)*))
         )
     };
 }
 #[macro_export]
 macro_rules! elog {
     ($($arg:tt)*) => {
-        $crate::log::log_error(format!($($arg)*));
+        $crate::log::log_error(
+            format!("{}:{} - {}", module_path!(), line!(), format_args!($($arg)*))
+        )
     };
 }
 
