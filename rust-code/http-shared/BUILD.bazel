@@ -8,6 +8,7 @@ rust_uniffi_bindgen(
     name = "http-shared",
     srcs = glob(["*.rs"]),
     deps = [
+        "//rust-code/logger",
         "@crates//:thiserror",
     ],
 )
