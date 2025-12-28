@@ -21,7 +21,7 @@ impl JotaiStore {
         })
     }
 
-    pub fn get<T: Copy + 'static + PartialEq>(
+    pub fn get<T: Clone + 'static + PartialEq>(
         self: Arc<Self>,
         atom: &(impl ReadAtom<T> + ?Sized),
     ) -> Arc<T> {
@@ -42,7 +42,7 @@ impl JotaiStore {
 
         self.deps_manager.clear_rev_deps(*atom.get_id());
         let value = Arc::new(match &atom.get_read() {
-            AtomReader::Value(v) => *v,
+            AtomReader::Value(v) => v.clone(),
             AtomReader::Fn(f) => {
                 let mut getter = Getter::new(self.clone(), atom.get_id());
                 self.deps_manager
@@ -69,7 +69,7 @@ impl JotaiStore {
         return value;
     }
 
-    pub fn set_primitive<T: Copy + 'static + PartialEq>(
+    pub fn set_primitive<T: Clone + 'static + PartialEq>(
         &self,
         atom: Arc<PrimitiveAtom<T>>,
         arg: Arc<T>,
@@ -96,7 +96,7 @@ impl JotaiStore {
         }
     }
 
-    pub fn set<Arg: PartialEq + Copy + 'static>(
+    pub fn set<Arg: PartialEq + Clone + 'static>(
         self: Arc<Self>,
         atom: &DispatchAtom<Arg>,
         arg: &Arg,
@@ -105,7 +105,7 @@ impl JotaiStore {
         (atom.dispatch)(&mut setter, &arg);
     }
 
-    pub fn set_and_return<Arg: PartialEq + Copy + 'static, Return>(
+    pub fn set_and_return<Arg: PartialEq + Clone + 'static, Return>(
         self: Arc<Self>,
         atom: &DispatchWithReturnAtom<Arg, Return>,
         arg: &Arg,
@@ -114,7 +114,7 @@ impl JotaiStore {
         (atom.dispatch)(&mut setter, arg)
     }
 
-    pub fn sub<T: Copy + 'static + PartialEq, F>(
+    pub fn sub<T: Clone + 'static + PartialEq, F>(
         self: Arc<Self>,
         atom: Arc<(impl ReadAtom<T> + ?Sized + 'static)>,
         on_change: F,
@@ -315,19 +315,19 @@ impl<T> WriteAtom<T, ()> for PrimitiveAtom<T> {
     }
 }
 
-fn atom<T>(default_value: T) -> PrimitiveAtom<T> {
+pub fn atom<T>(default_value: T) -> PrimitiveAtom<T> {
     PrimitiveAtom::new(default_value)
 }
-fn select_atom<T: 'static>(f: impl Fn(&mut Getter) -> T + 'static) -> SelectAtom<T> {
+pub fn select_atom<T: 'static>(f: impl Fn(&mut Getter) -> T + 'static) -> SelectAtom<T> {
     SelectAtom::new(f)
 }
-fn dispatch_atom<Arg, F>(f: F) -> DispatchAtom<Arg>
+pub fn dispatch_atom<Arg, F>(f: F) -> DispatchAtom<Arg>
 where
     F: Fn(&mut Setter, &Arg) + 'static,
 {
     DispatchAtom::new(f)
 }
-fn dispatch_with_return_atom<Arg, Return, F>(f: F) -> DispatchWithReturnAtom<Arg, Return>
+pub fn dispatch_with_return_atom<Arg, Return, F>(f: F) -> DispatchWithReturnAtom<Arg, Return>
 where
     F: Fn(&mut Setter, &Arg) -> Return + 'static,
 {
@@ -353,7 +353,7 @@ impl Getter {
             tracked: Rc::new(RefCell::new(WeakKeyHashMap::new())),
         }
     }
-    pub fn get<T: Copy + 'static + PartialEq>(&self, atom: Arc<dyn ReadAtom<T>>) -> Arc<T> {
+    pub fn get<T: Clone + 'static + PartialEq>(&self, atom: Arc<dyn ReadAtom<T>>) -> Arc<T> {
         let store = self.store.clone();
         let result = store.clone().get(&*atom);
         let value = result.clone();
@@ -378,24 +378,24 @@ impl Setter {
     fn new(store: Arc<JotaiStore>) -> Self {
         Self { store }
     }
-    pub fn get<T: Copy + 'static + PartialEq>(&self, atom: Arc<dyn ReadAtom<T>>) -> Arc<T> {
+    pub fn get<T: Clone + 'static + PartialEq>(&self, atom: Arc<dyn ReadAtom<T>>) -> Arc<T> {
         return self.store.clone().get(&*atom);
     }
-    pub fn set<Arg: Copy + PartialEq + 'static, Return>(
+    pub fn set<Arg: Clone + PartialEq + 'static, Return>(
         &self,
         atom: &DispatchAtom<Arg>,
         arg: &Arg,
     ) {
         return self.store.clone().set(atom, arg);
     }
-    pub fn set_and_return<Arg: Copy + PartialEq + 'static, Return>(
+    pub fn set_and_return<Arg: Clone + PartialEq + 'static, Return>(
         &self,
         atom: &DispatchWithReturnAtom<Arg, Return>,
         arg: &Arg,
     ) -> Return {
         return self.store.clone().set_and_return(atom, arg);
     }
-    pub fn set_primitive<T: Copy + PartialEq + 'static>(
+    pub fn set_primitive<T: Clone + PartialEq + 'static>(
         &self,
         atom: Arc<PrimitiveAtom<T>>,
         arg: Arc<T>,

@@ -379,7 +379,10 @@ crate.spec(
     version = "=6.1.0",
 )
 crate.spec(
-    features = ["sync"],
+    features = [
+        "sync",
+        "rt",
+    ],
     package = "tokio",
     version = "=1.48.0",
 )

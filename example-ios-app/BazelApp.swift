@@ -1,12 +1,20 @@
+import FileUtils
 import SwiftLib
 import SwiftUI
+import SwiftUIUtils
 import drag_example
 import jotai_example
+import jotai_logs
+import rust_logs
 import rust_uniffi_example
 import sqlite_example
 
 @main
 struct BazelApp: App {
+  init() {
+    onLaunch()
+  }
+
   var body: some Scene {
     WindowGroup {
       TabView {
@@ -26,7 +34,21 @@ struct BazelApp: App {
           Text("More todo")
           DragExampleView()
         }
+
+        Tab("Logs", systemImage: "info.circle.text.page") {
+          NavigationLazyView {
+            LogsView()
+          }
+        }
       }
     }
   }
+}
+
+func onLaunch() {
+  let url =
+    try! FileManager.default.url(
+      for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false
+    ) / (Bundle.main.bundleIdentifier ?? "__unknown__")
+  initLogDb(path: url.path)
 }

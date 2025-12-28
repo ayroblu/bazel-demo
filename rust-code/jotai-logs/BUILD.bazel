@@ -1,0 +1,21 @@
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+load("//tools:rust_uniffi.bzl", "rust_uniffi_bindgen")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_uniffi_bindgen(
+    name = "jotai-logs",
+    srcs = glob(["*.rs"]),
+    deps = [
+        "//rust-code/jotai",
+        "//rust-code/log-db",
+        "//rust-code/logger",
+        "@crates//:tokio",
+    ],
+)
+
+rust_test(
+    name = "jotai-logs-tests",
+    crate = ":jotai-logs-lib",
+    # env = {"RUST_BACKTRACE": "1"},
+)

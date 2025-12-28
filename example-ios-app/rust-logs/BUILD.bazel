@@ -1,0 +1,17 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
+
+package(default_visibility = ["//example-ios-app:__subpackages__"])
+
+swift_library(
+    name = "rust-logs",
+    srcs = glob(
+        ["*.swift"],
+    ),
+    copts = STRICT_MAINACTOR_COPTS,
+    module_name = "rust_logs",
+    deps = [
+        "//rust-code/jotai-logs:jotai-logs-swift",
+        "//swift-shared/DateUtils",
+    ],
+)
