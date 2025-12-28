@@ -1,0 +1,16 @@
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+load("//tools:deps.bzl", "rusqlite_deps")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_library(
+    name = "rusqlite-migrations",
+    srcs = glob(["*.rs"]),
+    deps = rusqlite_deps(),
+)
+
+rust_test(
+    name = "rusqlite-migrations-tests",
+    crate = ":rusqlite-migrations",
+    # env = {"RUST_BACKTRACE": "1"},
+)

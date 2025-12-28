@@ -1,4 +1,5 @@
 load("@rules_rust//rust:defs.bzl", "rust_library")
+load("//tools:deps.bzl", "rusqlite_deps")
 load("//tools:rust_uniffi.bzl", "rust_uniffi_bindgen")
 load("//tools:rust_wasm.bzl", "rust_wasm_bindgen")
 
@@ -7,10 +8,7 @@ package(default_visibility = ["//visibility:public"])
 rust_library(
     name = "example-sqlite",
     srcs = ["lib.rs"],
-    deps = select({
-        "@platforms//os:android": ["@crates-android//:rusqlite"],
-        "//conditions:default": ["@crates//:rusqlite"],
-    }),
+    deps = rusqlite_deps(),
 )
 
 rust_uniffi_bindgen(
