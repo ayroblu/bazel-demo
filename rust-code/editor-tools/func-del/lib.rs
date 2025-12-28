@@ -3,7 +3,6 @@ extern crate unicode_segmentation;
 pub mod types;
 
 use std::cell::RefCell;
-
 use types::Input;
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -37,6 +36,7 @@ fn replacement_with_offset_first_paren(s: &String, byte_offset: usize) -> Option
         return None;
     };
     let counter_ref = RefCell::new(0);
+    // fairly standard find the matching brace with a counter algo
     let Some(end) = s
         .bytes()
         .enumerate()
@@ -61,20 +61,26 @@ fn replacement_with_offset_first_paren(s: &String, byte_offset: usize) -> Option
     else {
         return None;
     };
-    // Special case for turbofish
-    if *starting_brace == b'<' && s.as_bytes().get(end + 1).is_some_and(|c| *c == b'(') {
+
+    let is_angle = *starting_brace == b'<';
+    // Special case for turbofish + generic: `collect::<Type>(param)`
+    // We use the parens instead, and angle braces are just "text"
+    if is_angle && s.as_bytes().get(end + 1).is_some_and(|c| *c == b'(') {
         return replacement_with_offset_first_paren(s, end + 1);
     }
 
+    // from the relevant brace, go backwards until you reach the start of "method name"
     let Some(start) = s
         .bytes()
         .enumerate()
         .take(byte_offset)
         .rev()
-        // '>': Generics + turbofish
-        .skip_while(|(_, c)| c.is_ascii_whitespace() || matches!(*c, b'>'))
+        // '>': Generics + turbofish e.g. func<T>(param)
+        .skip_while(|(_, c)| c.is_ascii_whitespace() || (!is_angle && matches!(*c, b'>')))
         .take_while(|(_, c)| {
-            c.is_ascii_alphanumeric() || matches!(*c, b'_' | b'.' | b'-' | b':' | b'<')
+            c.is_ascii_alphanumeric()
+                || matches!(*c, b'_' | b'.' | b'-' | b':')
+                || (!is_angle && matches!(*c, b'<'))
         })
         .last()
         .map(|(i, _)| i)
@@ -110,7 +116,7 @@ fn get_parent_func_byte_pos(s: &String, byte_pos: usize) -> Option<usize> {
         .enumerate()
         .rev()
         .take_while(|(_, c)| !matches!(*c, b')' | b'}' | b'>' | b']'))
-        .find(|(_, c)| matches!(*c, b'(' | b'{' | b'<' | b']'))
+        .find(|(_, c)| matches!(*c, b'(' | b'{' | b'<' | b'['))
         .map(|(i, _)| i)
 }
 fn get_byte_pos(lines: &Vec<&str>, position: (usize, usize)) -> usize {
