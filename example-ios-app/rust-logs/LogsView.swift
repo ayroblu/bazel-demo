@@ -65,8 +65,21 @@ public struct LogsView: View {
     }
     .navigationTitle("Logs")
     .onAppear {
-      logItems = getLogs()
+      updateAndTrack()
     }
+    .onDisappear {
+      cleanup?.dispose()
+      cleanup = nil
+    }
+  }
+
+  @State var cleanup: Cleanup?
+  func updateAndTrack() {
+    cleanup = subLogs(func: ClosureWrapper { logItems = getLogs() })
+    // let store = createStore()
+    // let myAtom = LogAtom(store: store)
+    // logItems = myAtom.get()
+    // cleanup = myAtom.sub(func: ClosureWrapper { logItems = myAtom.get() })
   }
 
   func deleteAll() {
@@ -75,14 +88,15 @@ public struct LogsView: View {
   }
 }
 
-// final class ClosureWrapper: ClosureCallback {
-//   let callback: @Sendable () -> Void
+// unchecked: We know that we only use this callback on the UI
+final class ClosureWrapper: ClosureCallback, @unchecked Sendable {
+  let callback: () -> Void
 
-//   init(_ callback: @escaping @Sendable () -> Void) {
-//     self.callback = callback
-//   }
+  init(_ callback: @escaping () -> Void) {
+    self.callback = callback
+  }
 
-//   func notif() {
-//     callback()
-//   }
-// }
+  func notif() {
+    callback()
+  }
+}

@@ -7,9 +7,8 @@ rust_uniffi_bindgen(
     name = "jotai-logs",
     srcs = glob(["*.rs"]),
     deps = [
+        "//rust-code/client-shared/log-db",
         "//rust-code/jotai",
-        "//rust-code/log-db",
-        "//rust-code/logger",
         "@crates//:tokio",
     ],
 )

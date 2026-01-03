@@ -18,8 +18,8 @@ rust_library(
         ["main.rs"],
     ),
     deps = [
+        "//rust-code/editor-tools/utils",
         "//rust-code/tree-sitter-utils",
-        "//rust-code/utils",
         "@crates//:serde",
         "@crates//:tree-sitter",
         "@crates//:tree-sitter-go",

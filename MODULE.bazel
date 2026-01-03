@@ -243,8 +243,8 @@ use_repo(js_site_npm, "js-site-npm")
 example_shared_lib_jest_npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm", dev_dependency = True)
 example_shared_lib_jest_npm.npm_translate_lock(
     name = "example-shared-lib-jest-npm",
-    npmrc = "//rust-code/example-shared-lib/tests:.npmrc",
-    pnpm_lock = "//rust-code/example-shared-lib/tests:pnpm-lock.yaml",
+    npmrc = "//rust-code/client-shared/example-shared-lib/tests:.npmrc",
+    pnpm_lock = "//rust-code/client-shared/example-shared-lib/tests:pnpm-lock.yaml",
     verify_node_modules_ignored = "//:.bazelignore",
 )
 use_repo(example_shared_lib_jest_npm, "example-shared-lib-jest-npm")
@@ -274,7 +274,6 @@ use_repo(rust, "rust_toolchains")
 
 register_toolchains(
     "@rust_toolchains//:all",
-    "//rust-code/aarch64-linux-android:toolchain",
     "@rules_rust//rust/private/dummy_cc_toolchain:dummy_cc_wasm32_toolchain",
 )
 
@@ -378,6 +377,16 @@ crate.spec(
     package = "dashmap",
     version = "=6.1.0",
 )
+crate.spec(
+    package = "parking_lot",
+    version = "=0.12.5",
+)
+
+# Useful if you want unstable features like LocalRuntime
+# crate.annotation(
+#     crate = "tokio",
+#     rustc_flags = ["--cfg=tokio_unstable"],
+# )
 crate.spec(
     features = [
         "sync",

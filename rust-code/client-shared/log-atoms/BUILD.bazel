@@ -1,0 +1,19 @@
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+load("//tools:deps.bzl", "rusqlite_deps")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_library(
+    name = "log-atoms",
+    srcs = glob(["*.rs"]),
+    deps = [
+        "//rust-code/client-shared/log-db",
+        "//rust-code/jotai",
+    ],
+)
+
+rust_test(
+    name = "log-atoms-tests",
+    crate = ":log-atoms",
+    # env = {"RUST_BACKTRACE": "1"},
+)

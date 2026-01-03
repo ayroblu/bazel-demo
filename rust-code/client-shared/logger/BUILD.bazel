@@ -8,7 +8,10 @@ rust_library(
     deps = select({
         "@platforms//os:android": [],
         "//conditions:default": ["@crates//:chrono"],
-    }) + ["//rust-code/log-db"],
+    }) + [
+        # "//rust-code/client-shared/jotai-logs:jotai-logs-lib",
+        # "//rust-code/client-shared/log-db",
+    ],
 )
 
 rust_test(

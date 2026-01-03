@@ -18,7 +18,7 @@ swift_test(
     srcs = glob(["*.swift"]),
     copts = STRICT_NONISOLATED_COPTS,
     deps = [
-        "//rust-code/example-shared-lib:example-swift",
+        "//rust-code/client-shared/example-shared-lib:example-swift",
     ],
 )
 
@@ -28,7 +28,7 @@ kt_android_local_test(
     srcs = ["BridgeTests.kt"],
     test_class = "com.example.BridgeTests",
     deps = [
-        "//rust-code/example-shared-lib:example-kotlin",
+        "//rust-code/client-shared/example-shared-lib:example-kotlin",
         "@maven_compose//:junit_junit",
     ],
 )
@@ -37,7 +37,7 @@ jest_test(
     name = "js-tests",
     data = [
         "BridgeTests.test.js",
-        "//rust-code/example-shared-lib:example-wasm",
+        "//rust-code/client-shared/example-shared-lib:example-wasm",
     ],
     node_modules = ":node_modules",
     node_options = [

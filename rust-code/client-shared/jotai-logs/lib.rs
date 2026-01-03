@@ -9,6 +9,35 @@ use std::time::SystemTime;
 
 uniffi::setup_scaffolding!();
 
+#[derive(uniffi::Object)]
+struct Store(Arc<JotaiStore>);
+unsafe impl Send for Store {}
+unsafe impl Sync for Store {}
+#[uniffi::export]
+fn create_store() -> Store {
+    return Store(JotaiStore::new());
+}
+#[derive(uniffi::Object)]
+struct LogAtom {
+    store: Arc<Store>,
+}
+#[uniffi::export]
+impl LogAtom {
+    #[uniffi::constructor]
+    fn new(store: Arc<Store>) -> Arc<Self> {
+        Arc::new(Self { store })
+    }
+    fn get(&self) -> Vec<Log> {
+        let log_atom = LOG_ATOM.with(|a| a.clone());
+        self.store.0.clone().get(&*log_atom).to_vec()
+    }
+    fn sub(&self, func: Box<dyn ClosureCallback>) -> Cleanup {
+        let log_atom = LOG_ATOM.with(|a| a.clone());
+        let store = self.store.0.clone();
+        let dispose = store.sub(log_atom, move |_| func.notif());
+        return Cleanup::new(dispose);
+    }
+}
 #[uniffi::export]
 pub fn get_logs() -> Vec<Log> {
     select_log()
@@ -43,11 +72,17 @@ pub fn init_log_db(path: &str) {
 #[uniffi::export]
 pub fn log(message: &str) {
     logger::log::log_info(message);
+    invalidate_logs();
 }
 #[uniffi::export]
 pub fn elog(message: &str) {
     logger::log::log_error(message);
+    invalidate_logs();
 }
+// logger (interface)
+// log stdout / logcat
+// db log
+// atom invalidation
 
 #[derive(uniffi::Record, Debug, PartialEq, Clone)]
 pub struct Log {
@@ -65,15 +100,20 @@ impl From<log_db::Log> for Log {
     }
 }
 #[uniffi::export]
-pub fn subber(func: Box<dyn ClosureCallback>) -> Arc<Cleanup> {
+pub fn sub_logs(func: Box<dyn ClosureCallback>) -> Arc<Cleanup> {
     let store = DEFAULT_STORE.with(|arc| arc.clone());
     let log_atom = LOG_ATOM.with(|a| a.clone());
     let dispose = store.sub(log_atom, move |_| func.notif());
     return Arc::new(Cleanup::new(dispose));
 }
+// store wraps jotaiStore
+// You must construct the wrapper atom in swift land (just to get the store)
+// atom { store }
+// atom.get() // known e.g. String
+// atom.sub(() => {}) // just calls store.sub(atom, () => {})
 
 #[uniffi::export(callback_interface)]
-pub trait ClosureCallback: Send + Sync + 'static {
+pub trait ClosureCallback {
     // notify is a reserved word in kotlin 🤦
     fn notif(&self);
 }

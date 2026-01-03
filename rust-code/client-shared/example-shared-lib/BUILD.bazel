@@ -8,8 +8,8 @@ rust_uniffi_bindgen(
     srcs = ["lib.rs"],
     extra_module_names = ["http_shared"],
     deps = [
-        "//rust-code/http-shared:http-shared-lib",
-        "//rust-code/logger",
+        "//rust-code/client-shared/http-shared:http-shared-lib",
+        "//rust-code/client-shared/logger",
         "@crates//:thiserror",
     ],
 )

@@ -1,3 +1,4 @@
+use parking_lot::ReentrantMutex;
 use std::any::Any;
 use std::cell::RefCell;
 use std::collections::HashSet;
@@ -10,7 +11,8 @@ use weak_table::{WeakHashSet, WeakKeyHashMap};
 pub struct JotaiStore {
     map: Rc<RefCell<WeakKeyHashMap<Weak<AtomId>, Arc<dyn Any>>>>,
     deps_manager: Rc<DepsManager>,
-    subs: Rc<RefCell<WeakKeyHashMap<Weak<AtomId>, Arc<SubscriptionSet<()>>>>>,
+    subs: Rc<RefCell<WeakKeyHashMap<Weak<AtomId>, Rc<SubscriptionSet<()>>>>>,
+    mutex: ReentrantMutex<()>,
 }
 impl JotaiStore {
     pub fn new() -> Arc<Self> {
@@ -18,6 +20,7 @@ impl JotaiStore {
             map: Rc::new(RefCell::new(WeakKeyHashMap::new())),
             deps_manager: Rc::new(DepsManager::new()),
             subs: Rc::new(RefCell::new(WeakKeyHashMap::new())),
+            mutex: ReentrantMutex::new(()),
         })
     }
 
@@ -25,6 +28,7 @@ impl JotaiStore {
         self: Arc<Self>,
         atom: &(impl ReadAtom<T> + ?Sized),
     ) -> Arc<T> {
+        let _ = self.mutex.lock();
         let is_stale = self.deps_manager.check_stale(&atom.get_id());
         let cached_value = self
             .map
@@ -74,6 +78,7 @@ impl JotaiStore {
         atom: Arc<PrimitiveAtom<T>>,
         arg: Arc<T>,
     ) {
+        let _ = self.mutex.lock();
         {
             let cached_value = self
                 .map
@@ -101,6 +106,7 @@ impl JotaiStore {
         atom: &DispatchAtom<Arg>,
         arg: &Arg,
     ) {
+        let _ = self.mutex.lock();
         let mut setter = Setter::new(self.clone());
         (atom.dispatch)(&mut setter, &arg);
     }
@@ -110,6 +116,7 @@ impl JotaiStore {
         atom: &DispatchWithReturnAtom<Arg, Return>,
         arg: &Arg,
     ) -> Return {
+        let _ = self.mutex.lock();
         let mut setter = Setter::new(self.clone());
         (atom.dispatch)(&mut setter, arg)
     }
@@ -122,6 +129,7 @@ impl JotaiStore {
     where
         F: Fn(&()) + 'static,
     {
+        let _ = self.mutex.lock();
         let store = self.clone();
         let atom_c = atom.clone();
         let dispose_dep = self.deps_manager.add_sub(atom.get_id(), move || {
@@ -131,7 +139,7 @@ impl JotaiStore {
             .subs
             .borrow_mut()
             .entry(atom.get_id())
-            .or_insert_with(|| Arc::new(SubscriptionSet::new()))
+            .or_insert_with(|| Rc::new(SubscriptionSet::new()))
             .sub(on_change);
         self.clone().get(&*atom);
         return move || {
@@ -146,6 +154,9 @@ impl JotaiStore {
         };
     }
 }
+// We trust that with the Reentrant mutex on all public methods, it's Send + Sync
+unsafe impl Send for JotaiStore {}
+unsafe impl Sync for JotaiStore {}
 
 // Global, thread-safe counter
 static NEXT_ID: AtomicUsize = AtomicUsize::new(0);
@@ -172,7 +183,7 @@ impl AtomId {
     }
 }
 pub enum AtomReader<T> {
-    Fn(Box<dyn Fn(&mut Getter) -> T>),
+    Fn(Box<dyn Fn(&mut Getter) -> T + Send + Sync>),
     Value(T),
 }
 pub struct SelectAtom<T> {
@@ -193,7 +204,7 @@ impl<T> Hash for SelectAtom<T> {
 impl<T: 'static> SelectAtom<T> {
     pub fn new<F>(f: F) -> Self
     where
-        F: Fn(&mut Getter) -> T + 'static,
+        F: Fn(&mut Getter) -> T + 'static + Send + Sync,
     {
         Self {
             id: Arc::new(AtomId::new()),
@@ -318,7 +329,9 @@ impl<T> WriteAtom<T, ()> for PrimitiveAtom<T> {
 pub fn atom<T>(default_value: T) -> PrimitiveAtom<T> {
     PrimitiveAtom::new(default_value)
 }
-pub fn select_atom<T: 'static>(f: impl Fn(&mut Getter) -> T + 'static) -> SelectAtom<T> {
+pub fn select_atom<T: 'static>(
+    f: impl Fn(&mut Getter) -> T + 'static + Send + Sync,
+) -> SelectAtom<T> {
     SelectAtom::new(f)
 }
 pub fn dispatch_atom<Arg, F>(f: F) -> DispatchAtom<Arg>
@@ -566,7 +579,7 @@ impl<T: 'static> SubscriptionSet<T> {
 #[cfg(test)]
 mod tests {
     use std::cell::RefCell;
-    // use std::sync::LazyLock;
+    use std::sync::{LazyLock, Mutex};
 
     use super::*;
 
@@ -574,18 +587,8 @@ mod tests {
         pub static DEFAULT_STORE: Arc<JotaiStore> = JotaiStore::new();
         pub static COUNTER_ATOM: Arc<PrimitiveAtom<u32>> = Arc::new(atom(10));
     }
-    // pub static DEFAULT_STORE_2: LazyLock<JotaiStore> = LazyLock::new(|| JotaiStore::new());
-    // pub static COUNTER_ATOM_2: LazyLock<Arc<PrimitiveAtom<u32>>> =
-    //     LazyLock::new(|| Arc::new(atom(10)));
-
     #[test]
     fn test_globals() {
-        // if let Ok(mut store) = DEFAULT_STORE.lock() {
-        //     let counter_atom = COUNTER_ATOM.clone();
-        //     assert_eq!(*store.get(&*counter_atom), 10);
-        //     store.set_primitive(&counter_atom, Arc::new(20));
-        //     assert_eq!(*store.get(&*counter_atom), 20);
-        // }
         let store = DEFAULT_STORE.with(|arc| arc.clone());
         let counter_atom = COUNTER_ATOM.with(|arc| arc.clone());
         assert_eq!(*store.clone().get(&*counter_atom), 10);
@@ -593,6 +596,23 @@ mod tests {
             .clone()
             .set_primitive(counter_atom.clone(), Arc::new(20));
         assert_eq!(*store.clone().get(&*counter_atom), 20);
+    }
+
+    thread_local! {
+        pub static DEFAULT_STORE_2: LazyLock<Arc<JotaiStore>> = LazyLock::new(|| JotaiStore::new());
+        pub static COUNTER_ATOM_2: LazyLock<Arc<PrimitiveAtom<u32>>> =
+            LazyLock::new(|| Arc::new(atom(10)));
+    }
+    #[test]
+    fn test_globals_lazylock() {
+        // I haven't figured out how to remove the thread_local! yet
+        let store = DEFAULT_STORE_2.with(|v| (**v).clone());
+        let counter_atom = COUNTER_ATOM_2.with(|v| (**v).clone());
+        assert_eq!(*store.clone().get(&*counter_atom), 10);
+        store
+            .clone()
+            .set_primitive(counter_atom.clone(), Arc::new(20));
+        assert_eq!(*store.get(&*counter_atom), 20);
     }
 
     #[test]
@@ -614,26 +634,26 @@ mod tests {
     fn test_derivative_atom() {
         let store = JotaiStore::new();
         let counter_atom = Arc::new(atom(10));
-        let counter = Rc::new(RefCell::new(0));
+        let counter = Arc::new(Mutex::new(0));
         let derivative_atom = select_atom({
             let c = counter_atom.clone();
             let c_ref = counter.clone();
             move |get| {
-                *c_ref.borrow_mut() += 1;
+                *c_ref.lock().unwrap() += 1;
                 *get.get(c.clone()) * 2
             }
         });
         assert_eq!(*store.clone().get(&*counter_atom), 10);
         assert_eq!(*store.clone().get(&derivative_atom), 20);
-        assert_eq!(*counter.borrow(), 1);
+        assert_eq!(*counter.lock().unwrap(), 1);
         store
             .clone()
             .set_primitive(counter_atom.clone(), Arc::new(20));
         assert_eq!(*store.clone().get(&*counter_atom), 20);
         assert_eq!(*store.clone().get(&derivative_atom), 40);
-        assert_eq!(*counter.borrow(), 2);
+        assert_eq!(*counter.lock().unwrap(), 2);
         assert_eq!(*store.clone().get(&derivative_atom), 40);
-        assert_eq!(*counter.borrow(), 2);
+        assert_eq!(*counter.lock().unwrap(), 2);
     }
 
     #[test]
@@ -669,7 +689,7 @@ mod tests {
     fn test_sub_atom() {
         let store = JotaiStore::new();
         let value_atom = Arc::new(atom(10));
-        let d2_counter = Rc::new(RefCell::new(0));
+        let d2_counter = Arc::new(Mutex::new(0));
         let sub_counter = Rc::new(RefCell::new(0));
         let derivative_atom = Arc::new(select_atom({
             let value_atom_c = value_atom.clone();
@@ -679,7 +699,7 @@ mod tests {
             let d = derivative_atom.clone();
             let counter = d2_counter.clone();
             move |getter| {
-                *counter.borrow_mut() += 1;
+                *counter.lock().unwrap() += 1;
                 *getter.get(d.clone())
             }
         }));
@@ -687,20 +707,20 @@ mod tests {
             let counter = sub_counter.clone();
             move |_| *counter.borrow_mut() += 1
         });
-        assert_eq!(*d2_counter.borrow(), 1);
+        assert_eq!(*d2_counter.lock().unwrap(), 1);
         assert_eq!(*sub_counter.borrow(), 0);
         assert_eq!(*store.clone().get(&*derivative2_atom), true);
-        assert_eq!(*d2_counter.borrow(), 1);
+        assert_eq!(*d2_counter.lock().unwrap(), 1);
         assert_eq!(*sub_counter.borrow(), 0);
         store
             .clone()
             .set_primitive(value_atom.clone(), Arc::new(11));
-        assert_eq!(*d2_counter.borrow(), 1);
+        assert_eq!(*d2_counter.lock().unwrap(), 1);
         assert_eq!(*sub_counter.borrow(), 0);
         store
             .clone()
             .set_primitive(value_atom.clone(), Arc::new(12));
-        assert_eq!(*d2_counter.borrow(), 2);
+        assert_eq!(*d2_counter.lock().unwrap(), 2);
         assert_eq!(*sub_counter.borrow(), 1);
 
         dispose();
@@ -708,7 +728,7 @@ mod tests {
         store
             .clone()
             .set_primitive(value_atom.clone(), Arc::new(11));
-        assert_eq!(*d2_counter.borrow(), 2);
+        assert_eq!(*d2_counter.lock().unwrap(), 2);
         assert_eq!(*sub_counter.borrow(), 1);
     }
 

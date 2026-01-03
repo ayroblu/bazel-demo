@@ -1,5 +1,4 @@
-use log_db::delete_log_by_id;
-use log_db::insert_log;
+use crate::run_effects;
 use std::ffi::CString;
 use std::time::SystemTime;
 
@@ -51,10 +50,10 @@ pub fn log_error(message: &str) {
 }
 
 fn log(level: LogLevel, message: &str) {
-    log_android(level, message);
-    let _ = insert_log(&level.to_string(), message, SystemTime::now());
+    log_android(&level, message);
+    run_effects(SystemTime::now(), &level.to_string(), message);
 }
-fn log_android(level: LogLevel, message: &str) {
+fn log_android(level: &LogLevel, message: &str) {
     // TODO: maybe inject tag or something
     let tag = CString::new("BazelRust").unwrap();
     let fmt = CString::new("%s").unwrap();
@@ -62,7 +61,7 @@ fn log_android(level: LogLevel, message: &str) {
 
     unsafe {
         __android_log_print(
-            level as i32,
+            *level as i32,
             tag.as_ptr() as *const i8,
             fmt.as_ptr() as *const i8,
             msg.as_ptr() as *const i8,
@@ -70,29 +69,29 @@ fn log_android(level: LogLevel, message: &str) {
     }
 }
 
-pub struct SingleLog {
-    last_id: Option<i64>,
-}
-impl SingleLog {
-    pub fn new() -> Self {
-        Self { last_id: None }
-    }
-    pub fn log(&mut self, message: &str) {
-        let level = LogLevel::Info;
-        let key = &level.to_string();
-        let now = SystemTime::now();
-        log_android(level, message);
-        let last_id = insert_log(key, message, now);
-        self.last_id.map(|id| delete_log_by_id(id));
-        self.last_id = last_id.ok().and_then(|v| v);
-    }
-    pub fn elog(&mut self, message: &str) {
-        let level = LogLevel::Error;
-        let key = &level.to_string();
-        let now = SystemTime::now();
-        log_android(level, message);
-        let last_id = insert_log(key, message, now);
-        self.last_id.map(|id| delete_log_by_id(id));
-        self.last_id = last_id.ok().and_then(|v| v);
-    }
-}
+// pub struct SingleLog {
+//     last_id: Option<i64>,
+// }
+// impl SingleLog {
+//     pub fn new() -> Self {
+//         Self { last_id: None }
+//     }
+//     pub fn log(&mut self, message: &str) {
+//         let level = LogLevel::Info;
+//         let key = &level.to_string();
+//         let now = SystemTime::now();
+//         log_android(level, message);
+//         let last_id = insert_log(key, message, now);
+//         self.last_id.map(|id| delete_log_by_id(id));
+//         self.last_id = last_id.ok().and_then(|v| v);
+//     }
+//     pub fn elog(&mut self, message: &str) {
+//         let level = LogLevel::Error;
+//         let key = &level.to_string();
+//         let now = SystemTime::now();
+//         log_android(level, message);
+//         let last_id = insert_log(key, message, now);
+//         self.last_id.map(|id| delete_log_by_id(id));
+//         self.last_id = last_id.ok().and_then(|v| v);
+//     }
+// }

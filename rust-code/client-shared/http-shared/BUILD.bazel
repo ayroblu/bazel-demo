@@ -8,7 +8,7 @@ rust_uniffi_bindgen(
     name = "http-shared",
     srcs = glob(["*.rs"]),
     deps = [
-        "//rust-code/logger",
+        "//rust-code/client-shared/logger",
         "@crates//:dashmap",
         "@crates//:thiserror",
         "@crates//:tokio",
