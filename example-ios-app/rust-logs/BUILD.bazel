@@ -11,7 +11,8 @@ swift_library(
     copts = STRICT_MAINACTOR_COPTS,
     module_name = "rust_logs",
     deps = [
-        "//rust-code/jotai-logs:jotai-logs-swift",
+        "//rust-code/client-shared/jotai-logs:jotai-logs-swift",
+        "//rust-code/client-shared/jotai-logs/swift",
         "//swift-shared/DateUtils",
     ],
 )

@@ -11,8 +11,8 @@ swift_library(
     copts = STRICT_MAINACTOR_COPTS,
     module_name = "rust_uniffi_example",
     deps = [
-        "//rust-code/example-shared-lib:example-swift",
-        "//rust-code/http-shared/swift",
+        "//rust-code/client-shared/example-shared-lib:example-swift",
+        "//rust-code/client-shared/http-shared/swift",
         "//swift-shared/Log",
     ],
 )

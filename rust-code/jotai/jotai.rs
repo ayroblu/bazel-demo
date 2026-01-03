@@ -1,11 +1,12 @@
 use parking_lot::ReentrantMutex;
+use send_wrapper::SendWrapper;
 use std::any::Any;
 use std::cell::RefCell;
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::{Arc, Weak};
+use std::sync::{Arc, Mutex, Weak};
 use weak_table::{WeakHashSet, WeakKeyHashMap};
 
 pub struct JotaiStore {
@@ -123,11 +124,11 @@ impl JotaiStore {
 
     pub fn sub<T: Clone + 'static + PartialEq, F>(
         self: Arc<Self>,
-        atom: Arc<(impl ReadAtom<T> + ?Sized + 'static)>,
+        atom: Arc<(impl ReadAtom<T> + ?Sized + 'static + Send + Sync)>,
         on_change: F,
-    ) -> impl FnOnce()
+    ) -> impl Fn() + Send + Sync
     where
-        F: Fn(&()) + 'static,
+        F: Fn(&()) + 'static + Send + Sync,
     {
         let _ = self.mutex.lock();
         let store = self.clone();
@@ -135,19 +136,32 @@ impl JotaiStore {
         let dispose_dep = self.deps_manager.add_sub(atom.get_id(), move || {
             store.clone().get(&*atom_c);
         });
+        let dispose_dep = Arc::new(Mutex::new(Some(dispose_dep)));
         let dispose_sub = self
             .subs
             .borrow_mut()
             .entry(atom.get_id())
             .or_insert_with(|| Rc::new(SubscriptionSet::new()))
             .sub(on_change);
+        let dispose_sub = Arc::new(Mutex::new(Some(dispose_sub)));
+        let dispose_sub = SendWrapper::new(dispose_sub);
+        let dispose_dep = SendWrapper::new(dispose_dep);
         self.clone().get(&*atom);
         return move || {
-            dispose_sub();
+            let _ = self.mutex.lock();
+            if let Ok(mut guard) = dispose_sub.lock() {
+                if let Some(cleanup) = guard.take() {
+                    cleanup();
+                }
+            }
             let closures = self.subs.borrow().get(&atom.get_id()).cloned();
             if let Some(closures) = closures {
                 if closures.is_empty() {
-                    dispose_dep();
+                    if let Ok(mut guard) = dispose_dep.lock() {
+                        if let Some(cleanup) = guard.take() {
+                            cleanup();
+                        }
+                    }
                     self.subs.borrow_mut().remove(&atom.get_id());
                 }
             }
@@ -535,7 +549,11 @@ impl DepsManager {
         false
     }
 
-    fn add_sub<F: Fn() + 'static>(&self, atom_id: Arc<AtomId>, on_stale: F) -> Box<dyn FnOnce()> {
+    fn add_sub<F: Fn() + 'static + Send + Sync>(
+        &self,
+        atom_id: Arc<AtomId>,
+        on_stale: F,
+    ) -> Box<dyn FnOnce()> {
         let mut handlers = self.subs_handlers.borrow_mut();
         handlers.insert(atom_id.clone(), Box::new(on_stale));
         let handlers_c = self.subs_handlers.clone();

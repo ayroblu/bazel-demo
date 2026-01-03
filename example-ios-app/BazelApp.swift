@@ -5,13 +5,19 @@ import SwiftUIUtils
 import drag_example
 import jotai_example
 import jotai_logs
+import rust_jotai_lib
 import rust_logs
 import rust_uniffi_example
 import sqlite_example
 
 @main
 struct BazelApp: App {
+  private let store = createStore()
+
+  private let deleteOldLogsAtom: DeleteOldLogsAtom
   init() {
+    initEffects(store: store)
+    self.deleteOldLogsAtom = DeleteOldLogsAtom(store: store)
     onLaunch()
   }
 
@@ -40,6 +46,10 @@ struct BazelApp: App {
             LogsView()
           }
         }
+      }
+      .environment(\.rustJotaiStore, store)
+      .onAppear {
+        deleteOldLogsAtom.set()
       }
     }
   }

@@ -9,6 +9,7 @@ rust_library(
     srcs = ["jotai.rs"],
     deps = [
         "@crates//:parking_lot",
+        "@crates//:send_wrapper",
         "@crates//:weak-table",
     ],
 )

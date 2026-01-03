@@ -1,15 +1,27 @@
 import DateUtils
 import SwiftUI
 import jotai_logs
+import rust_jotai_lib
 
 public struct LogsView: View {
+  @Environment(\.rustJotaiStore) private var rustJotaiStore: RustJotaiStore
+  public init() {}
+  public var body: some View {
+    LogsViewInner(rustJotaiStore: rustJotaiStore)
+  }
+}
+struct LogsViewInner: View {
   // @AtomValue(selectLogsAtom) private var logItems: [LogModel]
   @State private var logItems: [Log]
 
   @State private var position: ScrollPosition = .init(idType: Int64.self)
+  private let logAtom: LogAtom
+  private let deleteLogsAtom: DeleteLogsAtom
 
-  public init() {
-    _logItems = State(wrappedValue: getLogs())
+  init(rustJotaiStore: RustJotaiStore) {
+    self.logAtom = LogAtom(store: rustJotaiStore)
+    self.deleteLogsAtom = DeleteLogsAtom(store: rustJotaiStore)
+    _logItems = State(wrappedValue: logAtom.get())
   }
 
   public var body: some View {
@@ -75,20 +87,15 @@ public struct LogsView: View {
 
   @State var cleanup: Cleanup?
   func updateAndTrack() {
-    cleanup = subLogs(func: ClosureWrapper { logItems = getLogs() })
-    // let store = createStore()
-    // let myAtom = LogAtom(store: store)
-    // logItems = myAtom.get()
-    // cleanup = myAtom.sub(func: ClosureWrapper { logItems = myAtom.get() })
+    cleanup = logAtom.sub(func: ClosureWrapper { logItems = logAtom.get() })
   }
 
   func deleteAll() {
-    deleteAllLogs()
-    logItems = getLogs()
+    deleteLogsAtom.set()
   }
 }
 
-// unchecked: We know that we only use this callback on the UI
+// @unchecked: We know that we only use this callback on the UI
 final class ClosureWrapper: ClosureCallback, @unchecked Sendable {
   let callback: () -> Void
 
