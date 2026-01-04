@@ -29,7 +29,7 @@ bazel mobile-install:android //simple-android-app -- --launch_activity=com.simpl
 
 ## Info
 
-For this commit: 2026-01-04, app with build:android:opt is 11MB and build:android is 11MB
+For this commit: 2026-01-04, app with build:android:opt is 1.5MB and build:android is 11MB
 
 ## Helpful
 

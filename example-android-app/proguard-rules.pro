@@ -19,3 +19,25 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# --------------------- Actual config
+
+# OkHttp3 specific rules
+# These classes are optional; OkHttp checks for their existence at runtime.
+-dontwarn org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
+-dontwarn org.conscrypt.**
+-dontwarn org.openjsse.**
+
+# General OkHttp/Okio rules to prevent over-shrinking
+-keepattributes Signature, InnerClasses, AnnotationDefault
+-keep class okhttp3.** { *; }
+-keep interface okhttp3.** { *; }
+-dontwarn okhttp3.**
+-dontwarn okio.**
+
+# Fixes the "InnerClasses requires EnclosingMethod" error
+-keepattributes InnerClasses, EnclosingMethod, Signature, *Annotation*
+
+# This is often needed for Kotlin-based apps to prevent
+# metadata inconsistency during optimization
+-keep class kotlin.Metadata { *; }

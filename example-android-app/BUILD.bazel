@@ -1,4 +1,3 @@
-load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_tools//tools/jdk:default_java_toolchain.bzl", "default_java_toolchain")
 load("@rules_android//android:rules.bzl", "android_binary")
 load("@rules_kotlin//kotlin:core.bzl", "define_kt_toolchain", "kt_compiler_plugin")
@@ -34,8 +33,17 @@ kt_compiler_plugin(
     ],
 )
 
-android_binary(
+# Temporary, fixed proguard_specs for next release of rules_android
+alias(
     name = "example-android-app",
+    actual = select({
+        "//conditions:default": ":dev",
+        "//:release_build": ":prod",
+    }),
+)
+
+android_binary(
+    name = "dev",
     custom_package = "com.example.bazel",
     dex_shards = 5,
     incremental_dexing = 1,
@@ -45,8 +53,6 @@ android_binary(
         "//example-android-app/src/main/kotlin/com/example/bazel",
     ],
 )
-
-exports_files(["example-android-app.iml"])
 
 android_binary(
     name = "prod",
@@ -56,15 +62,8 @@ android_binary(
     manifest = "AndroidManifest.xml",
     multidex = "native",
     proguard_specs = ["proguard-rules.pro"],
-    shrink_resources = True,
+    shrink_resources = 1,
     deps = [
         "//example-android-app/src/main/kotlin/com/example/bazel",
-    ],
-)
-
-build_test(
-    name = "force_build_apks_test",
-    targets = [
-        ":example-android-app",
     ],
 )

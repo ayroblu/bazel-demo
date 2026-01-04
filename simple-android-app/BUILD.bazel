@@ -33,8 +33,17 @@ kt_compiler_plugin(
     ],
 )
 
-android_binary(
+# Temporary, fixed proguard_specs for next release of rules_android
+alias(
     name = "simple-android-app",
+    actual = select({
+        "//conditions:default": ":dev",
+        "//:release_build": ":prod",
+    }),
+)
+
+android_binary(
+    name = "dev",
     custom_package = "com.simple.bazel",
     dex_shards = 5,
     incremental_dexing = 1,
@@ -44,8 +53,6 @@ android_binary(
         "//simple-android-app/src",
     ],
 )
-
-exports_files(["simple-android-app.iml"])
 
 android_binary(
     name = "prod",
