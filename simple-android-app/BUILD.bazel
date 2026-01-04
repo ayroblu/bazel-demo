@@ -50,7 +50,7 @@ android_binary(
     manifest = "AndroidManifest.xml",
     multidex = "native",
     deps = [
-        "//simple-android-app/src",
+        "//simple-android-app/src/main/kotlin/com/simple/bazel",
     ],
 )
 
@@ -64,6 +64,6 @@ android_binary(
     proguard_specs = ["proguard-rules.pro"],
     shrink_resources = True,
     deps = [
-        "//simple-android-app/src",
+        "//simple-android-app/src/main/kotlin/com/simple/bazel",
     ],
 )

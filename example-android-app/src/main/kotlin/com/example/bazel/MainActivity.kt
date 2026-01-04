@@ -27,6 +27,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.bazel.http.OkHttpProvider
+import com.example.bazel.js.JsEngineButton
+import com.example.bazel.js.JsViewModel
 import com.example.bazel.rust_logs.LocalRustJotaiStore
 import com.example.bazel.rust_logs.LogsView
 import com.example.bazel.ui.theme.AppTheme

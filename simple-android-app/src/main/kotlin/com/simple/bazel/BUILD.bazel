@@ -1,0 +1,22 @@
+load("@rules_kotlin//kotlin:android.bzl", "kt_android_library")
+
+package(default_visibility = ["//simple-android-app:__subpackages__"])
+
+kt_android_library(
+    name = "bazel",
+    srcs = glob([
+        "*.kt",
+        "ui/theme/*.kt",
+    ]),
+    plugins = [
+        "//simple-android-app:jetpack_compose_compiler_plugin",
+    ],
+    deps = [
+        "@maven_compose//:androidx_activity_activity_compose",
+        "@maven_compose//:androidx_compose_material3_material3",
+        "@maven_compose//:androidx_compose_runtime_runtime",
+        "@maven_compose//:androidx_compose_ui_ui",
+        "@maven_compose//:androidx_compose_ui_ui_tooling",
+        "@maven_compose//:com_google_guava_guava",  # implicit ListenableFuture
+    ],
+)
