@@ -56,13 +56,13 @@ impl Setter {
     pub fn get<T: 'static + PartialEq + Send + Sync>(&self, atom: Arc<dyn ReadAtom<T>>) -> Arc<T> {
         return self.store.clone().get(&*atom);
     }
-    pub fn set<Arg: PartialEq + 'static, Return>(&self, atom: &DispatchAtom<Arg>, arg: &Arg) {
+    pub fn set<Arg: PartialEq + 'static, Return>(&self, atom: &DispatchAtom<Arg>, arg: Arc<Arg>) {
         return self.store.clone().set(atom, arg);
     }
     pub fn set_and_return<Arg: PartialEq + 'static, Return>(
         &self,
         atom: &DispatchWithReturnAtom<Arg, Return>,
-        arg: &Arg,
+        arg: Arc<Arg>,
     ) -> Return {
         return self.store.clone().set_and_return(atom, arg);
     }

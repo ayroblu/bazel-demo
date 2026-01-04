@@ -6,6 +6,8 @@ mod primitive_atom;
 mod select_atom;
 mod subscription_set;
 
+use std::sync::Arc;
+
 pub use dispatch_atom::*;
 pub use getter_setter::*;
 pub use jotai_store::*;
@@ -22,13 +24,13 @@ pub fn select_atom<T: 'static>(
 }
 pub fn dispatch_atom<Arg, F>(f: F) -> DispatchAtom<Arg>
 where
-    F: Fn(&mut Setter, &Arg) + 'static,
+    F: Fn(&mut Setter, Arc<Arg>) + 'static,
 {
     DispatchAtom::new(f)
 }
 pub fn dispatch_with_return_atom<Arg, Return, F>(f: F) -> DispatchWithReturnAtom<Arg, Return>
 where
-    F: Fn(&mut Setter, &Arg) -> Return + 'static,
+    F: Fn(&mut Setter, Arc<Arg>) -> Return + 'static,
 {
     DispatchWithReturnAtom::new(f)
 }
@@ -123,13 +125,35 @@ mod tests {
             setter.get(counter_atom_c2.clone())
         });
         assert_eq!(*store.clone().get(&*counter_atom), 10);
-        store.clone().set(&increment_counter_atom, &());
+        store.clone().set(&increment_counter_atom, Arc::new(()));
         assert_eq!(*store.clone().get(&*counter_atom), 11);
         assert_eq!(
-            *store.clone().set_and_return(&increment_and_get_atom, &()),
+            *store
+                .clone()
+                .set_and_return(&increment_and_get_atom, Arc::new(())),
             12
         );
         assert_eq!(*store.clone().get(&*counter_atom), 12);
+    }
+
+    #[test]
+    fn test_double_write_atom() {
+        let store = JotaiStore::new();
+        let counter_atom = Arc::new(atom(10));
+        let counter_2_atom = Arc::new(atom(10));
+        let set_counter_atom = dispatch_atom({
+            let counter_atom = counter_atom.clone();
+            let counter_2_atom = counter_2_atom.clone();
+            move |setter, arg: Arc<i32>| {
+                setter.set_primitive(&counter_atom, arg.clone());
+                setter.set_primitive(&counter_2_atom, arg.clone());
+            }
+        });
+        assert_eq!(*store.clone().get(&*counter_atom), 10);
+        assert_eq!(*store.clone().get(&*counter_2_atom), 10);
+        store.clone().set(&set_counter_atom, Arc::new(13));
+        assert_eq!(*store.clone().get(&*counter_atom), 13);
+        assert_eq!(*store.clone().get(&*counter_2_atom), 13);
     }
 
     #[test]

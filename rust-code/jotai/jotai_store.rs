@@ -99,16 +99,16 @@ impl JotaiStore {
         }
     }
 
-    pub fn set<Arg: PartialEq + 'static>(self: Arc<Self>, atom: &DispatchAtom<Arg>, arg: &Arg) {
+    pub fn set<Arg: PartialEq + 'static>(self: Arc<Self>, atom: &DispatchAtom<Arg>, arg: Arc<Arg>) {
         let _ = self.mutex.lock();
         let mut setter = Setter::new(self.clone());
-        (atom.dispatch)(&mut setter, &arg);
+        (atom.dispatch)(&mut setter, arg);
     }
 
     pub fn set_and_return<Arg: PartialEq + 'static, Return>(
         self: Arc<Self>,
         atom: &DispatchWithReturnAtom<Arg, Return>,
-        arg: &Arg,
+        arg: Arc<Arg>,
     ) -> Return {
         let _ = self.mutex.lock();
         let mut setter = Setter::new(self.clone());

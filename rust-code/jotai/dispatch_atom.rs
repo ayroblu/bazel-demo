@@ -6,7 +6,7 @@ use crate::getter_setter::Setter;
 
 pub struct DispatchAtom<Arg> {
     id: Arc<AtomId>,
-    pub(crate) dispatch: Box<dyn Fn(&mut Setter, &Arg)>,
+    pub(crate) dispatch: Box<dyn Fn(&mut Setter, Arc<Arg>)>,
 }
 impl<Arg> PartialEq for DispatchAtom<Arg> {
     fn eq(&self, other: &Self) -> bool {
@@ -22,7 +22,7 @@ impl<Arg> Hash for DispatchAtom<Arg> {
 impl<Arg> DispatchAtom<Arg> {
     pub fn new<F>(setter: F) -> Self
     where
-        F: Fn(&mut Setter, &Arg) + 'static,
+        F: Fn(&mut Setter, Arc<Arg>) + 'static,
     {
         Self {
             id: Arc::new(AtomId::new()),
@@ -38,7 +38,7 @@ impl<Arg> Atom for DispatchAtom<Arg> {
 
 pub struct DispatchWithReturnAtom<Arg, Return> {
     id: Arc<AtomId>,
-    pub(crate) dispatch: Box<dyn Fn(&mut Setter, &Arg) -> Return>,
+    pub(crate) dispatch: Box<dyn Fn(&mut Setter, Arc<Arg>) -> Return>,
 }
 impl<Arg, Return> PartialEq for DispatchWithReturnAtom<Arg, Return> {
     fn eq(&self, other: &Self) -> bool {
@@ -54,7 +54,7 @@ impl<Arg, Return> Hash for DispatchWithReturnAtom<Arg, Return> {
 impl<Arg, Return> DispatchWithReturnAtom<Arg, Return> {
     pub fn new<F>(setter: F) -> Self
     where
-        F: Fn(&mut Setter, &Arg) -> Return + 'static,
+        F: Fn(&mut Setter, Arc<Arg>) -> Return + 'static,
     {
         Self {
             id: Arc::new(AtomId::new()),
