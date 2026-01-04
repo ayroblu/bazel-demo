@@ -3,7 +3,7 @@ use js_sys::{Function, Promise};
 use send_wrapper::SendWrapper;
 use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen::{from_value, to_value};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -88,7 +88,7 @@ impl From<http::HttpRequest> for HttpRequest {
         Self {
             url: req.url,
             method: req.method.into(),
-            headers: req.headers,
+            headers: req.headers.map(|h| HashMap::from_iter(h)),
             body: req.body,
         }
     }
@@ -106,7 +106,7 @@ impl From<HttpResponse> for http::HttpResponse {
     fn from(res: HttpResponse) -> Self {
         Self {
             status_code: res.status_code,
-            headers: res.headers,
+            headers: BTreeMap::from_iter(res.headers),
             body: res.body,
         }
     }
