@@ -45,8 +45,3 @@ impl<T> ReadAtom<T> for PrimitiveAtom<T> {
         &self.read
     }
 }
-impl<T> WriteAtom<T, ()> for PrimitiveAtom<T> {
-    fn get_write(&self) -> Option<Arc<Dispatch<T, ()>>> {
-        None
-    }
-}

@@ -1,15 +1,16 @@
 mod atom_base;
-mod primitive_atom;
-pub use primitive_atom::*;
-mod select_atom;
-pub use select_atom::*;
 mod dispatch_atom;
-pub use dispatch_atom::*;
 mod getter_setter;
-use getter_setter::*;
 mod jotai_store;
+mod primitive_atom;
+mod select_atom;
 mod subscription_set;
+
+pub use dispatch_atom::*;
+pub use getter_setter::*;
 pub use jotai_store::*;
+pub use primitive_atom::*;
+pub use select_atom::*;
 
 pub fn atom<T: Clone + Send + Sync + 'static>(default_value: T) -> PrimitiveAtom<T> {
     PrimitiveAtom::new(default_value)
@@ -47,26 +48,21 @@ mod tests {
         let store = DEFAULT_STORE.with(|arc| arc.clone());
         let counter_atom = COUNTER_ATOM.with(|arc| arc.clone());
         assert_eq!(*store.clone().get(&*counter_atom), 10);
-        store
-            .clone()
-            .set_primitive(counter_atom.clone(), Arc::new(20));
+        store.clone().set_primitive(&counter_atom, Arc::new(20));
         assert_eq!(*store.clone().get(&*counter_atom), 20);
     }
 
-    thread_local! {
-        pub static DEFAULT_STORE_2: LazyLock<Arc<JotaiStore>> = LazyLock::new(|| JotaiStore::new());
-        pub static COUNTER_ATOM_2: LazyLock<Arc<PrimitiveAtom<u32>>> =
-            LazyLock::new(|| Arc::new(atom(10)));
-    }
+    pub static DEFAULT_STORE_2: LazyLock<Arc<JotaiStore>> = LazyLock::new(|| JotaiStore::new());
+    pub static COUNTER_ATOM_2: LazyLock<Arc<PrimitiveAtom<u32>>> =
+        LazyLock::new(|| Arc::new(atom(10)));
+
     #[test]
     fn test_globals_lazylock() {
         // I haven't figured out how to remove the thread_local! yet
-        let store = DEFAULT_STORE_2.with(|v| (**v).clone());
-        let counter_atom = COUNTER_ATOM_2.with(|v| (**v).clone());
+        let store = DEFAULT_STORE_2.clone();
+        let counter_atom = COUNTER_ATOM_2.clone();
         assert_eq!(*store.clone().get(&*counter_atom), 10);
-        store
-            .clone()
-            .set_primitive(counter_atom.clone(), Arc::new(20));
+        store.clone().set_primitive(&counter_atom, Arc::new(20));
         assert_eq!(*store.get(&*counter_atom), 20);
     }
 
@@ -76,9 +72,7 @@ mod tests {
         {
             let counter_atom = Arc::new(atom(10));
             assert_eq!(*store.clone().get(&*counter_atom), 10);
-            store
-                .clone()
-                .set_primitive(counter_atom.clone(), Arc::new(20));
+            store.clone().set_primitive(&counter_atom, Arc::new(20));
             assert_eq!(*store.clone().get(&*counter_atom), 20);
             assert_eq!(store.get_map().borrow().keys().count(), 1);
         }
@@ -101,9 +95,7 @@ mod tests {
         assert_eq!(*store.clone().get(&*counter_atom), 10);
         assert_eq!(*store.clone().get(&derivative_atom), 20);
         assert_eq!(*counter.lock().unwrap(), 1);
-        store
-            .clone()
-            .set_primitive(counter_atom.clone(), Arc::new(20));
+        store.clone().set_primitive(&counter_atom, Arc::new(20));
         assert_eq!(*store.clone().get(&*counter_atom), 20);
         assert_eq!(*store.clone().get(&derivative_atom), 40);
         assert_eq!(*counter.lock().unwrap(), 2);
@@ -118,14 +110,14 @@ mod tests {
         let counter_atom_c = counter_atom.clone();
         let increment_counter_atom = dispatch_atom(move |setter, _| {
             setter.set_primitive(
-                counter_atom_c.clone(),
+                &counter_atom_c,
                 Arc::new(*setter.get(counter_atom_c.clone()) + 1),
             );
         });
         let counter_atom_c2 = counter_atom.clone();
         let increment_and_get_atom = dispatch_with_return_atom(move |setter, _| {
             setter.set_primitive(
-                counter_atom_c2.clone(),
+                &counter_atom_c2,
                 Arc::new(*setter.get(counter_atom_c2.clone()) + 1),
             );
             setter.get(counter_atom_c2.clone())
@@ -167,22 +159,16 @@ mod tests {
         assert_eq!(*store.clone().get(&*derivative2_atom), true);
         assert_eq!(*d2_counter.lock().unwrap(), 1);
         assert_eq!(*sub_counter.lock().unwrap(), 0);
-        store
-            .clone()
-            .set_primitive(value_atom.clone(), Arc::new(11));
+        store.clone().set_primitive(&value_atom, Arc::new(11));
         assert_eq!(*d2_counter.lock().unwrap(), 1);
         assert_eq!(*sub_counter.lock().unwrap(), 0);
-        store
-            .clone()
-            .set_primitive(value_atom.clone(), Arc::new(12));
+        store.clone().set_primitive(&value_atom, Arc::new(12));
         assert_eq!(*d2_counter.lock().unwrap(), 2);
         assert_eq!(*sub_counter.lock().unwrap(), 1);
 
         dispose();
 
-        store
-            .clone()
-            .set_primitive(value_atom.clone(), Arc::new(11));
+        store.clone().set_primitive(&value_atom, Arc::new(11));
         assert_eq!(*d2_counter.lock().unwrap(), 2);
         assert_eq!(*sub_counter.lock().unwrap(), 1);
     }

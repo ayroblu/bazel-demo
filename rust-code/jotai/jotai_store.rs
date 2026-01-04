@@ -77,11 +77,12 @@ impl JotaiStore {
 
     pub fn set_primitive<T: 'static + PartialEq + Send + Sync>(
         &self,
-        atom: Arc<PrimitiveAtom<T>>,
+        atom: &PrimitiveAtom<T>,
         arg: Arc<T>,
     ) {
         let _ = self.mutex.lock();
         {
+            // limit this borrow to just the check
             let map = self.map.borrow();
             let cached_value = map.get(&*atom.get_id()).and_then(|v| v.downcast_ref::<T>());
             if cached_value.is_some_and(|v| *v == *arg.clone()) {

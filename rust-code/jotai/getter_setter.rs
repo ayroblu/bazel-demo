@@ -68,7 +68,7 @@ impl Setter {
     }
     pub fn set_primitive<T: PartialEq + 'static + Send + Sync>(
         &self,
-        atom: Arc<PrimitiveAtom<T>>,
+        atom: &PrimitiveAtom<T>,
         arg: Arc<T>,
     ) {
         return self.store.clone().set_primitive(atom, arg);
