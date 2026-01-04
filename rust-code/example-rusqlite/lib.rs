@@ -44,7 +44,7 @@ fn get_saved_persons(conn: &Connection) -> Result<Vec<String>, rusqlite::Error> 
     })?;
 
     let person_names = person_iter
-        .map(|result| result.map(|person| person.name))
+        .map(|result| result.map(|person| format!("{}: {}", person.id, person.name)))
         .collect::<Result<Vec<String>, rusqlite::Error>>();
     person_names
 }

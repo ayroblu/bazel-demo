@@ -27,6 +27,10 @@ Install app on device:
 bazel mobile-install:android //simple-android-app -- --launch_activity=com.simple.bazel.MainActivity
 ```
 
+## Info
+
+For this commit: 2026-01-04, app with build:android:opt is 11MB and build:android is 11MB
+
 ## Helpful
 
 Toggle dark mode:

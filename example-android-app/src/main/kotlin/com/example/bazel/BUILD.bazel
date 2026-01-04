@@ -22,6 +22,7 @@ kt_android_library(
         "@maven_compose//:androidx_activity_activity_ktx",
         "@maven_compose//:androidx_appcompat_appcompat",
         "@maven_compose//:androidx_compose_material3_material3",
+        "@maven_compose//:androidx_compose_material_material_icons_extended",
         "@maven_compose//:androidx_compose_runtime_runtime",
         "@maven_compose//:androidx_compose_ui_ui",
         "@maven_compose//:androidx_compose_ui_ui_tooling",

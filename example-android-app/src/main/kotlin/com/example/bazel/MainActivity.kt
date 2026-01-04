@@ -11,9 +11,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -104,8 +105,8 @@ fun BottomNavigationBar(navController: NavHostController) {
     val items =
         listOf(
             NavigationItem("Home", "home", Icons.Default.Home),
-            NavigationItem("Todo", "todo", Icons.Default.List),
-            NavigationItem("More todo", "more_todo", Icons.Default.Info),
+            NavigationItem("Todo", "todo", Icons.AutoMirrored.Filled.List),
+            NavigationItem("More todo", "more_todo", Icons.Default.Checklist),
             NavigationItem("Logs", "logs", Icons.Default.Info),
         )
 

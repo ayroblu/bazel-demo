@@ -41,6 +41,10 @@ View crash logs:
 adb logcat --buffer=crash
 ```
 
+## Info
+
+For this commit: 2026-01-04, apk with build:android:opt is 18MB and build:android is 21MB
+
 ## Helpful
 
 Toggle dark mode:

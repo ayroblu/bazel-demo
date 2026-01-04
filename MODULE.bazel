@@ -125,6 +125,7 @@ maven.install(
         "androidx.compose.ui:ui-tooling:{}".format(_COMPOSE_VERSION),
         "androidx.compose.runtime:runtime:{}".format(_COMPOSE_VERSION),
         "androidx.compose.material:material:{}".format(_COMPOSE_VERSION),
+        "androidx.compose.material:material-icons-extended:{}".format(_COMPOSE_VERSION),
         "androidx.compose.material3:material3:1.3.1",
         "androidx.javascriptengine:javascriptengine:1.0.0-beta01",
         "org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0",
