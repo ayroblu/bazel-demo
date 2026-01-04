@@ -10,7 +10,7 @@ use std::sync::{Arc, Mutex, Weak};
 use weak_table::{WeakHashSet, WeakKeyHashMap};
 
 pub struct JotaiStore {
-    map: Rc<RefCell<WeakKeyHashMap<Weak<AtomId>, Arc<dyn Any>>>>,
+    map: Rc<RefCell<WeakKeyHashMap<Weak<AtomId>, Arc<dyn Any + Send + Sync>>>>,
     deps_manager: Rc<DepsManager>,
     subs: Rc<RefCell<WeakKeyHashMap<Weak<AtomId>, Rc<SubscriptionSet<()>>>>>,
     mutex: ReentrantMutex<()>,
@@ -25,7 +25,7 @@ impl JotaiStore {
         })
     }
 
-    pub fn get<T: Clone + 'static + PartialEq>(
+    pub fn get<T: 'static + PartialEq + Send + Sync>(
         self: Arc<Self>,
         atom: &(impl ReadAtom<T> + ?Sized),
     ) -> Arc<T> {
@@ -35,9 +35,8 @@ impl JotaiStore {
             .map
             .borrow_mut()
             .get(&*atom.get_id())
-            .and_then(|v| v.downcast_ref::<T>())
             .cloned()
-            .map(|v| Arc::new(v));
+            .and_then(|v| v.downcast::<T>().ok());
 
         if !is_stale {
             if let Some(cached_value) = cached_value {
@@ -46,16 +45,14 @@ impl JotaiStore {
         }
 
         self.deps_manager.clear_rev_deps(*atom.get_id());
-        let value = Arc::new(match &atom.get_read() {
-            AtomReader::Value(v) => v.clone(),
-            AtomReader::Fn(f) => {
-                let mut getter = Getter::new(self.clone(), atom.get_id());
-                self.deps_manager
-                    .current_getter_id
-                    .borrow_mut()
-                    .insert(atom.get_id(), getter.id);
-                f(&mut getter)
-            }
+        let value: Arc<T> = Arc::new({
+            let read = atom.get_read();
+            let mut getter = Getter::new(self.clone(), atom.get_id());
+            self.deps_manager
+                .current_getter_id
+                .borrow_mut()
+                .insert(atom.get_id(), getter.id);
+            read(&mut getter)
         });
         self.map
             .borrow_mut()
@@ -74,21 +71,16 @@ impl JotaiStore {
         return value;
     }
 
-    pub fn set_primitive<T: Clone + 'static + PartialEq>(
+    pub fn set_primitive<T: 'static + PartialEq + Send + Sync>(
         &self,
         atom: Arc<PrimitiveAtom<T>>,
         arg: Arc<T>,
     ) {
         let _ = self.mutex.lock();
         {
-            let cached_value = self
-                .map
-                .borrow_mut()
-                .get(&*atom.get_id())
-                .and_then(|v| v.downcast_ref::<T>())
-                .cloned()
-                .map(|v| Arc::new(v));
-            if cached_value.clone().is_some_and(|v| v == arg.clone()) {
+            let map = self.map.borrow();
+            let cached_value = map.get(&*atom.get_id()).and_then(|v| v.downcast_ref::<T>());
+            if cached_value.is_some_and(|v| *v == *arg.clone()) {
                 return;
             }
 
@@ -102,17 +94,13 @@ impl JotaiStore {
         }
     }
 
-    pub fn set<Arg: PartialEq + Clone + 'static>(
-        self: Arc<Self>,
-        atom: &DispatchAtom<Arg>,
-        arg: &Arg,
-    ) {
+    pub fn set<Arg: PartialEq + 'static>(self: Arc<Self>, atom: &DispatchAtom<Arg>, arg: &Arg) {
         let _ = self.mutex.lock();
         let mut setter = Setter::new(self.clone());
         (atom.dispatch)(&mut setter, &arg);
     }
 
-    pub fn set_and_return<Arg: PartialEq + Clone + 'static, Return>(
+    pub fn set_and_return<Arg: PartialEq + 'static, Return>(
         self: Arc<Self>,
         atom: &DispatchWithReturnAtom<Arg, Return>,
         arg: &Arg,
@@ -122,7 +110,7 @@ impl JotaiStore {
         (atom.dispatch)(&mut setter, arg)
     }
 
-    pub fn sub<T: Clone + 'static + PartialEq, F>(
+    pub fn sub<T: 'static + PartialEq + Send + Sync, F>(
         self: Arc<Self>,
         atom: Arc<(impl ReadAtom<T> + ?Sized + 'static + Send + Sync)>,
         on_change: F,
@@ -184,7 +172,7 @@ pub trait Atom {
     fn get_id(&self) -> Arc<AtomId>;
 }
 pub trait ReadAtom<T>: Atom {
-    fn get_read(&self) -> &AtomReader<T>;
+    fn get_read(&self) -> &Box<dyn Fn(&mut Getter) -> T + Send + Sync>;
 }
 pub trait WriteAtom<Arg, Return>: Atom {
     fn get_write(&self) -> Option<Arc<Dispatch<Arg, Return>>>;
@@ -196,13 +184,9 @@ impl AtomId {
         Self(new_id())
     }
 }
-pub enum AtomReader<T> {
-    Fn(Box<dyn Fn(&mut Getter) -> T + Send + Sync>),
-    Value(T),
-}
 pub struct SelectAtom<T> {
     id: Arc<AtomId>,
-    read: AtomReader<T>,
+    read: Box<dyn Fn(&mut Getter) -> T + Send + Sync>,
 }
 impl<T> PartialEq for SelectAtom<T> {
     fn eq(&self, other: &Self) -> bool {
@@ -222,7 +206,7 @@ impl<T: 'static> SelectAtom<T> {
     {
         Self {
             id: Arc::new(AtomId::new()),
-            read: AtomReader::Fn(Box::new(f)),
+            read: Box::new(f),
         }
     }
 }
@@ -232,7 +216,7 @@ impl<T> Atom for SelectAtom<T> {
     }
 }
 impl<T> ReadAtom<T> for SelectAtom<T> {
-    fn get_read(&self) -> &AtomReader<T> {
+    fn get_read(&self) -> &Box<dyn Fn(&mut Getter) -> T + Send + Sync> {
         &self.read
     }
 }
@@ -303,7 +287,7 @@ impl<Arg, Return> Atom for DispatchWithReturnAtom<Arg, Return> {
 
 pub struct PrimitiveAtom<T> {
     id: Arc<AtomId>,
-    read: AtomReader<T>,
+    read: Box<dyn Fn(&mut Getter) -> T + Send + Sync>,
 }
 impl<T> PartialEq for PrimitiveAtom<T> {
     fn eq(&self, other: &Self) -> bool {
@@ -316,11 +300,19 @@ impl<T> Hash for PrimitiveAtom<T> {
         self.id.hash(state);
     }
 }
-impl<T> PrimitiveAtom<T> {
+impl<T: Clone + Send + Sync + 'static> PrimitiveAtom<T> {
     pub fn new(default_value: T) -> Self {
         Self {
             id: Arc::new(AtomId::new()),
-            read: AtomReader::Value(default_value),
+            read: Box::new(move |_| default_value.clone()),
+        }
+    }
+}
+impl<T: Send + Sync + 'static> PrimitiveAtom<T> {
+    pub fn new_fn(f: Box<dyn Fn(&mut Getter) -> T + Send + Sync>) -> Self {
+        Self {
+            id: Arc::new(AtomId::new()),
+            read: f,
         }
     }
 }
@@ -330,7 +322,7 @@ impl<T> Atom for PrimitiveAtom<T> {
     }
 }
 impl<T> ReadAtom<T> for PrimitiveAtom<T> {
-    fn get_read(&self) -> &AtomReader<T> {
+    fn get_read(&self) -> &Box<dyn Fn(&mut Getter) -> T + Send + Sync> {
         &self.read
     }
 }
@@ -340,7 +332,7 @@ impl<T> WriteAtom<T, ()> for PrimitiveAtom<T> {
     }
 }
 
-pub fn atom<T>(default_value: T) -> PrimitiveAtom<T> {
+pub fn atom<T: Clone + Send + Sync + 'static>(default_value: T) -> PrimitiveAtom<T> {
     PrimitiveAtom::new(default_value)
 }
 pub fn select_atom<T: 'static>(
@@ -380,7 +372,7 @@ impl Getter {
             tracked: Rc::new(RefCell::new(WeakKeyHashMap::new())),
         }
     }
-    pub fn get<T: Clone + 'static + PartialEq>(&self, atom: Arc<dyn ReadAtom<T>>) -> Arc<T> {
+    pub fn get<T: 'static + PartialEq + Send + Sync>(&self, atom: Arc<dyn ReadAtom<T>>) -> Arc<T> {
         let store = self.store.clone();
         let result = store.clone().get(&*atom);
         let value = result.clone();
@@ -405,24 +397,20 @@ impl Setter {
     fn new(store: Arc<JotaiStore>) -> Self {
         Self { store }
     }
-    pub fn get<T: Clone + 'static + PartialEq>(&self, atom: Arc<dyn ReadAtom<T>>) -> Arc<T> {
+    pub fn get<T: 'static + PartialEq + Send + Sync>(&self, atom: Arc<dyn ReadAtom<T>>) -> Arc<T> {
         return self.store.clone().get(&*atom);
     }
-    pub fn set<Arg: Clone + PartialEq + 'static, Return>(
-        &self,
-        atom: &DispatchAtom<Arg>,
-        arg: &Arg,
-    ) {
+    pub fn set<Arg: PartialEq + 'static, Return>(&self, atom: &DispatchAtom<Arg>, arg: &Arg) {
         return self.store.clone().set(atom, arg);
     }
-    pub fn set_and_return<Arg: Clone + PartialEq + 'static, Return>(
+    pub fn set_and_return<Arg: PartialEq + 'static, Return>(
         &self,
         atom: &DispatchWithReturnAtom<Arg, Return>,
         arg: &Arg,
     ) -> Return {
         return self.store.clone().set_and_return(atom, arg);
     }
-    pub fn set_primitive<T: Clone + PartialEq + 'static>(
+    pub fn set_primitive<T: PartialEq + 'static + Send + Sync>(
         &self,
         atom: Arc<PrimitiveAtom<T>>,
         arg: Arc<T>,
