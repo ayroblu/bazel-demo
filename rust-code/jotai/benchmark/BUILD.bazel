@@ -3,17 +3,13 @@ load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 package(default_visibility = ["//visibility:public"])
 
 rust_library(
-    name = "jotai",
+    name = "other",
     srcs = glob(["*.rs"]),
-    deps = [
-        "@crates//:parking_lot",
-        "@crates//:send_wrapper",
-        "@crates//:weak-table",
-    ],
+    deps = [],
 )
 
 rust_test(
     name = "tests",
-    crate = ":jotai",
-    env = {"RUST_BACKTRACE": "1"},
+    crate = ":other",
+    # env = {"RUST_BACKTRACE": "1"},
 )

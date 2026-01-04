@@ -83,9 +83,9 @@ impl JotaiStore {
             if cached_value.is_some_and(|v| *v == *arg.clone()) {
                 return;
             }
-
-            self.map.borrow_mut().insert(atom.get_id().clone(), arg);
         }
+
+        self.map.borrow_mut().insert(atom.get_id().clone(), arg);
 
         self.deps_manager.propagate_stale(atom.get_id().clone());
 
@@ -696,7 +696,7 @@ mod tests {
         let store = JotaiStore::new();
         let value_atom = Arc::new(atom(10));
         let d2_counter = Arc::new(Mutex::new(0));
-        let sub_counter = Rc::new(RefCell::new(0));
+        let sub_counter = Arc::new(Mutex::new(0));
         let derivative_atom = Arc::new(select_atom({
             let value_atom_c = value_atom.clone();
             move |getter| *getter.get(value_atom_c.clone()) < 12
@@ -711,23 +711,23 @@ mod tests {
         }));
         let dispose = store.clone().sub(derivative2_atom.clone(), {
             let counter = sub_counter.clone();
-            move |_| *counter.borrow_mut() += 1
+            move |_| *counter.lock().unwrap() += 1
         });
         assert_eq!(*d2_counter.lock().unwrap(), 1);
-        assert_eq!(*sub_counter.borrow(), 0);
+        assert_eq!(*sub_counter.lock().unwrap(), 0);
         assert_eq!(*store.clone().get(&*derivative2_atom), true);
         assert_eq!(*d2_counter.lock().unwrap(), 1);
-        assert_eq!(*sub_counter.borrow(), 0);
+        assert_eq!(*sub_counter.lock().unwrap(), 0);
         store
             .clone()
             .set_primitive(value_atom.clone(), Arc::new(11));
         assert_eq!(*d2_counter.lock().unwrap(), 1);
-        assert_eq!(*sub_counter.borrow(), 0);
+        assert_eq!(*sub_counter.lock().unwrap(), 0);
         store
             .clone()
             .set_primitive(value_atom.clone(), Arc::new(12));
         assert_eq!(*d2_counter.lock().unwrap(), 2);
-        assert_eq!(*sub_counter.borrow(), 1);
+        assert_eq!(*sub_counter.lock().unwrap(), 1);
 
         dispose();
 
@@ -735,7 +735,7 @@ mod tests {
             .clone()
             .set_primitive(value_atom.clone(), Arc::new(11));
         assert_eq!(*d2_counter.lock().unwrap(), 2);
-        assert_eq!(*sub_counter.borrow(), 1);
+        assert_eq!(*sub_counter.lock().unwrap(), 1);
     }
 
     #[test]
