@@ -56,9 +56,11 @@ struct BazelApp: App {
 }
 
 func onLaunch() {
-  let url =
+  let dirUrl =
     try! FileManager.default.url(
       for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false
-    ) / (Bundle.main.bundleIdentifier ?? "__unknown__")
+    ) / (Bundle.main.bundleIdentifier ?? "__unknown__") / "logs"
+  try! FileManager.default.createDirectory(at: dirUrl, withIntermediateDirectories: true)
+  let url = dirUrl / "logs.sqlite"
   initLogDb(path: url.path)
 }

@@ -31,7 +31,7 @@ pub fn invalidate_log_effect(
 pub fn invalidate_log(store: Arc<JotaiStore>) {
     let counter_atom = COUNTER_ATOM.clone();
     store.set_primitive(
-        counter_atom.clone(),
+        &counter_atom,
         (*store.clone().get(&*counter_atom) + 1).into(),
     );
 }

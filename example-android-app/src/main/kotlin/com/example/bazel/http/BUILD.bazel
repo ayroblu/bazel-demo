@@ -1,0 +1,12 @@
+load("@rules_kotlin//kotlin:android.bzl", "kt_android_library")
+
+package(default_visibility = ["//example-android-app:__subpackages__"])
+
+kt_android_library(
+    name = "http",
+    srcs = glob(["*.kt"]),
+    deps = [
+        "//example-android-app/rust-shared:rust-shared-kotlin",
+        "@maven_compose//:com_squareup_okhttp3_okhttp",
+    ],
+)

@@ -1,0 +1,21 @@
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+load("//tools:rust_uniffi.bzl", "rust_uniffi_bindgen")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_uniffi_bindgen(
+    name = "rust-shared",
+    srcs = glob(["*.rs"]),
+    extra_module_names = [
+        "http_shared",
+        "jotai_logs",
+        "example",
+        "example_rusqlite",
+    ],
+    deps = [
+        "//rust-code/client-shared/example-shared-lib:example-lib",
+        "//rust-code/client-shared/http-shared:http-shared-lib",
+        "//rust-code/client-shared/jotai-logs:jotai-logs-lib",
+        "//rust-code/example-rusqlite:bindings-lib",
+    ],
+)

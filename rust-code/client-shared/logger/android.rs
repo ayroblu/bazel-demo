@@ -5,14 +5,18 @@ use std::time::SystemTime;
 #[macro_export]
 macro_rules! log {
     ($($arg:tt)*) => {
-        $crate::android::log_info(&format!($($arg)*));
+        $crate::log_info(
+            &format!("{}:{} - {}", module_path!(), line!(), format_args!($($arg)*))
+        )
     };
 }
 
 #[macro_export]
 macro_rules! elog {
     ($($arg:tt)*) => {
-        $crate::android::log_error(&format!($($arg)*));
+        $crate::log_error(
+            &format!("{}:{} - {}", module_path!(), line!(), format_args!($($arg)*))
+        )
     };
 }
 

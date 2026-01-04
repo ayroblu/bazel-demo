@@ -87,11 +87,11 @@ pub fn init_log_db(path: &str) {
 }
 #[uniffi::export]
 pub fn log(message: &str) {
-    logger::log::log_info(message);
+    logger::log_info(message);
 }
 #[uniffi::export]
 pub fn elog(message: &str) {
-    logger::log::log_error(message);
+    logger::log_error(message);
 }
 
 #[derive(uniffi::Record, Debug, PartialEq, Clone)]
