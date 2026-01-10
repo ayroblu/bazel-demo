@@ -41,6 +41,11 @@ View crash logs:
 adb logcat --buffer=crash
 ```
 
+## intellij and kt_jvm_library vs kt_android_library
+
+We use kt_jvm_library for most things.
+We only need kt_android_library if we need a AndroidManifest with resources for strings etc
+
 ## Info
 
 For this commit: 2026-01-04, apk with build:android:opt is 5.5MB and build:android is 21MB

@@ -1,8 +1,9 @@
-load("@rules_kotlin//kotlin:android.bzl", "kt_android_library")
+# load("@rules_kotlin//kotlin:android.bzl", "kt_android_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 
 package(default_visibility = ["//example-android-app:__subpackages__"])
 
-kt_android_library(
+kt_jvm_library(
     name = "bazel",
     srcs = glob([
         "*.kt",
