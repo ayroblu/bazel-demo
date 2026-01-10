@@ -1,0 +1,17 @@
+directories:
+  example-android-app
+
+# Automatically includes all relevant targets under the 'directories' above
+derive_targets_from_directories: true
+
+targets:
+  # If source code isn't resolving, add additional targets that compile it here
+
+additional_languages:
+  # Uncomment any additional languages you want supported
+  # c
+  # dart
+  kotlin
+
+
+android_sdk_platform: android-34

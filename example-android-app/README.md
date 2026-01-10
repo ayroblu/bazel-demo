@@ -46,6 +46,8 @@ adb logcat --buffer=crash
 We use kt_jvm_library for most things.
 We only need kt_android_library if we need a AndroidManifest with resources for strings etc
 
+Import bazel project, change project directory to same as .bazelproject .aswb
+
 ## Info
 
 For this commit: 2026-01-04, apk with build:android:opt is 5.5MB and build:android is 21MB
