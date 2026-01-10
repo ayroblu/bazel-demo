@@ -32,6 +32,15 @@ rust_binary(
     deps = ["@crates//:uniffi"],
 )
 
+rust_binary(
+    name = "ubrn",
+    srcs = ["ubrn.rs"],
+    deps = [
+        "@crates//:clap",
+        "@crates//:uniffi-bindgen-react-native",
+    ],
+)
+
 # rust_binary(
 #     name = "wasm-bindgen",
 #     srcs = ["wasm-bindgen.rs"],

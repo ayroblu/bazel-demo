@@ -215,41 +215,32 @@ bazel_dep(name = "aspect_bazel_lib", version = "2.19.3")
 pnpm = use_extension("@aspect_rules_js//npm:extensions.bzl", "pnpm", dev_dependency = True)
 use_repo(pnpm, "pnpm")
 
-code_tools_npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm", dev_dependency = True)
-code_tools_npm.npm_translate_lock(
+npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm", dev_dependency = True)
+npm.npm_translate_lock(
     name = "code-tools-npm",
     npmrc = "//code-tools:.npmrc",
     pnpm_lock = "//code-tools:pnpm-lock.yaml",
     verify_node_modules_ignored = "//:.bazelignore",
 )
-use_repo(code_tools_npm, "code-tools-npm")
-
-js_lib_npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm", dev_dependency = True)
-js_lib_npm.npm_translate_lock(
+npm.npm_translate_lock(
     name = "js-lib-npm",
     npmrc = "//js-lib:.npmrc",
     pnpm_lock = "//js-lib:pnpm-lock.yaml",
     verify_node_modules_ignored = "//:.bazelignore",
 )
-use_repo(js_lib_npm, "js-lib-npm")
-
-js_site_npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm", dev_dependency = True)
-js_site_npm.npm_translate_lock(
+npm.npm_translate_lock(
     name = "js-site-npm",
     npmrc = "//js-site:.npmrc",
     pnpm_lock = "//js-site:pnpm-lock.yaml",
     verify_node_modules_ignored = "//:.bazelignore",
 )
-use_repo(js_site_npm, "js-site-npm")
-
-example_shared_lib_jest_npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm", dev_dependency = True)
-example_shared_lib_jest_npm.npm_translate_lock(
+npm.npm_translate_lock(
     name = "example-shared-lib-jest-npm",
     npmrc = "//rust-code/client-shared/example-shared-lib/tests:.npmrc",
     pnpm_lock = "//rust-code/client-shared/example-shared-lib/tests:pnpm-lock.yaml",
     verify_node_modules_ignored = "//:.bazelignore",
 )
-use_repo(example_shared_lib_jest_npm, "example-shared-lib-jest-npm")
+use_repo(npm, "code-tools-npm", "example-shared-lib-jest-npm", "js-lib-npm", "js-site-npm")
 
 bazel_dep(name = "aspect_rules_ts", version = "3.7.1")
 bazel_dep(name = "aspect_rules_swc", version = "2.5.0")
@@ -315,6 +306,7 @@ rust_package_versions = [
     ("tsify", "=0.5.6"),
     ("wasm-bindgen", "=0.2.105"),
     ("wasm-bindgen-futures", "=0.4.55"),
+    ("clap", "=4.5.4"),
 ]
 
 [
@@ -362,6 +354,16 @@ crate.spec(
     package = "rusqlite",
     repositories = ["crates-android"],
     version = "=0.37.0",
+)
+crate.spec(
+    package = "rusqlite",
+    repositories = ["crates"],
+    version = "=0.37.0",
+)
+crate.spec(
+    git = "https://github.com/jhugman/uniffi-bindgen-react-native",
+    package = "uniffi-bindgen-react-native",
+    rev = "d93883b",
 )
 crate.from_specs(supported_platform_triples = [
     "aarch64-apple-darwin",

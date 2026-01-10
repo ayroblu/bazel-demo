@@ -1,6 +1,6 @@
 /.bazel
 /rust-project.json
-/node_modules
+node_modules
 
 # swift
 .build

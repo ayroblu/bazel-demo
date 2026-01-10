@@ -53,6 +53,21 @@ def rust_uniffi_bindgen(name, srcs, deps = [], module_name = None, extra_module_
         tools = ["//tools:uniffi-bindgen"],
     )
 
+    native.genrule(
+        name = name + "-wasm-bindings",
+        srcs = [":%s-shared-lib" % name, ":%s-cargo" % name],
+        outs = _uniffi_wasm_outs([under_module_name] + extra_module_names),
+        cmd = """
+            echo "--------- Processing $(SRCS)"
+            # Consider adding --config uniffi.toml
+            cp "$(location :%s-cargo)" .
+            "$(location //tools:ubrn)" generate wasm bindings --library --ts-dir "$(@D)/ts" --cpp-dir "$(@D)/rs" "$(location :%s-shared-lib)"
+            tree "$(@D)"
+            echo "---------"
+            """ % (name, name),
+        tools = ["//tools:ubrn"],
+    )
+
     native.objc_library(
         name = name + "-objc",
         hdrs = [":%sFFI.h" % (under_module_name)],
@@ -126,6 +141,16 @@ def _uniffi_outs(names):
             name + "FFI.h",
             name + "FFI.modulemap",
             "uniffi/%s/%s.kt" % (name, name),
+        ]
+    ]
+
+def _uniffi_wasm_outs(names):
+    return [
+        item
+        for name in names
+        for item in [
+            "ts/" + name + ".ts",
+            "rs/" + name + "_module.rs",
         ]
     ]
 
