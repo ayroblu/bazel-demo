@@ -7,7 +7,7 @@ public func SingleLog() -> (Any...) -> Void {
 
   return { args in
     let key = "I"
-    print(LogItem(key: key, args: args).getText())
+    print(LogItem(key: key, args: args).getFullText())
 
     guard db != nil else {
       // print("Log: no db, no persistence")
