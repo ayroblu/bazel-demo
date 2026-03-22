@@ -1,16 +1,23 @@
 load("@rules_xcodeproj//xcodeproj:defs.bzl", "xcodeproj")
 load("@sourcekit_bazel_bsp//rules:setup_sourcekit_bsp.bzl", "setup_sourcekit_bsp")
 
-def ide(project_name, targets):
-    # for using XCode.
+def ide(xcode_project_name, targets, xcode_targets = None):
+    if xcode_targets == None:
+        xcode_targets = targets
+
+    # for using XCode. Regenerate whenever BUILD graph changes
+    # bazel run //path:xcodeproj && xed path/name.xcodeproj
     xcodeproj(
         name = "xcodeproj",
-        project_name = project_name,
+        project_name = xcode_project_name,
         tags = ["manual"],
-        top_level_targets = targets,
+        top_level_targets = xcode_targets,
     )
 
     # to use with VSCode + Swift extension
+    # bazel run //path:setup-bsp
+    # Debug with:
+    # $ log stream --process sourcekit-bazel-bsp --debug --style compact
     setup_sourcekit_bsp(
         name = "setup-bsp",
         bazel_wrapper = "bazelisk",
