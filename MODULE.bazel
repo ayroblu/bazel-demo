@@ -24,7 +24,7 @@ bazel_dep(
     version = "4.2.0",
     repo_name = "build_bazel_rules_apple",
 )
-bazel_dep(name = "sourcekit_bazel_bsp", version = "0.3.0", repo_name = "sourcekit_bazel_bsp")
+bazel_dep(name = "sourcekit_bazel_bsp", version = "0.8.2", repo_name = "sourcekit_bazel_bsp")
 
 # bazel_dep(name = "swiftlint", version = "0.59.1", repo_name = "SwiftLint")
 # bazel_dep(name = "aspect_rules_lint", version = "1.4.4")
