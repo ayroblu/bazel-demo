@@ -21,7 +21,7 @@ bazel_dep(
 )
 bazel_dep(
     name = "rules_apple",
-    version = "4.5.1",
+    version = "4.5.2",
     repo_name = "build_bazel_rules_apple",
 )
 bazel_dep(name = "sourcekit_bazel_bsp", version = "0.8.2", repo_name = "sourcekit_bazel_bsp")
@@ -169,7 +169,6 @@ maven.install(
     use_starlark_android_rules = True,
 )
 use_repo(maven, "maven_compose")
-
 maven.install(
     name = "maven_compose_android",
     aar_import_bzl_label = "@rules_android//android:rules.bzl",
