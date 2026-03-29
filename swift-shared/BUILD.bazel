@@ -1,1 +1,6 @@
-# Blank just for the bzl file
+load("@bazel-demo//swift-shared:swift-ide.bzl", "ide")
+
+ide(
+    targets = ["//swift-shared:all"],
+    xcode_project_name = "swift-shared",
+)

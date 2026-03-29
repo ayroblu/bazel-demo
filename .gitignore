@@ -10,8 +10,8 @@ DerivedData
 
 xcode.bazelrc
 
-/.bsp/skbsp.json
-/.bsp/sourcekit-bazel-bsp
+/.bsp
+/.sourcekit-lsp
 
 # android
 .aswb/

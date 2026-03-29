@@ -1,4 +1,5 @@
 import ConcurrentUtils
+import Foundation
 import Log
 
 struct ETagFilter: HttpFilter {
@@ -25,12 +26,17 @@ struct LoggingFilter: HttpFilter {
   func handler(request: HttpRequest, service: (HttpRequest) async throws -> HttpResponse)
     async rethrows -> HttpResponse
   {
+    var start: Date?
     if !request.options.contains(.skipLog) {
+      start = Date()
       log("\(request.method) \(request.path)")
     }
     let result = try await service(request)
     if !request.options.contains(.skipLog) {
-      log("\(request.method) \(request.path): HTTP-\(result.statusCode)")
+      let duration = Duration.seconds(Date().timeIntervalSince(start!)).formatted(
+        .units(allowed: [.milliseconds, .seconds], width: .narrow)
+      )
+      log("\(request.method) \(request.path): HTTP-\(result.statusCode) +\(duration)")
     }
     return result
   }
