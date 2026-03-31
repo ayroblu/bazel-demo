@@ -23,6 +23,11 @@ where T: Decodable {
   return try decoder.decode(type, from: body)
 }
 
+@concurrent
+public func getHttpData(urlPath: String) async throws -> Data {
+  return try await getBody(urlPath: urlPath, retries: 3)
+}
+
 func getBody(urlPath: String, retries: Int, ttl: Date?) async throws -> Data {
   if let ttl {
     return try await getWithCache(key: urlPath) {
