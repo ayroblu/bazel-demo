@@ -1,9 +1,17 @@
-load("@rules_xcodeproj//xcodeproj:defs.bzl", "xcodeproj")
+load("@rules_xcodeproj//xcodeproj:defs.bzl", "top_level_target", "xcodeproj")
 load("@sourcekit_bazel_bsp//rules:setup_sourcekit_bsp.bzl", "setup_sourcekit_bsp")
 
 def ide(xcode_project_name, targets, xcode_targets = None):
     if xcode_targets == None:
         xcode_targets = targets
+
+    top_level_targets = [top_level_target(
+        target,
+        target_environments = [
+            "device",
+            "simulator",
+        ],
+    ) for target in xcode_targets]
 
     # for using XCode. Regenerate whenever BUILD graph changes
     # bazel run //path:xcodeproj && xed path/name.xcodeproj
@@ -11,7 +19,7 @@ def ide(xcode_project_name, targets, xcode_targets = None):
         name = "xcodeproj",
         project_name = xcode_project_name,
         tags = ["manual"],
-        top_level_targets = xcode_targets,
+        top_level_targets = top_level_targets,
     )
 
     # to use with VSCode + Swift extension
