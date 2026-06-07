@@ -3,6 +3,7 @@ import SwiftLib
 import SwiftUI
 import SwiftUIUtils
 import drag_example
+import home
 import jotai_example
 import jotai_logs
 import rust_jotai_lib
@@ -25,14 +26,14 @@ struct BazelApp: App {
     WindowGroup {
       TabView {
         Tab("Home", systemImage: "house.fill") {
+          HomeScreenView()
+        }
+
+        Tab("Todo", systemImage: "list.bullet") {
           Text("Hello from Bazel!")
           Text("rust add: 1 + 2 = \(SwiftRust.add(1, 2))")
           RustUniffiExampleView()
           SqliteExampleView()
-        }
-
-        Tab("Todo", systemImage: "list.bullet") {
-          Text("Todo")
           JotaiExampleView()
         }
 
