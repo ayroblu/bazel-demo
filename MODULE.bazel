@@ -239,7 +239,12 @@ npm.npm_translate_lock(
     pnpm_lock = "//rust-code/client-shared/example-shared-lib/tests:pnpm-lock.yaml",
     verify_node_modules_ignored = "//:.bazelignore",
 )
-use_repo(npm, "code-tools-npm", "example-shared-lib-jest-npm", "js-lib-npm", "js-site-npm")
+npm.npm_translate_lock(
+    name = "vimkeys-npm",
+    pnpm_lock = "//vimkeys:pnpm-lock.yaml",
+    verify_node_modules_ignored = "//:.bazelignore",
+)
+use_repo(npm, "code-tools-npm", "example-shared-lib-jest-npm", "js-lib-npm", "js-site-npm", "vimkeys-npm")
 
 bazel_dep(name = "aspect_rules_ts", version = "3.7.1")
 bazel_dep(name = "aspect_rules_swc", version = "2.5.0")

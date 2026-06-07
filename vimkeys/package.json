@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "esbuild": "^0.17.14",
+    "prettier": "^2.8.7",
+    "typescript": "^5.0.2",
+    "web-ext-types": "^3.2.1"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

@@ -1,0 +1,152 @@
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_run_binary")
+load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application", "macos_extension")
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("@rules_xcodeproj//xcodeproj:defs.bzl", "xcodeproj")
+load("@sourcekit_bazel_bsp//rules:setup_sourcekit_bsp.bzl", "setup_sourcekit_bsp")
+load("@vimkeys-npm//:defs.bzl", "npm_link_all_packages")
+
+package(default_visibility = ["//visibility:public"])
+
+npm_link_all_packages()
+
+js_binary(
+    name = "esbuild",
+    data = [
+        ":node_modules/esbuild",
+    ],
+    entry_point = "tools/esbuild-wrapper.js",
+)
+
+filegroup(
+    name = "ts_sources",
+    srcs = glob(["src/**/*.ts"]),
+)
+
+js_run_binary(
+    name = "background_js",
+    srcs = [":ts_sources"],
+    outs = ["background.js"],
+    args = [
+        "src/background.ts",
+        "background.js",
+    ],
+    chdir = package_name(),
+    tool = ":esbuild",
+)
+
+js_run_binary(
+    name = "content_js",
+    srcs = [":ts_sources"],
+    outs = ["content.js"],
+    args = [
+        "src/content.ts",
+        "content.js",
+    ],
+    chdir = package_name(),
+    tool = ":esbuild",
+)
+
+apple_resource_group(
+    name = "app_resources",
+    resources = glob([
+        "Shared (App)/Assets.xcassets/**",
+        "Shared (App)/Resources/*",
+    ]) + [
+        "Shared (App)/Base.lproj/Main.html",
+        "macOS (App)/Base.lproj/Main.storyboard",
+    ],
+)
+
+apple_resource_group(
+    name = "extension_resources",
+    resources = [
+        "Shared (Extension)/Resources/manifest.json",
+        "Shared (Extension)/Resources/popup.css",
+        "Shared (Extension)/Resources/popup.html",
+        "Shared (Extension)/Resources/popup.js",
+        ":background_js",
+        ":content_js",
+    ],
+    strip_structured_resources_prefixes = ["Shared (Extension)/Resources"],
+    structured_resources = glob([
+        "Shared (Extension)/Resources/_locales/**",
+        "Shared (Extension)/Resources/images/**",
+    ]),
+)
+
+swift_library(
+    name = "app_lib",
+    srcs = [
+        "Shared (App)/ViewController.swift",
+        "macOS (App)/AppDelegate.swift",
+    ],
+    data = [":app_resources"],
+    linkopts = [
+        "-framework",
+        "SafariServices",
+        "-framework",
+        "WebKit",
+    ],
+    module_name = "vimkeys",
+)
+
+swift_library(
+    name = "extension_lib",
+    srcs = ["Shared (Extension)/SafariWebExtensionHandler.swift"],
+    data = [":extension_resources"],
+    linkopts = [
+        "-framework",
+        "SafariServices",
+    ],
+    module_name = "vimkeys_Extension",
+)
+
+macos_extension(
+    name = "vimkeys_extension",
+    bundle_id = "com.ayroblu.vimkeys.Extension",
+    bundle_name = "vimkeys Extension",
+    entitlements = "macOS (Extension)/vimkeys.entitlements",
+    infoplists = ["macOS (Extension)/Info.plist"],
+    minimum_os_version = "10.14",
+    deps = [":extension_lib"],
+)
+
+macos_application(
+    name = "vimkeys",
+    bundle_id = "com.ayroblu.vimkeys",
+    bundle_name = "vimkeys",
+    entitlements = "macOS (App)/vimkeys.entitlements",
+    extensions = [":vimkeys_extension"],
+    infoplists = ["macOS (App)/Info.plist"],
+    minimum_os_version = "10.14",
+    deps = [":app_lib"],
+)
+
+sh_binary(
+    name = "register",
+    srcs = ["tools/register_app.sh"],
+    args = ["$(location :vimkeys)"],
+    data = [":vimkeys"],
+)
+
+xcodeproj(
+    name = "xcodeproj",
+    project_name = "vimkeys",
+    tags = ["manual"],
+    top_level_targets = [":vimkeys"],
+)
+
+setup_sourcekit_bsp(
+    name = "setup-bsp",
+    bazel_wrapper = "bazelisk",
+    compile_top_level = True,
+    files_to_watch = [
+        "**/*.swift",
+        "**/*.ts",
+        "**/*.plist",
+        "**/*.storyboard",
+    ],
+    index_flags = ["config=index_build"],
+    targets = ["//vimkeys"],
+)
