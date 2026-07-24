@@ -1,0 +1,14 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
+
+package(default_visibility = ["//call-app:__subpackages__"])
+
+swift_library(
+    name = "content",
+    srcs = glob(["*.swift"]),
+    copts = STRICT_MAINACTOR_COPTS,
+    module_name = "content",
+    deps = [
+        "//swift-shared/Log",
+    ],
+)

@@ -1,0 +1,46 @@
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load(
+    "@rules_xcodeproj//xcodeproj:defs.bzl",
+    "top_level_target",
+    "xcodeproj",
+)
+load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
+
+swift_library(
+    name = "lib",
+    srcs = ["MainApp.swift"],
+    copts = STRICT_MAINACTOR_COPTS,
+    deps = [
+        "//call-app/content",
+    ],
+)
+
+ios_application(
+    name = "call-app",
+    bundle_id = "com.ayroblu.call-app",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = ["Resources/Info.plist"],
+    minimum_os_version = "18.0",
+    visibility = ["//visibility:public"],
+    deps = [":lib"],
+)
+
+# bazel run //call-app:xcodeproj && xed call-app.xcodeproj
+xcodeproj(
+    name = "xcodeproj",
+    project_name = "call-app",
+    tags = ["manual"],
+    top_level_targets = [
+        top_level_target(
+            ":call-app",
+            target_environments = [
+                "device",
+                "simulator",
+            ],
+        ),
+    ],
+)

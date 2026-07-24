@@ -1,0 +1,40 @@
+Nearby Call App
+===============
+
+An offline audio call app for two nearby iPhones. It uses MultipeerConnectivity,
+which connects devices directly over peer-to-peer wifi and bluetooth, so no
+internet or shared network is required.
+
+## How it works
+
+* Discovery: each device both advertises and browses for the
+  `p2p-audio-call` bonjour service. Tap a discovered device to invite it, the
+  other side gets an accept/decline prompt.
+* Audio: an `AVAudioEngine` mic tap is resampled to 16kHz mono Int16 PCM and
+  sent as unreliable datagrams over the `MCSession`. Received packets are
+  scheduled onto an `AVAudioPlayerNode`. Voice processing (echo cancellation)
+  is enabled on the input node.
+* Routing: during a call you can pick the microphone from
+  `AVAudioSession.availableInputs` (e.g. phone mic instead of airpods mic),
+  toggle the speakerphone, and pick any output (airpods, etc.) via the system
+  route picker.
+
+## Building
+
+```sh
+bazel build //call-app
+bazel run //call-app:xcodeproj && xed call-app.xcodeproj
+```
+
+MultipeerConnectivity and the microphone don't work in the simulator, so run
+on two physical devices. To install on a device, add a
+`provisioning_profile` for the `com.ayroblu.call-app` bundle id to the
+`ios_application` target, same as g1-app:
+
+```
+# cp ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/<uuid>.mobileprovision .
+```
+
+Both devices need wifi and bluetooth enabled (airplane mode with them toggled
+back on is fine), and the app must be granted microphone and local network
+permissions on first launch.
