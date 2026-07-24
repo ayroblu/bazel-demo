@@ -1,0 +1,67 @@
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load(
+    "@rules_xcodeproj//xcodeproj:defs.bzl",
+    "top_level_target",
+    "xcodeproj",
+)
+load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
+
+swift_library(
+    name = "lib",
+    srcs = ["MainApp.swift"],
+    copts = STRICT_MAINACTOR_COPTS,
+    deps = [
+        "//local-call-app/content",
+    ],
+)
+
+ios_application(
+    name = "local-call-app",
+    bundle_id = "com.ayroblu.local-call-app",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = ["Resources/Info.plist"],
+    minimum_os_version = "18.0",
+    # cp ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/<uuid>.mobileprovision .
+    provisioning_profile = "03f5713c-95f3-42e2-8418-48bf4151500b.mobileprovision",
+    visibility = ["//visibility:public"],
+    deps = [":lib"],
+)
+
+macos_application(
+    name = "macos_app",
+    bundle_id = "com.ayroblu.local-call-app.macos",
+    bundle_name = "Local Call App",
+    entitlements = "Resources/Mac.entitlements",
+    infoplists = ["Resources/MacInfo.plist"],
+    minimum_os_version = "14.0",
+    visibility = ["//visibility:public"],
+    deps = [":lib"],
+)
+
+sh_binary(
+    name = "macos",
+    srcs = ["run-macos.sh"],
+    data = [":macos_app"],
+)
+
+# bazel run //local-call-app:xcodeproj && xed local-call-app.xcodeproj
+xcodeproj(
+    name = "xcodeproj",
+    project_name = "local-call-app",
+    tags = ["manual"],
+    top_level_targets = [
+        top_level_target(
+            ":local-call-app",
+            target_environments = [
+                "device",
+                "simulator",
+            ],
+        ),
+        ":macos_app",
+    ],
+)

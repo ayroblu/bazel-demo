@@ -1,9 +1,12 @@
+#if os(iOS)
 import AVKit
+#endif
 import MultipeerConnectivity
 import SwiftUI
 
 public struct ContentView: View {
   @StateObject private var vm = CallViewModel()
+  @StateObject private var logs = AppLogStore.shared
 
   public init() {}
 
@@ -16,9 +19,17 @@ public struct ContentView: View {
           LobbyView(vm: vm)
         }
       }
-      .navigationTitle(vm.isInCall ? "In Call" : "Nearby Call")
+      .navigationTitle(vm.isInCall ? "In Call" : "Local Call")
+      .toolbar {
+        NavigationLink {
+          LogsView(logs: logs)
+        } label: {
+          Label("Logs", systemImage: "doc.text.magnifyingglass")
+        }
+      }
     }
     .task {
+      logs.activate()
       await vm.requestMicPermission()
       vm.multipeer.startDiscovery()
     }
@@ -46,6 +57,30 @@ public struct ContentView: View {
   }
 }
 
+struct LogsView: View {
+  @ObservedObject var logs: AppLogStore
+
+  var body: some View {
+    List {
+      if logs.lines.isEmpty {
+        Text("No logs yet")
+          .foregroundStyle(.secondary)
+      }
+      ForEach(Array(logs.lines.enumerated()), id: \.offset) { _, line in
+        Text(line)
+          .font(.system(.caption, design: .monospaced))
+          .textSelection(.enabled)
+      }
+    }
+    .navigationTitle("Logs")
+    .toolbar {
+      Button("Clear") {
+        logs.clear()
+      }
+    }
+  }
+}
+
 struct LobbyView: View {
   @ObservedObject var vm: CallViewModel
   @ObservedObject var multipeer: MultipeerManager
@@ -68,6 +103,13 @@ struct LobbyView: View {
       Section("This device") {
         Label(multipeer.peerId.displayName, systemImage: "iphone")
       }
+      if let status = multipeer.statusMessage {
+        Section {
+          Text(status)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+        }
+      }
       Section("Nearby devices") {
         if multipeer.discoveredPeers.isEmpty {
           HStack {
@@ -81,14 +123,20 @@ struct LobbyView: View {
             multipeer.invite(peer: peer)
           } label: {
             HStack {
-              Label(peer.displayName, systemImage: "phone.arrow.up.right")
+              Label(
+                peer.displayName,
+                systemImage: multipeer.pendingInvite?.peer == peer
+                  ? "phone.arrow.down.left" : "phone.arrow.up.right")
               Spacer()
               if multipeer.connectingPeer == peer {
                 ProgressView()
+              } else if multipeer.pendingInvite?.peer == peer {
+                Text("Accept")
+                  .foregroundStyle(.green)
               }
             }
           }
-          .disabled(multipeer.connectingPeer != nil)
+          .disabled(multipeer.connectingPeer != nil && multipeer.connectingPeer != peer)
         }
       }
       Section {
@@ -126,6 +174,7 @@ struct InCallView: View {
           Label("Mute microphone", systemImage: vm.isMuted ? "mic.slash.fill" : "mic.fill")
         }
       }
+      #if os(iOS)
       Section("Audio input") {
         Picker(
           selection: Binding(
@@ -144,10 +193,13 @@ struct InCallView: View {
         .pickerStyle(.inline)
         .labelsHidden()
       }
+      #endif
       Section("Audio output") {
+        #if os(iOS)
         Toggle(isOn: Binding(get: { routes.isSpeakerOn }, set: { routes.setSpeaker($0) })) {
           Label("Speaker", systemImage: "speaker.wave.2.fill")
         }
+        #endif
         HStack {
           Label("Current output: \(routes.currentOutputName)", systemImage: "airpods")
           Spacer()
@@ -170,6 +222,7 @@ struct InCallView: View {
   }
 }
 
+#if os(iOS)
 struct RoutePickerView: UIViewRepresentable {
   func makeUIView(context: Context) -> AVRoutePickerView {
     let view = AVRoutePickerView()
@@ -179,3 +232,11 @@ struct RoutePickerView: UIViewRepresentable {
 
   func updateUIView(_ uiView: AVRoutePickerView, context: Context) {}
 }
+#else
+struct RoutePickerView: View {
+  var body: some View {
+    Image(systemName: "speaker.wave.2.fill")
+      .foregroundStyle(.secondary)
+  }
+}
+#endif

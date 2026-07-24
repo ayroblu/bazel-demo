@@ -1,10 +1,13 @@
+#if os(iOS)
 import AVFoundation
 import Log
+
+typealias AudioInputDevice = AVAudioSessionPortDescription
 
 class AudioRouteController: ObservableObject {
   private let session = AVAudioSession.sharedInstance()
 
-  @Published var availableInputs: [AVAudioSessionPortDescription] = []
+  @Published var availableInputs: [AudioInputDevice] = []
   @Published var currentInputUid: String?
   @Published var currentOutputName: String = ""
   @Published var isSpeakerOn = false
@@ -21,9 +24,11 @@ class AudioRouteController: ObservableObject {
 
   func activate() throws {
     try session.setCategory(
-      .playAndRecord, mode: .voiceChat, options: [.allowBluetooth, .allowBluetoothA2DP])
+      .playAndRecord, mode: .default,
+      options: [.allowBluetoothHFP, .allowBluetoothA2DP, .defaultToSpeaker])
     try session.setActive(true)
-    isSpeakerOn = false
+    try? session.overrideOutputAudioPort(.speaker)
+    isSpeakerOn = true
     refresh()
   }
 
@@ -36,6 +41,9 @@ class AudioRouteController: ObservableObject {
     availableInputs = session.availableInputs ?? []
     currentInputUid = session.currentRoute.inputs.first?.uid
     currentOutputName = session.currentRoute.outputs.map { $0.portName }.joined(separator: ", ")
+    log(
+      "audio route", "inputs", session.currentRoute.inputs.map { $0.portName }.joined(separator: ","),
+      "outputs", currentOutputName, "speaker", isSpeakerOn)
   }
 
   func selectInput(_ port: AVAudioSessionPortDescription?) {
@@ -57,3 +65,4 @@ class AudioRouteController: ObservableObject {
     refresh()
   }
 }
+#endif

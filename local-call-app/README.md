@@ -1,7 +1,7 @@
-Nearby Call App
+Local Call App
 ===============
 
-An offline audio call app for two nearby iPhones. It uses MultipeerConnectivity,
+An offline audio call app for nearby iPhones and Macs. It uses MultipeerConnectivity,
 which connects devices directly over peer-to-peer wifi and bluetooth, so no
 internet or shared network is required.
 
@@ -22,13 +22,15 @@ internet or shared network is required.
 ## Building
 
 ```sh
-bazel build //call-app
-bazel run //call-app:xcodeproj && xed call-app.xcodeproj
+bazel build //local-call-app
+bazel build //local-call-app:macos_app
+bazel run //local-call-app:macos
+bazel run //local-call-app:xcodeproj && xed local-call-app.xcodeproj
 ```
 
-MultipeerConnectivity and the microphone don't work in the simulator, so run
-on two physical devices. To install on a device, add a
-`provisioning_profile` for the `com.ayroblu.call-app` bundle id to the
+MultipeerConnectivity and the microphone don't work in the iOS simulator, so run
+the iOS app on physical devices. To install on a device, add a
+`provisioning_profile` for the `com.ayroblu.local-call-app` bundle id to the
 `ios_application` target, same as g1-app:
 
 ```

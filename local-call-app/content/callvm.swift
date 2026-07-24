@@ -30,19 +30,26 @@ class CallViewModel: ObservableObject {
   }
 
   func requestMicPermission() async {
-    let granted = await AVAudioApplication.hasPermissionToRecord()
+    let granted = await RecordingPermission.hasPermissionToRecord()
     micPermissionDenied = !granted
+    log("call mic permission", granted)
   }
 
   private func startAudio() {
+    log("call audio starting")
     do {
       try routes.activate()
+      log("call audio route activated")
       try audio.start()
+      log("call audio started")
       isMuted = false
       isInCall = true
     } catch {
       log("failed to start audio", error)
-      endCall()
+      audio.stop()
+      routes.deactivate()
+      isInCall = false
+      multipeer.disconnect(statusMessage: "Connected, but audio failed to start: \(error.localizedDescription)")
     }
   }
 
