@@ -2,12 +2,10 @@
 import AVFoundation
 import Log
 
-typealias AudioInputDevice = AVAudioSessionPortDescription
-
 class AudioRouteController: ObservableObject {
   private let session = AVAudioSession.sharedInstance()
 
-  @Published var availableInputs: [AudioInputDevice] = []
+  @Published var availableInputs: [AVAudioSessionPortDescription] = []
   @Published var currentInputUid: String?
   @Published var currentOutputName: String = ""
   @Published var isSpeakerOn = false

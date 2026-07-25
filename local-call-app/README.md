@@ -10,10 +10,10 @@ internet or shared network is required.
 * Discovery: each device both advertises and browses for the
   `p2p-audio-call` bonjour service. Tap a discovered device to invite it, the
   other side gets an accept/decline prompt.
-* Audio: an `AVAudioEngine` mic tap is resampled to 16kHz mono Int16 PCM and
-  sent as unreliable datagrams over the `MCSession`. Received packets are
-  scheduled onto an `AVAudioPlayerNode`. Voice processing (echo cancellation)
-  is enabled on the input node.
+* Audio: an `AVAudioEngine` mic tap is resampled to 16kHz mono Int16 PCM,
+  chunked to stay under the datagram MTU, and sent as unreliable datagrams
+  over the `MCSession`. Received packets are scheduled onto an
+  `AVAudioPlayerNode`.
 * Routing: during a call you can pick the microphone from
   `AVAudioSession.availableInputs` (e.g. phone mic instead of airpods mic),
   toggle the speakerphone, and pick any output (airpods, etc.) via the system

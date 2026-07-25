@@ -1,107 +1,43 @@
 #if os(macOS)
 import CoreAudio
-import Foundation
 import Log
 
-nonisolated private func getStringProperty(
-  deviceID: AudioDeviceID, selector: AudioObjectPropertySelector
-) -> String? {
+nonisolated private func getInputProperty<T>(
+  deviceID: AudioObjectID, selector: AudioObjectPropertySelector, initial: T
+) -> T? {
   var address = AudioObjectPropertyAddress(
     mSelector: selector,
-    mScope: kAudioObjectPropertyScopeGlobal,
+    mScope: selector == kAudioHardwarePropertyDefaultInputDevice
+      ? kAudioObjectPropertyScopeGlobal : kAudioDevicePropertyScopeInput,
     mElement: kAudioObjectPropertyElementMain)
-  let value = UnsafeMutablePointer<CFString?>.allocate(capacity: 1)
-  value.initialize(to: nil)
-  defer {
-    value.deinitialize(count: 1)
-    value.deallocate()
+  var value = initial
+  var size = UInt32(MemoryLayout<T>.size)
+  guard AudioObjectGetPropertyData(deviceID, &address, 0, nil, &size, &value) == noErr else {
+    return nil
   }
-  var size = UInt32(MemoryLayout<CFString?>.size)
-  let status = AudioObjectGetPropertyData(deviceID, &address, 0, nil, &size, value)
-  guard status == noErr, let value = value.pointee else { return nil }
-  return value as String
+  return value
 }
 
-nonisolated private func getInputChannelCount(deviceID: AudioDeviceID) -> Int {
-  var address = AudioObjectPropertyAddress(
-    mSelector: kAudioDevicePropertyStreamConfiguration,
-    mScope: kAudioDevicePropertyScopeInput,
-    mElement: kAudioObjectPropertyElementMain)
-  var size: UInt32 = 0
-  guard AudioObjectGetPropertyDataSize(deviceID, &address, 0, nil, &size) == noErr, size > 0 else {
-    return 0
+/// A muted or zero-volume input device delivers valid buffers of pure
+/// silence with no error, so warn loudly since it looks like a working call.
+nonisolated func warnIfMacInputMuted() {
+  guard
+    let deviceID = getInputProperty(
+      deviceID: AudioObjectID(kAudioObjectSystemObject),
+      selector: kAudioHardwarePropertyDefaultInputDevice, initial: AudioDeviceID(0)),
+    deviceID != 0
+  else {
+    log("mac default input device not found")
+    return
   }
-
-  let bufferListPointer = UnsafeMutableRawPointer.allocate(
-    byteCount: Int(size), alignment: MemoryLayout<AudioBufferList>.alignment)
-  defer { bufferListPointer.deallocate() }
-
-  let status = AudioObjectGetPropertyData(deviceID, &address, 0, nil, &size, bufferListPointer)
-  guard status == noErr else { return 0 }
-
-  let bufferList = UnsafeMutableAudioBufferListPointer(
-    bufferListPointer.assumingMemoryBound(to: AudioBufferList.self))
-  return bufferList.reduce(0) { $0 + Int($1.mNumberChannels) }
-}
-
-nonisolated private func getDefaultInputDeviceID() -> AudioDeviceID? {
-  var address = AudioObjectPropertyAddress(
-    mSelector: kAudioHardwarePropertyDefaultInputDevice,
-    mScope: kAudioObjectPropertyScopeGlobal,
-    mElement: kAudioObjectPropertyElementMain)
-  var deviceID = AudioDeviceID(0)
-  var size = UInt32(MemoryLayout<AudioDeviceID>.size)
-  let status = AudioObjectGetPropertyData(
-    AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &deviceID)
-  guard status == noErr, deviceID != 0 else { return nil }
-  return deviceID
-}
-
-nonisolated private func getDeviceIDs() -> [AudioDeviceID] {
-  var address = AudioObjectPropertyAddress(
-    mSelector: kAudioHardwarePropertyDevices,
-    mScope: kAudioObjectPropertyScopeGlobal,
-    mElement: kAudioObjectPropertyElementMain)
-  var size: UInt32 = 0
-  guard AudioObjectGetPropertyDataSize(
-    AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size) == noErr else {
-    return []
-  }
-  let count = Int(size) / MemoryLayout<AudioDeviceID>.size
-  var deviceIDs = [AudioDeviceID](repeating: 0, count: count)
-  let status = AudioObjectGetPropertyData(
-    AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &deviceIDs)
-  guard status == noErr else { return [] }
-  return deviceIDs
-}
-
-nonisolated func logMacInputDevices() {
-  let defaultInputID = getDefaultInputDeviceID()
-  if let defaultInputID {
-    log(
-      "mac default input",
-      getStringProperty(deviceID: defaultInputID, selector: kAudioObjectPropertyName) ?? "unknown",
-      "uid",
-      getStringProperty(deviceID: defaultInputID, selector: kAudioDevicePropertyDeviceUID) ?? "unknown",
-      "channels",
-      getInputChannelCount(deviceID: defaultInputID))
-  } else {
-    log("mac default input", "none")
-  }
-
-  for deviceID in getDeviceIDs() {
-    let inputChannels = getInputChannelCount(deviceID: deviceID)
-    guard inputChannels > 0 else { continue }
-    let marker = deviceID == defaultInputID ? "default" : "available"
-    log(
-      "mac input device", marker,
-      getStringProperty(deviceID: deviceID, selector: kAudioObjectPropertyName) ?? "unknown",
-      "uid",
-      getStringProperty(deviceID: deviceID, selector: kAudioDevicePropertyDeviceUID) ?? "unknown",
-      "channels",
-      inputChannels)
+  let volume = getInputProperty(
+    deviceID: deviceID, selector: kAudioDevicePropertyVolumeScalar, initial: Float32(0))
+  let muted = getInputProperty(
+    deviceID: deviceID, selector: kAudioDevicePropertyMute, initial: UInt32(0))
+  if muted == 1 || volume == 0 {
+    log("mac default input is muted or has zero volume, no audio will be captured")
   }
 }
 #else
-nonisolated func logMacInputDevices() {}
+nonisolated func warnIfMacInputMuted() {}
 #endif

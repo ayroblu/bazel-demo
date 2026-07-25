@@ -40,7 +40,6 @@ class MultipeerManager: ObservableObject {
   @Published var connectedPeer: MCPeerID?
   @Published var connectingPeer: MCPeerID?
   @Published var pendingInvite: PendingInvite?
-  @Published var isDiscovering = false
   @Published var statusMessage: String?
 
   init() {
@@ -63,15 +62,7 @@ class MultipeerManager: ObservableObject {
     log("multipeer start discovery", peerId.displayName, callServiceType)
     advertiser.startAdvertisingPeer()
     browser.startBrowsingForPeers()
-    isDiscovering = true
     statusMessage = nil
-  }
-
-  func stopDiscovery() {
-    advertiser.stopAdvertisingPeer()
-    browser.stopBrowsingForPeers()
-    discoveredPeers = []
-    isDiscovering = false
   }
 
   func invite(peer: MCPeerID) {

@@ -29,7 +29,6 @@ public struct ContentView: View {
       }
     }
     .task {
-      logs.activate()
       await vm.requestMicPermission()
       vm.multipeer.startDiscovery()
     }
@@ -193,13 +192,10 @@ struct InCallView: View {
         .pickerStyle(.inline)
         .labelsHidden()
       }
-      #endif
       Section("Audio output") {
-        #if os(iOS)
         Toggle(isOn: Binding(get: { routes.isSpeakerOn }, set: { routes.setSpeaker($0) })) {
           Label("Speaker", systemImage: "speaker.wave.2.fill")
         }
-        #endif
         HStack {
           Label("Current output: \(routes.currentOutputName)", systemImage: "airpods")
           Spacer()
@@ -207,6 +203,7 @@ struct InCallView: View {
             .frame(width: 44, height: 44)
         }
       }
+      #endif
       Section {
         Button(role: .destructive) {
           vm.endCall()
@@ -217,7 +214,9 @@ struct InCallView: View {
       }
     }
     .onAppear {
+      #if os(iOS)
       routes.refresh()
+      #endif
     }
   }
 }
@@ -231,12 +230,5 @@ struct RoutePickerView: UIViewRepresentable {
   }
 
   func updateUIView(_ uiView: AVRoutePickerView, context: Context) {}
-}
-#else
-struct RoutePickerView: View {
-  var body: some View {
-    Image(systemName: "speaker.wave.2.fill")
-      .foregroundStyle(.secondary)
-  }
 }
 #endif

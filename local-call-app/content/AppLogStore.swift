@@ -18,8 +18,6 @@ final class AppLogStore: ObservableObject {
     ])
   }
 
-  func activate() {}
-
   private func append(_ item: LogItem) {
     lines.append(item.getFullText())
     if lines.count > 300 {

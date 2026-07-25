@@ -1,37 +1,5 @@
 import AVFoundation
-#if os(macOS)
-import CoreAudio
-#endif
 import Log
-
-nonisolated private func pcmLevel(_ samples: [Int16]) -> (peak: Int16, rms: Int) {
-  var peak = 0
-  var sumSquares = 0.0
-  for sample in samples {
-    let magnitude = min(Int(Int16.max), abs(Int(sample)))
-    peak = max(peak, magnitude)
-    let normalized = Double(magnitude) / Double(Int16.max)
-    sumSquares += normalized * normalized
-  }
-  let rms = samples.isEmpty ? 0 : Int(sqrt(sumSquares / Double(samples.count)) * 100)
-  return (Int16(peak), rms)
-}
-
-nonisolated private func pcmLevel(_ data: Data) -> (peak: Int16, rms: Int) {
-  data.withUnsafeBytes { raw in
-    let samples = raw.bindMemory(to: Int16.self)
-    var peak = 0
-    var sumSquares = 0.0
-    for sample in samples {
-      let magnitude = min(Int(Int16.max), abs(Int(sample)))
-      peak = max(peak, magnitude)
-      let normalized = Double(magnitude) / Double(Int16.max)
-      sumSquares += normalized * normalized
-    }
-    let rms = samples.isEmpty ? 0 : Int(sqrt(sumSquares / Double(samples.count)) * 100)
-    return (Int16(peak), rms)
-  }
-}
 
 nonisolated final class CallAudioEngine: @unchecked Sendable {
   private let engine = AVAudioEngine()
@@ -39,21 +7,23 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
   private let transportSampleRate = 16000.0
   private let playbackFormat = AVAudioFormat(standardFormatWithSampleRate: 16000, channels: 1)!
   private var isRunning = false
-  private var outgoingPacketCount = 0
-  private var incomingPacketCount = 0
+
+  // MCSession .unreliable sends are datagram-like: packets larger than the
+  // link MTU (~1400 bytes on peer-to-peer wifi) are silently dropped. macOS
+  // ignores the requested tap buffer size and delivers 100ms buffers (1600
+  // samples = 3200 bytes at 16kHz), so outgoing audio must be chunked to fit.
+  private let maxSamplesPerPacket = 640  // 40ms, 1280 bytes
 
   var onOutgoingAudio: (@Sendable (Data) -> Void)?
   var isMuted = false
 
   func start() throws {
     guard !isRunning else { return }
-    log("audio engine using standard input/output")
-    log("audio engine attaching player")
     engine.attach(playerNode)
     engine.connect(playerNode, to: engine.mainMixerNode, format: playbackFormat)
     let inputFormat = engine.inputNode.outputFormat(forBus: 0)
     log("audio engine input format", inputFormat.sampleRate, inputFormat.channelCount)
-    logMacInputDevices()
+    warnIfMacInputMuted()
     guard inputFormat.sampleRate > 0 else {
       throw CallAudioError.noInput
     }
@@ -62,7 +32,6 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
       self?.handleMicBuffer(buffer)
     }
     engine.prepare()
-    log("audio engine prepared")
     do {
       try engine.start()
     } catch {
@@ -72,8 +41,6 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
       throw error
     }
     playerNode.play()
-    outgoingPacketCount = 0
-    incomingPacketCount = 0
     isRunning = true
   }
 
@@ -88,10 +55,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
 
   private func handleMicBuffer(_ buffer: AVAudioPCMBuffer) {
     guard !isMuted, let onOutgoingAudio else { return }
-    guard let floatChannel = buffer.floatChannelData, buffer.frameLength > 0 else {
-      log("audio mic buffer missing float channel", buffer.format.commonFormat.rawValue, buffer.frameLength)
-      return
-    }
+    guard let floatChannel = buffer.floatChannelData, buffer.frameLength > 0 else { return }
 
     let inputFrames = Int(buffer.frameLength)
     let channelCount = Int(buffer.format.channelCount)
@@ -109,24 +73,17 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
       samples[outputIndex] = Int16(clamped * Float(Int16.max))
     }
 
-    let data = samples.withUnsafeBytes { Data($0) }
-    outgoingPacketCount += 1
-    if outgoingPacketCount == 1 || outgoingPacketCount % 100 == 0 {
-      let level = pcmLevel(samples)
-      log(
-        "audio outgoing packet", outgoingPacketCount, data.count, "bytes", "inputFrames",
-        inputFrames, "outputFrames", outputFrames, "peak", level.peak, "rms", level.rms)
+    var start = 0
+    while start < outputFrames {
+      let end = min(outputFrames, start + maxSamplesPerPacket)
+      let data = samples[start..<end].withUnsafeBytes { Data($0) }
+      onOutgoingAudio(data)
+      start = end
     }
-    onOutgoingAudio(data)
   }
 
   func playIncoming(_ data: Data) {
     guard isRunning else { return }
-    incomingPacketCount += 1
-    if incomingPacketCount == 1 || incomingPacketCount % 100 == 0 {
-      let level = pcmLevel(data)
-      log("audio incoming packet", incomingPacketCount, data.count, "bytes", "peak", level.peak, "rms", level.rms)
-    }
     let frameCount = AVAudioFrameCount(data.count / MemoryLayout<Int16>.size)
     guard frameCount > 0 else { return }
     guard let outBuffer = AVAudioPCMBuffer(pcmFormat: playbackFormat, frameCapacity: frameCount)
@@ -139,11 +96,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
         floatChannel.pointee[i] = Float(samples[i]) / Float(Int16.max)
       }
     }
-    playerNode.scheduleBuffer(outBuffer) {
-      if self.incomingPacketCount == 1 || self.incomingPacketCount % 100 == 0 {
-        log("audio playback completed packet", self.incomingPacketCount)
-      }
-    }
+    playerNode.scheduleBuffer(outBuffer)
   }
 }
 
@@ -154,22 +107,15 @@ enum CallAudioError: Error {
 enum RecordingPermission {
   static func hasPermissionToRecord() async -> Bool {
     #if os(macOS)
-    let granted: Bool
-    if #available(macOS 14.0, *) {
-      granted = await AVCaptureDevice.requestAccess(for: .audio)
-    } else {
-      granted = true
-    }
-    log("recording permission", granted)
-    return granted
+    let granted = await AVCaptureDevice.requestAccess(for: .audio)
     #else
     let granted = await withCheckedContinuation { continuation in
       AVAudioApplication.requestRecordPermission { authorized in
         continuation.resume(returning: authorized)
       }
     }
+    #endif
     log("recording permission", granted)
     return granted
-    #endif
   }
 }

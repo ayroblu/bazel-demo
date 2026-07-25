@@ -1,33 +1,10 @@
 #if os(macOS)
-import AVFoundation
-import Log
+import Foundation
 
-typealias AudioInputDevice = String
-
+// On macOS input/output devices follow the system default, so there is
+// nothing to configure; this exists to mirror the iOS controller's API.
 class AudioRouteController: ObservableObject {
-  @Published var availableInputs: [AudioInputDevice] = []
-  @Published var currentInputUid: String?
-  @Published var currentOutputName: String = "System Default"
-  @Published var isSpeakerOn = false
-
-  func activate() throws {
-    refresh()
-  }
-
-  func deactivate() {
-    isSpeakerOn = false
-  }
-
-  func refresh() {
-    currentOutputName = "System Default"
-  }
-
-  func selectInput(_ input: String?) {
-    currentInputUid = input
-  }
-
-  func setSpeaker(_ enabled: Bool) {
-    isSpeakerOn = enabled
-  }
+  func activate() throws {}
+  func deactivate() {}
 }
 #endif
