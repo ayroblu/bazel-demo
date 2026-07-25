@@ -24,6 +24,14 @@ Configuration := Debug
 build: DerivedData/${AppName}/Build/Products/${Configuration}/${AppName}.app
 .PHONY: build
 
+# Safari refuses to persistently load web extensions from ad-hoc-signed apps,
+# and vimkeys has no provisioning profile for bazel to infer an identity from,
+# so sign explicitly with the local Apple Development certificate.
+bazel-register:
+> identity=$$(security find-identity -v -p codesigning | grep -v CSSMERR | grep -o '"Apple Development: [^"]*"' | head -1 | tr -d '"')
+> bazel run "--@build_bazel_rules_apple//apple/build_settings:signing_certificate_name=$$identity" //vimkeys:register
+.PHONY: bazel-register
+
 js: Shared\ (Extension)/Resources/content.js Shared\ (Extension)/Resources/background.js
 .PHONY: js
 

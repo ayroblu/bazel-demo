@@ -5,11 +5,18 @@ echo "WORKSPACE: $BUILD_WORKSPACE_DIRECTORY"
 
 lsregister="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 
-app=vimkeys/vimkeys.app
-if [[ ! -d "$app" ]]; then
-  echo "app bundle not found: $1" >&2
+zip="vimkeys/vimkeys.zip"
+if [[ ! -f "$zip" ]]; then
+  echo "app zip not found: $zip" >&2
   exit 1
 fi
+
+# Unzip into the workspace so the registered app lives at a stable path that
+# survives bazel output changes.
+app_dir="$BUILD_WORKSPACE_DIRECTORY/vimkeys"
+rm -rf "$app_dir/vimkeys.app"
+unzip -o -q "$zip" -d "$app_dir"
+app="$app_dir/vimkeys.app"
 
 "$lsregister" -f -R -trusted "$app"
 

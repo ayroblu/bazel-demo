@@ -10,6 +10,14 @@ Getting started
 gmake
 ```
 
+Or with bazel (signs with your Apple Development certificate — Safari refuses
+to persistently load web extensions from ad-hoc-signed apps, and vimkeys has
+no provisioning profile for the signing identity to be inferred from):
+
+```sh
+gmake bazel-register
+```
+
 
 TODO
 ----
