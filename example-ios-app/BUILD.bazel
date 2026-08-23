@@ -1,8 +1,7 @@
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
-load("@rules_xcodeproj//xcodeproj:defs.bzl", "xcodeproj")
-load("@sourcekit_bazel_bsp//rules:setup_sourcekit_bsp.bzl", "setup_sourcekit_bsp")
 load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
+load("//swift-shared:swift-ide.bzl", "ide")
 
 swift_library(
     name = "lib",
@@ -39,31 +38,7 @@ ios_application(
     deps = [":lib"],
 )
 
-# xcodeproj just to create the xcodeproj directory
-# You need to rerun it regularly to keep XCode updated
-# bazel run example-ios-app:xcodeproj && xed example-ios-app/example-ios-app/xcodeproj
-xcodeproj(
-    name = "xcodeproj",
-    project_name = "example-ios-app",
-    tags = ["manual"],
-    top_level_targets = [
-        ":example-ios-app",
-    ],
-)
-
-setup_sourcekit_bsp(
-    name = "setup-bsp",
-    bazel_wrapper = "bazelisk",
-    compile_top_level = True,
-    files_to_watch = [
-        "**/*.swift",
-        "**/*.m",
-        "**/*.h",
-    ],
-    index_flags = [
-        "config=index_build",
-    ],
-    targets = [
-        "//example-ios-app",
-    ],
+ide(
+    targets = ["//example-ios-app"],
+    xcode_project_name = "example-ios-app",
 )

@@ -1,12 +1,8 @@
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
-load(
-    "@rules_xcodeproj//xcodeproj:defs.bzl",
-    "top_level_target",
-    "xcodeproj",
-)
 load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
+load("//swift-shared:swift-ide.bzl", "ide")
 
 swift_library(
     name = "lib",
@@ -58,19 +54,9 @@ sh_binary(
     data = [":macos_app"],
 )
 
-# bazel run //local-call-app:xcodeproj && xed local-call-app.xcodeproj
-xcodeproj(
-    name = "xcodeproj",
-    project_name = "local-call-app",
-    tags = ["manual"],
-    top_level_targets = [
-        top_level_target(
-            ":local-call-app",
-            target_environments = [
-                "device",
-                "simulator",
-            ],
-        ),
-        ":macos_app",
-    ],
+ide(
+    macos_xcode_targets = [":macos_app"],
+    targets = ["//local-call-app"],
+    xcode_project_name = "local-call-app",
+    xcode_targets = [":local-call-app"],
 )

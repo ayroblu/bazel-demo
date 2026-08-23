@@ -2,9 +2,8 @@ load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_run_binary")
 load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application", "macos_extension")
 load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
-load("@rules_xcodeproj//xcodeproj:defs.bzl", "xcodeproj")
-load("@sourcekit_bazel_bsp//rules:setup_sourcekit_bsp.bzl", "setup_sourcekit_bsp")
 load("@vimkeys-npm//:defs.bzl", "npm_link_all_packages")
+load("//swift-shared:swift-ide.bzl", "ide")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -130,23 +129,9 @@ sh_binary(
     data = [":vimkeys"],
 )
 
-xcodeproj(
-    name = "xcodeproj",
-    project_name = "vimkeys",
-    tags = ["manual"],
-    top_level_targets = [":vimkeys"],
-)
-
-setup_sourcekit_bsp(
-    name = "setup-bsp",
-    bazel_wrapper = "bazelisk",
-    compile_top_level = True,
-    files_to_watch = [
-        "**/*.swift",
-        "**/*.ts",
-        "**/*.plist",
-        "**/*.storyboard",
-    ],
-    index_flags = ["config=index_build"],
+ide(
+    macos_xcode_targets = [":vimkeys"],
     targets = ["//vimkeys"],
+    xcode_project_name = "vimkeys",
+    xcode_targets = [],
 )

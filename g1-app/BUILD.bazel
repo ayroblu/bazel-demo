@@ -1,14 +1,8 @@
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
-load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
 load("@build_bazel_rules_apple//apple:watchos.bzl", "watchos_application")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
-load(
-    "@rules_xcodeproj//xcodeproj:defs.bzl",
-    "top_level_target",
-    "xcodeproj",
-)
-load("@sourcekit_bazel_bsp//rules:setup_sourcekit_bsp.bzl", "setup_sourcekit_bsp")
 load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
+load("//swift-shared:swift-ide.bzl", "ide")
 
 swift_library(
     name = "lib",
@@ -68,41 +62,11 @@ watchos_application(
 #     deps = [":lib"],
 # )
 
-# bazel run xcodeproj && xed g1-app.xcodeproj
-xcodeproj(
-    name = "xcodeproj",
-    project_name = "g1-app",
-    tags = ["manual"],
-    top_level_targets = [
-        top_level_target(
-            ":g1-app",
-            target_environments = [
-                "device",
-                "simulator",
-            ],
-        ),
-        top_level_target(
-            ":watch-app",
-            target_environments = [
-                "device",
-                "simulator",
-            ],
-        ),
-    ],
-)
-
-setup_sourcekit_bsp(
-    name = "setup-bsp",
-    bazel_wrapper = "bazelisk",
-    files_to_watch = [
-        "**/*.swift",
-        "**/*.h",
-        "**/*.m",
-    ],
-    index_flags = [
-        "config=index_build",
-    ],
-    targets = [
-        "//g1-app",
+ide(
+    targets = ["//g1-app"],
+    xcode_project_name = "g1-app",
+    xcode_targets = [
+        ":g1-app",
+        ":watch-app",
     ],
 )

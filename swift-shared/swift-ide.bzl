@@ -1,7 +1,20 @@
 load("@rules_xcodeproj//xcodeproj:defs.bzl", "top_level_target", "xcodeproj")
 load("@sourcekit_bazel_bsp//rules:setup_sourcekit_bsp.bzl", "setup_sourcekit_bsp")
 
-def ide(xcode_project_name, targets, xcode_targets = None):
+def ide(
+        xcode_project_name,
+        targets,
+        xcode_targets = None,
+        macos_xcode_targets = []):
+    """
+    # for using XCode. Regenerate whenever BUILD graph changes
+    # bazel run //path:xcodeproj && xed path/name.xcodeproj
+
+    # to use with VSCode + Swift extension
+    # bazel run //path:setup-bsp
+    # Debug with:
+    # $ log stream --process sourcekit-bazel-bsp --debug --style compact
+    """
     if xcode_targets == None:
         xcode_targets = targets
 
@@ -11,7 +24,7 @@ def ide(xcode_project_name, targets, xcode_targets = None):
             "device",
             "simulator",
         ],
-    ) for target in xcode_targets]
+    ) for target in xcode_targets] + macos_xcode_targets
 
     # for using XCode. Regenerate whenever BUILD graph changes
     # bazel run //path:xcodeproj && xed path/name.xcodeproj
@@ -31,6 +44,7 @@ def ide(xcode_project_name, targets, xcode_targets = None):
         bazel_wrapper = "bazelisk",
         compile_top_level = True,
         tags = ["manual"],
+        # I think not used, just for "spec compliance"
         files_to_watch = [
             "**/*.swift",
             "**/*.m",
