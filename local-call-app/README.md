@@ -28,6 +28,22 @@ bazel run //local-call-app:macos
 bazel run //local-call-app:xcodeproj && xed local-call-app.xcodeproj
 ```
 
+After updating Xcode, Bazel's cached toolchain config can point at SDKs that no
+longer exist (errors like "SDK ... cannot be located" or "'<build>' is not an
+available Xcode version"). Reset the caches and re-detect Xcode with:
+
+```sh
+bazel shutdown
+bazel fetch --configure --force
+# rules_xcodeproj uses a separate output base with its own server:
+bazel --output_base=/private/var/tmp/_bazel_$USER/<workspace-hash>/rules_xcodeproj.noindex/build_output_base shutdown
+bazel run //local-call-app:xcodeproj
+```
+
+The `<workspace-hash>` directory is visible in any failing build's error output,
+or via `bazel info output_base` (it's the sibling `rules_xcodeproj.noindex`
+directory).
+
 MultipeerConnectivity and the microphone don't work in the iOS simulator, so run
 the iOS app on physical devices. To install on a device, add a
 `provisioning_profile` for the `com.ayroblu.local-call-app` bundle id to the

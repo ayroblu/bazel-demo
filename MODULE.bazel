@@ -9,6 +9,12 @@ bazel_dep(
 
 # --------------------------------------------------------- iOS
 bazel_dep(name = "rules_xcodeproj", version = "3.3.0")
+
+# Local checkout with PR #3325 (Xcode 26.5 shared JIT Previews support)
+local_path_override(
+    module_name = "rules_xcodeproj",
+    path = "../rules_xcodeproj",
+)
 bazel_dep(
     name = "apple_support",
     version = "2.3.0",

@@ -29,6 +29,11 @@ public struct ContentView: View {
       }
     }
     .task {
+      // Mic permission and local-network discovery crash XCPreviewAgent
+      // (its Info.plist lacks the required usage descriptions)
+      guard ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" else {
+        return
+      }
       await vm.requestMicPermission()
       vm.multipeer.startDiscovery()
     }

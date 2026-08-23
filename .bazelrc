@@ -26,9 +26,6 @@ run:pro --ios_simulator_device="iPhone 17 Pro"
 build:macos --macos_cpus=arm64
 build:release --ios_multi_cpus=arm64 -c opt --apple_generate_dsym --define=apple.add_debugger_entitlement=no
 
-# https://github.com/bazelbuild/rules_apple/blob/master/doc/common_info.md#xcode-version-selection-and-invalidation
-# bash xcode-bazelrc-gen.sh
-try-import %workspace%/xcode.bazelrc
 
 # sourcekit-lsp bsp
 # common --verbose_failures
