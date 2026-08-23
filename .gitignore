@@ -6,6 +6,7 @@ node_modules
 .build
 *.xcodeproj
 DerivedData
+.derived-data-log-*
 *.mobileprovision
 
 xcode.bazelrc

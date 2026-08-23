@@ -14,10 +14,15 @@ internet or shared network is required.
   chunked to stay under the datagram MTU, and sent as unreliable datagrams
   over the `MCSession`. Received packets are scheduled onto an
   `AVAudioPlayerNode`.
-* Routing: during a call you can pick the microphone from
-  `AVAudioSession.availableInputs` (e.g. phone mic instead of airpods mic),
-  toggle the speakerphone, and pick any output (airpods, etc.) via the system
-  route picker.
+* Routing: calls follow the system default input and output until you pin a
+  device in the in-call menu pickers; picking the device that currently is
+  the default clears the pin, so the call follows future default changes
+  (e.g. AirPods auto-switching) again. On iOS inputs come from
+  `AVAudioSession.availableInputs` and the output picker offers
+  automatic/speaker; on macOS both pickers list CoreAudio devices and pin the
+  `AVAudioEngine` IO units directly. The engine restarts itself on
+  `AVAudioEngineConfigurationChange` so switching devices mid-call keeps the
+  audio flowing.
 
 ## Building
 

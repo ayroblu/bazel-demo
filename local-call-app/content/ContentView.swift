@@ -1,6 +1,3 @@
-#if os(iOS)
-import AVKit
-#endif
 import MultipeerConnectivity
 import SwiftUI
 
@@ -178,37 +175,24 @@ struct InCallView: View {
           Label("Mute microphone", systemImage: vm.isMuted ? "mic.slash.fill" : "mic.fill")
         }
       }
-      #if os(iOS)
       Section("Audio input") {
-        Picker(
+        AudioDevicePicker(
+          title: "Microphone", systemImage: "mic",
+          options: routes.inputOptions,
           selection: Binding(
-            get: { routes.currentInputUid },
-            set: { uid in
-              let port = routes.availableInputs.first { $0.uid == uid }
-              routes.selectInput(port)
-            })
-        ) {
-          ForEach(routes.availableInputs, id: \.uid) { port in
-            Text(port.portName).tag(port.uid as String?)
-          }
-        } label: {
-          Label("Microphone", systemImage: "mic")
-        }
-        .pickerStyle(.inline)
-        .labelsHidden()
+            get: { routes.currentInputID },
+            set: { routes.selectInput(id: $0) }))
+        AudioLevelBar(level: vm.inputLevel)
       }
       Section("Audio output") {
-        Toggle(isOn: Binding(get: { routes.isSpeakerOn }, set: { routes.setSpeaker($0) })) {
-          Label("Speaker", systemImage: "speaker.wave.2.fill")
-        }
-        HStack {
-          Label("Current output: \(routes.currentOutputName)", systemImage: "airpods")
-          Spacer()
-          RoutePickerView()
-            .frame(width: 44, height: 44)
-        }
+        AudioDevicePicker(
+          title: "Output", systemImage: "speaker.wave.2.fill",
+          options: routes.outputOptions,
+          selection: Binding(
+            get: { routes.currentOutputID },
+            set: { routes.selectOutput(id: $0) }))
+        AudioLevelBar(level: vm.outputLevel)
       }
-      #endif
       Section {
         Button(role: .destructive) {
           vm.endCall()
@@ -219,21 +203,54 @@ struct InCallView: View {
       }
     }
     .onAppear {
-      #if os(iOS)
       routes.refresh()
-      #endif
     }
   }
 }
 
-#if os(iOS)
-struct RoutePickerView: UIViewRepresentable {
-  func makeUIView(context: Context) -> AVRoutePickerView {
-    let view = AVRoutePickerView()
-    view.prioritizesVideoDevices = false
-    return view
-  }
+struct AudioLevelBar: View {
+  let level: Float  // 0...1
 
-  func updateUIView(_ uiView: AVRoutePickerView, context: Context) {}
+  var body: some View {
+    GeometryReader { geometry in
+      ZStack(alignment: .leading) {
+        Capsule()
+          .fill(.quaternary)
+        Capsule()
+          .fill(.green)
+          .frame(width: geometry.size.width * CGFloat(min(1, max(0, level))))
+      }
+    }
+    .frame(height: 8)
+    .animation(.linear(duration: 0.1), value: level)
+  }
 }
-#endif
+
+/// A menu picker over the available devices, or a plain read-only row when
+/// there is nothing to choose between.
+struct AudioDevicePicker: View {
+  let title: String
+  let systemImage: String
+  let options: [AudioOption]
+  @Binding var selection: String?
+
+  var body: some View {
+    if options.count > 1 {
+      Picker(selection: $selection) {
+        ForEach(options) { option in
+          Text(option.name).tag(option.id as String?)
+        }
+      } label: {
+        Label(title, systemImage: systemImage)
+      }
+      .pickerStyle(.menu)
+    } else {
+      HStack {
+        Label(title, systemImage: systemImage)
+        Spacer()
+        Text(options.first?.name ?? "None")
+          .foregroundStyle(.secondary)
+      }
+    }
+  }
+}
