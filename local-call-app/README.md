@@ -7,9 +7,10 @@ internet or shared network is required.
 
 ## How it works
 
-* Discovery: each device both advertises and browses for the
-  `p2p-audio-call` bonjour service. Tap a discovered device to invite it, the
-  other side gets an accept/decline prompt.
+* Discovery: pressing "Search for nearby devices" both advertises and browses
+  for the `p2p-audio-call` bonjour service; discovery stops while the app is
+  backgrounded and resumes on foreground if it was running. Tap a discovered
+  device to invite it, the other side gets an accept/decline prompt.
 * Audio: an `AVAudioEngine` mic tap is resampled to 16kHz mono Int16 PCM,
   chunked to stay under the datagram MTU, and sent as unreliable datagrams
   over the `MCSession`. Received packets are scheduled onto an

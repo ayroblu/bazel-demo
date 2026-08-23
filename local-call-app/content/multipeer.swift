@@ -41,6 +41,8 @@ class MultipeerManager: ObservableObject {
   @Published var connectingPeer: MCPeerID?
   @Published var pendingInvite: PendingInvite?
   @Published var statusMessage: String?
+  @Published var isDiscovering = false
+  private var resumeDiscoveryOnForeground = false
 
   init() {
     session = MCSession(peer: peerId, securityIdentity: nil, encryptionPreference: .required)
@@ -62,7 +64,32 @@ class MultipeerManager: ObservableObject {
     log("multipeer start discovery", peerId.displayName, callServiceType)
     advertiser.startAdvertisingPeer()
     browser.startBrowsingForPeers()
+    isDiscovering = true
     statusMessage = nil
+  }
+
+  func stopDiscovery() {
+    guard isDiscovering else { return }
+    log("multipeer stop discovery")
+    advertiser.stopAdvertisingPeer()
+    browser.stopBrowsingForPeers()
+    discoveredPeers = []
+    isDiscovering = false
+  }
+
+  /// Radios should not keep advertising/browsing while backgrounded; an
+  /// active call's MCSession is left untouched. Discovery resumes on
+  /// foreground only if the user had it running.
+  func handleDidEnterBackground() {
+    resumeDiscoveryOnForeground = isDiscovering
+    stopDiscovery()
+  }
+
+  func handleWillEnterForeground() {
+    if resumeDiscoveryOnForeground {
+      resumeDiscoveryOnForeground = false
+      startDiscovery()
+    }
   }
 
   func invite(peer: MCPeerID) {

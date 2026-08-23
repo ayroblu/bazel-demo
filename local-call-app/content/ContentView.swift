@@ -4,6 +4,7 @@ import SwiftUI
 public struct ContentView: View {
   @StateObject private var vm = CallViewModel()
   @StateObject private var logs = AppLogStore.shared
+  @Environment(\.scenePhase) private var scenePhase
 
   public init() {}
 
@@ -26,13 +27,22 @@ public struct ContentView: View {
       }
     }
     .task {
-      // Mic permission and local-network discovery crash XCPreviewAgent
-      // (its Info.plist lacks the required usage descriptions)
+      // Mic permission crashes XCPreviewAgent (its Info.plist lacks the
+      // required usage descriptions)
       guard ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" else {
         return
       }
       await vm.requestMicPermission()
-      vm.multipeer.startDiscovery()
+    }
+    .onChange(of: scenePhase) { _, phase in
+      switch phase {
+      case .background:
+        vm.multipeer.handleDidEnterBackground()
+      case .active:
+        vm.multipeer.handleWillEnterForeground()
+      default:
+        break
+      }
     }
     .alert(
       "Incoming call from \(vm.multipeer.pendingInvite?.peer.displayName ?? "")",
@@ -112,7 +122,15 @@ struct LobbyView: View {
         }
       }
       Section("Nearby devices") {
-        if multipeer.discoveredPeers.isEmpty {
+        if !multipeer.isDiscovering {
+          Button {
+            multipeer.startDiscovery()
+          } label: {
+            Label(
+              "Search for nearby devices",
+              systemImage: "antenna.radiowaves.left.and.right")
+          }
+        } else if multipeer.discoveredPeers.isEmpty {
           HStack {
             ProgressView()
             Text("Searching for nearby devices…")
@@ -139,11 +157,19 @@ struct LobbyView: View {
           }
           .disabled(multipeer.connectingPeer != nil && multipeer.connectingPeer != peer)
         }
+        if multipeer.isDiscovering {
+          Button("Stop searching", role: .cancel) {
+            multipeer.stopDiscovery()
+          }
+          .foregroundStyle(.secondary)
+        }
       }
       Section {
-        Text("Both devices need this app open, works over bluetooth and peer-to-peer wifi")
-          .font(.footnote)
-          .foregroundStyle(.secondary)
+        Text(
+          "Both devices need this app open and searching, works over bluetooth and peer-to-peer wifi"
+        )
+        .font(.footnote)
+        .foregroundStyle(.secondary)
       }
     }
   }
