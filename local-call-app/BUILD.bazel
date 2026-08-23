@@ -17,8 +17,14 @@ swift_library(
     ],
 )
 
+filegroup(
+    name = "AppIcon",
+    srcs = glob(["Assets.xcassets/AppIcon.appiconset/*"]),
+)
+
 ios_application(
     name = "local-call-app",
+    app_icons = [":AppIcon"],
     bundle_id = "com.ayroblu.local-call-app",
     families = [
         "iphone",

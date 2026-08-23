@@ -18,6 +18,9 @@
 			<string>audio</string>
 		</array>
 
+		<key>ITSAppUsesNonExemptEncryption</key>
+		<false />
+
 		<!-- Boilerplate -->
 		<key>UILaunchScreen</key>
 		<dict>
@@ -37,14 +40,14 @@
 		<key>CFBundleShortVersionString</key>
 		<string>1.0</string>
 		<key>CFBundleVersion</key>
-		<string>1</string>
+		<string>2</string>
 		<key>LSRequiresIPhoneOS</key>
 		<true />
 		<key>MinimumOSVersion</key>
 		<string>18.0</string>
 		<key>UIRequiredDeviceCapabilities</key>
 		<array>
-			<string>armv7</string>
+			<string>arm64</string>
 		</array>
 		<key>UISupportedInterfaceOrientations</key>
 		<array>
