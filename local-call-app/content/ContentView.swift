@@ -95,10 +95,12 @@ struct LogsView: View {
 struct LobbyView: View {
   @ObservedObject var vm: CallViewModel
   @ObservedObject var multipeer: MultipeerManager
+  @ObservedObject var routes: AudioRouteController
 
   init(vm: CallViewModel) {
     self.vm = vm
     self.multipeer = vm.multipeer
+    self.routes = vm.routes
   }
 
   var body: some View {
@@ -170,6 +172,29 @@ struct LobbyView: View {
         )
         .font(.footnote)
         .foregroundStyle(.secondary)
+      }
+      if vm.isTestingMic {
+        Section("Mic test") {
+          AudioDevicePicker(
+            title: "Microphone", systemImage: "mic",
+            options: routes.inputOptions,
+            selection: Binding(
+              get: { routes.currentInputID },
+              set: { routes.selectInput(id: $0) }))
+          AudioLevelBar(level: vm.inputLevel)
+          Button("End test", role: .cancel) {
+            vm.stopMicTest()
+          }
+        }
+      } else {
+        Section {
+          Button {
+            vm.startMicTest()
+          } label: {
+            Label("Test microphone", systemImage: "mic.badge.plus")
+          }
+          .disabled(vm.micPermissionDenied)
+        }
       }
     }
   }

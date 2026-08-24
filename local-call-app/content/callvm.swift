@@ -8,6 +8,7 @@ class CallViewModel: ObservableObject {
   private let audio = CallAudioEngine()
 
   @Published var isInCall = false
+  @Published var isTestingMic = false
   @Published var micPermissionDenied = false
   @Published var inputLevel: Float = 0
   @Published var outputLevel: Float = 0
@@ -43,8 +44,38 @@ class CallViewModel: ObservableObject {
     log("call mic permission", granted)
   }
 
+  /// Runs the capture side of the audio engine locally so the user can
+  /// check their mic and input picker without being in a call. Nothing is
+  /// sent: the outgoing sender no-ops with no connected peers.
+  func startMicTest() {
+    guard !isInCall, !isTestingMic else { return }
+    log("mic test starting")
+    do {
+      try routes.activate()
+      try audio.start()
+      isMuted = false
+      isTestingMic = true
+      startLevelPolling()
+    } catch {
+      log("failed to start mic test", error)
+      audio.stop()
+      routes.deactivate()
+    }
+  }
+
+  func stopMicTest() {
+    guard isTestingMic else { return }
+    log("mic test stopped")
+    isTestingMic = false
+    audio.stop()
+    routes.deactivate()
+    stopLevelPolling()
+  }
+
   private func startAudio() {
     log("call audio starting")
+    // An incoming call can connect mid-test; hand the engine over cleanly.
+    stopMicTest()
     do {
       try routes.activate()
       log("call audio route activated")
@@ -66,6 +97,10 @@ class CallViewModel: ObservableObject {
     audio.stop()
     routes.deactivate()
     isInCall = false
+    stopLevelPolling()
+  }
+
+  private func stopLevelPolling() {
     levelTask?.cancel()
     levelTask = nil
     inputLevel = 0

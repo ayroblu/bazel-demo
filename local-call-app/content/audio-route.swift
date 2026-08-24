@@ -13,9 +13,9 @@ nonisolated let isRunningInPreview =
 import AVFoundation
 import Log
 
-/// Follows the system default route unless the user pins a specific input.
-/// Picking the input the system would use anyway clears the pin, so the call
-/// keeps following future route changes (e.g. AirPods connecting) again.
+/// Follows the system default route until the user selects a specific input.
+/// Each picker action pins that exact port so repeated switching is explicit
+/// and does not pass through an intermediate automatic route.
 class AudioRouteController: ObservableObject {
   private let session = AVAudioSession.sharedInstance()
 
@@ -63,7 +63,7 @@ class AudioRouteController: ObservableObject {
     guard !isRunningInPreview else { return }
     let inputs = session.availableInputs ?? []
     inputOptions = inputs.map { AudioOption(id: $0.uid, name: $0.portName) }
-    currentInputID = session.currentRoute.inputs.first?.uid
+    currentInputID = pinnedInputUid ?? session.currentRoute.inputs.first?.uid
     // The system silently clears a speaker override when the route changes
     // (e.g. AirPods connect); snap the published choice back to reality.
     let onSpeaker = session.currentRoute.outputs.contains { $0.portType == .builtInSpeaker }
@@ -107,22 +107,17 @@ class AudioRouteController: ObservableObject {
     }
     guard let port = session.availableInputs?.first(where: { $0.uid == id }) else { return }
     do {
-      // Clear the preference first to learn what the default route would
-      // be. If the user picked exactly that, stay unpinned so the route
-      // keeps following the system default.
-      try session.setPreferredInput(nil)
-      if session.currentRoute.inputs.first?.uid == port.uid {
-        pinnedInputUid = nil
-        log("selected default input, following default", port.portName)
-      } else {
-        try session.setPreferredInput(port)
-        pinnedInputUid = port.uid
-        log("pinned input", port.portName)
-      }
+      // Always request the tapped port directly. Clearing the preference first
+      // creates an intermediate route and makes a tap on the current/default
+      // item look like a no-op to SwiftUI and AVAudioSession.
+      try session.setPreferredInput(port)
+      pinnedInputUid = port.uid
+      currentInputID = port.uid
+      log("selected input", port.portName)
     } catch {
       log("failed to set preferred input", error)
+      refresh()
     }
-    refresh()
   }
 
   func selectOutput(id: String?) {

@@ -189,6 +189,9 @@ class MultipeerManager: ObservableObject {
       connectingPeer = nil
       connectedPeer = peer
       statusMessage = "Connected to \(peer.displayName)"
+      // No point advertising/browsing while in a call; search is started
+      // manually again after the call ends.
+      stopDiscovery()
       onCallStarted?()
     case .notConnected:
       let wasConnecting = connectingPeer == peer

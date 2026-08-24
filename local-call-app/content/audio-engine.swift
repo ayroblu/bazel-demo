@@ -13,6 +13,11 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
   private var isRunning = false
   private var configChangeObserver: NSObjectProtocol?
 
+  #if os(iOS)
+  private var routeChangeObserver: NSObjectProtocol?
+  private var pendingRouteRestart: DispatchWorkItem?
+  #endif
+
   #if os(macOS)
   // nil means follow the current system default device.
   private var preferredInputID: AudioDeviceID?
@@ -53,15 +58,36 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
       forName: .AVAudioEngineConfigurationChange, object: engine, queue: .main
     ) { [weak self] _ in
       guard let self, self.isRunning else { return }
+      #if os(iOS)
+      // During Bluetooth HFP negotiation this notification arrives before
+      // inputNode reports the settled hardware format. Restarting immediately
+      // can install a 48 kHz tap while the AirPods mic has moved to 24 kHz.
+      self.scheduleRouteRestart()
+      #else
       log("audio engine configuration change, restarting")
       self.restart()
+      #endif
     }
+    #if os(iOS)
+    routeChangeObserver = NotificationCenter.default.addObserver(
+      forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main
+    ) { [weak self] _ in
+      guard let self, self.isRunning else { return }
+      self.scheduleRouteRestart()
+    }
+    #endif
   }
 
   deinit {
     if let configChangeObserver {
       NotificationCenter.default.removeObserver(configChangeObserver)
     }
+    #if os(iOS)
+    if let routeChangeObserver {
+      NotificationCenter.default.removeObserver(routeChangeObserver)
+    }
+    pendingRouteRestart?.cancel()
+    #endif
   }
 
   func start() throws {
@@ -78,8 +104,32 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
   func stop() {
     guard isRunning else { return }
     isRunning = false
+    #if os(iOS)
+    pendingRouteRestart?.cancel()
+    pendingRouteRestart = nil
+    #endif
     tearDownEngine()
   }
+
+  #if os(iOS)
+  /// Coalesces the configuration and route notifications emitted while a
+  /// Bluetooth input negotiates HFP, then rebuilds the tap after the route's
+  /// hardware format has settled.
+  private func scheduleRouteRestart() {
+    pendingRouteRestart?.cancel()
+    let work = DispatchWorkItem { [weak self] in
+      guard let self, self.isRunning else { return }
+      self.pendingRouteRestart = nil
+      let route = AVAudioSession.sharedInstance().currentRoute
+      log(
+        "audio route settled, restarting engine",
+        route.inputs.map { $0.portName }.joined(separator: ","))
+      self.restart()
+    }
+    pendingRouteRestart = work
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
+  }
+  #endif
 
   #if os(macOS)
   /// Pin the engine to specific devices, or pass nil to follow the system
@@ -127,11 +177,31 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
     engine.connect(playerNode, to: engine.mainMixerNode, format: playbackFormat)
     // The input format must be re-read on every (re)start: it changes when
     // the route changes (e.g. built-in mic at 48kHz vs AirPods HFP).
-    let inputFormat = engine.inputNode.outputFormat(forBus: 0)
+    let nodeFormat = engine.inputNode.outputFormat(forBus: 0)
+    #if os(iOS)
+    // inputNode can keep reporting its previous client rate briefly after the
+    // session has switched hardware (48 kHz here while AirPods are at 24 kHz).
+    // A tap on an input node must use the hardware rate or AVAudioEngine rejects
+    // it with "Format mismatch: input hw ..., client format ...".
+    let session = AVAudioSession.sharedInstance()
+    let hardwareSampleRate = session.sampleRate
+    let hardwareChannels = AVAudioChannelCount(session.inputNumberOfChannels)
+    guard hardwareSampleRate > 0, hardwareChannels > 0,
+      let inputFormat = AVAudioFormat(
+        standardFormatWithSampleRate: hardwareSampleRate, channels: hardwareChannels)
+    else {
+      throw CallAudioError.routeNotReady
+    }
+    log(
+      "audio engine input format", inputFormat.sampleRate, inputFormat.channelCount,
+      "node reported", nodeFormat.sampleRate, nodeFormat.channelCount)
+    #else
+    let inputFormat = nodeFormat
     log("audio engine input format", inputFormat.sampleRate, inputFormat.channelCount)
     guard inputFormat.sampleRate > 0 else {
       throw CallAudioError.noInput
     }
+    #endif
     engine.inputNode.installTap(onBus: 0, bufferSize: 2048, format: inputFormat) {
       [weak self] buffer, _ in
       self?.handleMicBuffer(buffer)
@@ -151,6 +221,11 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
     playerNode.stop()
     engine.inputNode.removeTap(onBus: 0)
     engine.stop()
+    #if os(iOS)
+    // Discard the graph's cached input format before rebuilding it for a new
+    // AVAudioSession route.
+    engine.reset()
+    #endif
   }
 
   private func restart() {
@@ -158,7 +233,13 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
     do {
       try startEngine()
     } catch {
+      #if os(iOS)
+      guard isRunning else { return }
+      log("audio engine restart waiting for route", error)
+      scheduleRouteRestart()
+      #else
       log("audio engine restart failed", error)
+      #endif
     }
   }
 
@@ -223,6 +304,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
 
 enum CallAudioError: Error {
   case noInput
+  case routeNotReady
 }
 
 enum RecordingPermission {
