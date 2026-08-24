@@ -13,7 +13,11 @@ reading above the word and speaks the reading instead of the annotation. For
 Japanese decks the answer side also shows romaji derived from those readings, so
 no extra CSV column is needed.
 
-Speech uses the system voice for the language code in the deck header. Each card
+The gear menu lists every installed voice that speaks the deck's language, with
+its gender and quality tier, and remembers the choice per language. Without a
+choice the app picks the best sounding voice it can find, preferring male and
+higher quality. Compact voices sound robotic; enhanced and premium voices are
+downloaded through the system's Spoken Content settings. Each card
 starts speaking its prompt automatically and repeats it with a one second pause
 between repeats, so the toolbar button starts on Stop; pressing Play after Stop
 restarts the phrase from the beginning.

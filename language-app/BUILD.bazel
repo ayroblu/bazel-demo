@@ -25,6 +25,8 @@ ios_application(
     ],
     infoplists = ["Resources/Info.plist"],
     minimum_os_version = "18.0",
+    # cp ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/<uuid>.mobileprovision .
+    provisioning_profile = "development.mobileprovision",
     resources = [":decks"],
     visibility = ["//visibility:public"],
     deps = [":lib"],

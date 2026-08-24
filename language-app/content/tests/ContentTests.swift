@@ -72,6 +72,41 @@ import Testing
 }
 
 @MainActor
+@Test func voiceCatalogRanksRealVoicesAheadOfNoveltyVoices() throws {
+  let japanese = VoiceCatalog.voices(for: "ja")
+  #expect(!japanese.isEmpty)
+  #expect(japanese.allSatisfy { $0.language.lowercased().hasPrefix("ja") })
+
+  let best = try #require(japanese.first)
+  #expect(!best.identifier.hasPrefix("com.apple.eloquence."))
+  #expect(VoiceCatalog.preferred(for: "ja")?.identifier == best.identifier)
+  #expect(VoiceCatalog.voices(for: "zz").isEmpty)
+}
+
+@MainActor
+@Test func voicePreferencesPersistPerLanguage() throws {
+  let suite = "voices-\(UUID().uuidString)"
+  let defaults = try #require(UserDefaults(suiteName: suite))
+  defer { defaults.removePersistentDomain(forName: suite) }
+
+  let preferences = VoicePreferences(defaults: defaults)
+  let fallback = try #require(preferences.voice(for: "ja"))
+  #expect(preferences.selectedIdentifier(for: "ja") == nil)
+
+  let alternative = try #require(
+    VoiceCatalog.voices(for: "ja").first { $0.identifier != fallback.identifier })
+  preferences.select(alternative.identifier, for: "ja")
+  #expect(preferences.voice(for: "ja")?.identifier == alternative.identifier)
+  #expect(VoicePreferences(defaults: defaults).voice(for: "ja")?.identifier == alternative.identifier)
+
+  // Choosing a Japanese voice must not change other languages.
+  #expect(VoicePreferences(defaults: defaults).selectedIdentifier(for: "es") == nil)
+
+  preferences.select(nil, for: "ja")
+  #expect(preferences.voice(for: "ja")?.identifier == fallback.identifier)
+}
+
+@MainActor
 @Test func speechPlayerTracksPlaybackState() {
   let player = SpeechPlayer()
   #expect(!player.isPlaying)

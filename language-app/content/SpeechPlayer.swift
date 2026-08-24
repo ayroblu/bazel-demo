@@ -5,16 +5,18 @@ import Observation
 @Observable
 public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
   /// Pause between repeats of the same phrase.
-  private static let repeatPause: Duration = .seconds(1)
+  private static let repeatPause: TimeInterval = 1
 
   public private(set) var isPlaying = false
+  public let voices: VoicePreferences
 
   private let synthesizer = AVSpeechSynthesizer()
   private var phrase: String?
   private var languageCode: String?
-  private var repeatTask: Task<Void, Never>?
+  private var repeatWork: DispatchWorkItem?
 
-  override public init() {
+  public init(voices: VoicePreferences = VoicePreferences()) {
+    self.voices = voices
     super.init()
     synthesizer.delegate = self
   }
@@ -22,6 +24,7 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
   /// Speaks the phrase from the beginning and keeps repeating it until stopped.
   public func start(_ annotatedText: String, languageCode: String) {
     stop()
+    activateAudioSession()
     phrase = annotatedText
     self.languageCode = languageCode
     isPlaying = true
@@ -29,10 +32,11 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
   }
 
   public func stop() {
-    repeatTask?.cancel()
-    repeatTask = nil
+    repeatWork?.cancel()
+    repeatWork = nil
     isPlaying = false
     synthesizer.stopSpeaking(at: .immediate)
+    deactivateAudioSession()
   }
 
   public func toggle(_ annotatedText: String, languageCode: String) {
@@ -43,31 +47,55 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
     }
   }
 
+  /// Without an explicit playback category iOS uses the ambient category, which the
+  /// Ring/Silent switch mutes. The simulator has no such switch, so this only shows on device.
+  private func activateAudioSession() {
+    #if os(iOS)
+      let session = AVAudioSession.sharedInstance()
+      try? session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
+      try? session.setActive(true)
+    #endif
+  }
+
+  private func deactivateAudioSession() {
+    #if os(iOS)
+      try? AVAudioSession.sharedInstance().setActive(
+        false, options: .notifyOthersOnDeactivation)
+    #endif
+  }
+
   private func speakOnce() {
     guard let phrase, let languageCode else { return }
     let utterance = AVSpeechUtterance(string: FuriganaParser.speechText(phrase))
-    utterance.voice = AVSpeechSynthesisVoice(language: languageCode)
+    utterance.voice = voices.voice(for: languageCode) ?? AVSpeechSynthesisVoice(language: languageCode)
     utterance.rate = AVSpeechUtteranceDefaultSpeechRate
     utterance.volume = 1
     synthesizer.speak(utterance)
   }
 
+  /// Repeats are scheduled on the main run loop rather than in a Task, so speech
+  /// synthesis is never started from a Swift concurrency thread.
   private func scheduleRepeat() {
     guard isPlaying else { return }
-    repeatTask?.cancel()
-    repeatTask = Task { [weak self] in
-      try? await Task.sleep(for: Self.repeatPause)
-      guard !Task.isCancelled, let self, isPlaying else { return }
-      speakOnce()
+    repeatWork?.cancel()
+    let work = DispatchWorkItem { [weak self] in
+      MainActor.assumeIsolated {
+        guard let self, self.isPlaying else { return }
+        self.speakOnce()
+      }
     }
+    repeatWork = work
+    DispatchQueue.main.asyncAfter(deadline: .now() + Self.repeatPause, execute: work)
   }
 
   public nonisolated func speechSynthesizer(
     _ synthesizer: AVSpeechSynthesizer,
     didFinish utterance: AVSpeechUtterance
   ) {
-    Task { @MainActor [weak self] in
-      self?.scheduleRepeat()
+    DispatchQueue.main.async { [weak self] in
+      MainActor.assumeIsolated {
+        self?.scheduleRepeat()
+      }
     }
   }
 }

@@ -119,7 +119,7 @@ private struct StudyDeckView: View {
       }
     }
     .sheet(isPresented: $showingSettings) {
-      SettingsView(store: store)
+      SettingsView(store: store, speech: speech, languageCode: deck.languageCode)
     }
   }
 }
@@ -190,8 +190,10 @@ private struct StudyCardView: View {
     }
     .padding()
     .frame(maxWidth: 720)
-    .task(id: card.id) {
-      // Each card starts speaking on repeat, so the button starts on Stop.
+    // Each card starts speaking on repeat, so the button starts on Stop. This runs on the
+    // main run loop instead of in a task, keeping speech off Swift concurrency threads.
+    .onAppear { speech.start(card.prompt, languageCode: card.languageCode) }
+    .onChange(of: card.id) { _, _ in
       speech.start(card.prompt, languageCode: card.languageCode)
     }
   }
@@ -342,12 +344,53 @@ private struct CompleteView: View {
 
 private struct SettingsView: View {
   let store: StudyStore
+  let speech: SpeechPlayer
+  let languageCode: String
   @Environment(\.dismiss) private var dismiss
   @State private var confirmingReset = false
+
+  #if os(macOS)
+    private static let voiceDownloadHint =
+      "Compact voices sound robotic. Add an enhanced or premium voice in System Settings › Accessibility › Spoken Content › System Voice › Manage Voices, then pick it here."
+  #else
+    private static let voiceDownloadHint =
+      "Compact voices sound robotic. Add an enhanced or premium voice in Settings › Accessibility › Read & Speak › Voices (Spoken Content before iOS 26), then pick it here."
+  #endif
+
+  private var availableVoices: [AVSpeechSynthesisVoice] {
+    VoiceCatalog.voices(for: languageCode)
+  }
+
+  private var voiceSelection: Binding<String> {
+    Binding(
+      get: { speech.voices.voice(for: languageCode)?.identifier ?? "" },
+      set: { identifier in
+        speech.voices.select(identifier.isEmpty ? nil : identifier, for: languageCode)
+        // The new voice applies to the next playback.
+        speech.stop()
+      }
+    )
+  }
 
   var body: some View {
     NavigationStack {
       Form {
+        Section {
+          if availableVoices.isEmpty {
+            Text("No installed voice speaks \(languageCode).")
+          } else {
+            Picker("Voice", selection: voiceSelection) {
+              ForEach(availableVoices, id: \.identifier) { voice in
+                Text(VoiceCatalog.describe(voice)).tag(voice.identifier)
+              }
+            }
+          }
+        } header: {
+          Text("Voice")
+        } footer: {
+          Text(Self.voiceDownloadHint)
+        }
+
         Section("Progress") {
           Button("Reset this deck's progress", role: .destructive) { confirmingReset = true }
             .confirmationDialog(
