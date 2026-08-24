@@ -1,0 +1,56 @@
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
+load("//swift-shared:swift-ide.bzl", "ide")
+
+swift_library(
+    name = "lib",
+    srcs = ["MainApp.swift"],
+    copts = STRICT_MAINACTOR_COPTS,
+    deps = ["//language-app/content"],
+)
+
+filegroup(
+    name = "decks",
+    srcs = glob(["decks/*.csv"]),
+)
+
+ios_application(
+    name = "language-app",
+    bundle_id = "com.ayroblu.language-app",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = ["Resources/Info.plist"],
+    minimum_os_version = "18.0",
+    resources = [":decks"],
+    visibility = ["//visibility:public"],
+    deps = [":lib"],
+)
+
+macos_application(
+    name = "macos-app",
+    bundle_id = "com.ayroblu.language-app.macos",
+    bundle_name = "Language App",
+    entitlements = "Resources/Mac.entitlements",
+    infoplists = ["Resources/MacInfo.plist"],
+    minimum_os_version = "14.0",
+    resources = [":decks"],
+    visibility = ["//visibility:public"],
+    deps = [":lib"],
+)
+
+sh_binary(
+    name = "macos",
+    srcs = ["run-macos.sh"],
+    data = [":macos-app"],
+)
+
+ide(
+    macos_xcode_targets = [":macos-app"],
+    targets = ["//language-app"],
+    xcode_project_name = "language-app",
+    xcode_targets = [":language-app"],
+)
