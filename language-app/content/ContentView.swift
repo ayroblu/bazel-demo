@@ -84,6 +84,9 @@ private struct StudyDeckView: View {
         CompleteView(nextDueDate: store.nextDueDate)
       }
     }
+    .onReceive(Timer.publish(every: 5, on: .main, in: .common).autoconnect()) { now in
+      store.advanceClock(to: now)
+    }
     .navigationTitle(deck.name)
     .toolbar {
       ToolbarItem(placement: .primaryAction) {
@@ -115,17 +118,40 @@ private struct StudyCardView: View {
         .buttonStyle(.bordered)
       }
 
-      Spacer(minLength: 8)
-      FuriganaText(source: card.prompt)
+      ScrollView {
+        VStack(spacing: 24) {
+          Spacer(minLength: 8)
+          FuriganaText(source: card.prompt)
+            .frame(maxWidth: .infinity)
+            .accessibilityLabel(FuriganaParser.speechText(card.prompt))
+
+          if store.showingAnswer {
+            Divider()
+            if Romaji.isSupported(languageCode: card.languageCode),
+              let romaji = Romaji.transliterate(card.prompt)
+            {
+              Text(romaji)
+                .font(.system(size: 28))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+                .textSelection(.enabled)
+            }
+            Text(card.answer)
+              .font(.system(size: 40))
+              .multilineTextAlignment(.center)
+              .lineLimit(nil)
+              .fixedSize(horizontal: false, vertical: true)
+              .textSelection(.enabled)
+          }
+          Spacer(minLength: 8)
+        }
         .frame(maxWidth: .infinity)
-        .accessibilityLabel(FuriganaParser.speechText(card.prompt))
+      }
+      .scrollBounceBehavior(.basedOnSize)
 
       if store.showingAnswer {
-        Divider()
-        Text(card.answer)
-          .font(.title3)
-          .multilineTextAlignment(.center)
-          .textSelection(.enabled)
         RatingButtons(store: store)
       } else {
         Button("Show answer") { store.revealAnswer() }
@@ -133,7 +159,6 @@ private struct StudyCardView: View {
           .controlSize(.large)
           .keyboardShortcut(.space, modifiers: [])
       }
-      Spacer(minLength: 8)
     }
     .padding()
     .frame(maxWidth: 720)
@@ -144,18 +169,77 @@ private struct FuriganaText: View {
   let source: String
 
   var body: some View {
-    HStack(alignment: .bottom, spacing: 0) {
+    WrappingRow(spacing: 0, lineSpacing: 8) {
       ForEach(Array(FuriganaParser.parse(source).enumerated()), id: \.offset) { _, segment in
         VStack(spacing: 1) {
           Text(segment.reading ?? " ")
-            .font(.caption)
+            .font(.system(size: 24))
             .foregroundStyle(.secondary)
           Text(segment.text)
             .font(.system(size: 42, weight: .medium))
         }
+        .fixedSize()
       }
     }
     .multilineTextAlignment(.center)
+  }
+}
+
+/// Lays subviews out left to right, wrapping to a new line when the proposed width runs out.
+private struct WrappingRow: Layout {
+  var spacing: CGFloat
+  var lineSpacing: CGFloat
+
+  func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+    let lines = layoutLines(maxWidth: proposal.width ?? .infinity, subviews: subviews)
+    let width = lines.map(\.width).max() ?? 0
+    let height = lines.map(\.height).reduce(0, +) + lineSpacing * CGFloat(max(lines.count - 1, 0))
+    return CGSize(width: width, height: height)
+  }
+
+  func placeSubviews(
+    in bounds: CGRect,
+    proposal: ProposedViewSize,
+    subviews: Subviews,
+    cache: inout ()
+  ) {
+    var y = bounds.minY
+    for line in layoutLines(maxWidth: bounds.width, subviews: subviews) {
+      var x = bounds.minX + (bounds.width - line.width) / 2
+      for index in line.indices {
+        let size = subviews[index].sizeThatFits(.unspecified)
+        subviews[index].place(
+          at: CGPoint(x: x, y: y + line.height - size.height),
+          proposal: ProposedViewSize(size)
+        )
+        x += size.width + spacing
+      }
+      y += line.height + lineSpacing
+    }
+  }
+
+  private struct Line {
+    var indices: [Int] = []
+    var width: CGFloat = 0
+    var height: CGFloat = 0
+  }
+
+  private func layoutLines(maxWidth: CGFloat, subviews: Subviews) -> [Line] {
+    var lines: [Line] = []
+    var current = Line()
+    for index in subviews.indices {
+      let size = subviews[index].sizeThatFits(.unspecified)
+      let added = current.indices.isEmpty ? size.width : current.width + spacing + size.width
+      if !current.indices.isEmpty, added > maxWidth {
+        lines.append(current)
+        current = Line()
+      }
+      current.width = current.indices.isEmpty ? size.width : current.width + spacing + size.width
+      current.height = max(current.height, size.height)
+      current.indices.append(index)
+    }
+    if !current.indices.isEmpty { lines.append(current) }
+    return lines
   }
 }
 
@@ -163,10 +247,7 @@ private struct RatingButtons: View {
   let store: StudyStore
 
   var body: some View {
-    ViewThatFits {
-      HStack(spacing: 10) { buttons }
-      VStack(spacing: 10) { buttons }
-    }
+    HStack(spacing: 8) { buttons }
   }
 
   @ViewBuilder
@@ -181,15 +262,24 @@ private struct RatingButtons: View {
             .font(.caption)
             .foregroundStyle(.secondary)
         }
+        .lineLimit(1)
+        .minimumScaleFactor(0.6)
         .frame(maxWidth: .infinity)
       }
       .buttonStyle(.bordered)
+      .buttonBorderShape(.roundedRectangle(radius: 6))
       .tint(tint(for: rating))
     }
   }
 
-  private func intervalLabel(_ days: Int) -> String {
-    days == 1 ? "1 day" : "\(days) days"
+  private func intervalLabel(_ interval: TimeInterval) -> String {
+    switch interval {
+    case ..<3_600: "\(max(1, Int((interval / 60).rounded())))m"
+    case ..<86_400: "\(Int((interval / 3_600).rounded()))h"
+    case ..<(30 * 86_400): "\(Int((interval / 86_400).rounded()))d"
+    case ..<(365 * 86_400): String(format: "%.1fmo", interval / (30.417 * 86_400))
+    default: String(format: "%.1fy", interval / (365 * 86_400))
+    }
   }
 
   private func tint(for rating: CardRating) -> Color {

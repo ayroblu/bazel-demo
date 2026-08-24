@@ -11,8 +11,11 @@ public final class StudyStore {
 
   private let defaults: UserDefaults
 
+  /// Drives the due-card queue; intra-day steps need re-evaluation while the deck is open.
+  public private(set) var clock = Date()
+
   private var persistenceKey: String {
-    "language-app.review-states.v2.\(deck?.id ?? "unknown")"
+    "language-app.review-states.v3.\(deck?.id ?? "unknown")"
   }
 
   public init(deck: Deck, defaults: UserDefaults = .standard) {
@@ -23,7 +26,7 @@ public final class StudyStore {
 
   public var dueCards: [DeckCard] {
     guard let deck else { return [] }
-    let now = Date()
+    let now = clock
     return deck.cards
       .filter { reviewStates[$0.id]?.due ?? .distantPast <= now }
       .sorted { left, right in
@@ -38,18 +41,24 @@ public final class StudyStore {
     return deck.cards.compactMap { reviewStates[$0.id]?.due }.min()
   }
 
-  public func previewInterval(for rating: CardRating, now: Date = Date()) -> Int {
+  public func previewInterval(for rating: CardRating, now: Date = Date()) -> TimeInterval {
     guard let card = currentCard else { return 0 }
-    return FSRSScheduler.review(reviewStates[card.id], rating: rating, now: now).scheduledDays
+    return FSRSScheduler.review(reviewStates[card.id], rating: rating, now: now).scheduledInterval
   }
 
   public func revealAnswer() {
     showingAnswer = true
   }
 
+  /// Re-evaluates the queue so cards waiting on a learning step come back when they are due.
+  public func advanceClock(to date: Date = Date()) {
+    clock = date
+  }
+
   public func grade(_ rating: CardRating, now: Date = Date()) {
     guard let card = currentCard else { return }
     reviewStates[card.id] = FSRSScheduler.review(reviewStates[card.id], rating: rating, now: now)
+    clock = now
     showingAnswer = false
     saveProgress()
   }

@@ -47,7 +47,11 @@ public struct ReviewState: Codable, Equatable, Sendable {
   public var stability: Double
   public var difficulty: Double
   public var elapsedDays: Double
-  public var scheduledDays: Int
+  /// Seconds until the card is next due; sub-day while the card walks learning steps.
+  public var scheduledInterval: TimeInterval
+  public var phase: LearningPhase
+  /// Index into the learning or relearning steps for the current phase.
+  public var step: Int
   public var reps: Int
   public var lapses: Int
   public var lastReview: Date?
@@ -57,7 +61,9 @@ public struct ReviewState: Codable, Equatable, Sendable {
     stability: Double = 0,
     difficulty: Double = 5,
     elapsedDays: Double = 0,
-    scheduledDays: Int = 0,
+    scheduledInterval: TimeInterval = 0,
+    phase: LearningPhase = .learning,
+    step: Int = 0,
     reps: Int = 0,
     lapses: Int = 0,
     lastReview: Date? = nil
@@ -66,7 +72,9 @@ public struct ReviewState: Codable, Equatable, Sendable {
     self.stability = stability
     self.difficulty = difficulty
     self.elapsedDays = elapsedDays
-    self.scheduledDays = scheduledDays
+    self.scheduledInterval = scheduledInterval
+    self.phase = phase
+    self.step = step
     self.reps = reps
     self.lapses = lapses
     self.lastReview = lastReview

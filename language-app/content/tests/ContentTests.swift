@@ -52,16 +52,95 @@ import Testing
 }
 
 @MainActor
-@Test func schedulesAndAdvancesReviews() {
+@Test func walksAnkiLearningStepsBeforeGraduating() {
   let now = Date(timeIntervalSince1970: 1_700_000_000)
-  let first = FSRSScheduler.review(nil, rating: .good, now: now)
-  #expect(first.reps == 1)
-  #expect(first.scheduledDays >= 1)
-  #expect(first.due > now)
 
-  let later = now.addingTimeInterval(3 * 86_400)
-  let second = FSRSScheduler.review(first, rating: .easy, now: later)
-  #expect(second.reps == 2)
-  #expect(second.stability > first.stability)
-  #expect(second.due > later)
+  let again = FSRSScheduler.review(nil, rating: .again, now: now)
+  #expect(again.scheduledInterval == 60)
+  #expect(again.phase == .learning)
+  #expect(again.lapses == 0)
+
+  let hard = FSRSScheduler.review(nil, rating: .hard, now: now)
+  #expect(hard.scheduledInterval == 330)
+  #expect(hard.step == 0)
+
+  let firstStep = FSRSScheduler.review(nil, rating: .good, now: now)
+  #expect(firstStep.scheduledInterval == 600)
+  #expect(firstStep.phase == .learning)
+  #expect(firstStep.step == 1)
+  #expect(firstStep.reps == 1)
+
+  let graduated = FSRSScheduler.review(firstStep, rating: .good, now: now.addingTimeInterval(600))
+  #expect(graduated.phase == .review)
+  #expect(graduated.scheduledInterval >= 86_400)
+  #expect(graduated.stability > firstStep.stability)
+  #expect(graduated.due > now.addingTimeInterval(600))
+
+  // Easy skips the remaining steps and hands the card straight to FSRS.
+  let easy = FSRSScheduler.review(nil, rating: .easy, now: now)
+  #expect(easy.phase == .review)
+  #expect(easy.scheduledInterval > graduated.scheduledInterval)
+}
+
+@MainActor
+@Test func lapsedReviewCardEntersRelearningSteps() {
+  let now = Date(timeIntervalSince1970: 1_700_000_000)
+  let firstStep = FSRSScheduler.review(nil, rating: .good, now: now)
+  let graduated = FSRSScheduler.review(firstStep, rating: .good, now: now.addingTimeInterval(600))
+
+  let lapseTime = graduated.due
+  let lapsed = FSRSScheduler.review(graduated, rating: .again, now: lapseTime)
+  #expect(lapsed.phase == .relearning)
+  #expect(lapsed.scheduledInterval == 600)
+  #expect(lapsed.lapses == 1)
+  #expect(lapsed.stability <= graduated.stability)
+
+  let recovered = FSRSScheduler.review(lapsed, rating: .good, now: lapseTime.addingTimeInterval(600))
+  #expect(recovered.phase == .review)
+  #expect(recovered.scheduledInterval >= 86_400)
+  #expect(recovered.lapses == 1)
+}
+
+@MainActor
+@Test func intervalsGrowAcrossSuccessfulReviews() {
+  let now = Date(timeIntervalSince1970: 1_700_000_000)
+  var state = FSRSScheduler.review(
+    FSRSScheduler.review(nil, rating: .good, now: now),
+    rating: .good,
+    now: now.addingTimeInterval(600)
+  )
+  var previous = state.scheduledInterval
+  for _ in 1...4 {
+    state = FSRSScheduler.review(state, rating: .good, now: state.due)
+    #expect(state.scheduledInterval > previous)
+    previous = state.scheduledInterval
+  }
+}
+
+@MainActor
+@Test func dueQueueHonoursLearningStepsUntilTheClockAdvances() throws {
+  let csv = "ja,en\n猫[ねこ],cat\n犬[いぬ],dog\n"
+  let deck = try CSVDeckLoader.load(name: "Japanese", data: Data(csv.utf8))
+  let defaults = try #require(UserDefaults(suiteName: "steps-\(UUID().uuidString)"))
+  defer { defaults.removePersistentDomain(forName: "steps") }
+  let store = StudyStore(deck: deck, defaults: defaults)
+  let now = Date()
+
+  #expect(store.dueCards.count == 2)
+  store.grade(.again, now: now)
+  #expect(store.dueCards.count == 1)
+
+  store.advanceClock(to: now.addingTimeInterval(61))
+  #expect(store.dueCards.count == 2)
+}
+
+@MainActor
+@Test func transliteratesFuriganaReadingsToRomaji() {
+  #expect(
+    Romaji.transliterate("毎日[まいにち]日本語[にほんご]を勉強[べんきょう]します")
+      == "mainichi nihongo o benkyoushimasu")
+  #expect(Romaji.transliterate("猫[ねこ]") == "neko")
+  #expect(Romaji.transliterate("el gato") == nil)
+  #expect(Romaji.isSupported(languageCode: "ja"))
+  #expect(!Romaji.isSupported(languageCode: "es"))
 }
