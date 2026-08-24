@@ -29,6 +29,7 @@ public struct ContentView: View {
 private struct DeckLink: View {
   let deck: Deck
   @State private var store: StudyStore
+  @State private var confirmingReset = false
 
   init(deck: Deck) {
     self.deck = deck
@@ -40,6 +41,21 @@ private struct DeckLink: View {
       StudyDeckView(deck: deck, store: store)
     } label: {
       DeckRow(deck: deck, store: store)
+    }
+    .contextMenu {
+      Button("Reset progress", systemImage: "arrow.counterclockwise", role: .destructive) {
+        confirmingReset = true
+      }
+    }
+    .confirmationDialog(
+      "Reset progress for \(deck.name)?",
+      isPresented: $confirmingReset,
+      titleVisibility: .visible
+    ) {
+      Button("Reset progress", role: .destructive) { store.resetProgress() }
+      Button("Cancel", role: .cancel) {}
+    } message: {
+      Text("Every card in this deck becomes new again. This cannot be undone.")
     }
   }
 }
@@ -73,7 +89,7 @@ private struct DeckRow: View {
 private struct StudyDeckView: View {
   let deck: Deck
   @Bindable var store: StudyStore
-  private let speech = SpeechPlayer()
+  @State private var speech = SpeechPlayer()
   @State private var showingSettings = false
 
   var body: some View {
@@ -83,6 +99,15 @@ private struct StudyDeckView: View {
       } else {
         CompleteView(nextDueDate: store.nextDueDate)
       }
+    }
+    .onAppear {
+      // Reopening a deck should start on the question, not a revealed answer.
+      store.hideAnswer()
+      store.advanceClock()
+    }
+    .onDisappear {
+      speech.stop()
+      if !showingSettings { store.hideAnswer() }
     }
     .onReceive(Timer.publish(every: 5, on: .main, in: .common).autoconnect()) { now in
       store.advanceClock(to: now)
@@ -111,9 +136,12 @@ private struct StudyCardView: View {
           .foregroundStyle(.secondary)
         Spacer()
         Button {
-          speech.speak(card.prompt, languageCode: card.languageCode)
+          speech.toggle(card.prompt, languageCode: card.languageCode)
         } label: {
-          Label("Listen", systemImage: "speaker.wave.2.fill")
+          Label(
+            speech.isPlaying ? "Stop" : "Play",
+            systemImage: speech.isPlaying ? "stop.fill" : "play.fill"
+          )
         }
         .buttonStyle(.bordered)
       }
@@ -162,6 +190,10 @@ private struct StudyCardView: View {
     }
     .padding()
     .frame(maxWidth: 720)
+    .task(id: card.id) {
+      // Each card starts speaking on repeat, so the button starts on Stop.
+      speech.start(card.prompt, languageCode: card.languageCode)
+    }
   }
 }
 
@@ -311,12 +343,26 @@ private struct CompleteView: View {
 private struct SettingsView: View {
   let store: StudyStore
   @Environment(\.dismiss) private var dismiss
+  @State private var confirmingReset = false
 
   var body: some View {
     NavigationStack {
       Form {
         Section("Progress") {
-          Button("Reset this deck's progress", role: .destructive) { store.resetProgress() }
+          Button("Reset this deck's progress", role: .destructive) { confirmingReset = true }
+            .confirmationDialog(
+              "Reset progress for this deck?",
+              isPresented: $confirmingReset,
+              titleVisibility: .visible
+            ) {
+              Button("Reset progress", role: .destructive) {
+                store.resetProgress()
+                dismiss()
+              }
+              Button("Cancel", role: .cancel) {}
+            } message: {
+              Text("Every card in this deck becomes new again. This cannot be undone.")
+            }
         }
 
         Section("Deck format") {

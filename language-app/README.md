@@ -13,7 +13,14 @@ reading above the word and speaks the reading instead of the annotation. For
 Japanese decks the answer side also shows romaji derived from those readings, so
 no extra CSV column is needed.
 
-Speech uses the system voice for the language code in the deck header.
+Speech uses the system voice for the language code in the deck header. Each card
+starts speaking its prompt automatically and repeats it with a one second pause
+between repeats, so the toolbar button starts on Stop; pressing Play after Stop
+restarts the phrase from the beginning.
+
+Long pressing a deck on the home screen offers "Reset progress", which asks for
+confirmation and then makes every card in that deck new again. The same action is
+available from the gear menu while studying a deck.
 
 ## Scheduling
 

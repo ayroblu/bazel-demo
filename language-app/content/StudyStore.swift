@@ -50,6 +50,10 @@ public final class StudyStore {
     showingAnswer = true
   }
 
+  public func hideAnswer() {
+    showingAnswer = false
+  }
+
   /// Re-evaluates the queue so cards waiting on a learning step come back when they are due.
   public func advanceClock(to date: Date = Date()) {
     clock = date

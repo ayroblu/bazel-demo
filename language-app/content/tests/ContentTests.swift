@@ -52,6 +52,55 @@ import Testing
 }
 
 @MainActor
+@Test func resettingProgressMakesEveryCardNewAgain() throws {
+  let csv = "ja,en\n猫[ねこ],cat\n犬[いぬ],dog\n"
+  let deck = try CSVDeckLoader.load(name: "Japanese", data: Data(csv.utf8))
+  let suite = "reset-\(UUID().uuidString)"
+  let defaults = try #require(UserDefaults(suiteName: suite))
+  defer { defaults.removePersistentDomain(forName: suite) }
+
+  let store = StudyStore(deck: deck, defaults: defaults)
+  store.grade(.easy)
+  #expect(store.reviewStates.count == 1)
+  #expect(store.dueCards.count == 1)
+
+  store.resetProgress()
+  #expect(store.reviewStates.isEmpty)
+  #expect(store.dueCards.count == 2)
+  // The reset must survive relaunching, not just clear memory.
+  #expect(StudyStore(deck: deck, defaults: defaults).reviewStates.isEmpty)
+}
+
+@MainActor
+@Test func speechPlayerTracksPlaybackState() {
+  let player = SpeechPlayer()
+  #expect(!player.isPlaying)
+
+  player.start("猫[ねこ]", languageCode: "ja")
+  #expect(player.isPlaying)
+
+  player.stop()
+  #expect(!player.isPlaying)
+
+  player.toggle("猫[ねこ]", languageCode: "ja")
+  #expect(player.isPlaying)
+  player.toggle("猫[ねこ]", languageCode: "ja")
+  #expect(!player.isPlaying)
+}
+
+@MainActor
+@Test func hidingTheAnswerReturnsToTheQuestion() throws {
+  let deck = try CSVDeckLoader.load(name: "Japanese", data: Data("ja,en\n猫[ねこ],cat\n".utf8))
+  let defaults = try #require(UserDefaults(suiteName: "reveal-\(UUID().uuidString)"))
+  let store = StudyStore(deck: deck, defaults: defaults)
+
+  store.revealAnswer()
+  #expect(store.showingAnswer)
+  store.hideAnswer()
+  #expect(!store.showingAnswer)
+}
+
+@MainActor
 @Test func walksAnkiLearningStepsBeforeGraduating() {
   let now = Date(timeIntervalSince1970: 1_700_000_000)
 
