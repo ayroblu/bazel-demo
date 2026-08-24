@@ -1,11 +1,1001 @@
 ja,en
-毎日[まいにち]日本語[にほんご]を勉強[べんきょう]します,I study Japanese every day; a daily-habit sentence.
-猫[ねこ],cat; a small domesticated feline.
-犬[いぬ],dog; a domesticated canine.
-水[みず],water; the clear liquid people drink.
-食[た]べる,to eat; the verb for consuming food.
-飲[の]む,to drink; the verb for consuming a beverage.
-今日[きょう],today; the current day.
-明日[あした],tomorrow; the day after today.
-友達[ともだち],friend; a person you know and like.
-ありがとう,thank you; a common expression of gratitude.
+あの人[ひと]はだれですか,who is that person; hito means person.
+今日[きょう]は人[ひと]がとても多[おお]いです,there are a lot of people today; kyou means today.
+今[いま]は何時[なんじ]ですか,what time is it now; ima means now.
+今[いま]は時間[じかん]がありません,I do not have time now; jikan means time.
+時間[じかん]がある人[ひと]は少[すく]ないです,there are few people who have time; aru means to exist for things.
+今[いま]あそこに人[ひと]がいるようです,it seems someone is over there now; iru means to exist for people.
+今日[きょう]は何[なに]をするつもりですか,what do you plan to do today; suru means to do.
+明日[あした]は時間[じかん]がありますか,do you have time tomorrow; ashita means tomorrow.
+昨日[きのう]はとても忙[いそが]しかったです,yesterday was very busy; kinou means yesterday.
+毎日[まいにち]とても忙[いそが]しいです,I am very busy every day; mainichi means every day.
+朝[あさ]はいつも時間[じかん]がありません,I never have time in the morning; asa means morning.
+昼[ひる]はとても暑[あつ]いです,it is very hot at midday; hiru means noon or daytime.
+夜[よる]は時間[じかん]が少[すこ]しあります,I have a little time at night; yoru means night.
+私[わたし]の家[いえ]はとても小[ちい]さいです,my house is very small; ie means house.
+あの学校[がっこう]は新[あたら]しくて大[おお]きいです,that school is new and big; gakkou means school.
+あの学校[がっこう]の先生[せんせい]はとてもいい人[ひと]です,the teachers at that school are very nice people; sensei means teacher.
+この学校[がっこう]の学生[がくせい]は多[おお]いです,this school has many students; gakusei means student.
+私[わたし]の友達[ともだち]もこの学校[がっこう]の学生[がくせい]です,my friend is also a student at this school; tomodachi means friend.
+私[わたし]の家族[かぞく]は今[いま]家[いえ]にいます,my family is at home now; kazoku means family.
+あなたの名前[なまえ]は何[なん]ですか,what is your name; namae means name.
+私[わたし]の友達[ともだち]は日本語[にほんご]が上手[じょうず]です,my friend is good at Japanese; nihongo means the Japanese language.
+明日[あした]学校[がっこう]に行[い]くつもりです,I plan to go to school tomorrow; iku means to go.
+明日[あした]友達[ともだち]が家[いえ]に来[く]るそうです,I hear a friend is coming to my house tomorrow; kuru means to come.
+今日[きょう]は早[はや]く家[いえ]に帰[かえ]るつもりです,I plan to go home early today; kaeru means to return home.
+ここから学校[がっこう]を見[み]ることができます,you can see the school from here; miru means to see.
+先生[せんせい]に聞[き]くことができますか,can you ask the teacher; kiku means to listen or to ask.
+あの人[ひと]が言[い]うことはいつも正[ただ]しいです,what that person says is always right; iu means to say.
+先生[せんせい]と日本語[にほんご]で話[はな]すつもりです,I plan to speak in Japanese with the teacher; hanasu means to speak.
+先生[せんせい]が言[い]うことがよく分[わ]かります,I understand what the teacher says well; wakaru means to understand.
+この本[ほん]はとても高[たか]いです,this book is very expensive; hon means book.
+夜[よる]に本[ほん]を読[よ]むのが好[す]きです,I like reading books at night; yomu means to read.
+ここに名前[なまえ]を書[か]くことができますか,can you write your name here; kaku means to write.
+本[ほん]を読[よ]むと新[あたら]しいことを知[し]ることができます,reading books lets you learn new things; shiru means to know.
+私[わたし]もそう思[おも]うことがあります,I sometimes think so too; omou means to think.
+この水[みず]はとてもおいしいです,this water tastes very good; mizu means water.
+今日[きょう]のご飯[はん]はとてもおいしかったです,today's meal was very good; gohan means rice or a meal.
+昼[ひる]は友達[ともだち]と一緒[いっしょ]にご飯[はん]を食[た]べます,I eat lunch together with a friend; taberu means to eat.
+毎日[まいにち]水[みず]をたくさん飲[の]むようにしています,I try to drink a lot of water every day; nomu means to drink.
+今[いま]はお金[かね]が少[すこ]ししかありません,I only have a little money now; okane means money.
+あの店[みせ]はとても新[あたら]しいです,that shop is very new; mise means shop.
+あの店[みせ]で新[あたら]しい本[ほん]を買[か]うつもりです,I plan to buy a new book at that shop; kau means to buy.
+この店[みせ]には安[やす]い物[もの]が多[おお]いです,this shop has many cheap things; mono means thing.
+昨日[きのう]友達[ともだち]から大切[たいせつ]な事[こと]を聞[き]きました,I heard something important from a friend yesterday; koto means matter.
+家[いえ]でご飯[はん]を作[つく]るのが好[す]きです,I like cooking meals at home; tsukuru means to make.
+この本[ほん]は学校[がっこう]でも使[つか]うことができます,you can use this book at school too; tsukau means to use.
+私[わたし]の仕事[しごと]はとても忙[いそが]しいです,my job is very busy; shigoto means work.
+あの会社[かいしゃ]はとても大[おお]きいです,that company is very big; kaisha means company.
+私[わたし]はあの会社[かいしゃ]で働[はたら]くつもりです,I plan to work at that company; hataraku means to work.
+私[わたし]の車[くるま]は古[ふる]いですがいい車[くるま]です,my car is old but it is a good car; kuruma means car.
+昨日[きのう]友達[ともだち]から電話[でんわ]がありました,I got a phone call from a friend yesterday; denwa means telephone.
+私[わたし]は日本語[にほんご]の先生[せんせい]になるつもりです,I plan to become a Japanese teacher; naru means to become.
+ここで友達[ともだち]を待[ま]つつもりです,I plan to wait for my friend here; matsu means to wait.
+友達[ともだち]に会[あ]うのはとても楽[たの]しいです,meeting friends is a lot of fun; au means to meet.
+私[わたし]の部屋[へや]はとてもきれいです,my room is very clean; heya means room.
+この部屋[へや]の窓[まど]は大[おお]きいです,the window of this room is big; mado means window.
+毎朝[まいあさ]七時[しちじ]に家[いえ]を出[で]るようにしています,I try to leave home at seven every morning; deru means to go out.
+この部屋[へや]に入[はい]ることができますか,may I come into this room; hairu means to enter.
+暑[あつ]いですから窓[まど]を開[あ]けます,it is hot so I will open the window; akeru means to open.
+寒[さむ]いので窓[まど]を閉[し]めてください,it is cold so please close the window; shimeru means to close.
+重[おも]い物[もの]を持[も]つのは大変[たいへん]です,carrying heavy things is hard; motsu means to hold.
+ここに立[た]つことはできません,you cannot stand here; tatsu means to stand.
+私[わたし]はあそこに座[すわ]るつもりです,I am going to sit over there; suwaru means to sit.
+毎朝[まいあさ]六時[ろくじ]に起[お]きます,I get up at six every morning; okiru means to wake up.
+昨日[きのう]は早[はや]く寝[ね]ることができました,I was able to go to bed early yesterday; neru means to sleep.
+明日[あした]は仕事[しごと]を休[やす]むつもりです,I plan to take tomorrow off work; yasumu means to rest.
+友達[ともだち]と遊[あそ]ぶ時間[じかん]がありません,I have no time to hang out with friends; asobu means to play.
+毎日[まいにち]学校[がっこう]まで歩[ある]くようにしています,I try to walk to school every day; aruku means to walk.
+毎朝[まいあさ]三十分[さんじゅっぷん]走[はし]るつもりです,I plan to run for thirty minutes every morning; hashiru means to run.
+先生[せんせい]は私[わたし]たちに日本語[にほんご]を教[おし]えます,the teacher teaches us Japanese; oshieru means to teach.
+私[わたし]は日本語[にほんご]を習[なら]うために学校[がっこう]に行[い]きます,I go to school to learn Japanese; narau means to learn.
+毎日[まいにち]日本語[にほんご]の勉強[べんきょう]をしています,I study Japanese every day; benkyou means study.
+明日[あした]から新[あたら]しい仕事[しごと]を始[はじ]めます,I will start a new job tomorrow; hajimeru means to begin.
+今日[きょう]の仕事[しごと]は六時[ろくじ]に終[お]わります,today's work finishes at six; owaru means to end.
+その本[ほん]を手[て]に持[も]っています,I am holding that book in my hand; te means hand.
+あの人[ひと]は目[め]がとてもきれいです,that person has very beautiful eyes; me means eye.
+今日[きょう]は友達[ともだち]の顔[かお]を見[み]ませんでした,I did not see my friend's face today; kao means face.
+今日[きょう]は頭[あたま]が少[すこ]し痛[いた]いです,my head hurts a little today; atama means head.
+あの人[ひと]は口[くち]が大[おお]きいです,that person has a big mouth; kuchi means mouth.
+私[わたし]は耳[みみ]が少[すこ]し痛[いた]いです,my ears hurt a little; mimi means ear.
+昨日[きのう]たくさん歩[ある]いたので足[あし]が痛[いた]いです,my legs hurt because I walked a lot yesterday; ashi means leg or foot.
+毎日[まいにち]歩[ある]くと体[からだ]にいいです,walking every day is good for your body; karada means body.
+あの先生[せんせい]は声[こえ]がとても大[おお]きいです,that teacher has a very loud voice; koe means voice.
+あの人[ひと]はどこの国[くに]から来[き]ましたか,what country did that person come from; kuni means country.
+この町[まち]には店[みせ]がたくさんあります,there are many shops in this town; machi means town.
+駅[えき]は学校[がっこう]の前[まえ]にあります,the station is in front of the school; eki means station.
+この道[みち]をまっすぐ行[い]くと駅[えき]があります,if you go straight along this road there is a station; michi means road.
+毎朝[まいあさ]電車[でんしゃ]で会社[かいしゃ]に行[い]きます,I go to the company by train every morning; densha means train.
+学校[がっこう]までバスで三十分[さんじゅっぷん]かかります,it takes thirty minutes to school by bus; basu means bus.
+駅[えき]で電車[でんしゃ]に乗[の]るつもりです,I am going to get on the train at the station; noru means to ride.
+次[つぎ]の駅[えき]で電車[でんしゃ]を降[お]ります,I will get off the train at the next station; oriru means to get off.
+電車[でんしゃ]は六時[ろくじ]に駅[えき]に着[つ]くそうです,I hear the train arrives at the station at six; tsuku means to arrive.
+明日[あした]の朝[あさ]は早[はや]く出[で]かけます,I will go out early tomorrow morning; dekakeru means to go out.
+今日[きょう]はとてもいい天気[てんき]です,the weather is very good today; tenki means weather.
+昨日[きのう]の夜[よる]は雨[あめ]でした,it was rainy last night; ame means rain.
+明日[あした]は雨[あめ]が降[ふ]ると思[おも]います,I think it will rain tomorrow; furu means to fall as rain or snow.
+今日[きょう]は雪[ゆき]が降[ふ]るかもしれません,it might snow today; yuki means snow.
+今日[きょう]は風[かぜ]がとても強[つよ]いです,the wind is very strong today; kaze means wind.
+あの山[やま]はとても高[たか]いです,that mountain is very high; yama means mountain.
+この町[まち]には大[おお]きい川[かわ]があります,there is a big river in this town; kawa means river.
+友達[ともだち]と海[うみ]を見[み]に行[い]きました,I went to see the sea with a friend; umi means sea.
+今日[きょう]は空[そら]がとてもきれいです,the sky is very beautiful today; sora means sky.
+あの店[みせ]で花[はな]を買[か]いました,I bought flowers at that shop; hana means flower.
+家[いえ]の前[まえ]に大[おお]きい木[き]があります,there is a big tree in front of the house; ki means tree.
+私[わたし]の家[いえ]には犬[いぬ]が一匹[いっぴき]います,there is one dog at my house; inu means dog.
+あの猫[ねこ]はとても小[ちい]さくてかわいいです,that cat is very small and cute; neko means cat.
+朝[あさ]は鳥[とり]の声[こえ]が聞[き]こえます,you can hear birds in the morning; tori means bird.
+この店[みせ]の魚[さかな]はとても新[あたら]しいです,the fish at this shop is very fresh; sakana means fish.
+私[わたし]は魚[さかな]より肉[にく]が好[す]きです,I like meat more than fish; niku means meat.
+毎日[まいにち]野菜[やさい]を食[た]べるようにしています,I try to eat vegetables every day; yasai means vegetable.
+この店[みせ]の果物[くだもの]は少[すこ]し高[たか]いです,the fruit at this shop is a little expensive; kudamono means fruit.
+朝[あさ]はいつもパンを食[た]べます,I always eat bread in the morning; pan means bread.
+友達[ともだち]と一緒[いっしょ]にお茶[ちゃ]を飲[の]みました,I drank tea together with a friend; ocha means tea.
+私[わたし]は毎朝[まいあさ]コーヒーを飲[の]みます,I drink coffee every morning; koohii means coffee.
+私[わたし]は毎日[まいにち]家[いえ]で料理[りょうり]をします,I cook at home every day; ryouri means cooking.
+家族[かぞく]はみんな元気[げんき]です,my family is all doing well; genki means good health.
+昨日[きのう]から病気[びょうき]で会社[かいしゃ]を休[やす]んでいます,I have been off work sick since yesterday; byouki means illness.
+今日[きょう]は朝[あさ]から病院[びょういん]に行[い]きました,I went to the hospital this morning; byouin means hospital.
+この薬[くすり]をご飯[はん]の後[あと]に飲[の]んでください,please take this medicine after your meal; kusuri means medicine.
+今年[ことし]はとても忙[いそが]しい年[とし]でした,this year was a very busy year; toshi means year.
+今日[きょう]はとてもいい日[ひ]でした,today was a very good day; hi means day.
+今週[こんしゅう]は仕事[しごと]がとても多[おお]いです,I have a lot of work this week; konshuu means this week.
+来週[らいしゅう]友達[ともだち]と海[うみ]に行[い]きます,I am going to the sea with a friend next week; raishuu means next week.
+明日[あした]の午前[ごぜん]は家[いえ]にいます,I will be at home tomorrow morning; gozen means morning hours.
+午後[ごご]から雨[あめ]が降[ふ]るそうです,they say it will rain from the afternoon; gogo means afternoon.
+私[わたし]の時計[とけい]は少[すこ]し古[ふる]いです,my watch is a little old; tokei means clock or watch.
+毎朝[まいあさ]新聞[しんぶん]を読[よ]む時間[じかん]がありません,I have no time to read the newspaper each morning; shinbun means newspaper.
+友達[ともだち]に長[なが]い手紙[てがみ]を書[か]きました,I wrote a long letter to my friend; tegami means letter.
+明日[あした]友達[ともだち]に手紙[てがみ]を送[おく]るつもりです,I plan to send the letter to my friend tomorrow; okuru means to send.
+これは家族[かぞく]の写真[しゃしん]です,this is a photo of my family; shashin means photograph.
+海[うみ]で写真[しゃしん]を撮[と]るのが好[す]きです,I like taking photos at the sea; toru means to take a photo.
+夜[よる]は家[いえ]でテレビを見[み]ます,I watch television at home at night; terebi means television.
+明日[あした]友達[ともだち]と映画[えいが]を見[み]に行[い]きます,I am going to see a movie with a friend tomorrow; eiga means movie.
+私[わたし]は音楽[おんがく]を聞[き]くのが好[す]きです,I like listening to music; ongaku means music.
+友達[ともだち]と一緒[いっしょ]に歌[うた]うのは楽[たの]しいです,singing together with friends is fun; utau means to sing.
+先生[せんせい]の話[はなし]はとても長[なが]かったです,the teacher's talk was very long; hanashi means talk or story.
+日本語[にほんご]には難[むずか]しい言葉[ことば]が多[おお]いです,Japanese has many difficult words; kotoba means word.
+この言葉[ことば]の意味[いみ]を教[おし]えてください,please tell me the meaning of this word; imi means meaning.
+先生[せんせい]に質問[しつもん]をしてもいいですか,may I ask the teacher a question; shitsumon means question.
+学生[がくせい]は先生[せんせい]の質問[しつもん]に答[こた]えました,the student answered the teacher's question; kotaeru means to answer.
+この問題[もんだい]はとても難[むずか]しいです,this problem is very difficult; mondai means problem.
+今日[きょう]の宿題[しゅくだい]はもう終[お]わりました,today's homework is already finished; shukudai means homework.
+明日[あした]の授業[じゅぎょう]は九時[くじ]からです,tomorrow's class is from nine; jugyou means class.
+友達[ともだち]はあの大学[だいがく]の学生[がくせい]です,my friend is a student at that university; daigaku means university.
+学校[がっこう]の図書館[としょかん]はとても静[しず]かです,the school library is very quiet; toshokan means library.
+銀行[ぎんこう]は駅[えき]の近[ちか]くにあります,the bank is near the station; ginkou means bank.
+公園[こうえん]の花[はな]はとてもきれいです,the flowers in the park are very beautiful; kouen means park.
+ここはこの町[まち]で一番[いちばん]きれいな場所[ばしょ]です,this is the most beautiful place in this town; basho means place.
+部屋[へや]の中[なか]はとても暑[あつ]いです,it is very hot inside the room; naka means inside.
+今日[きょう]は外[そと]でご飯[はん]を食[た]べましょう,let us eat outside today; soto means outside.
+公園[こうえん]には子供[こども]がたくさんいます,there are a lot of children in the park; kodomo means child.
+大人[おとな]も子供[こども]もこの映画[えいが]が好[す]きです,both adults and children like this movie; otona means adult.
+あそこに立[た]っている男[おとこ]の人[ひと]は先生[せんせい]です,the man standing over there is a teacher; otoko means man.
+女[おんな]の人[ひと]が二人[ふたり]店[みせ]に入[はい]りました,two women went into the shop; onna means woman.
+私[わたし]の母[はは]は料理[りょうり]がとても上手[じょうず]です,my mother is very good at cooking; haha means mother.
+父[ちち]は毎日[まいにち]会社[かいしゃ]で働[はたら]いています,my father works at a company every day; chichi means father.
+今日[きょう]は一人[ひとり]でご飯[はん]を食[た]べました,I ate alone today; hitori means one person.
+私[わたし]はこの町[まち]に住[す]むつもりです,I plan to live in this town; sumu means to live somewhere.
+私[わたし]はこの町[まち]で生[う]まれました,I was born in this town; umareru means to be born.
+水[みず]がないと魚[さかな]は死[し]ぬそうです,they say fish die without water; shinu means to die.
+あの人[ひと]はいつもよく笑[わら]う人[ひと]です,that person is someone who laughs a lot; warau means to laugh.
+子供[こども]が泣[な]く声[こえ]が聞[き]こえます,I can hear a child crying; naku means to cry.
+今日[きょう]はたくさん歩[ある]いたので疲[つか]れました,I got tired because I walked a lot today; tsukareru means to get tired.
+お金[かね]がないと困[こま]ることが多[おお]いです,there are many troubles when you have no money; komaru means to be in trouble.
+新[あたら]しい言葉[ことば]をたくさん覚[おぼ]えました,I memorized a lot of new words; oboeru means to memorize.
+友達[ともだち]の名前[なまえ]を忘[わす]れてしまいました,I have forgotten my friend's name; wasureru means to forget.
+明日[あした]の仕事[しごと]について考[かんが]えています,I am thinking about tomorrow's work; kangaeru means to think over.
+来週[らいしゅう]までに場所[ばしょ]を決[き]めます,I will decide the place by next week; kimeru means to decide.
+この中[なか]から好[す]きな物[もの]を選[えら]ぶことができます,you can choose anything you like from these; erabu means to choose.
+私[わたし]は新[あたら]しい仕事[しごと]を探[さが]すつもりです,I plan to look for a new job; sagasu means to look for.
+駅[えき]の近[ちか]くでいい店[みせ]を見[み]つけました,I found a good shop near the station; mitsukeru means to find.
+昨日[きのう]は母[はは]の料理[りょうり]を手伝[てつだ]いました,I helped my mother with the cooking yesterday; tetsudau means to help.
+明日[あした]は新[あたら]しい服[ふく]を買[か]いに行[い]きます,I am going to buy new clothes tomorrow; fuku means clothes.
+寒[さむ]いので温[あたた]かい服[ふく]を着[き]るつもりです,it is cold so I will wear warm clothes; kiru means to wear.
+この靴[くつ]は少[すこ]し小[ちい]さいです,these shoes are a little small; kutsu means shoes.
+ご飯[はん]の前[まえ]に手[て]を洗[あら]うようにしています,I try to wash my hands before meals; arau means to wash.
+今日[きょう]は部屋[へや]の掃除[そうじ]をしました,I cleaned my room today; souji means cleaning.
+午後[ごご]から友達[ともだち]と買[か]い物[もの]に行[い]きます,I am going shopping with a friend this afternoon; kaimono means shopping.
+毎朝[まいあさ]公園[こうえん]を散歩[さんぽ]します,I take a walk in the park every morning; sanpo means a stroll.
+来週[らいしゅう]家族[かぞく]と旅行[りょこう]に行[い]きます,I am going on a trip with my family next week; ryokou means travel.
+毎日[まいにち]日本語[にほんご]を練習[れんしゅう]しています,I practice Japanese every day; renshuu means practice.
+学校[がっこう]の図書館[としょかん]で本[ほん]を借[か]りました,I borrowed a book from the school library; kariru means to borrow.
+友達[ともだち]にお金[かね]を貸[か]すつもりです,I am going to lend my friend some money; kasu means to lend.
+借[か]りた本[ほん]は明日[あした]返[かえ]すつもりです,I plan to return the book I borrowed tomorrow; kaesu means to give back.
+あの店[みせ]は野菜[やさい]も魚[さかな]も売[う]るそうです,I hear that shop sells vegetables and fish; uru means to sell.
+この店[みせ]では先[さき]にお金[かね]を払[はら]うそうです,at this shop you pay first; harau means to pay.
+大切[たいせつ]な物[もの]はここに置[お]くようにしています,I try to put important things here; oku means to put.
+そこにある新聞[しんぶん]を取[と]ることができますか,can you grab the newspaper over there; toru means to take.
+ここを押[お]すとドアが開[あ]きます,the door opens when you press here; osu means to push.
+このドアは引[ひ]くと開[あ]きます,this door opens when you pull it; hiku means to pull.
+病気[びょうき]のときは先生[せんせい]を呼[よ]ぶことができます,you can call the doctor when you are sick; yobu means to call.
+今日[きょう]は時間[じかん]がありますから急[いそ]ぐことはありません,we have time today so there is no need to hurry; isogu means to hurry.
+これからも日本語[にほんご]の勉強[べんきょう]を続[つづ]けます,I will keep studying Japanese from now on; tsuzukeru means to continue.
+この道[みち]を渡[わた]ると駅[えき]が見[み]えます,when you cross this road you can see the station; wataru means to cross.
+その道[みち]を右[みぎ]に曲[ま]がってください,please turn right at that road; magaru means to turn.
+あの店[みせ]の前[まえ]に並[なら]ぶ人[ひと]は多[おお]いです,many people line up in front of that shop; narabu means to line up.
+この机[つくえ]の上[うえ]に本[ほん]があります,there is a book on this desk; tsukue means desk.
+その椅子[いす]に座[すわ]ってもいいですか,may I sit on that chair; isu means chair.
+部屋[へや]の鍵[かぎ]を家[いえ]に忘[わす]れました,I left my room key at home; kagi means key.
+先生[せんせい]、いつもありがとうございます,thank you as always teacher; arigatou means thank you.
+すみません、この本[ほん]はいくらですか,excuse me how much is this book; sumimasen means excuse me or sorry.
+春[はる]になると外[そと]がとても暖[あたた]かくなります,when spring comes it gets very warm outside; haru means spring.
+日本[にほん]の夏[なつ]はとても暑[あつ]いです,summer in Japan is very hot; natsu means summer.
+秋[あき]は山[やま]の木[き]がきれいになります,the mountain trees become beautiful in autumn; aki means autumn.
+冬[ふゆ]の朝[あさ]はとても寒[さむ]いです,winter mornings are very cold; fuyu means winter.
+この服[ふく]の色[いろ]がとても好[す]きです,I really like the color of these clothes; iro means color.
+外[そと]から大[おお]きい音[おと]が聞[き]こえました,I heard a loud sound from outside; oto means sound.
+白[しろ]い紙[かみ]に名前[なまえ]を書[か]いてください,please write your name on the white paper; kami means paper.
+この箱[はこ]の中[なか]に本[ほん]が入[はい]っています,there are books in this box; hako means box.
+店[みせ]で袋[ふくろ]をもらいました,I got a bag at the shop; fukuro means bag or sack.
+食[た]べた後[あと]で皿[さら]を洗[あら]います,I wash the plates after eating; sara means plate.
+日本[にほん]では箸[はし]でご飯[はん]を食[た]べます,in Japan people eat rice with chopsticks; hashi means chopsticks.
+出[で]かける前[まえ]に鏡[かがみ]で顔[かお]を見[み]ます,I look at my face in the mirror before going out; kagami means mirror.
+店[みせ]で新[あたら]しい帽子[ぼうし]を買[か]いました,I bought a new hat at the shop; boushi means hat.
+この靴下[くつした]は小[ちい]さくて足[あし]が痛[いた]いです,these socks are small and my feet hurt; kutsushita means socks.
+寒[さむ]い日[ひ]は手袋[てぶくろ]を使[つか]います,I use gloves on cold days; tebukuro means gloves.
+私[わたし]は目[め]が悪[わる]いので眼鏡[めがね]を使[つか]います,my eyes are bad so I wear glasses; megane means glasses.
+家[いえ]の庭[にわ]に小[ちい]さい花[はな]があります,there are small flowers in the garden of my house; niwa means garden.
+部屋[へや]の壁[かべ]が白[しろ]くてきれいです,the wall of the room is white and clean; kabe means wall.
+寒[さむ]いので戸[と]を閉[し]めてください,it is cold so please close the door; to means door.
+棚[たな]の上[うえ]に古[ふる]い本[ほん]を置[お]きました,I put an old book on the shelf; tana means shelf.
+夜[よる]は布団[ふとん]で寝[ね]ます,I sleep on a futon at night; futon means a futon.
+この枕[まくら]は少[すこ]し高[たか]いです,this pillow is a little too high; makura means pillow.
+子供[こども]が床[ゆか]で遊[あそ]んでいます,the child is playing on the floor; yuka means floor.
+日本[にほん]の家[いえ]では靴[くつ]を脱[ぬ]ぐことが多[おお]いです,in Japanese homes people usually take off their shoes; nugu means to take off.
+今日[きょう]はお客[きゃく]さんがたくさん来[き]ました,many customers came today; kyaku means customer or guest.
+この店[みせ]の店員[てんいん]はいつも元気[げんき]です,the shop clerks here are always cheerful; tenin means shop clerk.
+この店[みせ]の品物[しなもの]は少[すこ]し高[たか]いです,the goods at this shop are a little expensive; shinamono means goods.
+お湯[ゆ]を使[つか]ってお茶[ちゃ]を入[い]れます,I make tea using hot water; yu means hot water.
+母[はは]は今[いま]台所[だいどころ]で料理[りょうり]をしています,my mother is cooking in the kitchen now; daidokoro means kitchen.
+水[みず]は冷蔵庫[れいぞうこ]の中[なか]にあります,the water is in the fridge; reizouko means refrigerator.
+水[みず]に氷[こおり]を入[い]れて飲[の]みます,I put ice in my water and drink it; koori means ice.
+財布[さいふ]の中[なか]にお金[かね]があまりありません,there is not much money in my wallet; saifu means wallet.
+この荷物[にもつ]はとても重[おも]いです,this luggage is very heavy; nimotsu means luggage.
+雨[あめ]の日[ひ]は傘[かさ]を持[も]って出[で]かけます,on rainy days I go out with an umbrella; kasa means umbrella.
+冬[ふゆ]の夜[よる]は毛布[もうふ]がないと寒[さむ]いです,winter nights are cold without a blanket; moufu means blanket.
+新[あたら]しい鞄[かばん]に本[ほん]を入[い]れました,I put a book in my new bag; kaban means bag.
+窓[まど]を拭[ふ]くと部屋[へや]が明[あか]るくなります,the room gets brighter when you wipe the windows; fuku means to wipe.
+天気[てんき]がいい日[ひ]に洗濯[せんたく]をします,I do the laundry on days with good weather; sentaku means laundry.
+部屋[へや]を出[で]る時[とき]は電気[でんき]を消[け]します,I turn off the light when I leave the room; denki means electricity or lights.
+夜[よる]はお風呂[ふろ]に入[はい]ってから寝[ね]ます,at night I take a bath and then go to bed; furo means bath.
+家族[かぞく]と一緒[いっしょ]に食事[しょくじ]をします,I have meals together with my family; shokuji means a meal.
+この料理[りょうり]には豆[まめ]がたくさん入[はい]っています,this dish has a lot of beans in it; mame means bean.
+秋[あき]においしい芋[いも]を食[た]べました,I ate tasty potatoes in autumn; imo means potato.
+子供[こども]は毎日[まいにち]牛乳[ぎゅうにゅう]を飲[の]みます,children drink milk every day; gyuunyuu means milk.
+日本[にほん]の味噌[みそ]で料理[りょうり]を作[つく]ります,I cook with Japanese miso; miso means fermented soybean paste.
+朝[あさ]ご飯[はん]に卵[たまご]を食[た]べました,I ate an egg for breakfast; tamago means egg.
+日本[にほん]の米[こめ]はとてもおいしいです,Japanese rice is very tasty; kome means uncooked rice.
+この料理[りょうり]は味[あじ]がとてもいいです,this dish has a very good taste; aji means taste.
+肉[にく]に塩[しお]を少[すこ]し入[い]れます,I put a little salt on the meat; shio means salt.
+私[わたし]はお茶[ちゃ]に砂糖[さとう]を入[い]れません,I do not put sugar in my tea; satou means sugar.
+毎日[まいにち]自分[じぶん]で弁当[べんとう]を作[つく]ります,I make my own boxed lunch every day; bentou means a boxed lunch.
+日本[にほん]の食[た]べ物[もの]が大好[だいす]きです,I love Japanese food; tabemono means food.
+子供[こども]と一緒[いっしょ]にお菓子[かし]を作[つく]りました,I made sweets together with my child; okashi means sweets.
+壁[かべ]に古[ふる]い絵[え]があります,there is an old picture on the wall; e means picture.
+店[みせ]で切手[きって]を五[ご]まい買[か]いました,I bought five stamps at the shop; kitte means postage stamp.
+封筒[ふうとう]に手紙[てがみ]を入[い]れました,I put the letter in an envelope; fuutou means envelope.
+子供[こども]は学校[がっこう]で新[あたら]しい歌[うた]を習[なら]いました,the children learned a new song at school; uta means song.
+学校[がっこう]で楽器[がっき]の練習[れんしゅう]をします,I practice a musical instrument at school; gakki means musical instrument.
+毎日[まいにち]手帳[てちょう]を持[も]って会社[かいしゃ]に行[い]きます,I take my planner to the office every day; techou means pocket notebook.
+店[みせ]で新[あたら]しい雑誌[ざっし]を買[か]いました,I bought a new magazine at the shop; zasshi means magazine.
+道[みち]が分[わ]からない時[とき]は交番[こうばん]で聞[き]きます,when I do not know the way I ask at the police box; kouban means police box.
+郵便局[ゆうびんきょく]で手紙[てがみ]を出[だ]します,I send letters at the post office; yuubinkyoku means post office.
+駅[えき]の近[ちか]くの本屋[ほんや]で本[ほん]を買[か]いました,I bought a book at the bookshop near the station; honya means bookshop.
+この町[まち]には古[ふる]い寺[てら]があります,there is an old temple in this town; tera means temple.
+店[みせ]の前[まえ]に広[ひろ]い駐車場[ちゅうしゃじょう]があります,there is a large parking lot in front of the shop; chuushajou means parking lot.
+妹[いもうと]は医者[いしゃ]になりたいと言[い]っています,my little sister says she wants to become a doctor; isha means doctor.
+夏[なつ]は少[すこ]し歩[ある]くだけで汗[あせ]をかきます,in summer I sweat just from walking a little; ase means sweat.
+子供[こども]に熱[ねつ]があるので家[いえ]にいます,my child has a fever so we are staying home; netsu means fever.
+風邪[かぜ]をひいて学校[がっこう]を休[やす]みました,I caught a cold and stayed home from school; kaze means a common cold.
+走[はし]っている時[とき]に怪我[けが]をしました,I got injured while running; kega means injury.
+重[おも]い荷物[にもつ]を持[も]って腕[うで]が痛[いた]くなりました,I carried heavy luggage and my arms started to hurt; ude means arm.
+父[ちち]の背中[せなか]はとても広[ひろ]いです,my father's back is very broad; senaka means back.
+その映画[えいが]を見[み]て涙[なみだ]が出[で]ました,tears came to my eyes watching that movie; namida means tears.
+妹[いもうと]の髪[かみ]はとても長[なが]いです,my little sister's hair is very long; kami means hair.
+甘[あま]い物[もの]をたくさん食[た]べると歯[は]に悪[わる]いです,eating a lot of sweet things is bad for your teeth; ha means tooth.
+子供[こども]の指[ゆび]は小[ちい]さくてかわいいです,a child's fingers are small and cute; yubi means finger.
+今朝[けさ]から首[くび]が少[すこ]し痛[いた]いです,my neck has hurt a little since this morning; kubi means neck.
+重[おも]い鞄[かばん]を持[も]つと肩[かた]が痛[いた]くなります,my shoulders hurt when I carry a heavy bag; kata means shoulder.
+お腹[なか]がすいたので何[なに]か食[た]べます,I am hungry so I will eat something; onaka means stomach or belly.
+兄[あに]は力[ちから]がとても強[つよ]いです,my older brother is very strong; chikara means strength.
+親切[しんせつ]な人[ひと]が重[おも]い荷物[にもつ]を持[も]ってくれました,a kind person carried my heavy luggage for me; shinsetsu means kindness.
+これは母[はは]からもらった大切[たいせつ]な物[もの]です,this is a precious thing I received from my mother; taisetsu means importance.
+今日[きょう]はとても気持[きも]ちがいい天気[てんき]です,the weather feels really pleasant today; kimochi means feeling.
+港[みなと]から海[うみ]がよく見[み]えます,you can see the sea well from the port; minato means port.
+空港[くうこう]まで電車[でんしゃ]で行[い]きました,I went to the airport by train; kuukou means airport.
+飛行機[ひこうき]の中[なか]で映画[えいが]を見[み]ました,I watched a movie on the plane; hikouki means airplane.
+駅[えき]で電車[でんしゃ]の切符[きっぷ]を買[か]いました,I bought a train ticket at the station; kippu means ticket.
+電話[でんわ]で店[みせ]の予約[よやく]をしました,I made a reservation at the restaurant by phone; yoyaku means reservation.
+知[し]らない町[まち]では地図[ちず]を見[み]ます,I look at a map in towns I do not know; chizu means map.
+この川[かわ]には古[ふる]い橋[はし]があります,there is an old bridge over this river; hashi means bridge.
+毎日[まいにち]自転車[じてんしゃ]で駅[えき]まで行[い]きます,I go to the station by bicycle every day; jitensha means bicycle.
+電車[でんしゃ]の中[なか]で席[せき]に座[すわ]りました,I sat down in a seat on the train; seki means seat.
+あの信号[しんごう]を右[みぎ]に行[い]くと病院[びょういん]です,turn right at that traffic light and you reach the hospital; shingou means traffic light.
+この階段[かいだん]は暗[くら]いので気[き]をつけてください,these stairs are dark so please be careful; kaidan means stairs.
+近所[きんじょ]に新[あたら]しい店[みせ]ができました,a new shop opened in my neighborhood; kinjo means neighborhood.
+隣[となり]の部屋[へや]から音[おと]が聞[き]こえます,I can hear a sound from the room next door; tonari means next door.
+会社[かいしゃ]の先輩[せんぱい]に仕事[しごと]を教[おし]えてもらいました,a senior colleague taught me the work; senpai means senior colleague.
+この会社[かいしゃ]には若[わか]い社員[しゃいん]がたくさんいます,this company has many young employees; shain means company employee.
+事務所[じむしょ]は駅[えき]のすぐ近[ちか]くにあります,the office is right near the station; jimusho means office.
+明日[あした]の朝[あさ]から大[おお]きい会議[かいぎ]があります,there is a big meeting from tomorrow morning; kaigi means meeting.
+今週[こんしゅう]の予定[よてい]を教[おし]えてください,please tell me your schedule for this week; yotei means plan or schedule.
+友達[ともだち]と三時[さんじ]に約束[やくそく]をしました,I made an appointment with my friend at three; yakusoku means promise or appointment.
+来週[らいしゅう]日本語[にほんご]の試験[しけん]があります,there is a Japanese exam next week; shiken means exam.
+この学校[がっこう]の生徒[せいと]はみんな元気[げんき]です,the pupils at this school are all lively; seito means pupil.
+授業[じゅぎょう]の前[まえ]に教科書[きょうかしょ]を読[よ]みます,I read the textbook before class; kyoukasho means textbook.
+先生[せんせい]が黒板[こくばん]に大[おお]きく名前[なまえ]を書[か]きました,the teacher wrote a name large on the blackboard; kokuban means blackboard.
+学生[がくせい]は教室[きょうしつ]で先生[せんせい]を待[ま]っています,the students are waiting for the teacher in the classroom; kyoushitsu means classroom.
+この学校[がっこう]の制服[せいふく]は青[あお]いです,the uniform of this school is blue; seifuku means uniform.
+日本語[にほんご]の辞書[じしょ]をいつも使[つか]っています,I always use a Japanese dictionary; jisho means dictionary.
+鉛筆[えんぴつ]を使[つか]って宿題[しゅくだい]をします,I do my homework with a pencil; enpitsu means pencil.
+友達[ともだち]に旅行[りょこう]の葉書[はがき]を送[おく]りました,I sent my friend a postcard from the trip; hagaki means postcard.
+明日[あした]は学校[がっこう]の遠足[えんそく]があります,the school excursion is tomorrow; ensoku means excursion.
+明日[あした]の試合[しあい]をみんなで見[み]に行[い]きます,we are all going to watch tomorrow's match; shiai means match.
+友達[ともだち]からまだ返事[へんじ]が来[き]ません,there is still no reply from my friend; henji means reply.
+あの選手[せんしゅ]はとても速[はや]く走[はし]ります,that player runs very fast; senshu means player or athlete.
+旅行[りょこう]の準備[じゅんび]をしています,I am getting ready for the trip; junbi means preparation.
+日本[にほん]での生活[せいかつ]はとても楽[たの]しいです,life in Japan is very enjoyable; seikatsu means daily life.
+世界[せかい]には知[し]らない国[くに]がたくさんあります,there are many countries in the world that I do not know; sekai means world.
+山[やま]の近[ちか]くに大[おお]きい森[もり]があります,there is a big forest near the mountain; mori means forest.
+夏[なつ]の夜[よる]は虫[むし]の声[こえ]が聞[き]こえます,on summer nights you can hear insects; mushi means insect.
+公園[こうえん]の池[いけ]に魚[さかな]がいます,there are fish in the pond in the park; ike means pond.
+空[そら]に白[しろ]い雲[くも]がたくさんあります,there are many white clouds in the sky; kumo means cloud.
+昨日[きのう]の夜[よる]は星[ほし]がよく見[み]えました,the stars were easy to see last night; hoshi means star.
+今日[きょう]の月[つき]はとても大[おお]きくてきれいです,the moon is very big and beautiful today; tsuki means moon.
+出[で]かける時[とき]は新[あたら]しい靴[くつ]を履[は]くつもりです,I plan to wear my new shoes when I go out; haku means to put on footwear.
+暑[あつ]い日[ひ]は帽子[ぼうし]を被[かぶ]るといいです,on hot days it is good to wear a hat; kaburu means to put on the head.
+毎日[まいにち]電車[でんしゃ]で会社[かいしゃ]に通[かよ]うのは大変[たいへん]です,commuting to the company by train every day is hard; kayou means to commute.
+来月[らいげつ]新[あたら]しい家[いえ]に引[ひ]っ越[こ]します,I am moving to a new house next month; hikkosu means to move house.
+旅行[りょこう]の時[とき]は友達[ともだち]の家[いえ]に泊[と]まります,when I travel I stay at my friend's house; tomaru means to stay overnight.
+大切[たいせつ]な物[もの]はきれいな紙[かみ]で包[つつ]むといいです,it is good to wrap precious things in nice paper; tsutsumu means to wrap.
+箱[はこ]に本[ほん]を詰[つ]めて友達[ともだち]に送[おく]りました,I packed books in a box and sent them to my friend; tsumeru means to pack.
+明日[あした]の朝[あさ]は晴[は]れるでしょう,it will probably clear up tomorrow morning; hareru means to clear up.
+今日[きょう]は強[つよ]い風[かぜ]が吹[ふ]くかもしれません,a strong wind may blow today; fuku means to blow.
+この公園[こうえん]では春[はる]にたくさんの花[はな]が咲[さ]くそうです,I hear many flowers bloom in this park in spring; saku means to bloom.
+夏[なつ]に海[うみ]で泳[およ]ぐのが好[す]きです,I like swimming in the sea in summer; oyogu means to swim.
+来週[らいしゅう]友達[ともだち]と山[やま]に登[のぼ]るつもりです,I plan to climb the mountain with a friend next week; noboru means to climb.
+封筒[ふうとう]に切手[きって]を貼[は]るのを忘[わす]れないでください,please do not forget to put a stamp on the envelope; haru means to stick on.
+古[ふる]い切手[きって]を剥[は]がすのは難[むずか]しいです,peeling off an old stamp is difficult; hagasu means to peel off.
+この電車[でんしゃ]は次[つぎ]の駅[えき]に止[と]まりません,this train does not stop at the next station; tomaru means to come to a stop.
+この古[ふる]い時計[とけい]はまだ動[うご]くと思[おも]います,I think this old clock still works; ugoku means to move or run.
+寒[さむ]い日[ひ]は首[くび]に何[なに]か巻[ま]くといいです,on cold days it is good to wrap something around your neck; maku means to wind around.
+電車[でんしゃ]が止[と]まって会議[かいぎ]に遅[おく]れました,the train stopped and I was late for the meeting; okureru means to be late.
+夏[なつ]は髪[かみ]を結[むす]ぶと涼[すず]しいです,in summer it feels cool if you tie your hair up; musubu means to tie.
+中[なか]の物[もの]が出[で]ないように袋[ふくろ]の口[くち]を締[し]めます,I tighten the mouth of the bag so nothing comes out; shimeru means to tighten.
+部屋[へや]の壁[かべ]に古[ふる]い絵[え]を掛[か]けました,I hung an old picture on the wall of the room; kakeru means to hang.
+天気[てんき]がいい日[ひ]は布団[ふとん]を干[ほ]すといいです,on days with good weather it is good to air the futon; hosu means to hang out to dry.
+今日[きょう]の午後[ごご]に荷物[にもつ]が届[とど]くと思[おも]います,I think the parcel will arrive this afternoon; todoku means to be delivered.
+重[おも]い机[つくえ]を一人[ひとり]で運[はこ]ぶのは大変[たいへん]です,carrying a heavy desk alone is hard; hakobu means to carry.
+洗濯[せんたく]した服[ふく]を畳[たた]むのは大変[たいへん]です,folding the washed clothes is a chore; tatamu means to fold.
+床[ゆか]に何[なに]か敷[し]くと座[すわ]りやすいです,it is easier to sit if you spread something on the floor; shiku means to spread out.
+机[つくえ]の上[うえ]に皿[さら]を並[なら]べました,I lined up the plates on the table; naraberu means to line things up.
+子供[こども]は指[ゆび]を使[つか]って数[かぞ]えます,children count using their fingers; kazoeru means to count.
+熱[あつ]い物[もの]に触[さわ]ると怪我[けが]をします,you get hurt if you touch hot things; sawaru means to touch.
+子供[こども]は物[もの]を投[な]げるのが好[す]きです,children like throwing things; nageru means to throw.
+子供[こども]の時[とき]から古[ふる]い切符[きっぷ]を集[あつ]めています,I have collected old tickets since I was a child; atsumeru means to collect.
+朝[あさ]は庭[にわ]を掃[は]くことにしています,I make a point of sweeping the garden in the morning; haku means to sweep.
+机[つくえ]の上[うえ]から本[ほん]が落[お]ちました,a book fell off the desk; ochiru means to fall.
+子供[こども]が落[お]として卵[たまご]が割[わ]れました,my child dropped an egg and it broke; wareru means to break into pieces.
+古[ふる]い冷蔵庫[れいぞうこ]が壊[こわ]れてしまいました,the old fridge has broken down; kowareru means to break down.
+壊[こわ]れた時計[とけい]を直[なお]すことができますか,can you fix this broken clock; naosu means to fix.
+風邪[かぜ]が治[なお]るまで家[いえ]で休[やす]みます,I will rest at home until my cold gets better; naoru means to get better.
+子供[こども]は走[はし]って転[ころ]ぶことが多[おお]いです,children often run and fall over; korobu means to fall over.
+新[あたら]しい仕事[しごと]にもう慣[な]れました,I have already gotten used to the new job; nareru means to get used to.
+雨[あめ]の日[ひ]は道[みち]が滑[すべ]るので危[あぶ]ないです,the road is slippery on rainy days so it is dangerous; suberu means to slip.
+猫[ねこ]が窓[まど]から外[そと]に逃[に]げました,the cat escaped outside through the window; nigeru means to run away.
+犬[いぬ]が猫[ねこ]を追[お]うのを見[み]ました,I saw a dog chasing a cat; ou means to chase.
+子供[こども]と一緒[いっしょ]に犬[いぬ]を飼[か]うことにしました,we decided to keep a dog with the children; kau means to keep an animal.
+困[こま]っている人[ひと]を助[たす]けたいです,I want to help people who are in trouble; tasukeru means to save or help.
+その話[はなし]を聞[き]くとみんな驚[おどろ]くでしょう,everyone will be surprised to hear that story; odoroku means to be surprised.
+朝[あさ]早[はや]く鳥[とり]が鳴[な]くのが聞[き]こえます,I can hear birds singing early in the morning; naku means to chirp or cry as an animal.
+この庭[にわ]では花[はな]がよく育[そだ]つと思[おも]います,I think flowers grow well in this garden; sodatsu means to grow up.
+約束[やくそく]を忘[わす]れると母[はは]は怒[おこ]るでしょう,my mother will get angry if I forget the promise; okoru means to get angry.
+遅[おく]れた時[とき]はすぐに謝[あやま]る方[ほう]がいいです,when you are late it is better to apologize right away; ayamaru means to apologize.
+仕事[しごと]が多[おお]い時[とき]は友達[ともだち]に頼[たの]むことがあります,when I have a lot of work I sometimes ask a friend; tanomu means to request.
+今度[こんど]友達[ともだち]を映画[えいが]に誘[さそ]うつもりです,I plan to invite my friend to a movie next time; sasou means to invite.
+庭[にわ]に新[あたら]しい木[き]を植[う]えました,I planted a new tree in the garden; ueru means to plant.
+明日[あした]空港[くうこう]で友達[ともだち]を迎[むか]えます,I will meet my friend at the airport tomorrow; mukaeru means to go to meet.
+今日[きょう]の夜[よる]は肉[にく]を焼[や]くつもりです,I plan to grill meat tonight; yaku means to grill or bake.
+分[わ]からない言葉[ことば]を辞書[じしょ]で調[しら]べます,I look up words I do not know in a dictionary; shiraberu means to look into.
+お茶[ちゃ]を飲[の]む前[まえ]にお湯[ゆ]を沸[わ]かします,I boil water before drinking tea; wakasu means to boil water.
+夏[なつ]は水[みず]を冷蔵庫[れいぞうこ]で冷[ひ]やします,in summer I chill water in the fridge; hiyasu means to chill.
+天気[てんき]が急[きゅう]に変[か]わりました,the weather changed suddenly; kawaru means to change.
+この町[まち]は若[わか]い人[ひと]が増[ふ]えました,young people have increased in this town; fueru means to increase.
+休[やす]みの日[ひ]は家[いえ]で静[しず]かに過[す]ごします,on days off I spend time quietly at home; sugosu means to spend time.
+三時[さんじ]までに事務所[じむしょ]に戻[もど]るつもりです,I plan to be back at the office by three; modoru means to return.
+部屋[へや]の電気[でんき]が急[きゅう]に消[き]えました,the light in the room suddenly went out; kieru means to go out or disappear.
+客[きゃく]にお茶[ちゃ]を注[そそ]ぐのは私[わたし]の仕事[しごと]です,pouring tea for the guests is my job; sosogu means to pour.
+明日[あした]は部屋[へや]の壁[かべ]を白[しろ]く塗[ぬ]るつもりです,tomorrow I plan to paint the wall of the room white; nuru means to paint.
+子供[こども]が紙[かみ]に絵[え]を描[か]くのを見[み]ていました,I was watching the child drawing a picture on paper; kaku means to draw.
+公園[こうえん]でごみを拾[ひろ]うのはいいことです,picking up trash in the park is a good thing; hirou means to pick up.
+もう着[き]ない服[ふく]を捨[す]てました,I threw away clothes I no longer wear; suteru means to throw away.
+食事[しょくじ]の後[あと]で台所[だいどころ]を片付[かたづ]けます,I tidy up the kitchen after meals; katazukeru means to tidy up.
+寝[ね]る前[まえ]に歯[は]を磨[みが]くのを忘[わす]れないでください,please do not forget to brush your teeth before bed; migaku means to brush or polish.
+小[ちい]さく野菜[やさい]を切[き]ると食[た]べやすいです,vegetables are easy to eat if you cut them small; kiru means to cut.
+卵[たまご]と砂糖[さとう]をよく混[ま]ぜます,mix the egg and sugar well; mazeru means to mix.
+冷[つめ]たい料理[りょうり]を温[あたた]めて食[た]べます,I warm up cold food before eating it; atatameru means to warm up.
+傘[かさ]がなくて服[ふく]が濡[ぬ]れました,I had no umbrella and my clothes got wet; nureru means to get wet.
+紙[かみ]を小[ちい]さく折[お]ると袋[ふくろ]に入[はい]ります,if you fold the paper small it fits in the bag; oru means to fold.
+明日[あした]先生[せんせい]にこの手紙[てがみ]を渡[わた]すつもりです,I plan to hand this letter to the teacher tomorrow; watasu means to hand over.
+机[つくえ]の上[うえ]に本[ほん]を積[つ]むと危[あぶ]ないです,it is dangerous to pile books on the desk; tsumu means to pile up.
+明日[あした]の都合[つごう]がいい時間[じかん]を教[おし]えてください,please tell me a time that is convenient for you tomorrow; tsugou means convenience or availability.
+先生[せんせい]の意見[いけん]をもっと聞[き]きたいです,I want to hear more of the teacher's opinion; iken means an opinion.
+遅[おく]れた理由[りゆう]を教[おし]えてください,please tell me the reason you were late; riyuu means a reason.
+先生[せんせい]がこの問題[もんだい]を説明[せつめい]してくれました,the teacher explained this problem for me; setsumei suru means to explain.
+来週[らいしゅう]の予定[よてい]についてみんなで話[はな]し合[あ]いました,we all talked over next week's schedule; hanashiau means to discuss together.
+その質問[しつもん]の答[こた]えがわかりません,I do not know the answer to that question; kotae means an answer.
+明日[あした]、会社[かいしゃ]で新[あたら]しい仕事[しごと]の打[う]ち合[あ]わせをします,tomorrow we will hold a briefing about the new job at the office; uchiawase means a business meeting.
+会議[かいぎ]の資料[しりょう]をメールで送[おく]りました,I sent the meeting materials by email; shiryou means documents or materials.
+明日[あした]の朝[あさ]、電話[でんわ]で連絡[れんらく]します,I will contact you by phone tomorrow morning; renraku suru means to get in touch.
+仕事[しごと]のことを友達[ともだち]に相談[そうだん]しました,I talked over work matters with a friend; soudan suru means to consult.
+メールをもう一度[いちど]確認[かくにん]してください,please check the email one more time; kakunin suru means to confirm.
+今[いま]から会議[かいぎ]の資料[しりょう]を準備[じゅんび]します,I will prepare the meeting materials now; junbi suru means to prepare.
+この資料[しりょう]の内容[ないよう]はとても大切[たいせつ]です,the content of this document is very important; naiyou means content.
+新[あたら]しい資料[しりょう]を作[つく]ることを依頼[いらい]しました,I requested that new materials be made; irai suru means to request.
+もっと簡単[かんたん]な方法[ほうほう]があると思[おも]います,I think there is a simpler method; houhou means a method.
+来月[らいげつ]の計画[けいかく]をみんなで話[はな]しました,we all talked about next month's plan; keikaku means a plan.
+テストの結果[けっか]は来週[らいしゅう]わかります,the test results will be known next week; kekka means a result.
+この会議[かいぎ]の目的[もくてき]をはじめに説明[せつめい]します,first I will explain the purpose of this meeting; mokuteki means a purpose.
+彼[かれ]は仕事[しごと]の経験[けいけん]がたくさんあります,he has a lot of work experience; keiken means experience.
+会議[かいぎ]の結果[けっか]をメールで報告[ほうこく]しました,I reported the meeting result by email; houkoku suru means to report.
+新[あたら]しい情報[じょうほう]があったらすぐに教[おし]えてください,please tell me right away if there is new information; jouhou means information.
+来月[らいげつ]の旅行[りょこう]の日程[にってい]をまだ決[き]めていません,we have not decided the schedule for next month's trip yet; nittei means a schedule of dates.
+友達[ともだち]と駅[えき]で会[あ]う約束[やくそく]をしました,I promised to meet a friend at the station; yakusoku suru means to promise.
+父[ちち]は今日[きょう]とても機嫌[きげん]がいいです,my father is in a very good mood today; kigen means a person's mood.
+母[はは]はいつもわたしのことを心配[しんぱい]しています,my mother always worries about me; shinpai suru means to worry.
+友達[ともだち]の連絡[れんらく]を聞[き]いて安心[あんしん]しました,I heard from my friend and felt relieved; anshin suru means to feel at ease.
+今日[きょう]は天気[てんき]がよくて気分[きぶん]がいいです,the weather is nice today so I feel great; kibun means mood.
+彼女[かのじょ]はとても明[あか]るい性格[せいかく]です,she has a very cheerful personality; seikaku means personality.
+わたしの趣味[しゅみ]は古[ふる]い映画[えいが]を見[み]ることです,my hobby is watching old movies; shumi means a hobby.
+子[こ]どものときの夢[ゆめ]は先生[せんせい]になることでした,my childhood dream was to become a teacher; yume means a dream.
+外国[がいこく]で働[はたら]きたいという希望[きぼう]があります,I have a hope of working abroad; kibou means hope.
+電車[でんしゃ]の中[なか]で友達[ともだち]と会話[かいわ]を楽[たの]しみました,I enjoyed a conversation with a friend on the train; kaiwa means conversation.
+会話[かいわ]の相手[あいて]の話[はなし]をよく聞[き]きましょう,let us listen carefully to the person we are talking with; aite means the other party.
+メールを読[よ]んだら、すぐに返信[へんしん]してください,please reply as soon as you read the email; henshin suru means to reply.
+友達[ともだち]に新[あたら]しい店[みせ]を紹介[しょうかい]しました,I introduced a new shop to my friend; shoukai suru means to introduce.
+駅[えき]から会社[かいしゃ]まで案内[あんない]します,I will show you the way from the station to the office; annai suru means to guide.
+友達[ともだち]をうちの晩[ばん]ごはんに招待[しょうたい]しました,I invited a friend to dinner at my place; shoutai suru means to invite.
+来週[らいしゅう]の会議[かいぎ]に参加[さんか]します,I will take part in next week's meeting; sanka suru means to participate.
+病気[びょうき]で会議[かいぎ]に出席[しゅっせき]できませんでした,I could not attend the meeting because I was sick; shusseki suru means to attend.
+来月[らいげつ]の計画[けいかく]をみんなの前[まえ]で発表[はっぴょう]します,I will present next month's plan in front of everyone; happyou suru means to announce.
+もっといい方法[ほうほう]を先生[せんせい]に提案[ていあん]しました,I proposed a better method to the teacher; teian suru means to propose.
+わたしはその意見[いけん]に賛成[さんせい]します,I agree with that opinion; sansei suru means to agree.
+父[ちち]はわたしの計画[けいかく]に反対[はんたい]しました,my father opposed my plan; hantai suru means to oppose.
+説明[せつめい]を聞[き]いて、やっと理解[りかい]しました,I finally understood after hearing the explanation; rikai suru means to understand.
+少[すく]ない情報[じょうほう]で判断[はんだん]するのは難[むずか]しいです,judging from little information is difficult; handan suru means to judge.
+十年後[じゅうねんご]の世界[せかい]を想像[そうぞう]してみましょう,let us imagine the world ten years from now; souzou suru means to imagine.
+明日[あした]の天気[てんき]を予想[よそう]するのは難[むずか]しいです,predicting tomorrow's weather is difficult; yosou suru means to predict.
+彼[かれ]の意見[いけん]にはまだ納得[なっとく]できません,I am not convinced by his opinion yet; nattoku suru means to be convinced.
+この部屋[へや]は少[すこ]し寒[さむ]く感[かん]じます,this room feels a little cold; kanjiru means to feel.
+先生[せんせい]はわたしの意見[いけん]を認[みと]めてくれました,the teacher accepted my opinion; mitomeru means to acknowledge.
+わたしは友達[ともだち]の話[はなし]を信[しん]じています,I believe what my friend says; shinjiru means to believe.
+会社[かいしゃ]はわたしの仕事[しごと]に期待[きたい]しています,the company expects a lot from my work; kitai suru means to expect.
+日本[にほん]の音楽[おんがく]に興味[きょうみ]があります,I am interested in Japanese music; kyoumi means interest.
+外国[がいこく]の文化[ぶんか]を知[し]ることは面白[おもしろ]いです,learning about foreign cultures is interesting; bunka means culture.
+この町[まち]には長[なが]い歴史[れきし]があります,this town has a long history; rekishi means history.
+この祭[まつ]りは町[まち]の古[ふる]い伝統[でんとう]です,this festival is an old tradition of the town; dentou means tradition.
+毎日[まいにち]日本語[にほんご]を話[はな]す習慣[しゅうかん]をつけたいです,I want to build a habit of speaking Japanese every day; shuukan means a habit.
+子[こ]どもの教育[きょういく]について家族[かぞく]で話[はな]しました,we talked as a family about our children's education; kyouiku means education.
+大学[だいがく]で日本[にほん]の歴史[れきし]を研究[けんきゅう]しています,I do research on Japanese history at university; kenkyuu suru means to do research.
+科学[かがく]の本[ほん]を読[よ]むのが好[す]きです,I like reading science books; kagaku means science.
+この会社[かいしゃ]は新[あたら]しい技術[ぎじゅつ]を使[つか]っています,this company uses new technology; gijutsu means technology.
+彼[かれ]は車[くるま]の知識[ちしき]がとても多[おお]いです,he has a great deal of knowledge about cars; chishiki means knowledge.
+彼女[かのじょ]は英語[えいご]の能力[のうりょく]が高[たか]いです,her English ability is high; nouryoku means ability.
+彼[かれ]には音楽[おんがく]の才能[さいのう]があります,he has a talent for music; sainou means talent.
+毎日[まいにち]少[すこ]しずつ努力[どりょく]しています,I make a little effort every day; doryoku suru means to make an effort.
+毎晩[まいばん]、ピアノを練習[れんしゅう]しています,I practice the piano every night; renshuu suru means to practice.
+来月[らいげつ]、会社[かいしゃ]で三日間[みっかかん]の研修[けんしゅう]があります,next month there is a three day training at the company; kenshuu means training.
+兄[あに]は大学[だいがく]の試験[しけん]に合格[ごうかく]しました,my older brother passed the university exam; goukaku suru means to pass.
+姉[あね]は去年[きょねん]、大学[だいがく]を卒業[そつぎょう]しました,my older sister graduated from university last year; sotsugyou suru means to graduate.
+今[いま]の職場[しょくば]の人[ひと]はみんな優[やさ]しいです,everyone at my current workplace is kind; shokuba means a workplace.
+日本語[にほんご]の発音[はつおん]は難[むずか]しくないと思[おも]います,I do not think Japanese pronunciation is difficult; hatsuon means pronunciation.
+毎日[まいにち]、新[あたら]しい単語[たんご]を覚[おぼ]える練習[れんしゅう]をします,every day I practice memorizing new words; tango means a vocabulary word.
+この文章[ぶんしょう]の意味[いみ]がよくわかりません,I do not really understand the meaning of this text; bunshou means a sentence or text.
+気持[きも]ちを言葉[ことば]で表現[ひょうげん]するのは難[むずか]しいです,expressing feelings in words is difficult; hyougen suru means to express.
+この本[ほん]を英語[えいご]に翻訳[ほんやく]したいです,I want to translate this book into English; honyaku suru means to translate.
+学校[がっこう]を出[で]てから社会[しゃかい]のことがわかってきました,after leaving school I came to understand society; shakai means society.
+政府[せいふ]は新[あたら]しい計画[けいかく]を説明[せつめい]しました,the government explained a new plan; seifu means the government.
+若[わか]い人[ひと]は政治[せいじ]のニュースをあまり見[み]ません,young people rarely watch political news; seiji means politics.
+新[あたら]しい法律[ほうりつ]が来年[らいねん]から始[はじ]まります,a new law starts next year; houritsu means a law.
+会社[かいしゃ]の規則[きそく]をよく読[よ]んでください,please read the company rules carefully; kisoku means rules.
+この国[くに]の新[あたら]しい制度[せいど]はいいと思[おも]います,I think this country's new system is good; seido means a system.
+買[か]い物[もの]をすると税金[ぜいきん]を払[はら]います,you pay tax when you go shopping; zeikin means tax.
+会社[かいしゃ]の保険[ほけん]に入[はい]っています,I am covered by the company insurance; hoken means insurance.
+来月[らいげつ]、この町[まち]で選挙[せんきょ]があります,there is an election in this town next month; senkyo means an election.
+多[おお]くの市民[しみん]が選挙[せんきょ]に行[い]きました,many citizens went to the election; shimin means a citizen.
+この町[まち]の人口[じんこう]は十万人[じゅうまんにん]ぐらいです,this town's population is about one hundred thousand; jinkou means population.
+この地域[ちいき]は静[しず]かで住[す]みやすいです,this area is quiet and easy to live in; chiiki means an area.
+地元[じもと]の人[ひと]はこの店[みせ]をよく使[つか]います,local people use this shop a lot; jimoto means one's local area.
+この会社[かいしゃ]は働[はたら]く環境[かんきょう]がいいです,this company has a good working environment; kankyou means environment.
+田舎[いなか]の自然[しぜん]はとてもきれいです,the nature in the countryside is beautiful; shizen means nature.
+この町[まち]は交通[こうつう]が便利[べんり]です,transport in this town is convenient; koutsuu means traffic or transport.
+朝[あさ]の道路[どうろ]は車[くるま]がとても多[おお]いです,there are many cars on the road in the morning; douro means a road.
+あの高[たか]い建物[たてもの]は新[あたら]しい会社[かいしゃ]です,that tall building is a new company; tatemono means a building.
+兄[あに]は去年[きょねん]、小[ちい]さい家[いえ]を建[た]てました,my older brother built a small house last year; tateru means to build.
+電車[でんしゃ]が事故[じこ]で三十分[さんじゅっぷん]遅[おく]れました,the train was thirty minutes late due to an accident; jiko means an accident.
+事故[じこ]のあと、すぐに警察[けいさつ]を呼[よ]びました,we called the police right after the accident; keisatsu means the police.
+この地域[ちいき]は犯罪[はんざい]が少[すく]ないです,this area has little crime; hanzai means crime.
+昨日[きのう]の事件[じけん]のニュースを見[み]ました,I saw the news about yesterday's incident; jiken means an incident.
+この会社[かいしゃ]は毎朝[まいあさ]ニュースを放送[ほうそう]しています,this company broadcasts the news every morning; housou suru means to broadcast.
+この新聞[しんぶん]の記事[きじ]はとても面白[おもしろ]いです,the article in this newspaper is very interesting; kiji means an article.
+この番組[ばんぐみ]は毎週[まいしゅう]日曜日[にちようび]にあります,this program is on every Sunday; bangumi means a broadcast program.
+電車[でんしゃ]の広告[こうこく]を見[み]てその店[みせ]を知[し]りました,I saw the ad on the train and learned about that shop; koukoku means an advertisement.
+大[おお]きい企業[きぎょう]で働[はたら]きたいです,I want to work at a big corporation; kigyou means an enterprise.
+部長[ぶちょう]に新[あたら]しい資料[しりょう]を見[み]せました,I showed the new materials to the department head; buchou means a department head.
+わたしの上司[じょうし]はとても優[やさ]しい人[ひと]です,my boss is a very kind person; joushi means a boss.
+同僚[どうりょう]と昼[ひる]ごはんを食[た]べました,I ate lunch with a colleague; douryou means a colleague.
+この仕事[しごと]の担当[たんとう]はわたしです,I am the one in charge of this job; tantou means being in charge.
+顧客[こきゃく]からの意見[いけん]をよく聞[き]きます,we listen carefully to opinions from customers; kokyaku means a customer.
+この店[みせ]の商品[しょうひん]は安[やす]くていいです,the goods at this shop are cheap and good; shouhin means a product.
+その商品[しょうひん]の値段[ねだん]を教[おし]えてください,please tell me the price of that product; nedan means price.
+今年[ことし]の売上[うりあげ]は去年[きょねん]より多[おお]いです,this year's sales are higher than last year; uriage means sales.
+今月[こんげつ]の給料[きゅうりょう]は少[すこ]し多[おお]かったです,this month's salary was a little higher; kyuuryou means salary.
+昨日[きのう]は九時[くじ]まで残業[ざんぎょう]しました,yesterday I worked overtime until nine; zangyou suru means to work overtime.
+明日[あした]、新[あたら]しい会社[かいしゃ]の面接[めんせつ]があります,tomorrow I have an interview at a new company; mensetsu means a job interview.
+面接[めんせつ]の前[まえ]に履歴書[りれきしょ]を送[おく]ります,I will send my resume before the interview; rirekisho means a resume.
+姉[あね]は大[おお]きい企業[きぎょう]に就職[しゅうしょく]しました,my older sister got a job at a big corporation; shuushoku suru means to find employment.
+来週[らいしゅう]、大阪[おおさか]に出張[しゅっちょう]します,next week I will go on a business trip to Osaka; shucchou suru means to travel for work.
+この店[みせ]の営業[えいぎょう]は夜[よる]九時[くじ]までです,this shop's business hours run until nine at night; eigyou means business operations.
+この契約[けいやく]の内容[ないよう]をよく読[よ]んでください,please read the contents of this contract carefully; keiyaku means a contract.
+この仕事[しごと]の責任[せきにん]はとても重[おも]いです,the responsibility for this job is very heavy; sekinin means responsibility.
+資料[しりょう]の締切[しめきり]は今週[こんしゅう]の金曜日[きんようび]です,the deadline for the materials is this Friday; shimekiri means a deadline.
+締切[しめきり]までに資料[しりょう]を提出[ていしゅつ]してください,please submit the materials by the deadline; teishutsu suru means to submit.
+この書類[しょるい]に名前[なまえ]を書[か]いてください,please write your name on this document; shorui means a document.
+銀行[ぎんこう]で新[あたら]しい手続[てつづ]きをしました,I did the new paperwork at the bank; tetsuzuki means a procedure.
+このサイトに名前[なまえ]とメールを登録[とうろく]しました,I registered my name and email on this site; touroku suru means to register.
+部長[ぶちょう]の許可[きょか]をもらってから休[やす]みます,I will take time off after getting the department head's permission; kyoka means permission.
+この部屋[へや]では飲[の]み物[もの]を禁止[きんし]しています,drinks are prohibited in this room; kinshi suru means to prohibit.
+車[くるま]に注意[ちゅうい]して道[みち]を渡[わた]ってください,please watch out for cars when you cross the road; chuui suru means to pay attention.
+夜[よる]、一人[ひとり]でこの道[みち]を歩[ある]くのは危険[きけん]です,walking this road alone at night is dangerous; kiken means danger.
+この町[まち]は夜[よる]でも安全[あんぜん]です,this town is safe even at night; anzen means safety.
+初[はじ]めての仕事[しごと]で失敗[しっぱい]してしまいました,I made a mistake on my first job; shippai suru means to fail.
+長[なが]い努力[どりょく]のあと、仕事[しごと]で成功[せいこう]しました,after long effort I succeeded at work; seikou suru means to succeed.
+子[こ]どもは一年[いちねん]でとても成長[せいちょう]しました,the child grew a lot in one year; seichou suru means to grow.
+この方法[ほうほう]なら仕事[しごと]が早[はや]く進[すす]むと思[おも]います,I think work will go faster with this method; susumu means to move forward.
+新[あたら]しい商品[しょうひん]の売上[うりあげ]が伸[の]びています,sales of the new product are growing; nobiru means to grow or extend.
+給料[きゅうりょう]が減[へ]るのはとても困[こま]ります,it is a real problem if my salary goes down; heru means to decrease.
+会議[かいぎ]の時間[じかん]を三時[さんじ]に変更[へんこう]しました,we changed the meeting time to three o'clock; henkou suru means to change something.
+雨[あめ]のため、明日[あした]の予定[よてい]を延期[えんき]します,we will postpone tomorrow's plan because of the rain; enki suru means to postpone.
+二[ふた]つの商品[しょうひん]の値段[ねだん]を比[くら]べました,I compared the prices of two products; kuraberu means to compare.
+新[あたら]しい方法[ほうほう]と古[ふる]い方法[ほうほう]を比較[ひかく]しました,I compared the new method with the old one; hikaku suru means to make a comparison.
+会議[かいぎ]の間[あいだ]、眠[ねむ]くても我慢[がまん]しました,I put up with being sleepy during the meeting; gaman suru means to endure.
+どうぞ遠慮[えんりょ]しないで、たくさん食[た]べてください,please do not hold back and eat a lot; enryo suru means to hold back.
+その仕事[しごと]を断[ことわ]るのは難[むずか]しいです,it is hard to turn down that job; kotowaru means to refuse.
+仕事[しごと]で失敗[しっぱい]したときは、よく反省[はんせい]します,when I make a mistake at work I reflect on it carefully; hansei suru means to reflect on one's actions.
+部長[ぶちょう]がわたしの資料[しりょう]を褒[ほ]めてくれました,the department head praised my materials; homeru means to praise.
+助[たす]けてくれた友達[ともだち]に感謝[かんしゃ]しています,I am grateful to the friend who helped me; kansha suru means to be thankful.
+わたしは父[ちち]をとても尊敬[そんけい]しています,I respect my father very much; sonkei suru means to respect.
+あの映画[えいが]を見[み]て、とても感動[かんどう]しました,I was very moved when I saw that movie; kandou suru means to be moved.
+今[いま]の仕事[しごと]に満足[まんぞく]しています,I am satisfied with my current job; manzoku suru means to be satisfied.
+あのとき断[ことわ]ったことを後悔[こうかい]しています,I regret turning it down back then; koukai suru means to regret.
+面接[めんせつ]の前[まえ]はとても緊張[きんちょう]しました,I was very nervous before the interview; kinchou suru means to get nervous.
+新[あたら]しい仕事[しごと]が少[すこ]し不安[ふあん]です,I am a little uneasy about the new job; fuan means anxiety.
+日本語[にほんご]を話[はな]すことに自信[じしん]がありません,I have no confidence in speaking Japanese; jishin means confidence.
+彼[かれ]は感情[かんじょう]をあまり顔[かお]に出[だ]しません,he does not show much emotion on his face; kanjou means emotion.
+あの店[みせ]の人[ひと]はとても印象[いんしょう]がよかったです,the staff at that shop made a very good impression; inshou means an impression.
+彼[かれ]の会議[かいぎ]での態度[たいど]はよくなかったです,his attitude at the meeting was not good; taido means attitude.
+どちらの商品[しょうひん]を買[か]うか迷[まよ]うことが多[おお]いです,I often cannot decide which product to buy; mayou means to hesitate.
+一人[ひとり]で悩[なや]むより、友達[ともだち]に相談[そうだん]しましょう,rather than worrying alone let us talk to a friend; nayamu means to be troubled.
+締切[しめきり]が近[ちか]いと焦[あせ]ることが多[おお]いです,I often get flustered when the deadline is near; aseru means to feel rushed.
+試験[しけん]の結果[けっか]が悪[わる]くて落[お]ち込[こ]んでいます,my exam result was bad so I feel a little down; ochikomu means to feel down.
+元気[げんき]がない友達[ともだち]を励[はげ]ましました,I encouraged a friend who was down; hagemasu means to encourage.
+困[こま]っている人[ひと]には声[こえ]をかけましょう,let us speak up to people who are in trouble; koe o kakeru means to call out to someone.
+母[はは]はこの手紙[てがみ]を読[よ]んで喜[よろこ]ぶでしょう,my mother will be delighted to read this letter; yorokobu means to be delighted.
+若[わか]いときは、お金[かね]がなくて苦労[くろう]しました,when I was young I struggled without money; kurou suru means to have a hard time.
+家族[かぞく]といっしょにいる時間[じかん]が一番[いちばん]幸[しあわ]せです,time with my family is the happiest; shiawase means happiness.
+あの店[みせ]の人[ひと]はいつも笑顔[えがお]で話[はな]します,the staff at that shop always speak with a smile; egao means a smiling face.
+その問題[もんだい]はもう解決[かいけつ]しました,that problem has already been solved; kaiketsu suru means to solve.
+この国[くに]の経済[けいざい]のニュースをよく見[み]ます,I often watch the news about this country's economy; keizai means the economy.
+旅行[りょこう]の費用[ひよう]は思[おも]ったより高[たか]かったです,the cost of the trip was higher than I thought; hiyou means cost.
+今年[ことし]の会社[かいしゃ]の予算[よさん]は少[すく]ないです,this year's company budget is small; yosan means a budget.
+新[あたら]しい商品[しょうひん]で会社[かいしゃ]の利益[りえき]が増[ふ]えました,the new product increased the company's profit; rieki means profit.
+今[いま]の収入[しゅうにゅう]では家[いえ]は買[か]えません,I cannot buy a house on my current income; shuunyuu means income.
+車[くるま]を買[か]うために毎月[まいつき]貯金[ちょきん]しています,I save money every month to buy a car; chokin suru means to save money.
+電気[でんき]を消[け]してお金[かね]を節約[せつやく]します,I turn off the lights to save money; setsuyaku suru means to economize.
+この部屋[へや]の家賃[やちん]は少[すこ]し高[たか]いです,the rent for this room is a little high; yachin means rent.
+毎朝[まいあさ]、電車[でんしゃ]で一時間[いちじかん]通勤[つうきん]しています,I commute for an hour by train every morning; tsuukin suru means to commute.
+店[みせ]で新[あたら]しい本[ほん]を注文[ちゅうもん]しました,I ordered a new book at the shop; chuumon suru means to place an order.
+電話[でんわ]でホテルの部屋[へや]を予約[よやく]しました,I reserved a hotel room by phone; yoyaku suru means to reserve.
+このケーキの材料[ざいりょう]は店[みせ]で買[か]えます,you can buy the ingredients for this cake at the shop; zairyou means ingredients or materials.
+この機械[きかい]の使[つか]い方[かた]を教[おし]えてください,please teach me how to use this machine; kikai means a machine.
+車[くるま]を直[なお]す道具[どうぐ]を借[か]りました,I borrowed tools to fix the car; dougu means a tool.
+この仕事[しごと]をするために新[あたら]しい資格[しかく]を取[と]りました,I got a new qualification in order to do this job; shikaku means a qualification.
+毎日[まいにち]歩[ある]くことは健康[けんこう]にいいです,walking every day is good for your health; kenkou means health.
+若[わか]い世代[せだい]は新聞[しんぶん]をあまり読[よ]みません,the young generation rarely reads newspapers; sedai means a generation.
+週末[しゅうまつ]、この店[みせ]には若者[わかもの]がたくさん来[き]ます,many young people come to this shop on weekends; wakamono means young people.
+わたしの親[おや]は田舎[いなか]に住[す]んでいます,my parents live in the countryside; oya means a parent.
+世界[せかい]の平和[へいわ]についてみんなで考[かんが]えました,we all thought about peace in the world; heiwa means peace.
+祖父[そふ]は戦争[せんそう]のときのことを話[はな]してくれました,my grandfather told me about the time of the war; sensou means war.
+市民[しみん]には選挙[せんきょ]に行[い]く権利[けんり]があります,citizens have the right to go and vote in elections; kenri means a right.
+税金[ぜいきん]を払[はら]うのはみんなの義務[ぎむ]です,paying taxes is everyone's duty; gimu means a duty.
+大[おお]きい組織[そしき]で働[はたら]くのは大変[たいへん]です,working in a big organization is tough; soshiki means an organization.
+このサイトの会員[かいいん]になると安[やす]く買[か]えます,if you become a member of this site you can buy things cheaply; kaiin means a member.
+駅[えき]はこの道[みち]と反対[はんたい]の方向[ほうこう]です,the station is in the opposite direction from this road; houkou means a direction.
+家[いえ]から会社[かいしゃ]までの距離[きょり]は五[ご]キロぐらいです,the distance from my house to the office is about five kilometers; kyori means distance.
+事故[じこ]のあとの状況[じょうきょう]を警察[けいさつ]に説明[せつめい]しました,I explained the situation after the accident to the police; joukyou means a situation.
+雨[あめ]の場合[ばあい]、この予定[よてい]は変[か]わります,in case of rain this schedule will change; baai means a case or situation.
+この二[ふた]つの事件[じけん]には関係[かんけい]がありません,these two incidents have no connection; kankei means a relation.
+天気[てんき]は野菜[やさい]の値段[ねだん]に影響[えいきょう]します,the weather affects the price of vegetables; eikyou suru means to influence.
+先生[せんせい]は学生[がくせい]に難[むずか]しい問題[もんだい]を与[あた]えました,the teacher gave the students a difficult problem; ataeru means to give.
+来月[らいげつ]、日本語[にほんご]の試験[しけん]を受[う]けます,next month I will take a Japanese exam; ukeru means to take or receive.
+この道[みち]では車[くるま]の速度[そくど]を落[お]としてください,please reduce your car speed on this road; sokudo means speed.
+今朝[けさ]の気温[きおん]は思[おも]ったより低[ひく]かったです,this morning air temperature was lower than expected; kion means air temperature.
+窓[まど]から朝[あさ]の光[ひかり]が入[はい]ってきます,the morning light comes in through the window; hikari means light.
+この曲[きょく]は若[わか]い人[ひと]によく知[し]られています,this tune is well known among young people; kyoku means musical piece.
+地球[ちきゅう]には多[おお]くの生[い]き物[もの]がいます,there are many living things on the earth; chikyu means the earth.
+今日[きょう]は海[うみ]の波[なみ]がとても高[たか]いです,the sea waves are very high today; nami means wave.
+この建物[たてもの]の太[ふと]い柱[はしら]は木[き]で作[つく]られています,the thick pillars of this building are made of wood; hashira means pillar.
+来月[らいげつ]町[まち]で子供[こども]の歌[うた]の大会[たいかい]があります,there is a childrens singing contest in town next month; taikai means tournament.
+駅[えき]の前[まえ]の歩道[ほどう]は朝[あさ]とても混[こ]みます,the sidewalk in front of the station gets very crowded in the morning; hodo means sidewalk.
+大学[だいがく]で日本語[にほんご]の研究[けんきゅう]をしています,I do research on Japanese at university; kenkyu means research.
+会社[かいしゃ]は客[きゃく]の意見[いけん]を調査[ちょうさ]しました,the company surveyed customer opinions; chosa suru means to survey.
+古[ふる]い家[いえ]の屋根[やね]を先週[せんしゅう]直[なお]しました,we repaired the old house roof last week; yane means roof.
+この会社[かいしゃ]は新[あたら]しい薬[くすり]を開発[かいはつ]しています,this company is developing a new medicine; kaihatsu suru means to develop.
+この歌[うた]の表現[ひょうげん]はとても美[うつく]しいです,the expression in this song is very beautiful; hyogen means expression.
+駅[えき]の前[まえ]の広場[ひろば]で子供[こども]が遊[あそ]んでいます,children are playing in the plaza in front of the station; hiroba means public square.
+毎日[まいにち]の天気[てんき]を紙[かみ]に記録[きろく]しています,I record the daily weather on paper; kiroku suru means to record.
+この仕事[しごと]の条件[じょうけん]を確認[かくにん]しました,I checked the conditions of this job; joken means condition.
+この古[ふる]い車[くるま]の状態[じょうたい]はとても良[よ]いです,this old car is in very good condition; jotai means state.
+相手[あいて]の立場[たちば]から考[かんが]えてみましょう,let us think from the other person position; tachiba means standpoint.
+その問題[もんだい]の程度[ていど]はまだ分[わ]かりません,we do not yet know the extent of that problem; teido means degree.
+計画[けいかく]は次[つぎ]の段階[だんかい]に進[すす]みました,the plan moved to the next stage; dankai means stage.
+試験[しけん]の範囲[はんい]は先生[せんせい]が教[おし]えてくれます,the teacher tells us the range of the exam; hani means scope.
+この店[みせ]の料理[りょうり]の特徴[とくちょう]を説明[せつめい]します,I will explain the features of this shop food; tokucho means characteristic.
+昨日[きのう]の試合[しあい]は観客[かんきゃく]がとても多[おお]かったです,yesterday match had very many spectators; kankyaku means audience.
+最近[さいきん]は本[ほん]を読[よ]む人[ひと]が減[へ]る傾向[けいこう]があります,lately there is a tendency for fewer readers; keiko means tendency.
+電車[でんしゃ]は便利[べんり]な交通[こうつう]の手段[しゅだん]です,the train is a convenient means of transport; shudan means means.
+会社[かいしゃ]は新[あたら]しい基準[きじゅん]を決[き]めました,the company decided on a new standard; kijun means criterion.
+料理[りょうり]を作[つく]る過程[かてい]を写真[しゃしん]で見[み]せました,I showed the cooking process in photos; katei means process.
+家族[かぞく]で弟[おとうと]の試合[しあい]を応援[おうえん]しました,our family cheered for my brother match; oen suru means to cheer.
+子供[こども]の頃[ころ]の記憶[きおく]はまだ残[のこ]っています,memories of childhood still remain; kioku means memory.
+事故[じこ]の後[あと]で少[すこ]しずつ意識[いしき]が戻[もど]りました,consciousness returned little by little after the accident; ishiki means awareness.
+この古[ふる]い絵[え]には高[たか]い価値[かち]があります,this old painting has high value; kachi means value.
+弟[おとうと]の学校[がっこう]が大会[たいかい]で優勝[ゆうしょう]しました,my brother school won the tournament; yusho suru means to win a championship.
+あの若[わか]い歌手[かしゅ]は今[いま]とても人気[にんき]です,that young singer is very popular now; kashu means singer.
+この交差点[こうさてん]は事故[じこ]が多[おお]いので気[き]をつけます,I am careful because this crossing has many accidents; kosaten means intersection.
+大[おお]きな都市[とし]では家[いえ]の値段[ねだん]が高[たか]いです,house prices are high in big cities; toshi means city.
+昼[ひる]はいつも会社[かいしゃ]の食堂[しょくどう]で食[た]べます,at noon I always eat in the company cafeteria; shokudo means dining hall.
+この地域[ちいき]の産業[さんぎょう]は魚[さかな]と米[こめ]です,the industries of this area are fish and rice; sangyo means industry.
+二[ふた]つの国[くに]の貿易[ぼうえき]が増[ふ]えています,trade between the two countries is growing; boeki means trade.
+日本[にほん]は車[くるま]を多[おお]くの国[くに]に輸出[ゆしゅつ]します,Japan exports cars to many countries; yushutsu suru means to export.
+この店[みせ]は外国[がいこく]から果物[くだもの]を輸入[ゆにゅう]しています,this shop imports fruit from abroad; yunyu suru means to import.
+電車[でんしゃ]の窓[まど]の近[ちか]くの座席[ざせき]に座[すわ]りました,I sat in a seat near the train window; zaseki means seat.
+この国[くに]は資源[しげん]が少[すく]ないと言[い]われています,this country is said to have few resources; shigen means resource.
+車[くるま]の燃料[ねんりょう]の値段[ねだん]が上[あ]がりました,the price of car fuel went up; nenryo means fuel.
+京都[きょうと]は観光[かんこう]で有名[ゆうめい]な町[まち]です,Kyoto is a town famous for tourism; kanko means sightseeing.
+この地図[ちず]に町[まち]の名所[めいしょ]が書[か]いてあります,the town famous spots are written on this map; meisho means noted place.
+山[やま]の近[ちか]くで安[やす]い宿[やど]を探[さが]しました,I looked for a cheap inn near the mountain; yado means lodging.
+会議[かいぎ]の後[あと]で次[つぎ]の部屋[へや]に移動[いどう]します,we move to the next room after the meeting; ido suru means to move.
+明日[あした]の朝[あさ]六時[ろくじ]に駅[えき]を出発[しゅっぱつ]します,we depart from the station at six tomorrow morning; shuppatsu suru means to depart.
+飛行機[ひこうき]は夜[よる]九時[くじ]に到着[とうちゃく]しました,the plane arrived at nine at night; tochaku suru means to arrive.
+朝[あさ]の電車[でんしゃ]は乗客[じょうきゃく]がとても多[おお]いです,the morning train has very many passengers; jokyaku means passenger.
+静[しず]かな郊外[こうがい]に引[ひ]っ越[こ]しました,I moved to a quiet suburb; kogai means suburbs.
+この地域[ちいき]の気候[きこう]は一年[いちねん]中[じゅう]暖[あたた]かいです,the climate of this area is warm all year; kiko means climate.
+この国[くに]では災害[さいがい]が多[おお]いので準備[じゅんび]が必要[ひつよう]です,disasters are common here so preparation is needed; saigai means disaster.
+昨日[きのう]の夜[よる]に強[つよ]い地震[じしん]がありました,there was a strong earthquake last night; jishin means earthquake.
+一番[いちばん]前[まえ]の車両[しゃりょう]は今[いま]空[す]いています,the front car of the train is not crowded now; sharyo means railway car.
+新[あたら]しい装置[そうち]を部屋[へや]の中[なか]に置[お]きました,we put the new device inside the room; sochi means apparatus.
+電話[でんわ]の画面[がめん]が急[きゅう]に暗[くら]くなりました,the phone screen suddenly went dark; gamen means screen.
+山[やま]の中[なか]では通信[つうしん]が難[むずか]しいです,communication is difficult in the mountains; tsushin means communication.
+会社[かいしゃ]から小[ちい]さい端末[たんまつ]を借[か]りました,I borrowed a small terminal from the company; tanmatsu means device terminal.
+この路線[ろせん]は海[うみ]の近[ちか]くを長[なが]く走[はし]ります,this line runs a long way near the sea; rosen means route.
+朝[あさ]の道[みち]は渋滞[じゅうたい]がひどいので早[はや]く出[で]ます,I leave early because morning roads have bad jams; jutai means traffic congestion.
+記者[きしゃ]が社長[しゃちょう]に難[むずか]しい質問[しつもん]をしました,a reporter asked the president a hard question; kisha means journalist.
+この便利[べんり]な道具[どうぐ]は百年[ひゃくねん]前[まえ]に発明[はつめい]されました,this useful tool was invented a hundred years ago; hatsumei suru means to invent.
+若[わか]い人[ひと]がこの建物[たてもの]を設計[せっけい]しました,a young person designed this building; sekkei suru means to design.
+大学[だいがく]で新[あたら]しい薬[くすり]の実験[じっけん]をしています,they are doing experiments on a new medicine at the university; jikken means experiment.
+先生[せんせい]は長[なが]い論文[ろんぶん]を書[か]いています,the teacher is writing a long paper; ronbun means academic paper.
+この表[ひょう]の数字[すうじ]をもう一度[いちど]確認[かくにん]します,I will check the numbers in this table again; suji means figure.
+女[おんな]の学生[がくせい]の割合[わりあい]が増[ふ]えました,the proportion of female students has grown; wariai means ratio.
+この町[まち]には芸術[げいじゅつ]が好[す]きな人[ひと]が多[おお]いです,many people in this town love art; geijutsu means art.
+有名[ゆうめい]な作家[さっか]の作品[さくひん]を読[よ]みました,I read a work by a famous writer; sakuhin means artistic work.
+この小説[しょうせつ]は若[わか]い人[ひと]に人気[にんき]があります,this novel is popular with young people; shosetsu means novel.
+大学[だいがく]で日本[にほん]の文学[ぶんがく]を習[なら]いました,I studied Japanese literature at university; bungaku means literature.
+来月[らいげつ]の音楽会[おんがくかい]の切符[きっぷ]を買[か]いました,I bought a ticket for next month concert; ongakukai means concert.
+夏[なつ]になると町[まち]で大[おお]きな祭[まつ]りがあります,when summer comes there is a big festival in town; matsuri means festival.
+古[ふる]い神社[じんじゃ]の前[まえ]で写真[しゃしん]を撮[と]りました,I took a photo in front of an old shrine; jinja means shrine.
+世界[せかい]にはいろいろな宗教[しゅうきょう]があります,there are various religions in the world; shukyo means religion.
+大学[だいがく]で演劇[えんげき]を習[なら]っている友達[ともだち]がいます,I have a friend who studies drama at university; engeki means theater.
+春[はる]に山[やま]の古[ふる]い神社[じんじゃ]を訪[おとず]れました,I visited an old mountain shrine in spring; otozureru means to visit.
+この値段[ねだん]は食事[しょくじ]の費用[ひよう]を含[ふく]むそうです,this price apparently includes the cost of meals; fukumu means to include.
+この数字[すうじ]は良[よ]い傾向[けいこう]を示[しめ]すでしょう,these figures will show a good tendency; shimesu means to indicate.
+この漢字[かんじ]は水[みず]の様子[ようす]を表[あらわ]すそうです,this kanji apparently represents the look of water; arawasu means to express.
+客[きゃく]は安[やす]くて良[よ]い品物[しなもの]を求[もと]めています,customers want cheap and good goods; motomeru means to seek.
+会議[かいぎ]で自分[じぶん]の意見[いけん]を短[みじか]く述[の]べました,I stated my opinion briefly at the meeting; noberu means to state.
+この店[みせ]は外国[がいこく]の品物[しなもの]を扱[あつか]うそうです,this shop apparently handles foreign goods; atsukau means to deal with.
+家族[かぞく]が私[わたし]の生活[せいかつ]を支[ささ]えています,my family supports my life; sasaeru means to support.
+庭[にわ]で小[ちい]さい木[き]を育[そだ]てています,I am growing a small tree in the garden; sodateru means to raise.
+この装置[そうち]は事故[じこ]を防[ふせ]ぐために使[つか]われます,this device is used to prevent accidents; fusegu means to prevent.
+朝[あさ]は道[みち]が混[こ]むので車[くるま]を避[さ]けます,I avoid the car in the morning because roads are crowded; sakeru means to avoid.
+難[むずか]しい問題[もんだい]に毎日[まいにち]取[と]り組[く]んでいます,I work on a difficult problem every day; torikumu means to tackle.
+彼[かれ]は医者[いしゃ]になることを目指[めざ]しています,he is aiming to become a doctor; mezasu means to aim for.
+歌[うた]が終[お]わると皆[みな]が大[おお]きな拍手[はくしゅ]をしました,everyone applauded loudly when the song ended; hakushu means applause.
+約束[やくそく]の時間[じかん]がもう過[す]ぎました,the promised time has already passed; sugiru means to pass.
+地震[じしん]の影響[えいきょう]は広[ひろ]い地域[ちいき]に及[およ]ぶでしょう,the effect of the earthquake will reach a wide area; oyobu means to extend to.
+大切[たいせつ]な写真[しゃしん]を機械[きかい]の中[なか]に保存[ほぞん]しました,I saved important photos inside the machine; hozon suru means to preserve.
+古[ふる]い電話[でんわ]を新[あたら]しい物[もの]と交換[こうかん]しました,I exchanged the old phone for a new one; kokan suru means to exchange.
+この分野[ぶんや]の研究[けんきゅう]は世界[せかい]中[じゅう]で進[すす]んでいます,research in this field advances all over the world; bunya means field.
+父[ちち]は古[ふる]い絵画[かいが]を集[あつ]めています,my father collects old paintings; kaiga means painting.
+公園[こうえん]の中[なか]に石[いし]の大[おお]きな彫刻[ちょうこく]があります,there is a big stone sculpture in the park; chokoku means sculpture.
+学校[がっこう]で学生[がくせい]の作品[さくひん]を展示[てんじ]しています,the school is exhibiting student works; tenji suru means to exhibit.
+この本[ほん]の著者[ちょしゃ]は有名[ゆうめい]な先生[せんせい]です,the author of this book is a famous teacher; chosha means author.
+この小説[しょうせつ]は若[わか]い読者[どくしゃ]がとても多[おお]いです,this novel has very many young readers; dokusha means reader.
+駅[えき]の近[ちか]くの書店[しょてん]で小説[しょうせつ]を買[か]いました,I bought a novel at the bookstore near the station; shoten means bookstore.
+この本[ほん]の表紙[ひょうし]の色[いろ]はとても美[うつく]しいです,the cover color of this book is very beautiful; hyoshi means cover.
+祭[まつ]りの日[ひ]は道[みち]に屋台[やたい]が並[なら]びます,stalls line the street on festival days; yatai means street stall.
+旅行[りょこう]の団体[だんたい]が駅[えき]の前[まえ]に集[あつ]まりました,a travel group gathered in front of the station; dantai means group.
+この会議[かいぎ]での私[わたし]の役割[やくわり]を教[おし]えてください,please tell me my role in this meeting; yakuwari means role.
+この店[みせ]のお茶[ちゃ]は香[かお]りがとても良[よ]いです,the tea at this shop has a very good aroma; kaori means fragrance.
+この店[みせ]は野菜[やさい]を蒸[む]す料理[りょうり]で有名[ゆうめい]です,this shop is famous for dishes that steam vegetables; musu means to steam.
+肉[にく]と野菜[やさい]を一緒[いっしょ]に煮[に]る料理[りょうり]が好[す]きです,I like dishes that simmer meat and vegetables together; niru means to simmer.
+これは会社[かいしゃ]ではなく個人[こじん]の意見[いけん]です,this is a personal opinion not the company one; kojin means individual.
+学生[がくせい]の集団[しゅうだん]が公園[こうえん]を歩[ある]いています,a group of students is walking in the park; shudan means crowd.
+国民[こくみん]の多[おお]くが新[あたら]しい制度[せいど]に反対[はんたい]しました,many citizens opposed the new system; kokumin means the people.
+冬[ふゆ]は大[おお]きな鍋[なべ]で家族[かぞく]の料理[りょうり]を作[つく]ります,in winter we cook family meals in a big pot; nabe means pot.
+この建物[たてもの]の住民[じゅうみん]は皆[みな]静[しず]かです,the residents of this building are all quiet; jumin means resident.
+地方[ちほう]では電車[でんしゃ]の数[かず]が少[すく]ないです,there are few trains in the countryside; chiho means rural region.
+その国[くに]の首都[しゅと]は海[うみ]の近[ちか]くにあります,that country capital is near the sea; shuto means capital city.
+小[ちい]さい島[しま]まで船[ふね]で行[い]きました,we went to a small island by boat; shima means island.
+庭[にわ]の草[くさ]が夏[なつ]の間[あいだ]に高[たか]くなりました,the grass in the garden grew tall during the summer; kusa means grass.
+山[やま]の上[うえ]に静[しず]かな湖[みずうみ]があります,there is a quiet lake on the mountain; mizuumi means lake.
+朝[あさ]の海岸[かいがん]を長[なが]い時間[じかん]歩[ある]きました,I walked the morning coast for a long time; kaigan means coast.
+子供[こども]が海岸[かいがん]の砂[すな]で遊[あそ]んでいます,children are playing in the sand on the coast; suna means sand.
+川[かわ]の中[なか]に大[おお]きな岩[いわ]が見[み]えます,a big rock is visible in the river; iwa means rock.
+秋[あき]になると木[き]の葉[は]の色[いろ]が変[か]わります,tree leaves change color when autumn comes; ha means leaf.
+冬[ふゆ]は太陽[たいよう]が出[で]る時間[じかん]が短[みじか]いです,in winter the sun is out for a short time; taiyo means sun.
+宇宙[うちゅう]についての番組[ばんぐみ]を見[み]ました,I watched a program about space; uchu means universe.
+山[やま]の上[うえ]の空気[くうき]はとても冷[つめ]たいです,the air on the mountain is very cold; kuki means air.
+部屋[へや]の温度[おんど]を少[すこ]し下[さ]げてください,please lower the room temperature a little; ondo means temperature.
+夏[なつ]の日本[にほん]は湿度[しつど]が高[たか]いです,humidity is high in Japan in summer; shitsudo means humidity.
+大[おお]きな台風[たいふう]が島[しま]に近[ちか]づいています,a big typhoon is approaching the island; taifu means typhoon.
+地震[じしん]の後[あと]で津波[つなみ]の心配[しんぱい]がありました,there was worry about a tsunami after the earthquake; tsunami means tidal wave.
+台風[たいふう]の被害[ひがい]は思[おも]ったより小[ちい]さかったです,the typhoon damage was smaller than expected; higai means damage.
+強[つよ]い風[かぜ]で庭[にわ]の木[き]の枝[えだ]が折[お]れました,a garden tree branch broke in the strong wind; eda means branch.
+この古[ふる]い木[き]の根[ね]はとても深[ふか]いところにあります,the roots of this old tree are very deep; ne means root.
+会社[かいしゃ]は事故[じこ]の対策[たいさく]を考[かんが]えています,the company is thinking about accident countermeasures; taisaku means countermeasure.
+手[て]をよく洗[あら]って病気[びょうき]を予防[よぼう]します,we wash our hands well to prevent illness; yobo suru means to prevent.
+医者[いしゃ]は新[あたら]しい薬[くすり]で子供[こども]を治療[ちりょう]しました,the doctor treated the child with a new medicine; chiryo suru means to treat.
+この病院[びょういん]は患者[かんじゃ]がとても多[おお]いです,this hospital has very many patients; kanja means patient.
+この国[くに]の医療[いりょう]の制度[せいど]は良[よ]いと思[おも]います,I think this country medical system is good; iryo means medical care.
+野菜[やさい]には体[からだ]に良[よ]い栄養[えいよう]があります,vegetables have nutrition that is good for the body; eiyo means nutrition.
+災害[さいがい]の時[とき]のために食料[しょくりょう]を用意[ようい]しました,I prepared food supplies for a disaster; shokuryo means provisions.
+この地方[ちほう]では農業[のうぎょう]をする人[ひと]が減[へ]っています,the number of farmers in this region is falling; nogyo means agriculture.
+この島[しま]の人[ひと]たちは漁業[ぎょぎょう]で生活[せいかつ]しています,the people of this island live by fishing; gyogyo means fishing industry.
+川[かわ]の近[ちか]くに大[おお]きな工場[こうじょう]ができました,a big factory was built near the river; kojo means factory.
+この会社[かいしゃ]の製品[せいひん]は外国[がいこく]でも人気[にんき]です,this company products are popular abroad too; seihin means product.
+この店[みせ]の品物[しなもの]は品質[ひんしつ]が良[よ]いです,the goods in this shop are of good quality; hinshitsu means quality.
+この工場[こうじょう]では毎日[まいにち]千[せん]個[こ]生産[せいさん]しています,this factory produces a thousand units a day; seisan suru means to produce.
+夏[なつ]は電気[でんき]をたくさん消費[しょうひ]します,we consume a lot of electricity in summer; shohi suru means to consume.
+新[あたら]しい製品[せいひん]を来月[らいげつ]から販売[はんばい]します,we will sell the new product from next month; hanbai suru means to sell.
+外国[がいこく]の市場[しじょう]で製品[せいひん]がよく売[う]れています,the products sell well in foreign markets; shijo means market.
+この機械[きかい]の価格[かかく]は思[おも]ったより安[やす]いです,the price of this machine is cheaper than expected; kakaku means price.
+春[はる]に庭[にわ]で花[はな]の種[たね]をまきました,in spring I sowed flower seeds in the garden; tane means seed.
+雨[あめ]が止[や]んだ後[あと]に空[そら]に虹[にじ]が出[で]ました,a rainbow appeared in the sky after the rain stopped; niji means rainbow.
+若[わか]い人[ひと]が新[あたら]しい会社[かいしゃ]に投資[とうし]しています,young people are investing in new companies; toshi suru means to invest.
+父[ちち]は大[おお]きな会社[かいしゃ]の株[かぶ]を買[か]いました,my father bought shares in a big company; kabu means stock.
+朝[あさ]の山[やま]は霧[きり]で何[なに]も見[み]えませんでした,the morning mountain showed nothing because of fog; kiri means fog.
+山[やま]と山[やま]の間[あいだ]の谷[たに]に川[かわ]が流[なが]れています,a river runs in the valley between the mountains; tani means valley.
+小[ちい]さい丘[おか]の上[うえ]から町[まち]がよく見[み]えます,the town is clearly visible from the small hill; oka means hill.
+長[なが]い労働[ろうどう]の時間[じかん]は体[からだ]に悪[わる]いです,long working hours are bad for the body; rodo means labor.
+この島[しま]の火山[かざん]は百年[ひゃくねん]前[まえ]から静[しず]かです,the volcano on this island has been quiet for a hundred years; kazan means volcano.
+この国[くに]の南[みなみ]には広[ひろ]い砂漠[さばく]があります,there is a wide desert in the south of this country; sabaku means desert.
+夏[なつ]の休[やす]みにこの半島[はんとう]まで車[くるま]で行[い]きました,we drove to this peninsula during the summer holiday; hanto means peninsula.
+新[あたら]しい人[ひと]を一週間[いっしゅうかん]訓練[くんれん]しました,we trained the new people for a week; kunren suru means to train.
+先生[せんせい]が学生[がくせい]の研究[けんきゅう]を指導[しどう]しています,the teacher is guiding the student research; shido suru means to instruct.
+窓[まど]から遠[とお]い山[やま]をしばらく眺[なが]めました,I gazed at the distant mountains from the window for a while; nagameru means to gaze.
+大学[だいがく]の朝[あさ]の講義[こうぎ]は九時[くじ]に始[はじ]まります,the morning university lecture starts at nine; kogi means lecture.
+弟[おとうと]の成績[せいせき]が去年[きょねん]より良[よ]くなりました,my brother grades improved from last year; seiseki means grades.
+展示[てんじ]されている作品[さくひん]に手[て]で触[ふ]れないでください,please do not touch the works on display; fureru means to touch.
+妹[いもうと]は今年[ことし]高校[こうこう]に入学[にゅうがく]しました,my younger sister entered high school this year; nyugaku suru means to enroll.
+日曜日[にちようび]に博物館[はくぶつかん]で古[ふる]い道具[どうぐ]を見[み]ました,on Sunday I saw old tools at the museum; hakubutsukan means museum.
+新[あたら]しい美術館[びじゅつかん]で有名[ゆうめい]な作品[さくひん]を見[み]ました,I saw famous works at the new art museum; bijutsukan means art museum.
+駅[えき]の近[ちか]くの劇場[げきじょう]で友達[ともだち]と会[あ]いました,I met a friend at the theater near the station; gekijo means theater.
+妹[いもうと]は音楽会[おんがくかい]でピアノを演奏[えんそう]しました,my sister played the piano at the concert; enso suru means to perform music.
+舞台[ぶたい]の上[うえ]で子供[こども]たちが歌[うた]いました,the children sang on the stage; butai means stage.
+この映画[えいが]の俳優[はいゆう]はとても有名[ゆうめい]です,the actor in this film is very famous; haiyu means actor.
+この作品[さくひん]の監督[かんとく]は若[わか]い女性[じょせい]です,the director of this work is a young woman; kantoku means director.
+公園[こうえん]で映画[えいが]の撮影[さつえい]をしていました,they were filming a movie in the park; satsuei suru means to shoot film.
+この着物[きもの]の模様[もよう]はとても美[うつく]しいです,the pattern of this kimono is very beautiful; moyo means pattern.
+会議[かいぎ]の資料[しりょう]を五十枚[ごじゅうまい]印刷[いんさつ]しました,I printed fifty sheets of meeting material; insatsu suru means to print.
+先生[せんせい]は去年[きょねん]新[あたら]しい本[ほん]を出版[しゅっぱん]しました,the teacher published a new book last year; shuppan suru means to publish.
+冬[ふゆ]の夜[よる]は空[そら]の星[ほし]が強[つよ]く輝[かがや]くそうです,they say the stars shine brightly on winter nights; kagayaku means to shine.
+記者[きしゃ]が長[なが]い記事[きじ]を短[みじか]く編集[へんしゅう]しました,the reporter edited the long article down; henshu suru means to edit.
+夕方[ゆうがた]に太陽[たいよう]が海[うみ]に沈[しず]むのを見[み]ました,I watched the sun sink into the sea in the evening; shizumu means to sink.
+その会議[かいぎ]では外国語[がいこくご]の通訳[つうやく]が必要[ひつよう]でした,an interpreter was needed at that meeting; tsuyaku means interpretation.
+新[あたら]しい制度[せいど]について長[なが]い時間[じかん]議論[ぎろん]しました,we discussed the new system for a long time; giron suru means to debate.
+静[しず]かな湖[みずうみ]に小[ちい]さい船[ふね]が浮[う]かんでいます,a small boat is floating on the quiet lake; ukabu means to float.
+会議[かいぎ]の結論[けつろん]はまだ出[で]ていません,the conclusion of the meeting has not come yet; ketsuron means conclusion.
+彼[かれ]の話[はなし]には証拠[しょうこ]がありません,there is no evidence for his story; shoko means evidence.
+新聞[しんぶん]の記事[きじ]は事実[じじつ]と少[すこ]し違[ちが]います,the newspaper article differs a little from the facts; jijitsu means fact.
+若[わか]い時[とき]の理想[りそう]を今[いま]も覚[おぼ]えています,I still remember my ideals from when I was young; riso means ideal.
+理想[りそう]と現実[げんじつ]の違[ちが]いはとても大[おお]きいです,the gap between ideal and reality is very big; genjitsu means reality.
+今年[ことし]の目標[もくひょう]は本[ほん]を五十冊[ごじゅうさつ]読[よ]むことです,this year goal is to read fifty books; mokuhyo means goal.
+会社[かいしゃ]の新[あたら]しい方針[ほうしん]が昨日[きのう]発表[はっぴょう]されました,the new company policy was announced yesterday; hoshin means policy.
+子供[こども]が庭[にわ]で小[ちい]さい虫[むし]を捕[つか]まえました,a child caught a small insect in the garden; tsukamaeru means to catch.
+近[ちか]くの町[まち]と協力[きょうりょく]して祭[まつ]りを開[ひら]きます,we hold the festival in cooperation with the nearby town; kyoryoku suru means to cooperate.
+この論文[ろんぶん]は私[わたし]の研究[けんきゅう]の参考[さんこう]になりました,this paper was a useful reference for my research; sanko means reference.
+宇宙[うちゅう]には水[みず]がある惑星[わくせい]があるそうです,they say there are planets with water in space; wakusei means planet.
+この二[ふた]つの言葉[ことば]の意味[いみ]を区別[くべつ]するのは難[むずか]しいです,distinguishing the meanings of these two words is hard; kubetsu suru means to distinguish.
+学生[がくせい]は自分[じぶん]で講義[こうぎ]を選択[せんたく]します,students choose their lectures themselves; sentaku suru means to select.
+駅[えき]の前[まえ]の新[あたら]しい建物[たてもの]が来年[らいねん]完成[かんせい]します,the new building in front of the station is completed next year; kansei suru means to be completed.
+政府[せいふ]は新[あたら]しい経済[けいざい]政策[せいさく]を発表[はっぴょう]した,the government announced a new economic policy; seisaku means policy.
+政府[せいふ]は事故[じこ]を防[ふせ]ぐ措置[そち]を取[と]った,the government took steps to prevent accidents; sochi means measure or step.
+新[あたら]しい制度[せいど]について議論[ぎろん]が続[つづ]いている,debate about the new system continues; giron means debate or discussion.
+新聞[しんぶん]は政府[せいふ]の計画[けいかく]の問題[もんだい]を指摘[してき]した,the newspaper pointed out problems in the government's plan; shiteki suru means to point out.
+市[し]の行政[ぎょうせい]の仕事[しごと]は年々[ねんねん]増[ふ]えている,the city's administrative work increases year by year; gyousei means public administration.
+父[ちち]は駅[えき]の近[ちか]くで小[ちい]さな店[みせ]を経営[けいえい]している,my father runs a small shop near the station; keiei means management of a business.
+新[あたら]しい商品[しょうひん]が会社[かいしゃ]の収益[しゅうえき]を大[おお]きく増[ふ]やした,the new product greatly increased the company's earnings; shuueki means earnings.
+その会社[かいしゃ]は外国[がいこく]に多[おお]くのお金[かね]を投資[とうし]した,that company invested a lot of money abroad; toushi means investment.
+若[わか]い人[ひと]が今[いま]の政府[せいふ]を支持[しじ]している,young people support the current government; shiji means support or backing.
+新[あたら]しい政策[せいさく]は強[つよ]い批判[ひはん]を受[う]けた,the new policy drew strong criticism; hihan means criticism.
+若[わか]い議員[ぎいん]が会議[かいぎ]で自分[じぶん]の意見[いけん]を言[い]った,a young lawmaker gave his own opinion at the meeting; giin means assembly member.
+議員[ぎいん]は制度[せいど]を変[か]える必要[ひつよう]があると主張[しゅちょう]した,the lawmaker argued that the system must change; shuchou means assertion.
+会社[かいしゃ]の責任者[せきにんしゃ]が問題[もんだい]について説明[せつめい]した,the person in charge of the company explained the problem; sekininsha means the person responsible.
+首相[しゅしょう]は国民[こくみん]に協力[きょうりょく]を求[もと]めた,the prime minister asked the public for cooperation; shushou means prime minister.
+内閣[ないかく]は昨日[きのう]新[あたら]しい政策[せいさく]を決[き]めた,the cabinet decided on a new policy yesterday; naikaku means cabinet.
+その政党[せいとう]には若[わか]い議員[ぎいん]が多[おお]い,that party has many young lawmakers; seitou means political party.
+来月[らいげつ]二[ふた]つの国[くに]の首脳[しゅのう]が集[あつ]まる,the leaders of the two countries will gather next month; shunou means top leader.
+世論[よろん]は政府[せいふ]の政策[せいさく]に反対[はんたい]している,public opinion opposes the government's policy; yoron means public opinion.
+首相[しゅしょう]の演説[えんぜつ]を多[おお]くの人[ひと]が聞[き]いた,many people listened to the prime minister's speech; enzetsu means speech.
+議員[ぎいん]の発言[はつげん]が大[おお]きな批判[ひはん]を受[う]けた,the lawmaker's remark drew heavy criticism; hatsugen means remark.
+首相[しゅしょう]は隣[となり]の国[くに]の首脳[しゅのう]と会談[かいだん]した,the prime minister held talks with the neighboring country's leader; kaidan means talks.
+社長[しゃちょう]は夜[よる]に記者[きしゃ]会見[かいけん]を行[おこな]った,the president held a press conference at night; kaiken means press interview.
+その事件[じけん]についての報道[ほうどう]が続[つづ]いている,reporting about that incident continues; houdou means news coverage.
+憲法[けんぽう]を変[か]えるかどうか議論[ぎろん]が続[つづ]く,debate continues over whether to change the constitution; kenpou means constitution.
+議員[ぎいん]たちが新[あたら]しい法律[ほうりつ]を長[なが]い時間[じかん]審議[しんぎ]した,the lawmakers deliberated the new law for a long time; shingi suru means to deliberate.
+社長[しゃちょう]は会社[かいしゃ]をやめる考[かんが]えを表明[ひょうめい]した,the president stated his intention to leave the company; hyoumei suru means to declare publicly.
+政府[せいふ]は車[くるま]についての新[あたら]しい規制[きせい]を作[つく]る,the government will create new regulations on cars; kisei means regulation.
+この店[みせ]に入[はい]る人[ひと]の数[かず]には制限[せいげん]がある,there is a limit on the number of people entering this shop; seigen means restriction.
+その計画[けいかく]は昨日[きのう]の会議[かいぎ]で承認[しょうにん]された,the plan was approved at yesterday's meeting; shounin suru means to approve.
+その会社[かいしゃ]は新[あたら]しい規制[きせい]に違反[いはん]した,that company violated the new regulation; ihan suru means to violate.
+違反[いはん]した会社[かいしゃ]は重[おも]い処分[しょぶん]を受[う]けた,the company that broke the rules received a heavy punishment; shobun means disposition.
+その事件[じけん]の裁判[さいばん]は来月[らいげつ]始[はじ]まる,the trial for that case starts next month; saiban means trial.
+裁判[さいばん]の判決[はんけつ]は来週[らいしゅう]出[で]る,the verdict of the trial comes out next week; hanketsu means verdict.
+会社[かいしゃ]は大[おお]きな訴訟[そしょう]に負[ま]けた,the company lost a big lawsuit; soshou means lawsuit.
+人々[ひとびと]は会社[かいしゃ]を裁判[さいばん]で訴[うった]えた,the people sued the company in court; uttaeru means to sue.
+警察[けいさつ]は昨日[きのう]若[わか]い男[おとこ]を逮捕[たいほ]した,the police arrested a young man yesterday; taiho suru means to arrest.
+警察[けいさつ]は事件[じけん]の捜査[そうさ]を続[つづ]けている,the police continue the investigation of the case; sousa means criminal investigation.
+その社長[しゃちょう]には会社[かいしゃ]のお金[かね]を使[つか]った容疑[ようぎ]がある,that president is suspected of using company money; yougi means suspicion of a crime.
+事件[じけん]を調[しら]べた後[あと]でその男[おとこ]は起訴[きそ]された,after the case was investigated the man was indicted; kiso suru means to indict.
+この町[まち]の治安[ちあん]は前[まえ]より良[よ]くなった,public safety in this town is better than before; chian means public security.
+二[ふた]つの会社[かいしゃ]の交渉[こうしょう]は長[なが]く続[つづ]いた,negotiations between the two companies lasted a long time; koushou means negotiation.
+契約書[けいやくしょ]をよく読[よ]んでから名前[なまえ]を書[か]く,read the contract carefully before writing your name; keiyakusho means written contract.
+二[ふた]つの国[くに]が新[あたら]しい条約[じょうやく]を結[むす]んだ,the two countries concluded a new treaty; jouyaku means treaty.
+首相[しゅしょう]は外交[がいこう]について自分[じぶん]の考[かんが]えを示[しめ]した,the prime minister showed his own thinking on diplomacy; gaikou means diplomacy.
+国[くに]の防衛[ぼうえい]にかかるお金[かね]が増[ふ]えている,money spent on the country's defense is increasing; bouei means defense.
+政府[せいふ]の統計[とうけい]によると人口[じんこう]は減[へ]っている,according to government statistics the population is falling; toukei means statistics.
+夏[なつ]は電気[でんき]の需要[じゅよう]が大[おお]きくなる,demand for electricity grows in summer; juyou means demand.
+電気[でんき]の供給[きょうきゅう]が足[た]りなくなっている,the supply of electricity is running short; kyoukyuu means supply.
+消費[しょうひ]が減[へ]ると経済[けいざい]は弱[よわ]くなる,when consumption falls the economy weakens; shouhi means consumption.
+今年[ことし]は食[た]べ物[もの]の物価[ぶっか]が大[おお]きく上[あ]がった,food prices rose sharply this year; bukka means the price level of goods.
+景気[けいき]が良[よ]くなって仕事[しごと]が増[ふ]えた,business conditions improved and jobs increased; keiki means economic conditions.
+二[ふた]つの国[くに]は同[おな]じ通貨[つうか]を使[つか]っている,the two countries use the same currency; tsuuka means currency.
+二[ふた]つの会社[かいしゃ]の競争[きょうそう]が強[つよ]くなった,competition between the two companies grew stronger; kyousou means competition.
+今日[きょう]の株価[かぶか]は大[おお]きく下[さ]がった,share prices fell sharply today; kabuka means stock price.
+株主[かぶぬし]は会社[かいしゃ]に強[つよ]く説明[せつめい]を求[もと]めた,shareholders strongly demanded an explanation from the company; kabunushi means shareholder.
+その会社[かいしゃ]の業績[ぎょうせき]は今年[ことし]良[よ]くなった,that company's performance improved this year; gyouseki means business results.
+新[あたら]しい研究[けんきゅう]には多[おお]くの資金[しきん]が必要[ひつよう]だ,new research needs a lot of funds; shikin means funds.
+会社[かいしゃ]の資産[しさん]は去年[きょねん]より増[ふ]えた,the company's assets increased over last year; shisan means assets.
+会社[かいしゃ]は今年[ことし]も大[おお]きな赤字[あかじ]になった,the company ran a big deficit again this year; akaji means deficit.
+政府[せいふ]は来年[らいねん]の支出[ししゅつ]を減[へ]らす,the government will cut next year's spending; shishutsu means expenditure.
+銀行[ぎんこう]の金利[きんり]が去年[きょねん]から上[あ]がっている,bank interest rates have been rising since last year; kinri means interest rate.
+会社[かいしゃ]は毎月[まいつき]の経費[けいひ]を細[こま]かく調[しら]べた,the company examined its monthly expenses in detail; keihi means business expenses.
+高[たか]い費用[ひよう]は小[ちい]さな会社[かいしゃ]の負担[ふたん]になる,high costs are a burden on small companies; futan means burden.
+来年[らいねん]から食[た]べ物[もの]の税率[ぜいりつ]が変[か]わる,the tax rate on food changes from next year; zeiritsu means tax rate.
+国[くに]の財政[ざいせい]は年々[ねんねん]厳[きび]しくなっている,the nation's finances get tighter every year; zaisei means public finance.
+事故[じこ]で会社[かいしゃ]は大[おお]きな損失[そんしつ]を出[だ]した,the accident caused the company a big loss; sonshitsu means loss.
+若[わか]い社員[しゃいん]の賃金[ちんぎん]が少[すこ]し上[あ]がった,wages for young employees rose slightly; chingin means wages.
+政府[せいふ]は若[わか]い人[ひと]の雇用[こよう]を守[まも]りたい,the government wants to protect employment for young people; koyou means employment.
+この町[まち]では失業[しつぎょう]する人[ひと]の数[かず]が増[ふ]えている,the number of people losing their jobs is rising in this town; shitsugyou suru means to lose one's job.
+新[あたら]しい方法[ほうほう]で仕事[しごと]の効率[こうりつ]が上[あ]がった,the new method raised work efficiency; kouritsu means efficiency.
+機械[きかい]を使[つか]って生産性[せいさんせい]を高[たか]めた,they used machines to raise productivity; seisansei means productivity.
+会社[かいしゃ]は働[はたら]き方[かた]の改善[かいぜん]を続[つづ]けている,the company keeps improving the way people work; kaizen means improvement.
+長[なが]い間[あいだ]の仕事[しごと]で客[きゃく]の信用[しんよう]を得[え]た,long years of work earned the customers' trust; shinyou means trust or credit.
+その国[くに]は外国[がいこく]の車[くるま]に高[たか]い関税[かんぜい]をかける,that country puts high tariffs on foreign cars; kanzei means tariff.
+この国[くに]は車[くるま]の輸出[ゆしゅつ]が多[おお]い,this country exports many cars; yushutsu means export.
+食[た]べ物[もの]の多[おお]くを外国[がいこく]から輸入[ゆにゅう]している,much of the food is imported from abroad; yunyuu means import.
+為替[かわせ]の動[うご]きが会社[かいしゃ]の利益[りえき]を変[か]える,currency movements change the company's profits; kawase means foreign exchange.
+金融[きんゆう]の問題[もんだい]で株価[かぶか]が大[おお]きく下[さ]がった,financial trouble pushed stock prices down sharply; kinyuu means finance.
+その会社[かいしゃ]の株式[かぶしき]を多[おお]くの人[ひと]が持[も]っている,many people hold shares in that company; kabushiki means stock or shares.
+この計画[けいかく]にはまだ多[おお]くの課題[かだい]が残[のこ]る,many issues still remain in this plan; kadai means task or issue.
+この制度[せいど]の対象[たいしょう]は子[こ]どもがいる家族[かぞく]だ,this system targets families with children; taishou means target.
+会社[かいしゃ]は今年[ことし]の決算[けっさん]を来月[らいげつ]出[だ]す,the company will release this year's accounts next month; kessan means settlement of accounts.
+社員[しゃいん]の平均[へいきん]の賃金[ちんぎん]が去年[きょねん]より上[あ]がった,the average wage of employees rose over last year; heikin means average.
+会社[かいしゃ]は客[きゃく]の動向[どうこう]を細[こま]かく調[しら]べている,the company studies customer trends in detail; doukou means trend or movement.
+景気[けいき]の指標[しひょう]が先月[せんげつ]より少[すこ]し良[よ]くなった,economic indicators are slightly better than last month; shihyou means indicator.
+この政策[せいさく]は外国[がいこく]でも高[たか]く評価[ひょうか]された,this policy was highly rated abroad too; hyouka means evaluation.
+政府[せいふ]は景気[けいき]が悪[わる]くなることを懸念[けねん]している,the government is concerned that the economy will worsen; kenen suru means to be concerned.
+政府[せいふ]は問題[もんだい]の大[おお]きさを正[ただ]しく認識[にんしき]している,the government correctly recognizes the size of the problem; ninshiki suru means to recognize.
+政府[せいふ]は新[あたら]しい対策[たいさく]を検討[けんとう]している,the government is considering new measures; kentou suru means to examine.
+政府[せいふ]は来月[らいげつ]から新[あたら]しい規制[きせい]を実施[じっし]する,the government will put the new regulation into effect next month; jisshi suru means to carry out.
+会社[かいしゃ]は去年[きょねん]新[あたら]しい制度[せいど]を導入[どうにゅう]した,the company introduced a new system last year; dounyuu suru means to introduce.
+今[いま]の生活[せいかつ]を維持[いじ]するのは難[むずか]しい,maintaining the current lifestyle is difficult; iji suru means to maintain.
+会社[かいしゃ]は外国[がいこく]での仕事[しごと]を拡大[かくだい]する,the company will expand its work abroad; kakudai suru means to expand.
+政府[せいふ]は来年[らいねん]から支出[ししゅつ]を縮小[しゅくしょう]する,the government will scale down spending from next year; shukushou suru means to reduce in scale.
+会社[かいしゃ]は毎月[まいつき]の経費[けいひ]を大[おお]きく削減[さくげん]した,the company sharply cut its monthly expenses; sakugen suru means to cut down.
+古[ふる]い制度[せいど]を来年[らいねん]廃止[はいし]する,the old system will be abolished next year; haishi suru means to abolish.
+会社[かいしゃ]は事故[じこ]による損失[そんしつ]を補償[ほしょう]する,the company will compensate for losses from the accident; hoshou suru means to compensate.
+会社[かいしゃ]は男女[だんじょ]の賃金[ちんぎん]の違[ちが]いを是正[ぜせい]する,the company will correct the wage gap between men and women; zesei suru means to rectify.
+議員[ぎいん]は制度[せいど]を変[か]える提案[ていあん]をした,the lawmaker made a proposal to change the system; teian means proposal.
+この会社[かいしゃ]は安[やす]いサービスを提供[ていきょう]する,this company provides cheap services; teikyou suru means to provide.
+この計画[けいかく]の実現[じつげん]には長[なが]い時間[じかん]がかかる,realizing this plan will take a long time; jitsugen means realization.
+会社[かいしゃ]は客[きゃく]の意見[いけん]に早[はや]く対応[たいおう]した,the company responded quickly to customer opinions; taiou suru means to respond.
+小[ちい]さな自治体[じちたい]では働[はたら]く人[ひと]が足[た]りない,small local governments do not have enough workers; jichitai means local government.
+市[し]は町[まち]をきれいにする新[あたら]しい条例[じょうれい]を作[つく]った,the city made a new ordinance to keep the town clean; jourei means local ordinance.
+新[あたら]しい制度[せいど]の申請[しんせい]は来月[らいげつ]から始[はじ]まる,applications for the new system start next month; shinsei means application.
+会社[かいしゃ]は事故[じこ]の原因[げんいん]を公表[こうひょう]した,the company made the cause of the accident public; kouhyou suru means to make public.
+この仕事[しごと]の責任者[せきにんしゃ]には大[おお]きな権限[けんげん]がある,the person in charge of this work has great authority; kengen means authority.
+会社[かいしゃ]はお金[かね]の使[つか]い方[かた]について監査[かんさ]を受[う]けた,the company underwent an audit of how it spends money; kansa means audit.
+国[くに]の機関[きかん]が事故[じこ]の原因[げんいん]を調[しら]べる,a state agency will look into the cause of the accident; kikan means institution or agency.
+委員会[いいんかい]がこの問題[もんだい]について議論[ぎろん]している,a committee is discussing this problem; iinkai means committee.
+市[し]は古[ふる]い道路[どうろ]を来年[らいねん]までに整備[せいび]する,the city will fix up the old roads by next year; seibi suru means to develop or maintain.
+この町[まち]には子[こ]どものための施設[しせつ]が少[すく]ない,this town has few facilities for children; shisetsu means facility.
+駅[えき]の近[ちか]くに新[あたら]しい施設[しせつ]を建設[けんせつ]する,a new facility will be built near the station; kensetsu suru means to construct.
+来年[らいねん]この都市[とし]で大[おお]きな会議[かいぎ]を開催[かいさい]する,a big conference will be held in this city next year; kaisai suru means to hold an event.
+この町[まち]では一人[ひとり]で住[す]む世帯[せたい]が増[ふ]えている,single-person households are increasing in this town; setai means household.
+この町[まち]では高齢者[こうれいしゃ]の数[かず]が増[ふ]え続[つづ]けている,the number of elderly people in this town keeps rising; koureisha means elderly person.
+少子化[しょうしか]は日本[にほん]の大[おお]きな課題[かだい]だ,the falling birthrate is a major issue for Japan; shoushika means declining birthrate.
+会社[かいしゃ]は外国[がいこく]で働[はたら]ける人材[じんざい]を探[さが]している,the company is looking for people able to work abroad; jinzai means talented staff.
+病気[びょうき]で働[はたら]けない人[ひと]に給付[きゅうふ]が出[で]る,benefits are paid to people who cannot work because of illness; kyuufu means benefit payment.
+年金[ねんきん]の制度[せいど]を変[か]える議論[ぎろん]が始[はじ]まった,debate has begun on changing the pension system; nenkin means pension.
+政府[せいふ]は福祉[ふくし]にかかる費用[ひよう]を増[ふ]やす,the government will increase welfare spending; fukushi means welfare.
+政府[せいふ]は子[こ]どもを育[そだ]てる家族[かぞく]への支援[しえん]を増[ふ]やす,the government will boost support for families raising children; shien means support.
+国[くに]は小[ちい]さな会社[かいしゃ]にも補助[ほじょ]を出[だ]している,the state gives subsidies to small companies too; hojo means subsidy.
+その事故[じこ]で二人[ふたり]の男[おとこ]が死亡[しぼう]した,two men died in that accident; shibou suru means to die.
+冬[ふゆ]になると子[こ]どもの間[あいだ]で病気[びょうき]が流行[りゅうこう]する,illness spreads among children when winter comes; ryuukou suru means to be prevalent.
+患者[かんじゃ]は病院[びょういん]で新[あたら]しい治療[ちりょう]を受[う]けた,the patient received a new treatment at the hospital; chiryou means treatment.
+医者[いしゃ]は父[ちち]の病気[びょうき]を正[ただ]しく診断[しんだん]した,the doctor correctly diagnosed my father's illness; shindan suru means to diagnose.
+熱[ねつ]が出[で]る症状[しょうじょう]が三日[みっか]続[つづ]いた,the fever symptom lasted three days; shoujou means symptom.
+病院[びょういん]で体[からだ]の検査[けんさ]を受[う]けた,I had a physical examination at the hospital; kensa means test or inspection.
+医者[いしゃ]は朝[あさ]から長[なが]い手術[しゅじゅつ]を行[おこな]った,the doctor performed a long operation from morning; shujutsu means surgery.
+病気[びょうき]の感染[かんせん]が学校[がっこう]で広[ひろ]がった,the infection spread at the school; kansen means infection.
+手[て]を洗[あら]うことは病気[びょうき]の予防[よぼう]になる,washing your hands helps prevent illness; yobou means prevention.
+一度[いちど]病気[びょうき]になると体[からだ]に免疫[めんえき]ができる,once you get the illness your body builds immunity; meneki means immunity.
+人[ひと]の体[からだ]は小[ちい]さな細胞[さいぼう]からできている,the human body is made of tiny cells; saibou means cell.
+医者[いしゃ]は病気[びょうき]と遺伝子[いでんし]の関係[かんけい]を調[しら]べている,doctors are studying the link between illness and genes; idenshi means gene.
+大学[だいがく]の学者[がくしゃ]が新[あたら]しい薬[くすり]について話[はな]した,a university scholar spoke about a new drug; gakusha means scholar.
+星[ほし]の動[うご]きを長[なが]い時間[じかん]観察[かんさつ]した,they observed the movement of the stars for a long time; kansatsu suru means to observe.
+集[あつ]めた数字[すうじ]を細[こま]かく分析[ぶんせき]する,they analyze the collected figures in detail; bunseki suru means to analyze.
+実験[じっけん]で出[で]た数値[すうち]をもう一度[いちど]分析[ぶんせき]する,they analyze the values from the experiment once more; suuchi means numerical value.
+実験[じっけん]の結果[けっか]を別[べつ]の方法[ほうほう]で検証[けんしょう]する,they verify the experiment's results by another method; kenshou suru means to verify.
+研究[けんきゅう]の仮説[かせつ]を実験[じっけん]で確[たし]かめる,they test the research hypothesis by experiment; kasetsu means hypothesis.
+この理論[りろん]が正[ただ]しいかどうかまだ分[わ]からない,it is still unclear whether this theory is correct; riron means theory.
+この物質[ぶっしつ]は人[ひと]の体[からだ]に良[よ]くない,this substance is not good for the human body; busshitsu means substance.
+研究[けんきゅう]の結果[けっか]を来月[らいげつ]の学会[がっかい]で話[はな]す,they will present the research results at next month's academic meeting; gakkai means academic society.
+夏[なつ]は電力[でんりょく]が足[た]りなくなる心配[しんぱい]がある,in summer there is worry that electric power runs short; denryoku means electric power.
+この国[くに]は石油[せきゆ]の多[おお]くを外国[がいこく]から買[か]っている,this country buys most of its oil from abroad; sekiyu means petroleum.
+海[うみ]の近[ちか]くで強[つよ]い風[かぜ]を使[つか]って発電[はつでん]する,they generate electricity from strong wind near the sea; hatsuden suru means to generate power.
+車[くるま]から出[で]るガスの排出[はいしゅつ]を減[へ]らす,they will cut the emission of gas from cars; haishutsu means emission.
+地球[ちきゅう]の温暖化[おんだんか]が大[おお]きな問題[もんだい]になっている,global warming has become a big problem; ondanka means warming.
+会社[かいしゃ]は古[ふる]い機械[きかい]を安全[あんぜん]に廃棄[はいき]した,the company safely disposed of the old machines; haiki suru means to dispose of.
+この町[まち]の工業[こうぎょう]は外国[がいこく]への輸出[ゆしゅつ]で大[おお]きくなった,this town's industry grew through exports abroad; kougyou means manufacturing industry.
+強[つよ]い雨[あめ]で多[おお]くの人[ひと]が学校[がっこう]に避難[ひなん]した,heavy rain made many people evacuate to the school; hinan suru means to evacuate.
+災害[さいがい]からの復興[ふっこう]には長[なが]い時間[じかん]がかかる,recovery from the disaster takes a long time; fukkou means reconstruction.
+その事故[じこ]で多[おお]くの人[ひと]が犠牲[ぎせい]になった,many people lost their lives in that accident; gisei means sacrifice or victim.
+戦争[せんそう]で多[おお]くの難民[なんみん]が隣[となり]の国[くに]に入[はい]った,war drove many refugees into the neighboring country; nanmin means refugee.
+この古[ふる]い建物[たてもの]は世界[せかい]遺産[いさん]に選[えら]ばれた,this old building was chosen as a world heritage site; isan means heritage.
+会社[かいしゃ]は問題[もんだい]に対[たい]する姿勢[しせい]を変[か]えた,the company changed its stance toward the problem; shisei means attitude or posture.
+来年[らいねん]の景気[けいき]の見通[みとお]しは明[あか]るくない,the outlook for next year's economy is not bright; mitooshi means outlook.
+この計画[けいかく]は景気[けいき]が良[よ]くなる前提[ぜんてい]で作[つく]られた,this plan was made on the premise that the economy improves; zentei means premise.
+その主張[しゅちょう]には十分[じゅうぶん]な根拠[こんきょ]がない,that claim has no sufficient grounds; konkyo means grounds or basis.
+為替[かわせ]の動[うご]きは会社[かいしゃ]の利益[りえき]に影響[えいきょう]を及[およ]ぼす,currency moves exert an influence on company profits; oyobosu means to exert.
+会社[かいしゃ]は社員[しゃいん]の求[もと]めに応[おう]じる,the company complies with its employees' requests; oujiru means to respond to.
+この判決[はんけつ]は憲法[けんぽう]に基[もと]づいている,this verdict is based on the constitution; motozuku means to be based on.
+若[わか]い客[きゃく]が全体[ぜんたい]の半分[はんぶん]を占[し]める,young customers make up half of the total; shimeru means to account for.
+日曜日[にちようび]を除[のぞ]く毎日[まいにち]店[みせ]を開[あ]ける,the shop opens every day except Sunday; nozoku means to exclude.
+兄[あに]は大学[だいがく]の研究[けんきゅう]グループに属[ぞく]する,my older brother belongs to a university research group; zoku suru means to belong to.
+政府[せいふ]はこの問題[もんだい]で大[おお]きな役割[やくわり]を果[は]たす,the government plays a big role in this problem; hatasu means to fulfill.
+会社[かいしゃ]は契約[けいやく]の内容[ないよう]を必[かなら]ず履行[りこう]する,the company will surely carry out the terms of the contract; rikou suru means to fulfill.
+国[くに]の機関[きかん]が会社[かいしゃ]に働[はたら]き方[かた]の改善[かいぜん]を勧告[かんこく]した,a state agency advised the company to improve working conditions; kankoku suru means to formally recommend.
+新[あたら]しい制度[せいど]で大[おお]きな問題[もんだい]が生[しょう]じる,a big problem arises under the new system; shoujiru means to arise.
+憲法[けんぽう]を巡[めぐ]る議論[ぎろん]が長[なが]く続[つづ]いている,debate surrounding the constitution has long continued; meguru means to revolve around.
+この商品[しょうひん]は新[あたら]しい規制[きせい]を満[み]たす,this product meets the new regulation; mitasu means to satisfy.
+警察[けいさつ]は危険[きけん]な運転[うんてん]を取[と]り締[し]まる,the police crack down on dangerous driving; torishimaru means to crack down on.
+今年[ことし]の利益[りえき]は去年[きょねん]を上回[うわまわ]る,this year's profit exceeds last year's; uwamawaru means to exceed.
+今月[こんげつ]の売[う]り上[あ]げは予想[よそう]を下回[したまわ]った,this month's sales fell below expectations; shitamawaru means to fall below.
+会社[かいしゃ]は毎月[まいつき]の費用[ひよう]を低[ひく]く抑[おさ]える,the company keeps monthly costs low; osaeru means to hold down.
+政府[せいふ]は会社[かいしゃ]に外国[がいこく]への投資[とうし]を促[うなが]す,the government urges companies to invest abroad; unagasu means to urge.
+少[すく]ない収入[しゅうにゅう]を夜[よる]の仕事[しごと]で補[おぎな]う,he makes up for a small income with a night job; oginau means to supplement.
+一度[いちど]の事故[じこ]が会社[かいしゃ]の信用[しんよう]を損[そこ]なう,a single accident damages a company's credibility; sokonau means to harm.
+強[つよ]すぎる規制[きせい]は会社[かいしゃ]の成長[せいちょう]を妨[さまた]げる,overly strong regulation hinders company growth; samatageru means to hinder.
+冬[ふゆ]のために食[た]べ物[もの]を家[いえ]に蓄[たくわ]える,they store food at home for the winter; takuwaeru means to store up.
+経験[けいけん]の多[おお]い社員[しゃいん]が若[わか]い人[ひと]を導[みちび]く,experienced employees guide the young ones; michibiku means to lead.
+白[しろ]い雪[ゆき]が町[まち]全体[ぜんたい]を覆[おお]う,white snow covers the whole town; oou means to cover.
+彼[かれ]は社長[しゃちょう]と研究[けんきゅう]の責任者[せきにんしゃ]を兼[か]ねている,he serves as both president and head of research; kaneru means to serve concurrently.
+その理論[りろん]に反対[はんたい]を唱[とな]える人[ひと]も多[おお]い,many people voice opposition to that theory; tonaeru means to advocate or voice.
+病院[びょういん]は患者[かんじゃ]に必要[ひつよう]な治療[ちりょう]を施[ほどこ]す,the hospital administers necessary treatment to patients; hodokosu means to administer.
+この都市[とし]は十年[じゅうねん]で大[おお]きな成長[せいちょう]を遂[と]げた,this city achieved great growth in ten years; togeru means to accomplish.
+学校[がっこう]にかかる費用[ひよう]を税金[ぜいきん]で賄[まかな]う,school costs are covered by taxes; makanau means to finance or cover.
+会社[かいしゃ]は経営[けいえい]が難[むずか]しい状態[じょうたい]に陥[おちい]る,the company falls into a difficult management situation; ochiiru means to fall into.
+長[なが]い交渉[こうしょう]の後[あと]で二[ふた]つの会社[かいしゃ]は契約[けいやく]に至[いた]る,after long negotiations the two companies reach a contract; itaru means to reach.
+大[おお]きな計画[けいかく]には必[かなら]ず危険[きけん]が伴[ともな]う,a large plan always involves risk; tomonau means to accompany.
+政府[せいふ]は感染[かんせん]を防[ふせ]ぐ対策[たいさく]を講[こう]じる,the government takes measures to prevent infection; koujiru means to take measures.
+会社[かいしゃ]は仕事[しごと]の効率[こうりつ]の改善[かいぜん]を図[はか]る,the company aims at improving work efficiency; hakaru means to strive for.
+若[わか]い社員[しゃいん]が会社[かいしゃ]の将来[しょうらい]を担[にな]う,young employees carry the company's future; ninau means to shoulder.
+その政党[せいとう]は選挙[せんきょ]で新[あたら]しい政策[せいさく]を掲[かか]げた,that party put forward a new policy in the election; kakageru means to advocate.
+議員[ぎいん]は問題[もんだい]の例[れい]をいくつか挙[あ]げた,the lawmaker cited several examples of the problem; ageru means to cite.
+大[おお]きな地震[じしん]で建物[たてもの]が長[なが]く揺[ゆ]れた,the building shook for a long time in the big earthquake; yureru means to shake.
+最後[さいご]の判断[はんだん]は会社[かいしゃ]の責任者[せきにんしゃ]に委[ゆだ]ねる,the final decision is entrusted to the person in charge; yudaneru means to entrust.
+電話[でんわ]でお客[きゃく]様[さま]の注文[ちゅうもん]を承[うけたまわ]る,we take customers' orders by phone; uketamawaru is a humble word for to receive.
+少[すく]ない収入[しゅうにゅう]で厳[きび]しい時期[じき]を凌[しの]ぐ,they get through hard times on a small income; shinogu means to endure.

@@ -4,9 +4,10 @@ Language App
 A shared SwiftUI app for iOS and macOS that studies CSV language decks with an
 FSRS spaced-repetition schedule.
 
-The home screen lists every CSV bundled from `decks/`. The sample Japanese and
-Spanish decks each contain ten beginner cards. The first column header is a BCP
-47 language code used by Apple's speech synthesizer, such as `ja` or `es`; the
+The home screen lists every CSV bundled from `decks/`. The Japanese deck holds a
+thousand phrases ordered from the most common vocabulary down, each phrase
+introducing one new noun or verb; the Spanish deck is a ten card sample. The
+first column header is a BCP 47 language code used by Apple's speech synthesizer, such as `ja` or `es`; the
 second column is the answer. Japanese furigana uses
 `word[reading]` notation, for example `日本語[にほんご]`. The app displays the
 reading above the word and speaks the reading instead of the annotation. For
@@ -25,6 +26,16 @@ restarts the phrase from the beginning.
 Long pressing a deck on the home screen offers "Reset progress", which asks for
 confirmation and then makes every card in that deck new again. The same action is
 available from the gear menu while studying a deck.
+
+## Daily queue
+
+Each deck introduces up to a set number of unseen cards a day, 20 by default,
+changed in the gear menu. Reviews are never capped. The header counts today's
+work as new, again (cards on a same-day step) and review.
+
+Finishing everything the day holds shows "Day completed!" with a number field
+and a button that releases extra cards for today only; leaving the deck and
+coming back shows it again until the next day resets the count.
 
 ## Scheduling
 

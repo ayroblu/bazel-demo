@@ -228,3 +228,99 @@ import Testing
   #expect(Romaji.isSupported(languageCode: "ja"))
   #expect(!Romaji.isSupported(languageCode: "es"))
 }
+
+@MainActor
+private func numberedDeck(_ count: Int) throws -> Deck {
+  let rows = (1...count).map { "猫[ねこ]\($0),cat \($0)" }.joined(separator: "\n")
+  return try CSVDeckLoader.load(name: "Japanese", data: Data("ja,en\n\(rows)\n".utf8))
+}
+
+private let middayToday = Calendar.current.startOfDay(for: Date()).addingTimeInterval(12 * 3_600)
+
+@MainActor
+@Test func dailyNewCardLimitHoldsBackUnseenCards() throws {
+  let deck = try numberedDeck(5)
+  let defaults = try #require(UserDefaults(suiteName: "limit-\(UUID().uuidString)"))
+  let store = StudyStore(deck: deck, defaults: defaults)
+  store.newCardsPerDay = 2
+
+  #expect(store.dueCards.count == 2)
+  #expect(store.counts == QueueCounts(new: 2, learning: 0, review: 0))
+
+  store.grade(.easy, now: middayToday)
+  store.grade(.easy, now: middayToday)
+  #expect(store.currentCard == nil)
+  #expect(store.counts.new == 0)
+  #expect(store.isDayComplete)
+
+  // Tomorrow releases the next batch without touching the limit.
+  store.advanceClock(to: middayToday.addingTimeInterval(86_400))
+  #expect(store.counts.new == 2)
+  #expect(!store.isDayComplete)
+}
+
+@MainActor
+@Test func countsSplitNewLearningAndReview() throws {
+  let deck = try numberedDeck(4)
+  let defaults = try #require(UserDefaults(suiteName: "counts-\(UUID().uuidString)"))
+  let store = StudyStore(deck: deck, defaults: defaults)
+  store.newCardsPerDay = 3
+
+  store.grade(.again, now: middayToday)
+  store.grade(.easy, now: middayToday)
+  #expect(store.counts == QueueCounts(new: 1, learning: 1, review: 0))
+
+  // The graduated card counts as a review only once it comes due.
+  let graduated = try #require(store.reviewStates.values.first { $0.phase == .review })
+  store.advanceClock(to: graduated.due)
+  #expect(store.counts.review == 1)
+}
+
+@MainActor
+@Test func extraCardsApplyToTodayOnly() throws {
+  let deck = try numberedDeck(6)
+  let defaults = try #require(UserDefaults(suiteName: "extra-\(UUID().uuidString)"))
+  let store = StudyStore(deck: deck, defaults: defaults)
+  store.newCardsPerDay = 1
+  store.grade(.easy, now: middayToday)
+  #expect(store.isDayComplete)
+
+  store.addExtraCardsToday(2, now: middayToday)
+  #expect(!store.isDayComplete)
+  #expect(store.counts.new == 2)
+
+  store.grade(.easy, now: middayToday)
+  store.grade(.easy, now: middayToday)
+  #expect(store.isDayComplete)
+
+  store.advanceClock(to: middayToday.addingTimeInterval(86_400))
+  #expect(store.counts.new == 1)
+}
+
+@MainActor
+@Test func dayCompletionAndLimitSurviveReopeningTheDeck() throws {
+  let deck = try numberedDeck(3)
+  let suite = "reopen-\(UUID().uuidString)"
+  let defaults = try #require(UserDefaults(suiteName: suite))
+  defer { defaults.removePersistentDomain(forName: suite) }
+
+  let store = StudyStore(deck: deck, defaults: defaults)
+  store.newCardsPerDay = 1
+  store.grade(.easy, now: middayToday)
+
+  let reopened = StudyStore(deck: deck, defaults: defaults)
+  #expect(reopened.newCardsPerDay == 1)
+  #expect(reopened.currentCard == nil)
+  #expect(reopened.isDayComplete)
+}
+
+@MainActor
+@Test func finishingEveryCardIsNotDayCompletion() throws {
+  let deck = try numberedDeck(1)
+  let defaults = try #require(UserDefaults(suiteName: "exhausted-\(UUID().uuidString)"))
+  let store = StudyStore(deck: deck, defaults: defaults)
+
+  store.grade(.easy, now: middayToday)
+  #expect(store.currentCard == nil)
+  #expect(!store.isDayComplete)
+}

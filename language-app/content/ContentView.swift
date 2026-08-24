@@ -73,7 +73,9 @@ private struct DeckRow: View {
       VStack(alignment: .leading, spacing: 3) {
         Text(deck.name)
           .font(.headline)
-        Text("\(store.dueCards.count) due · \(deck.cards.count) cards · \(languageName(deck.languageCode))")
+        QueueCountsView(counts: store.counts)
+          .font(.subheadline)
+        Text("\(deck.cards.count) cards · \(languageName(deck.languageCode))")
           .font(.subheadline)
           .foregroundStyle(.secondary)
       }
@@ -96,6 +98,8 @@ private struct StudyDeckView: View {
     Group {
       if let card = store.currentCard {
         StudyCardView(card: card, store: store, speech: speech)
+      } else if store.isDayComplete {
+        DayCompleteView(store: store)
       } else {
         CompleteView(nextDueDate: store.nextDueDate)
       }
@@ -132,8 +136,7 @@ private struct StudyCardView: View {
   var body: some View {
     VStack(spacing: 24) {
       HStack {
-        Label("\(store.dueCards.count) due", systemImage: "rectangle.stack")
-          .foregroundStyle(.secondary)
+        QueueCountsView(counts: store.counts)
         Spacer()
         Button {
           speech.toggle(card.prompt, languageCode: card.languageCode)
@@ -326,6 +329,70 @@ private struct RatingButtons: View {
   }
 }
 
+private struct QueueCountsView: View {
+  let counts: QueueCounts
+
+  var body: some View {
+    HStack(spacing: 8) {
+      value(counts.new, tint: .blue, name: "new")
+      value(counts.learning, tint: .red, name: "again")
+      value(counts.review, tint: .green, name: "review")
+    }
+    .monospacedDigit()
+    .lineLimit(1)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(
+      "\(counts.new) new, \(counts.learning) again today, \(counts.review) to review")
+  }
+
+  private func value(_ count: Int, tint: Color, name: String) -> some View {
+    HStack(spacing: 3) {
+      Text("\(count)")
+        .fontWeight(.semibold)
+      Text(name)
+    }
+    .foregroundStyle(count > 0 ? tint : Color.secondary)
+  }
+}
+
+private struct DayCompleteView: View {
+  let store: StudyStore
+  @State private var extraCards = 10
+
+  var body: some View {
+    VStack(spacing: 16) {
+      Image(systemName: "checkmark.seal.fill")
+        .font(.system(size: 52))
+        .foregroundStyle(.green)
+      Text("Day completed!")
+        .font(.title.bold())
+      Text("You finished today's \(store.newCardsPerDay + store.extraCardsToday) new cards and every review that was due.")
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+        .multilineTextAlignment(.center)
+
+      HStack(spacing: 8) {
+        TextField("", value: $extraCards, format: .number)
+          .textFieldStyle(.roundedBorder)
+          .frame(width: 72)
+          .multilineTextAlignment(.trailing)
+          .accessibilityLabel("Extra cards")
+          #if os(iOS)
+            .keyboardType(.numberPad)
+          #endif
+        Button("Add cards today") { store.addExtraCardsToday(extraCards) }
+          .buttonStyle(.borderedProminent)
+          .disabled(extraCards < 1)
+      }
+      Text("Extra cards apply to today only.")
+        .font(.caption)
+        .foregroundStyle(.secondary)
+    }
+    .padding()
+    .frame(maxWidth: 420)
+  }
+}
+
 private struct CompleteView: View {
   let nextDueDate: Date?
 
@@ -343,7 +410,7 @@ private struct CompleteView: View {
 }
 
 private struct SettingsView: View {
-  let store: StudyStore
+  @Bindable var store: StudyStore
   let speech: SpeechPlayer
   let languageCode: String
   @Environment(\.dismiss) private var dismiss
@@ -389,6 +456,22 @@ private struct SettingsView: View {
           Text("Voice")
         } footer: {
           Text(Self.voiceDownloadHint)
+        }
+
+        Section {
+          LabeledContent("New cards per day") {
+            TextField("", value: $store.newCardsPerDay, format: .number)
+              .multilineTextAlignment(.trailing)
+              .frame(width: 72)
+              .accessibilityLabel("New cards per day")
+              #if os(iOS)
+                .keyboardType(.numberPad)
+              #endif
+          }
+        } header: {
+          Text("Study")
+        } footer: {
+          Text("Unseen cards enter the queue up to this many per day. Reviews are never capped.")
         }
 
         Section("Progress") {
