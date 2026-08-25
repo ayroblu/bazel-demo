@@ -23,7 +23,7 @@ public struct Deck: Equatable, Identifiable, Sendable {
   public let name: String
   public let languageCode: String
   public let answerColumnName: String
-  public let cards: [DeckCard]
+  public var cards: [DeckCard]
 }
 
 /// Anki's three queue counters: unseen cards, same-day step cards, and graduated cards.

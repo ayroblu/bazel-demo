@@ -2,37 +2,78 @@ import AVFoundation
 import SwiftUI
 
 public struct ContentView: View {
-  @State private var library = DeckLibrary()
+  @State private var decks = DeckStore()
+  @State private var importing = false
+  @State private var creating = false
+  @State private var errorMessage: String?
 
   public init() {}
 
   public var body: some View {
     NavigationStack {
       Group {
-        if library.decks.isEmpty {
+        if decks.decks.isEmpty {
           ContentUnavailableView(
             "No decks",
             systemImage: "rectangle.stack.badge.minus",
-            description: Text(library.errors.joined(separator: "\n"))
+            description: Text(decks.errors.joined(separator: "\n"))
           )
         } else {
-          List(library.decks) { deck in
-            DeckLink(deck: deck)
+          List(decks.decks) { deck in
+            DeckLink(deck: deck, decks: decks)
           }
         }
       }
       .navigationTitle("Decks")
+      .toolbar {
+        ToolbarItem(placement: .primaryAction) {
+          Menu {
+            Button("Upload a CSV deck", systemImage: "square.and.arrow.down") {
+              importing = true
+            }
+            Button("Create a deck by hand", systemImage: "square.and.pencil") {
+              creating = true
+            }
+          } label: {
+            Label("Add deck", systemImage: "plus")
+          }
+        }
+      }
+      .fileImporter(isPresented: $importing, allowedContentTypes: [.commaSeparatedText]) { result in
+        switch result {
+        case let .success(url):
+          do {
+            _ = try decks.importDeck(from: url)
+          } catch {
+            errorMessage = error.localizedDescription
+          }
+        case let .failure(error):
+          errorMessage = error.localizedDescription
+        }
+      }
+      .sheet(isPresented: $creating) {
+        NewDeckView(decks: decks)
+      }
+      .alert("Deck not added", isPresented: .constant(errorMessage != nil)) {
+        Button("OK") { errorMessage = nil }
+      } message: {
+        Text(errorMessage ?? "")
+      }
     }
   }
 }
 
 private struct DeckLink: View {
   let deck: Deck
+  let decks: DeckStore
   @State private var store: StudyStore
   @State private var confirmingReset = false
+  @State private var confirmingDelete = false
+  @State private var inspecting = false
 
-  init(deck: Deck) {
+  init(deck: Deck, decks: DeckStore) {
     self.deck = deck
+    self.decks = decks
     _store = State(initialValue: StudyStore(deck: deck))
   }
 
@@ -43,9 +84,22 @@ private struct DeckLink: View {
       DeckRow(deck: deck, store: store)
     }
     .contextMenu {
+      Button("Inspect deck", systemImage: "list.bullet.rectangle") { inspecting = true }
       Button("Reset progress", systemImage: "arrow.counterclockwise", role: .destructive) {
         confirmingReset = true
       }
+      Button("Delete deck", systemImage: "trash", role: .destructive) {
+        confirmingDelete = true
+      }
+    }
+    // Deleting a deck cannot be undone, so a swipe opens the same confirmation.
+    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+      Button("Delete", systemImage: "trash", role: .destructive) { confirmingDelete = true }
+    }
+    // The deck file can change while this row is on screen, so the study queue follows it.
+    .onChange(of: deck) { _, updated in store.updateDeck(updated) }
+    .sheet(isPresented: $inspecting) {
+      DeckInspectorView(deck: deck, decks: decks, store: store)
     }
     .confirmationDialog(
       "Reset progress for \(deck.name)?",
@@ -56,6 +110,16 @@ private struct DeckLink: View {
       Button("Cancel", role: .cancel) {}
     } message: {
       Text("Every card in this deck becomes new again. This cannot be undone.")
+    }
+    .confirmationDialog(
+      "Delete \(deck.name)?",
+      isPresented: $confirmingDelete,
+      titleVisibility: .visible
+    ) {
+      Button("Delete deck", role: .destructive) { try? decks.delete(deck) }
+      Button("Cancel", role: .cancel) {}
+    } message: {
+      Text("The deck file and its \(deck.cards.count) cards are removed from this device.")
     }
   }
 }
@@ -325,6 +389,291 @@ private struct RatingButtons: View {
     case .hard: .orange
     case .good: .blue
     case .easy: .green
+    }
+  }
+}
+
+private struct DeckInspectorView: View {
+  let deck: Deck
+  let decks: DeckStore
+  let store: StudyStore
+  @Environment(\.dismiss) private var dismiss
+  @State private var editing: DeckCard?
+  @State private var adding = false
+  @State private var errorMessage: String?
+
+  private var editor: DeckEditor {
+    DeckEditor(deck: deck) { store.isStudied($0) }
+  }
+
+  var body: some View {
+    NavigationStack {
+      Group {
+        if deck.cards.isEmpty {
+          ContentUnavailableView {
+            Label("No cards yet", systemImage: "rectangle.stack.badge.plus")
+          } description: {
+            Text("Add cards by hand, or replace this deck with an uploaded CSV.")
+          } actions: {
+            Button("Add a card") { adding = true }
+              .buttonStyle(.borderedProminent)
+          }
+        } else {
+          cardList
+        }
+      }
+      .navigationTitle(deck.name)
+      .toolbar {
+        ToolbarItem(placement: .primaryAction) {
+          Button("Add card", systemImage: "plus") { adding = true }
+        }
+        #if os(iOS)
+          ToolbarItem(placement: .topBarLeading) { EditButton() }
+        #endif
+        ToolbarItem(placement: .confirmationAction) {
+          Button("Done") { dismiss() }
+        }
+      }
+      .sheet(isPresented: $adding) {
+        CardEditorView(languageCode: deck.languageCode, card: nil) { prompt, answer in
+          add(prompt: prompt, answer: answer)
+        }
+      }
+      .sheet(item: $editing) { card in
+        CardEditorView(languageCode: deck.languageCode, card: card) { prompt, answer in
+          update(card, prompt: prompt, answer: answer)
+        }
+      }
+      .alert("Deck not saved", isPresented: .constant(errorMessage != nil)) {
+        Button("OK") { errorMessage = nil }
+      } message: {
+        Text(errorMessage ?? "")
+      }
+    }
+    .frame(minWidth: 420, minHeight: 420)
+  }
+
+  private var cardList: some View {
+    List {
+      Section {
+        ForEach(Array(deck.cards.enumerated()), id: \.element.id) { index, card in
+          row(index: index, card: card)
+            .moveDisabled(store.isStudied(card))
+            .deleteDisabled(store.isStudied(card))
+        }
+        .onMove(perform: move)
+        .onDelete(perform: delete)
+      } header: {
+        Text("\(deck.cards.count) cards · \(editor.lockedCount) studied")
+      } footer: {
+        Text(
+          "New cards are introduced from the top down. A card's schedule is tied to its text, so studied cards cannot be edited, moved or removed until you reset the deck's progress."
+        )
+      }
+    }
+  }
+
+  private func row(index: Int, card: DeckCard) -> some View {
+    let studied = store.isStudied(card)
+    return Button {
+      guard !studied else { return }
+      editing = card
+    } label: {
+      HStack(alignment: .firstTextBaseline, spacing: 10) {
+        Text("\(index + 1)")
+          .font(.caption)
+          .monospacedDigit()
+          .foregroundStyle(.tertiary)
+          .frame(minWidth: 34, alignment: .trailing)
+        VStack(alignment: .leading, spacing: 2) {
+          Text(FuriganaParser.displayText(card.prompt))
+            .font(.body)
+          Text(card.answer)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .lineLimit(2)
+        }
+        Spacer(minLength: 8)
+        if studied {
+          Image(systemName: "lock.fill")
+            .font(.caption)
+            .foregroundStyle(.tertiary)
+            .accessibilityLabel("Studied and locked")
+        }
+      }
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .contextMenu {
+      Button("Edit card", systemImage: "pencil") { editing = card }
+        .disabled(studied)
+      Button("Move up", systemImage: "arrow.up") { shift(from: index, by: -1) }
+        .disabled(studied || index == 0)
+      Button("Move down", systemImage: "arrow.down") { shift(from: index, by: 1) }
+        .disabled(studied || index == deck.cards.count - 1)
+      Button("Remove card", systemImage: "trash", role: .destructive) {
+        save { try editor.remove(at: IndexSet(integer: index)) }
+      }
+      .disabled(studied)
+    }
+  }
+
+  // MARK: - Edits
+
+  private func move(from source: IndexSet, to destination: Int) {
+    save { try editor.move(from: source, to: destination) }
+  }
+
+  private func delete(at offsets: IndexSet) {
+    save { try editor.remove(at: offsets) }
+  }
+
+  private func shift(from index: Int, by offset: Int) {
+    save { try editor.shift(from: index, by: offset) }
+  }
+
+  private func add(prompt: String, answer: String) {
+    save { try editor.append(prompt: prompt, answer: answer) }
+  }
+
+  private func update(_ card: DeckCard, prompt: String, answer: String) {
+    save { try editor.replace(card, prompt: prompt, answer: answer) }
+  }
+
+  private func save(_ edit: () throws -> Deck) {
+    do {
+      let updated = try edit()
+      try decks.replace(updated)
+      store.updateDeck(updated)
+    } catch {
+      errorMessage = error.localizedDescription
+    }
+  }
+}
+
+private struct CardEditorView: View {
+  let languageCode: String
+  let card: DeckCard?
+  let save: (String, String) -> Void
+  @Environment(\.dismiss) private var dismiss
+  @State private var prompt: String
+  @State private var answer: String
+
+  init(languageCode: String, card: DeckCard?, save: @escaping (String, String) -> Void) {
+    self.languageCode = languageCode
+    self.card = card
+    self.save = save
+    _prompt = State(initialValue: card?.prompt ?? "")
+    _answer = State(initialValue: card?.answer ?? "")
+  }
+
+  private var trimmedPrompt: String { prompt.trimmingCharacters(in: .whitespacesAndNewlines) }
+  private var trimmedAnswer: String { answer.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+  var body: some View {
+    NavigationStack {
+      Form {
+        Section {
+          TextField("Prompt", text: $prompt, axis: .vertical)
+        } header: {
+          Text("Prompt (\(languageCode))")
+        } footer: {
+          Text("Add readings after Japanese words with brackets: 日本語[にほんご].")
+        }
+
+        Section("Answer") {
+          TextField("Answer", text: $answer, axis: .vertical)
+        }
+
+        if !trimmedPrompt.isEmpty {
+          Section("Preview") {
+            FuriganaText(source: trimmedPrompt)
+              .frame(maxWidth: .infinity)
+            if Romaji.isSupported(languageCode: languageCode),
+              let romaji = Romaji.transliterate(trimmedPrompt)
+            {
+              Text(romaji)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            }
+          }
+        }
+      }
+      .navigationTitle(card == nil ? "New card" : "Edit card")
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Cancel") { dismiss() }
+        }
+        ToolbarItem(placement: .confirmationAction) {
+          Button("Save") {
+            save(trimmedPrompt, trimmedAnswer)
+            dismiss()
+          }
+          .disabled(trimmedPrompt.isEmpty || trimmedAnswer.isEmpty)
+        }
+      }
+    }
+    .frame(minWidth: 380, minHeight: 360)
+  }
+}
+
+private struct NewDeckView: View {
+  let decks: DeckStore
+  @Environment(\.dismiss) private var dismiss
+  @State private var name = ""
+  @State private var languageCode = "ja"
+  @State private var answerColumnName = "en"
+  @State private var errorMessage: String?
+
+  private var trimmedName: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+  var body: some View {
+    NavigationStack {
+      Form {
+        Section("Deck") {
+          TextField("Name", text: $name)
+        }
+        Section {
+          TextField("Prompt language code", text: $languageCode)
+            .autocorrectionDisabled()
+          TextField("Answer column name", text: $answerColumnName)
+            .autocorrectionDisabled()
+        } header: {
+          Text("Columns")
+        } footer: {
+          Text(
+            "The prompt language code drives speech, such as ja or es. Add cards from the deck's Inspect deck menu."
+          )
+        }
+        if let errorMessage {
+          Text(errorMessage)
+            .foregroundStyle(.red)
+        }
+      }
+      .navigationTitle("New deck")
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Cancel") { dismiss() }
+        }
+        ToolbarItem(placement: .confirmationAction) {
+          Button("Create") { create() }
+            .disabled(trimmedName.isEmpty || languageCode.isEmpty || answerColumnName.isEmpty)
+        }
+      }
+    }
+    .frame(minWidth: 360, minHeight: 300)
+  }
+
+  private func create() {
+    do {
+      _ = try decks.createDeck(
+        name: trimmedName,
+        languageCode: languageCode,
+        answerColumnName: answerColumnName
+      )
+      dismiss()
+    } catch {
+      errorMessage = error.localizedDescription
     }
   }
 }

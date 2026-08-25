@@ -12,12 +12,150 @@ import Testing
 }
 
 @MainActor
-@Test func loadsMultipleDecksFromCSVData() throws {
-  let japanese = try CSVDeckLoader.load(name: "Japanese", data: Data("ja,en\n猫[ねこ],cat\n".utf8))
-  let spanish = try CSVDeckLoader.load(name: "Spanish", data: Data("es,en\nhola,hello\n".utf8))
-  let library = DeckLibrary(decks: [japanese, spanish])
-  #expect(library.decks.map(\.languageCode) == ["ja", "es"])
-  #expect(Set(library.decks.map(\.id)).count == 2)
+private func emptyDeckStore() throws -> (store: DeckStore, directory: URL, defaults: UserDefaults) {
+  let directory = URL.temporaryDirectory.appending(path: "decks-\(UUID().uuidString)")
+  let defaults = try #require(UserDefaults(suiteName: "decks-\(UUID().uuidString)"))
+  return (DeckStore(directory: directory, seedFrom: nil, defaults: defaults), directory, defaults)
+}
+
+@MainActor
+@Test func loadsEveryDeckFileInTheDecksFolder() throws {
+  let (store, directory, defaults) = try emptyDeckStore()
+  try Data("ja,en\n猫[ねこ],cat\n".utf8).write(to: directory.appending(path: "japanese.csv"))
+  try Data("es,en\nhola,hello\n".utf8).write(to: directory.appending(path: "spanish.csv"))
+
+  let reopened = DeckStore(directory: directory, seedFrom: nil, defaults: defaults)
+  #expect(store.decks.isEmpty)
+  #expect(reopened.decks.map(\.name) == ["Japanese", "Spanish"])
+  #expect(reopened.decks.map(\.languageCode) == ["ja", "es"])
+  #expect(Set(reopened.decks.map(\.id)).count == 2)
+}
+
+@MainActor
+@Test func deckStoreCreatesEditsAndDeletes() throws {
+  let (store, directory, defaults) = try emptyDeckStore()
+
+  var deck = try store.createDeck(name: "My Verbs", languageCode: "JA", answerColumnName: "en")
+  #expect(deck.languageCode == "ja")
+  #expect(store.decks.map(\.name) == ["My Verbs"])
+  #expect(throws: DeckStoreError.duplicateName("My Verbs")) {
+    _ = try store.createDeck(name: "My Verbs", languageCode: "ja", answerColumnName: "en")
+  }
+
+  deck.cards = [
+    DeckCard(prompt: "走[はし]る", answer: "to run", languageCode: "ja"),
+    DeckCard(prompt: "歩[ある]く", answer: "to walk; on foot, slowly", languageCode: "ja"),
+  ]
+  try store.replace(deck)
+
+  let reopened = DeckStore(directory: directory, seedFrom: nil, defaults: defaults)
+  let saved = try #require(reopened.deck(id: deck.id))
+  #expect(saved.cards.map(\.prompt) == ["走[はし]る", "歩[ある]く"])
+  // A comma in an answer has to survive the CSV round trip.
+  #expect(saved.cards[1].answer == "to walk; on foot, slowly")
+
+  try store.delete(deck)
+  #expect(store.decks.isEmpty)
+  #expect(DeckStore(directory: directory, seedFrom: nil, defaults: defaults).decks.isEmpty)
+}
+
+@MainActor
+@Test func importingNumbersTheFileWhenTheNameIsTaken() throws {
+  let (store, directory, _) = try emptyDeckStore()
+  let source = URL.temporaryDirectory.appending(path: "kanji-\(UUID().uuidString).csv")
+  try Data("ja,en\n本[ほん],book\n".utf8).write(to: source)
+
+  let first = try store.importDeck(from: source)
+  let second = try store.importDeck(from: source)
+  #expect(first.cards.count == 1)
+  #expect(first.id != second.id)
+  #expect(store.decks.count == 2)
+
+  let files = try FileManager.default.contentsOfDirectory(atPath: directory.path)
+  #expect(files.count == 2)
+  #expect(files.filter { $0.hasSuffix("-2.csv") }.count == 1)
+
+  let broken = URL.temporaryDirectory.appending(path: "broken-\(UUID().uuidString).csv")
+  try Data("ja\n".utf8).write(to: broken)
+  #expect(throws: DeckStoreError.unreadableFile(broken.lastPathComponent)) {
+    _ = try store.importDeck(from: broken)
+  }
+}
+
+@MainActor
+@Test func deckEditorLocksStudiedCards() throws {
+  let csv = "ja,en\n猫[ねこ],cat\n犬[いぬ],dog\n鳥[とり],bird\n"
+  let deck = try CSVDeckLoader.load(name: "Japanese", data: Data(csv.utf8))
+  let studied = deck.cards[0]
+  let editor = DeckEditor(deck: deck) { $0 == studied }
+  #expect(editor.lockedCount == 1)
+  #expect(editor.isLocked(studied))
+
+  #expect(throws: DeckEditor.Failure.locked) { _ = try editor.shift(from: 0, by: 1) }
+  #expect(throws: DeckEditor.Failure.locked) { _ = try editor.remove(at: IndexSet(integer: 0)) }
+  #expect(throws: DeckEditor.Failure.locked) {
+    _ = try editor.remove(at: IndexSet([0, 1]))
+  }
+  #expect(throws: DeckEditor.Failure.locked) {
+    _ = try editor.replace(studied, prompt: "猫[ねこ]", answer: "a cat")
+  }
+  #expect(throws: DeckEditor.Failure.locked) { _ = try editor.move(from: IndexSet(integer: 0), to: 3) }
+}
+
+@MainActor
+@Test func deckEditorReordersAddsAndRemovesUnstudiedCards() throws {
+  let csv = "ja,en\n猫[ねこ],cat\n犬[いぬ],dog\n鳥[とり],bird\n"
+  let deck = try CSVDeckLoader.load(name: "Japanese", data: Data(csv.utf8))
+  let editor = DeckEditor(deck: deck) { _ in false }
+
+  #expect(try editor.shift(from: 2, by: -1).cards.map(\.prompt) == ["猫[ねこ]", "鳥[とり]", "犬[いぬ]"])
+  #expect(try editor.move(from: IndexSet(integer: 0), to: 3).cards.map(\.prompt)
+    == ["犬[いぬ]", "鳥[とり]", "猫[ねこ]"])
+  #expect(try editor.remove(at: IndexSet([0, 2])).cards.map(\.prompt) == ["犬[いぬ]"])
+  // Shifting past either end is a no-op rather than an error.
+  #expect(try editor.shift(from: 0, by: -1).cards == deck.cards)
+
+  let added = try editor.append(prompt: "  魚[さかな] ", answer: " fish ")
+  #expect(added.cards.count == 4)
+  #expect(added.cards[3].prompt == "魚[さかな]")
+  #expect(added.cards[3].answer == "fish")
+
+  #expect(throws: DeckEditor.Failure.empty) { _ = try editor.append(prompt: " ", answer: "fish") }
+  #expect(throws: DeckEditor.Failure.duplicate) {
+    _ = try editor.append(prompt: "猫[ねこ]", answer: "cat")
+  }
+  #expect(throws: DeckEditor.Failure.duplicate) {
+    _ = try editor.replace(deck.cards[1], prompt: "猫[ねこ]", answer: "cat")
+  }
+
+  let edited = try editor.replace(deck.cards[1], prompt: "犬[いぬ]", answer: "a dog")
+  #expect(edited.cards[1].answer == "a dog")
+  #expect(edited.cards.count == 3)
+}
+
+@MainActor
+@Test func editingKeepsProgressForUntouchedCardsOnly() throws {
+  let csv = "ja,en\n猫[ねこ],cat\n犬[いぬ],dog\n鳥[とり],bird\n"
+  var deck = try CSVDeckLoader.load(name: "Japanese", data: Data(csv.utf8))
+  let defaults = try #require(UserDefaults(suiteName: "edit-\(UUID().uuidString)"))
+  let store = StudyStore(deck: deck, defaults: defaults)
+
+  store.grade(.easy, now: Date())
+  let studied = deck.cards[0]
+  #expect(store.isStudied(studied))
+  #expect(!store.isStudied(deck.cards[1]))
+
+  // Reordering the unstudied tail and dropping one card keeps the studied card's progress.
+  deck.cards = [studied, deck.cards[2]]
+  store.updateDeck(deck)
+  #expect(store.reviewStates.count == 1)
+  #expect(store.isStudied(studied))
+
+  // Rewriting the studied card's text gives it a new identity, so its progress goes.
+  deck.cards = [DeckCard(prompt: "猫[ねこ]", answer: "a cat", languageCode: "ja")]
+  store.updateDeck(deck)
+  #expect(store.reviewStates.isEmpty)
+  #expect(StudyStore(deck: deck, defaults: defaults).reviewStates.isEmpty)
 }
 
 @MainActor

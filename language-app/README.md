@@ -28,7 +28,27 @@ restarts the phrase from the beginning.
 
 Long pressing a deck on the home screen offers "Reset progress", which asks for
 confirmation and then makes every card in that deck new again. The same action is
-available from the gear menu while studying a deck.
+available from the gear menu while studying a deck. "Delete deck" removes the
+deck file; a deleted bundled deck comes back on the next launch.
+
+## Decks on disk
+
+Decks are CSV files in the app's documents directory, which is what makes them
+editable. The bundled decks are copied there on first launch and refreshed from
+the bundle whenever the copy is still untouched, so edits are never overwritten.
+
+Long pressing a deck offers "Inspect deck": a list of every card in queue order
+with the studied ones counted in the header. Cards that have not been studied can
+be reordered, edited, added and removed, and new cards enter the queue from the
+top down. A card's identity is its text, so a studied card is locked behind a
+padlock until the deck's progress is reset; changing its text would strand its
+schedule. On iOS the Edit button turns on drag handles and swipe to delete; on
+both platforms each row's context menu offers edit, move up, move down and
+remove.
+
+The plus button on the home screen either uploads a CSV deck, copying it in and
+numbering the file when the name is taken, or creates an empty deck by hand from
+a name, a prompt language code and an answer column name.
 
 ## Daily queue
 

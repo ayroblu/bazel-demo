@@ -151,6 +151,22 @@ public final class StudyStore {
     saveProgress()
   }
 
+  public func isStudied(_ card: DeckCard) -> Bool {
+    reviewStates[card.id] != nil
+  }
+
+  /// Takes an edited deck. A card's identity comes from its text, so progress for cards that
+  /// were removed or rewritten is dropped rather than left stranded.
+  public func updateDeck(_ deck: Deck) {
+    self.deck = deck
+    showingAnswer = false
+    let live = Set(deck.cards.map(\.id))
+    let kept = reviewStates.filter { live.contains($0.key) }
+    guard kept.count != reviewStates.count else { return }
+    reviewStates = kept
+    saveProgress()
+  }
+
   public func resetProgress() {
     reviewStates = [:]
     showingAnswer = false
