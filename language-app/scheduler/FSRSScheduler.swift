@@ -1,19 +1,11 @@
 import Foundation
 
-/// Where a card sits in Anki's queue model: intra-day steps for new and lapsed cards,
-/// day-scale intervals once the card has graduated.
-public enum LearningPhase: String, Codable, Sendable {
-  case learning
-  case review
-  case relearning
-}
-
 /// FSRS-5 memory model combined with Anki's learning and relearning steps.
 ///
 /// Anki does not let FSRS schedule same-day repetitions: new cards walk the fixed
 /// learning steps (1m, 10m by default) and lapsed cards walk the relearning steps (10m),
 /// while FSRS tracks stability and difficulty throughout and picks every interval of a
-/// day or longer.
+/// day or longer. Intervals are not fuzzed, so a given history always schedules the same way.
 public enum FSRSScheduler {
   /// FSRS-5 default parameters published by the open-spaced-repetition project.
   private static let weights = [
@@ -24,6 +16,8 @@ public enum FSRSScheduler {
   private static let factor = 19.0 / 81.0
   private static let decay = -0.5
   private static let day: TimeInterval = 86_400
+  /// Anki's default maximum interval.
+  public static let maximumIntervalDays = 36_500
 
   /// Anki's default deck preset steps.
   public static let learningSteps: [TimeInterval] = [60, 600]
@@ -33,22 +27,30 @@ public enum FSRSScheduler {
     _ previous: ReviewState?,
     rating: CardRating,
     now: Date = Date(),
-    calendar: Calendar = .current
+    calendar: SchedulerCalendar = SchedulerCalendar()
   ) -> ReviewState {
     var state = previous ?? ReviewState()
     let isNew = state.reps == 0 || state.lastReview == nil
-    let elapsedDays = state.lastReview.map { max(0, now.timeIntervalSince($0) / day) } ?? 0
+    let elapsedDays = state.lastReview.map { calendar.elapsedDays(from: $0, to: now) } ?? 0
 
     if isNew {
       state.stability = initialStability(rating)
       state.difficulty = initialDifficulty(rating)
     } else {
-      let sameDay = state.phase != .review
-      state.difficulty = nextDifficulty(previous: state.difficulty, rating: rating)
+      // FSRS derives the new stability from the difficulty the card carried into the review,
+      // so difficulty is updated afterwards.
+      let difficulty = state.difficulty
+      // Anki picks the short-term formula by the day boundary, not by the queue the card is in.
       state.stability =
-        sameDay
+        elapsedDays == 0
         ? shortTermStability(state.stability, rating: rating)
-        : longTermStability(state.stability, difficulty: state.difficulty, rating: rating, elapsedDays: elapsedDays)
+        : longTermStability(
+          state.stability,
+          difficulty: difficulty,
+          rating: rating,
+          elapsedDays: Double(elapsedDays)
+        )
+      state.difficulty = nextDifficulty(previous: difficulty, rating: rating)
     }
 
     // Anki counts a lapse only when a graduated card is forgotten.
@@ -62,17 +64,22 @@ public enum FSRSScheduler {
     state.phase = outcome.phase
     state.step = outcome.step
     state.scheduledInterval = outcome.interval
-    state.elapsedDays = elapsedDays
+    state.elapsedDays = Double(elapsedDays)
     state.reps += 1
     state.lastReview = now
-    state.due = due(from: now, interval: outcome.interval, isDayScale: outcome.phase == .review, calendar: calendar)
+    state.due = due(
+      from: now,
+      interval: outcome.interval,
+      isDayScale: outcome.phase == .review,
+      calendar: calendar
+    )
     return state
   }
 
   public static func previewIntervals(
     for previous: ReviewState?,
     now: Date = Date(),
-    calendar: Calendar = .current
+    calendar: SchedulerCalendar = SchedulerCalendar()
   ) -> [CardRating: TimeInterval] {
     Dictionary(
       uniqueKeysWithValues: CardRating.allCases.map { rating in
@@ -140,15 +147,17 @@ public enum FSRSScheduler {
     }
   }
 
+  /// Sub-day steps come due to the minute; a day scale interval comes due at the rollover
+  /// that many days ahead, the way Anki stores due dates as day numbers.
   private static func due(
     from now: Date,
     interval: TimeInterval,
     isDayScale: Bool,
-    calendar: Calendar
+    calendar: SchedulerCalendar
   ) -> Date {
     guard isDayScale else { return now.addingTimeInterval(interval) }
-    let days = Int((interval / day).rounded())
-    return calendar.date(byAdding: .day, value: days, to: now) ?? now.addingTimeInterval(interval)
+    let days = max(1, Int((interval / day).rounded()))
+    return calendar.startOfDay(byAdding: days, to: now)
   }
 
   // MARK: - FSRS memory model
@@ -192,7 +201,7 @@ public enum FSRSScheduler {
         * (pow(stability + 1, weights[13]) - 1)
         * exp((1 - recall) * weights[14])
       // A lapse never raises stability.
-      return clamp(min(forgotten, stability), lower: 0.1, upper: 36_500)
+      return clamp(min(forgotten, stability), lower: 0.1, upper: Double(maximumIntervalDays))
     }
     let hardPenalty = rating == .hard ? weights[15] : 1
     let easyBonus = rating == .easy ? weights[16] : 1
@@ -204,13 +213,13 @@ public enum FSRSScheduler {
         * (exp((1 - recall) * weights[10]) - 1)
         * hardPenalty
         * easyBonus)
-    return clamp(grown, lower: 0.1, upper: 36_500)
+    return clamp(grown, lower: 0.1, upper: Double(maximumIntervalDays))
   }
 
   /// Interval that hits the requested retention, floored at Anki's one day minimum.
   private static func graduatedInterval(stability: Double) -> TimeInterval {
     let days = stability / factor * (pow(requestedRetention, 1 / decay) - 1)
-    return Double(max(1, min(Int(days.rounded()), 36_500))) * day
+    return Double(max(1, min(Int(days.rounded()), maximumIntervalDays))) * day
   }
 
   private static func clamp(_ value: Double, lower: Double, upper: Double) -> Double {

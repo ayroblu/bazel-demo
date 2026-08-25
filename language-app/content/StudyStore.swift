@@ -1,4 +1,5 @@
 import Foundation
+import LanguageScheduler
 import Observation
 
 @MainActor
@@ -15,7 +16,7 @@ public final class StudyStore {
   public static let speechRateRange = 0.5...2.0
 
   private let defaults: UserDefaults
-  private let calendar: Calendar
+  private let calendar: SchedulerCalendar
 
   /// Drives the due-card queue; intra-day steps need re-evaluation while the deck is open.
   public private(set) var clock = Date()
@@ -61,7 +62,11 @@ public final class StudyStore {
     }
   }
 
-  public init(deck: Deck, defaults: UserDefaults = .standard, calendar: Calendar = .current) {
+  public init(
+    deck: Deck,
+    defaults: UserDefaults = .standard,
+    calendar: SchedulerCalendar = SchedulerCalendar()
+  ) {
     let key = "language-app.new-per-day.v1.\(deck.id)"
     newCardsPerDay = max(0, defaults.object(forKey: key) as? Int ?? Self.defaultNewCardsPerDay)
     let storedRate = defaults.object(forKey: "language-app.speech-rate.v1.\(deck.id)") as? Double
@@ -107,7 +112,7 @@ public final class StudyStore {
 
   public var counts: QueueCounts {
     guard let deck else { return QueueCounts() }
-    let endOfDay = calendar.startOfDay(for: clock).addingTimeInterval(86_400)
+    let endOfDay = calendar.endOfDay(for: clock)
     var counts = QueueCounts(new: min(newCardsRemainingToday, unseenCards.count))
     for card in deck.cards {
       guard let state = reviewStates[card.id] else { continue }
@@ -129,14 +134,19 @@ public final class StudyStore {
   /// True once nothing is left for today while unseen cards are still held back by the limit.
   public var isDayComplete: Bool {
     guard !unseenCards.isEmpty, dueCards.isEmpty else { return false }
-    let endOfDay = calendar.startOfDay(for: clock).addingTimeInterval(86_400)
+    let endOfDay = calendar.endOfDay(for: clock)
     guard let next = nextDueDate else { return true }
     return next >= endOfDay
   }
 
   public func previewInterval(for rating: CardRating, now: Date = Date()) -> TimeInterval {
     guard let card = currentCard else { return 0 }
-    return FSRSScheduler.review(reviewStates[card.id], rating: rating, now: now).scheduledInterval
+    return FSRSScheduler.review(
+      reviewStates[card.id],
+      rating: rating,
+      now: now,
+      calendar: calendar
+    ).scheduledInterval
   }
 
   public func revealAnswer() {
@@ -165,7 +175,12 @@ public final class StudyStore {
     guard let card = currentCard else { return }
     let isFirstSight = reviewStates[card.id] == nil
     rolloverIfNeeded(now: now)
-    reviewStates[card.id] = FSRSScheduler.review(reviewStates[card.id], rating: rating, now: now)
+    reviewStates[card.id] = FSRSScheduler.review(
+      reviewStates[card.id],
+      rating: rating,
+      now: now,
+      calendar: calendar
+    )
     if isFirstSight {
       daily.introduced += 1
       saveDaily()

@@ -1,19 +1,18 @@
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library", "swift_test")
-load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS", "STRICT_NONISOLATED_COPTS")
+load("//swift-shared:concurrency.bzl", "STRICT_NONISOLATED_COPTS")
 
 package(default_visibility = ["//language-app:__subpackages__"])
 
 swift_library(
-    name = "content",
+    name = "scheduler",
     srcs = glob(["*.swift"]),
-    copts = STRICT_MAINACTOR_COPTS,
-    module_name = "LanguageContent",
-    deps = ["//language-app/scheduler"],
+    copts = STRICT_NONISOLATED_COPTS,
+    module_name = "LanguageScheduler",
 )
 
 swift_test(
-    name = "content-tests",
+    name = "scheduler-tests",
     srcs = glob(["tests/*.swift"]),
     copts = STRICT_NONISOLATED_COPTS,
-    deps = [":content"],
+    deps = [":scheduler"],
 )

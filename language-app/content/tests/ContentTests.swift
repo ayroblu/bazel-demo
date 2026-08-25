@@ -1,5 +1,6 @@
 import AVFoundation
 import Foundation
+import LanguageScheduler
 import Testing
 @testable import LanguageContent
 
@@ -306,71 +307,7 @@ private func emptyDeckStore() throws -> (store: DeckStore, directory: URL, defau
   #expect(!store.showingAnswer)
 }
 
-@MainActor
-@Test func walksAnkiLearningStepsBeforeGraduating() {
-  let now = Date(timeIntervalSince1970: 1_700_000_000)
 
-  let again = FSRSScheduler.review(nil, rating: .again, now: now)
-  #expect(again.scheduledInterval == 60)
-  #expect(again.phase == .learning)
-  #expect(again.lapses == 0)
-
-  let hard = FSRSScheduler.review(nil, rating: .hard, now: now)
-  #expect(hard.scheduledInterval == 330)
-  #expect(hard.step == 0)
-
-  let firstStep = FSRSScheduler.review(nil, rating: .good, now: now)
-  #expect(firstStep.scheduledInterval == 600)
-  #expect(firstStep.phase == .learning)
-  #expect(firstStep.step == 1)
-  #expect(firstStep.reps == 1)
-
-  let graduated = FSRSScheduler.review(firstStep, rating: .good, now: now.addingTimeInterval(600))
-  #expect(graduated.phase == .review)
-  #expect(graduated.scheduledInterval >= 86_400)
-  #expect(graduated.stability > firstStep.stability)
-  #expect(graduated.due > now.addingTimeInterval(600))
-
-  // Easy skips the remaining steps and hands the card straight to FSRS.
-  let easy = FSRSScheduler.review(nil, rating: .easy, now: now)
-  #expect(easy.phase == .review)
-  #expect(easy.scheduledInterval > graduated.scheduledInterval)
-}
-
-@MainActor
-@Test func lapsedReviewCardEntersRelearningSteps() {
-  let now = Date(timeIntervalSince1970: 1_700_000_000)
-  let firstStep = FSRSScheduler.review(nil, rating: .good, now: now)
-  let graduated = FSRSScheduler.review(firstStep, rating: .good, now: now.addingTimeInterval(600))
-
-  let lapseTime = graduated.due
-  let lapsed = FSRSScheduler.review(graduated, rating: .again, now: lapseTime)
-  #expect(lapsed.phase == .relearning)
-  #expect(lapsed.scheduledInterval == 600)
-  #expect(lapsed.lapses == 1)
-  #expect(lapsed.stability <= graduated.stability)
-
-  let recovered = FSRSScheduler.review(lapsed, rating: .good, now: lapseTime.addingTimeInterval(600))
-  #expect(recovered.phase == .review)
-  #expect(recovered.scheduledInterval >= 86_400)
-  #expect(recovered.lapses == 1)
-}
-
-@MainActor
-@Test func intervalsGrowAcrossSuccessfulReviews() {
-  let now = Date(timeIntervalSince1970: 1_700_000_000)
-  var state = FSRSScheduler.review(
-    FSRSScheduler.review(nil, rating: .good, now: now),
-    rating: .good,
-    now: now.addingTimeInterval(600)
-  )
-  var previous = state.scheduledInterval
-  for _ in 1...4 {
-    state = FSRSScheduler.review(state, rating: .good, now: state.due)
-    #expect(state.scheduledInterval > previous)
-    previous = state.scheduledInterval
-  }
-}
 
 @MainActor
 @Test func dueQueueHonoursLearningStepsUntilTheClockAdvances() throws {
@@ -407,6 +344,61 @@ private func numberedDeck(_ count: Int) throws -> Deck {
 }
 
 private let middayToday = Calendar.current.startOfDay(for: Date()).addingTimeInterval(12 * 3_600)
+
+@MainActor
+@Test func leavingAndReturningToADeckChangesNoSchedule() throws {
+  let csv = "ja,en\n猫[ねこ],cat\n犬[いぬ],dog\n鳥[とり],bird\n"
+  let deck = try CSVDeckLoader.load(name: "Japanese", data: Data(csv.utf8))
+  let suite = "revisit-\(UUID().uuidString)"
+  let defaults = try #require(UserDefaults(suiteName: suite))
+  defer { defaults.removePersistentDomain(forName: suite) }
+
+  let store = StudyStore(deck: deck, defaults: defaults)
+  let now = Date()
+  store.grade(.good, now: now)
+  store.grade(.easy, now: now)
+  let afterStudying = store.reviewStates
+
+  // Opening, closing and reopening the deck, and time passing, only move the queue on.
+  for offset in [60.0, 600.0, 3_600.0, 86_400.0, 8 * 86_400.0] {
+    store.hideAnswer()
+    store.advanceClock(to: now.addingTimeInterval(offset))
+    store.revealAnswer()
+    #expect(store.reviewStates == afterStudying)
+  }
+  #expect(StudyStore(deck: deck, defaults: defaults).reviewStates == afterStudying)
+}
+
+@MainActor
+@Test func theDailyLimitResetsAtTheRolloverHourNotAtMidnight() throws {
+  var utc = Calendar(identifier: .gregorian)
+  utc.timeZone = try #require(TimeZone(identifier: "UTC"))
+  let anki = SchedulerCalendar(rolloverHour: 4, calendar: utc)
+  func at(_ day: Int, _ hour: Int) throws -> Date {
+    try #require(utc.date(from: DateComponents(year: 2026, month: 3, day: day, hour: hour)))
+  }
+
+  let csv = "ja,en\n" + (1...6).map { "猫[ねこ]\($0),cat \($0)" }.joined(separator: "\n") + "\n"
+  let deck = try CSVDeckLoader.load(name: "Japanese", data: Data(csv.utf8))
+  let defaults = try #require(UserDefaults(suiteName: "rollover-\(UUID().uuidString)"))
+  let store = StudyStore(deck: deck, defaults: defaults, calendar: anki)
+  store.newCardsPerDay = 2
+
+  store.grade(.easy, now: try at(10, 23))
+  store.grade(.easy, now: try at(10, 23))
+  #expect(store.counts.new == 0)
+  #expect(store.isDayComplete)
+
+  // Past midnight but before the rollover is still the same study day.
+  store.advanceClock(to: try at(11, 1))
+  #expect(store.counts.new == 0)
+  #expect(store.isDayComplete)
+
+  // The rollover releases the next batch.
+  store.advanceClock(to: try at(11, 5))
+  #expect(store.counts.new == 2)
+  #expect(!store.isDayComplete)
+}
 
 @MainActor
 @Test func dailyNewCardLimitHoldsBackUnseenCards() throws {

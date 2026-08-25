@@ -1,4 +1,5 @@
 import AVFoundation
+import LanguageScheduler
 import SwiftUI
 
 public struct ContentView: View {
@@ -360,7 +361,7 @@ private struct RatingButtons: View {
         store.grade(rating)
       } label: {
         VStack(spacing: 2) {
-          Text(rating.title)
+          Text(title(for: rating))
           Text(intervalLabel(store.previewInterval(for: rating)))
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -382,6 +383,15 @@ private struct RatingButtons: View {
     case ..<(30 * 86_400): "\(Int((interval / 86_400).rounded()))d"
     case ..<(365 * 86_400): String(format: "%.1fmo", interval / (30.417 * 86_400))
     default: String(format: "%.1fy", interval / (365 * 86_400))
+    }
+  }
+
+  private func title(for rating: CardRating) -> String {
+    switch rating {
+    case .again: "Again"
+    case .hard: "Hard"
+    case .good: "Good"
+    case .easy: "Easy"
     }
   }
 
