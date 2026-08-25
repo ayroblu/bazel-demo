@@ -1,4 +1,3 @@
-import AVFoundation
 import LanguageScheduler
 import SwiftUI
 
@@ -193,7 +192,12 @@ private struct StudyDeckView: View {
       }
     }
     .sheet(isPresented: $showingSettings) {
-      SettingsView(store: store, speech: speech, languageCode: deck.languageCode)
+      SettingsView(
+        store: store,
+        speech: speech,
+        languageCode: deck.languageCode,
+        answerLanguageCode: deck.answerColumnName
+      )
     }
   }
 }
@@ -305,6 +309,9 @@ private struct BrowseDeckView: View {
   @Environment(\.dismiss) private var dismiss
   @State private var speech = SpeechPlayer()
   @State private var session: BrowseSession
+  @State private var autoRunning = false
+  @State private var autoStep = 0
+  @State private var showingSettings = false
 
   init(deck: Deck, speechRate: Double) {
     self.deck = deck
@@ -330,19 +337,33 @@ private struct BrowseDeckView: View {
             VStack(spacing: 16) {
               HStack {
                 SpeechToggleButton(card: card, speech: speech, rate: speechRate)
+                  .disabled(autoRunning)
                 Spacer()
+                Button {
+                  autoRunning ? stopAuto() : startAuto()
+                } label: {
+                  Label(
+                    autoRunning ? "Stop auto" : "Auto",
+                    systemImage: autoRunning ? "stop.fill" : "play.fill"
+                  )
+                }
+                .buttonStyle(.bordered)
               }
 
               HStack(spacing: 12) {
-                Button("Previous", systemImage: "chevron.left") { session.back() }
-                  .disabled(!session.canGoBack)
-                  .keyboardShortcut(.leftArrow, modifiers: [])
+                Button("Previous", systemImage: "chevron.left") {
+                  session.back()
+                  restartAutoIfRunning()
+                }
+                .disabled(!session.canGoBack)
+                .keyboardShortcut(.leftArrow, modifiers: [])
                 Spacer()
                 Button(
                   session.showingAnswer ? "Next card" : "Show answer",
                   systemImage: "chevron.right"
                 ) {
                   session.forward()
+                  restartAutoIfRunning()
                 }
                 .disabled(!session.canGoForward)
                 .keyboardShortcut(.rightArrow, modifiers: [])
@@ -355,9 +376,11 @@ private struct BrowseDeckView: View {
           .padding()
           .frame(maxWidth: 720)
           .onAppear {
+            guard !autoRunning else { return }
             speech.start(card.prompt, languageCode: card.languageCode, rate: speechRate)
           }
           .onChange(of: card.id) { _, _ in
+            guard !autoRunning else { return }
             speech.start(card.prompt, languageCode: card.languageCode, rate: speechRate)
           }
         } else {
@@ -370,15 +393,128 @@ private struct BrowseDeckView: View {
       }
       .navigationTitle(deck.name)
       .toolbar {
+        ToolbarItem(placement: .primaryAction) {
+          Button("Voices", systemImage: "gearshape") {
+            stopAuto()
+            showingSettings = true
+          }
+        }
+        ToolbarItem(placement: .confirmationAction) {
+          Button("Done") { dismiss() }
+        }
+      }
+      .sheet(isPresented: $showingSettings) {
+        VoiceSettingsView(
+          speech: speech,
+          languageCode: deck.languageCode,
+          answerLanguageCode: deck.answerColumnName
+        )
+      }
+    }
+    .onDisappear {
+      autoRunning = false
+      speech.stop()
+    }
+    #if os(macOS)
+      .frame(minWidth: 480, minHeight: 520)
+    #endif
+  }
+
+  private func startAuto() {
+    speech.stop()
+    autoStep = 0
+    autoRunning = true
+    playAutoStep()
+  }
+
+  private func stopAuto() {
+    autoRunning = false
+    speech.stop()
+  }
+
+  private func restartAutoIfRunning() {
+    guard autoRunning else { return }
+    autoStep = 0
+    playAutoStep()
+  }
+
+  private func playAutoStep() {
+    guard autoRunning, let card = session.card else { return }
+    guard autoStep < AutoBrowse.steps.count else {
+      guard session.nextCard() else { return stopAuto() }
+      autoStep = 0
+      return playAutoStep()
+    }
+    let step = AutoBrowse.steps[autoStep]
+    if step == .answer { session.reveal() }
+    speech.speakOnce(
+      step == .question ? card.prompt : card.answer,
+      languageCode: step == .question ? card.languageCode : deck.answerColumnName,
+      rate: speechRate
+    ) {
+      guard autoRunning else { return }
+      autoStep += 1
+      playAutoStep()
+    }
+  }
+}
+
+private struct VoiceSettingsView: View {
+  let speech: SpeechPlayer
+  let languageCode: String
+  let answerLanguageCode: String
+  @Environment(\.dismiss) private var dismiss
+
+  var body: some View {
+    NavigationStack {
+      Form {
+        Section {
+          VoicePicker(title: "Question voice", languageCode: languageCode, speech: speech)
+          VoicePicker(title: "Answer voice", languageCode: answerLanguageCode, speech: speech)
+        } header: {
+          Text("Voices")
+        } footer: {
+          Text(SettingsView.voiceDownloadHint)
+        }
+      }
+      .navigationTitle("Voices")
+      .toolbar {
         ToolbarItem(placement: .confirmationAction) {
           Button("Done") { dismiss() }
         }
       }
     }
-    .onDisappear { speech.stop() }
-    #if os(macOS)
-      .frame(minWidth: 480, minHeight: 520)
-    #endif
+    .frame(minWidth: 360, minHeight: 260)
+  }
+}
+
+private struct VoicePicker: View {
+  let title: String
+  let languageCode: String
+  let speech: SpeechPlayer
+
+  private var selection: Binding<String> {
+    Binding(
+      get: { speech.voices.voice(for: languageCode)?.identifier ?? "" },
+      set: { identifier in
+        speech.voices.select(identifier.isEmpty ? nil : identifier, for: languageCode)
+        // The new voice applies to the next playback.
+        speech.stop()
+      }
+    )
+  }
+
+  var body: some View {
+    let voices = VoiceCatalog.voices(for: languageCode)
+    if voices.isEmpty {
+      Text("No installed voice speaks \(languageCode).")
+    } else {
+      Picker(title, selection: selection) {
+        ForEach(voices, id: \.identifier) { voice in
+          Text(VoiceCatalog.describe(voice)).tag(voice.identifier)
+        }
+      }
+    }
   }
 }
 
@@ -897,45 +1033,24 @@ private struct SettingsView: View {
   @Bindable var store: StudyStore
   let speech: SpeechPlayer
   let languageCode: String
+  let answerLanguageCode: String
   @Environment(\.dismiss) private var dismiss
   @State private var confirmingReset = false
 
   #if os(macOS)
-    private static let voiceDownloadHint =
+    static let voiceDownloadHint =
       "Compact voices sound robotic. Add an enhanced or premium voice in System Settings › Accessibility › Spoken Content › System Voice › Manage Voices, then pick it here."
   #else
-    private static let voiceDownloadHint =
+    static let voiceDownloadHint =
       "Compact voices sound robotic. Add an enhanced or premium voice in Settings › Accessibility › Read & Speak › Voices (Spoken Content before iOS 26), then pick it here."
   #endif
-
-  private var availableVoices: [AVSpeechSynthesisVoice] {
-    VoiceCatalog.voices(for: languageCode)
-  }
-
-  private var voiceSelection: Binding<String> {
-    Binding(
-      get: { speech.voices.voice(for: languageCode)?.identifier ?? "" },
-      set: { identifier in
-        speech.voices.select(identifier.isEmpty ? nil : identifier, for: languageCode)
-        // The new voice applies to the next playback.
-        speech.stop()
-      }
-    )
-  }
 
   var body: some View {
     NavigationStack {
       Form {
         Section {
-          if availableVoices.isEmpty {
-            Text("No installed voice speaks \(languageCode).")
-          } else {
-            Picker("Voice", selection: voiceSelection) {
-              ForEach(availableVoices, id: \.identifier) { voice in
-                Text(VoiceCatalog.describe(voice)).tag(voice.identifier)
-              }
-            }
-          }
+          VoicePicker(title: "Question voice", languageCode: languageCode, speech: speech)
+          VoicePicker(title: "Answer voice", languageCode: answerLanguageCode, speech: speech)
           VStack(alignment: .leading, spacing: 4) {
             LabeledContent("Speaking speed") {
               Text(String(format: "%.1f×", store.speechRate))

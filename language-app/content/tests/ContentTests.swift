@@ -614,3 +614,29 @@ private let middayToday = Calendar.current.startOfDay(for: Date()).addingTimeInt
   session.forward()
   #expect(session.card == nil)
 }
+
+@Test func autoPlayReadsTheQuestionThreeTimesThenAlternatesWithTheAnswer() {
+  let steps = AutoBrowse.steps
+
+  #expect(steps.prefix(3).allSatisfy { $0 == .question })
+  #expect(steps.dropFirst(3) == [.answer, .question, .answer, .question, .answer, .question])
+  #expect(steps.filter { $0 == .answer }.count == 3)
+}
+
+@Test func autoPlayAdvancesToTheNextCardAndStopsAtTheEnd() throws {
+  let csv = "ja,en\n猫[ねこ],cat\n犬[いぬ],dog\n"
+  let deck = try CSVDeckLoader.load(name: "Japanese", data: Data(csv.utf8))
+  var session = BrowseSession(cards: deck.cards)
+
+  session.reveal()
+  #expect(session.showingAnswer)
+
+  let movedOn = session.nextCard()
+  #expect(movedOn)
+  #expect(session.card == deck.cards[1])
+  #expect(!session.showingAnswer)
+
+  let movedPastTheEnd = session.nextCard()
+  #expect(!movedPastTheEnd)
+  #expect(session.index == 1)
+}

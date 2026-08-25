@@ -31,6 +31,18 @@ public struct BrowseSession: Equatable, Sendable {
     }
   }
 
+  public mutating func reveal() {
+    showingAnswer = true
+  }
+
+  @discardableResult
+  public mutating func nextCard() -> Bool {
+    guard index + 1 < cards.count else { return false }
+    index += 1
+    showingAnswer = false
+    return true
+  }
+
   public mutating func back() {
     if showingAnswer {
       showingAnswer = false

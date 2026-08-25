@@ -16,9 +16,9 @@ first launch, and refreshed from the bundle while the copy is unedited.
 
 ## Studying
 
-Each card speaks its prompt on a loop, so the toolbar button starts on Stop. The gear
-menu picks any installed voice for the deck's language and sets a speaking speed from
-0.5× to 2×, both taking effect on the next playback. Compact voices sound robotic;
+Each card speaks its prompt on a loop, and the Play/Stop button sits above the answer
+buttons. The gear menu picks installed voices for the question and answer languages
+and sets a speaking speed from 0.5× to 2×, all taking effect on the next playback. Compact voices sound robotic;
 enhanced and premium voices are downloaded through the system's Spoken Content
 settings.
 
@@ -33,7 +33,11 @@ Long pressing a deck offers "Browse deck", "Inspect deck", "Reset progress" and
 or creates an empty one by hand.
 
 Browsing reads a deck in file order and leaves the schedule alone: the arrows at the
-bottom step back and forward, and forward reveals the answer before moving on.
+bottom step back and forward, and forward reveals the answer before moving on. The
+Auto button on the right plays a card hands free: the question three times, then the
+answer and question alternating three times, then the next card. The gear picks the
+question and answer voices, the answer voice coming from the deck's answer column
+name.
 
 Inside a deck, cards appear in queue order and new cards are introduced from the top
 down. Unstudied cards can be reordered, edited, added and removed. A card's identity

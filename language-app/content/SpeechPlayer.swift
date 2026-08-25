@@ -15,6 +15,8 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
   private var languageCode: String?
   private var rate = AVSpeechUtteranceDefaultSpeechRate
   private var repeatWork: DispatchWorkItem?
+  private var repeats = true
+  private var completion: (() -> Void)?
 
   public init(voices: VoicePreferences = VoicePreferences()) {
     self.voices = voices
@@ -30,8 +32,27 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
     phrase = annotatedText
     self.languageCode = languageCode
     rate = Self.utteranceRate(multiplier: multiplier)
+    repeats = true
     isPlaying = true
-    speakOnce()
+    speak()
+  }
+
+  /// Speaks the phrase once and calls back after the same pause a repeat would take.
+  public func speakOnce(
+    _ annotatedText: String,
+    languageCode: String,
+    rate multiplier: Double = 1,
+    completion: @escaping () -> Void
+  ) {
+    stop()
+    activateAudioSession()
+    phrase = annotatedText
+    self.languageCode = languageCode
+    rate = Self.utteranceRate(multiplier: multiplier)
+    repeats = false
+    self.completion = completion
+    isPlaying = true
+    speak()
   }
 
   /// Maps a multiplier onto the range AVSpeechUtterance accepts.
@@ -46,6 +67,8 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
   public func stop() {
     repeatWork?.cancel()
     repeatWork = nil
+    repeats = true
+    completion = nil
     isPlaying = false
     synthesizer.stopSpeaking(at: .immediate)
     deactivateAudioSession()
@@ -76,7 +99,7 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
     #endif
   }
 
-  private func speakOnce() {
+  private func speak() {
     guard let phrase, let languageCode else { return }
     let utterance = AVSpeechUtterance(string: FuriganaParser.speechText(phrase))
     utterance.voice = voices.voice(for: languageCode) ?? AVSpeechSynthesisVoice(language: languageCode)
@@ -87,13 +110,21 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
 
   /// Repeats are scheduled on the main run loop rather than in a Task, so speech
   /// synthesis is never started from a Swift concurrency thread.
-  private func scheduleRepeat() {
+  private func scheduleNext() {
     guard isPlaying else { return }
     repeatWork?.cancel()
+    let repeats = repeats
     let work = DispatchWorkItem { [weak self] in
       MainActor.assumeIsolated {
         guard let self, self.isPlaying else { return }
-        self.speakOnce()
+        if repeats {
+          self.speak()
+        } else {
+          let completion = self.completion
+          self.completion = nil
+          self.isPlaying = false
+          completion?()
+        }
       }
     }
     repeatWork = work
@@ -106,7 +137,7 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
   ) {
     DispatchQueue.main.async { [weak self] in
       MainActor.assumeIsolated {
-        self?.scheduleRepeat()
+        self?.scheduleNext()
       }
     }
   }
