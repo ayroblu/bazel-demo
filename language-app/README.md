@@ -4,9 +4,12 @@ Language App
 A shared SwiftUI app for iOS and macOS that studies CSV language decks with an
 FSRS spaced-repetition schedule.
 
-The home screen lists every CSV bundled from `decks/`. The Japanese deck holds a
-thousand phrases ordered from the most common vocabulary down, each phrase
-introducing one new noun or verb; the Spanish deck is a ten card sample. The
+The home screen lists every CSV bundled from `decks/`. Two Japanese decks hold a
+thousand phrases each, ordered from the most common vocabulary down, every phrase
+introducing one new noun or verb: `japanese.csv` teaches general polite Japanese,
+while `anime.csv` teaches the plain casual speech of anime dialogue and weights
+its later cards towards emotion, conflict and genre vocabulary instead of news
+and business. The Spanish deck is a ten card sample. The
 first column header is a BCP 47 language code used by Apple's speech synthesizer, such as `ja` or `es`; the
 second column is the answer. Japanese furigana uses
 `word[reading]` notation, for example `日本語[にほんご]`. The app displays the
