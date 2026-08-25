@@ -71,6 +71,7 @@ private struct DeckLink: View {
   @State private var confirmingReset = false
   @State private var confirmingDelete = false
   @State private var inspecting = false
+  @State private var browsing = false
 
   init(deck: Deck, decks: DeckStore) {
     self.deck = deck
@@ -85,6 +86,7 @@ private struct DeckLink: View {
       DeckRow(deck: deck, store: store)
     }
     .contextMenu {
+      Button("Browse deck", systemImage: "book") { browsing = true }
       Button("Inspect deck", systemImage: "list.bullet.rectangle") { inspecting = true }
       Button("Reset progress", systemImage: "arrow.counterclockwise", role: .destructive) {
         confirmingReset = true
@@ -101,6 +103,9 @@ private struct DeckLink: View {
     .onChange(of: deck) { _, updated in store.updateDeck(updated) }
     .sheet(isPresented: $inspecting) {
       DeckInspectorView(deck: deck, decks: decks, store: store)
+    }
+    .sheet(isPresented: $browsing) {
+      BrowseDeckView(deck: deck, speechRate: store.speechRate)
     }
     .confirmationDialog(
       "Reset progress for \(deck.name)?",
@@ -203,57 +208,24 @@ private struct StudyCardView: View {
       HStack {
         QueueCountsView(counts: store.counts)
         Spacer()
-        Button {
-          speech.toggle(card.prompt, languageCode: card.languageCode, rate: store.speechRate)
-        } label: {
-          Label(
-            speech.isPlaying ? "Stop" : "Play",
-            systemImage: speech.isPlaying ? "stop.fill" : "play.fill"
-          )
-        }
-        .buttonStyle(.bordered)
       }
 
-      ScrollView {
-        VStack(spacing: 24) {
-          Spacer(minLength: 8)
-          FuriganaText(source: card.prompt)
-            .frame(maxWidth: .infinity)
-            .accessibilityLabel(FuriganaParser.speechText(card.prompt))
+      CardFaceView(card: card, showingAnswer: store.showingAnswer)
 
-          if store.showingAnswer {
-            Divider()
-            if Romaji.isSupported(languageCode: card.languageCode),
-              let romaji = Romaji.transliterate(card.prompt)
-            {
-              Text(romaji)
-                .font(.system(size: 28))
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .lineLimit(nil)
-                .fixedSize(horizontal: false, vertical: true)
-                .textSelection(.enabled)
-            }
-            Text(card.answer)
-              .font(.system(size: 40))
-              .multilineTextAlignment(.center)
-              .lineLimit(nil)
-              .fixedSize(horizontal: false, vertical: true)
-              .textSelection(.enabled)
-          }
-          Spacer(minLength: 8)
+      VStack(spacing: 16) {
+        HStack {
+          SpeechToggleButton(card: card, speech: speech, rate: store.speechRate)
+          Spacer()
         }
-        .frame(maxWidth: .infinity)
-      }
-      .scrollBounceBehavior(.basedOnSize)
 
-      if store.showingAnswer {
-        RatingButtons(store: store)
-      } else {
-        Button("Show answer") { store.revealAnswer() }
-          .buttonStyle(.borderedProminent)
-          .controlSize(.large)
-          .keyboardShortcut(.space, modifiers: [])
+        if store.showingAnswer {
+          RatingButtons(store: store)
+        } else {
+          Button("Show answer") { store.revealAnswer() }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .keyboardShortcut(.space, modifiers: [])
+        }
       }
     }
     .padding()
@@ -266,6 +238,147 @@ private struct StudyCardView: View {
     .onChange(of: card.id) { _, _ in
       speech.start(card.prompt, languageCode: card.languageCode, rate: store.speechRate)
     }
+  }
+}
+
+private struct SpeechToggleButton: View {
+  let card: DeckCard
+  let speech: SpeechPlayer
+  let rate: Double
+
+  var body: some View {
+    Button {
+      speech.toggle(card.prompt, languageCode: card.languageCode, rate: rate)
+    } label: {
+      Label(
+        speech.isPlaying ? "Stop" : "Play",
+        systemImage: speech.isPlaying ? "stop.fill" : "play.fill"
+      )
+    }
+    .buttonStyle(.bordered)
+  }
+}
+
+private struct CardFaceView: View {
+  let card: DeckCard
+  let showingAnswer: Bool
+
+  var body: some View {
+    ScrollView {
+      VStack(spacing: 24) {
+        Spacer(minLength: 8)
+        FuriganaText(source: card.prompt)
+          .frame(maxWidth: .infinity)
+          .accessibilityLabel(FuriganaParser.speechText(card.prompt))
+
+        if showingAnswer {
+          Divider()
+          if Romaji.isSupported(languageCode: card.languageCode),
+            let romaji = Romaji.transliterate(card.prompt)
+          {
+            Text(romaji)
+              .font(.system(size: 28))
+              .foregroundStyle(.secondary)
+              .multilineTextAlignment(.center)
+              .lineLimit(nil)
+              .fixedSize(horizontal: false, vertical: true)
+              .textSelection(.enabled)
+          }
+          Text(card.answer)
+            .font(.system(size: 40))
+            .multilineTextAlignment(.center)
+            .lineLimit(nil)
+            .fixedSize(horizontal: false, vertical: true)
+            .textSelection(.enabled)
+        }
+        Spacer(minLength: 8)
+      }
+      .frame(maxWidth: .infinity)
+    }
+    .scrollBounceBehavior(.basedOnSize)
+  }
+}
+
+private struct BrowseDeckView: View {
+  let deck: Deck
+  let speechRate: Double
+  @Environment(\.dismiss) private var dismiss
+  @State private var speech = SpeechPlayer()
+  @State private var session: BrowseSession
+
+  init(deck: Deck, speechRate: Double) {
+    self.deck = deck
+    self.speechRate = speechRate
+    _session = State(initialValue: BrowseSession(cards: deck.cards))
+  }
+
+  var body: some View {
+    NavigationStack {
+      Group {
+        if let card = session.card {
+          VStack(spacing: 24) {
+            HStack {
+              Text("\(session.index + 1) of \(deck.cards.count)")
+                .font(.subheadline)
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+              Spacer()
+            }
+
+            CardFaceView(card: card, showingAnswer: session.showingAnswer)
+
+            VStack(spacing: 16) {
+              HStack {
+                SpeechToggleButton(card: card, speech: speech, rate: speechRate)
+                Spacer()
+              }
+
+              HStack(spacing: 12) {
+                Button("Previous", systemImage: "chevron.left") { session.back() }
+                  .disabled(!session.canGoBack)
+                  .keyboardShortcut(.leftArrow, modifiers: [])
+                Spacer()
+                Button(
+                  session.showingAnswer ? "Next card" : "Show answer",
+                  systemImage: "chevron.right"
+                ) {
+                  session.forward()
+                }
+                .disabled(!session.canGoForward)
+                .keyboardShortcut(.rightArrow, modifiers: [])
+              }
+              .buttonStyle(.bordered)
+              .controlSize(.large)
+              .labelStyle(.iconOnly)
+            }
+          }
+          .padding()
+          .frame(maxWidth: 720)
+          .onAppear {
+            speech.start(card.prompt, languageCode: card.languageCode, rate: speechRate)
+          }
+          .onChange(of: card.id) { _, _ in
+            speech.start(card.prompt, languageCode: card.languageCode, rate: speechRate)
+          }
+        } else {
+          ContentUnavailableView(
+            "No cards",
+            systemImage: "rectangle.stack.badge.minus",
+            description: Text("Add cards from this deck's Inspect deck menu.")
+          )
+        }
+      }
+      .navigationTitle(deck.name)
+      .toolbar {
+        ToolbarItem(placement: .confirmationAction) {
+          Button("Done") { dismiss() }
+        }
+      }
+    }
+    .onDisappear { speech.stop() }
+    #if os(macOS)
+      .frame(minWidth: 480, minHeight: 520)
+    #endif
   }
 }
 

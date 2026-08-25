@@ -28,9 +28,12 @@ Once the day is finished, "Day completed!" offers extra cards for today only.
 
 ## Editing decks
 
-Long pressing a deck offers "Inspect deck", "Reset progress" and "Delete deck", and
-swiping a deck deletes it too. The plus button uploads a CSV deck or creates an empty
-one by hand.
+Long pressing a deck offers "Browse deck", "Inspect deck", "Reset progress" and
+"Delete deck", and swiping a deck deletes it too. The plus button uploads a CSV deck
+or creates an empty one by hand.
+
+Browsing reads a deck in file order and leaves the schedule alone: the arrows at the
+bottom step back and forward, and forward reveals the answer before moving on.
 
 Inside a deck, cards appear in queue order and new cards are introduced from the top
 down. Unstudied cards can be reordered, edited, added and removed. A card's identity

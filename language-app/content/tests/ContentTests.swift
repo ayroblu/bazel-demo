@@ -576,3 +576,41 @@ private let middayToday = Calendar.current.startOfDay(for: Date()).addingTimeInt
   #expect(store.currentCard == nil)
   #expect(!store.isDayComplete)
 }
+
+@Test func browsingWalksTheDeckInOrderThroughQuestionAndAnswer() throws {
+  let csv = "ja,en\n猫[ねこ],cat\n犬[いぬ],dog\n"
+  let deck = try CSVDeckLoader.load(name: "Japanese", data: Data(csv.utf8))
+  var session = BrowseSession(cards: deck.cards)
+
+  #expect(session.card == deck.cards[0])
+  #expect(!session.showingAnswer)
+  #expect(!session.canGoBack)
+
+  session.forward()
+  #expect(session.card == deck.cards[0])
+  #expect(session.showingAnswer)
+
+  session.forward()
+  #expect(session.card == deck.cards[1])
+  #expect(!session.showingAnswer)
+
+  session.forward()
+  #expect(session.showingAnswer)
+  #expect(!session.canGoForward)
+  session.forward()
+  #expect(session.index == 1)
+
+  session.back()
+  session.back()
+  #expect(session.card == deck.cards[0])
+  #expect(session.showingAnswer)
+}
+
+@Test func browsingAnEmptyDeckHasNoCard() {
+  var session = BrowseSession(cards: [])
+  #expect(session.card == nil)
+  #expect(!session.canGoForward)
+  #expect(!session.canGoBack)
+  session.forward()
+  #expect(session.card == nil)
+}
