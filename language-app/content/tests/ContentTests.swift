@@ -282,6 +282,37 @@ private func emptyDeckStore() throws -> (store: DeckStore, directory: URL, defau
 }
 
 @MainActor
+@Test func japaneseTextBreaksBetweenCharactersButLatinWordsStayWhole() {
+  // A phrase with no kanji has to offer a break after every character, or it cannot wrap.
+  let kana = FuriganaParser.breakableUnits("このままじゃまずいことになるぞ")
+  #expect(kana.map(\.text).joined() == "このままじゃまずいことになるぞ")
+  #expect(kana.allSatisfy { $0.reading == nil })
+  // じゃ is one unit because a small kana may not open a line.
+  #expect(kana.map(\.text) == ["こ", "の", "ま", "ま", "じゃ", "ま", "ず", "い", "こ", "と", "に", "な", "る", "ぞ"])
+
+  // Latin script has no break between letters, and a space stays with the word before it.
+  #expect(FuriganaParser.breakableUnits("por favor").map(\.text) == ["por ", "favor"])
+}
+
+@MainActor
+@Test func readingsKeepTheirOkuriganaAndPunctuationOnTheSameLine() {
+  // っ may not open a line, so it rides along with the reading it follows. た may, so it
+  // stays a break point of its own.
+  let past = FuriganaParser.breakableUnits("行[い]ったよ")
+  #expect(past.map(\.text) == ["行っ", "た", "よ"])
+  #expect(past[0] == FuriganaUnit(base: "行", reading: "い", trailing: "っ"))
+
+  // Trailing punctuation never starts a line either.
+  #expect(FuriganaParser.breakableUnits("食[た]べる、").map(\.text) == ["食", "べ", "る、"])
+  // An opening bracket never ends one.
+  #expect(FuriganaParser.breakableUnits("「あの").map(\.text) == ["「あ", "の"])
+
+  // Splitting never changes what is shown or spoken.
+  let source = "毎日[まいにち]日本語[にほんご]を勉強[べんきょう]します"
+  #expect(FuriganaParser.breakableUnits(source).map(\.text).joined() == FuriganaParser.displayText(source))
+}
+
+@MainActor
 @Test func resettingProgressMakesEveryCardNewAgain() throws {
   let csv = "ja,en\n猫[ねこ],cat\n犬[いぬ],dog\n"
   let deck = try CSVDeckLoader.load(name: "Japanese", data: Data(csv.utf8))

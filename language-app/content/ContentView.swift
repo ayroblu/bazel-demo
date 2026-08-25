@@ -274,18 +274,28 @@ private struct FuriganaText: View {
 
   var body: some View {
     WrappingRow(spacing: 0, lineSpacing: 8) {
-      ForEach(Array(FuriganaParser.parse(source).enumerated()), id: \.offset) { _, segment in
-        VStack(spacing: 1) {
-          Text(segment.reading ?? " ")
-            .font(.system(size: 24))
-            .foregroundStyle(.secondary)
-          Text(segment.text)
-            .font(.system(size: 42, weight: .medium))
+      ForEach(Array(FuriganaParser.breakableUnits(source).enumerated()), id: \.offset) { _, unit in
+        HStack(alignment: .bottom, spacing: 0) {
+          ruby(unit.base, reading: unit.reading)
+          if !unit.trailing.isEmpty {
+            ruby(unit.trailing, reading: nil)
+          }
         }
         .fixedSize()
       }
     }
     .multilineTextAlignment(.center)
+  }
+
+  /// A reading sits above its base characters only, so trailing kana keep a blank line above.
+  private func ruby(_ base: String, reading: String?) -> some View {
+    VStack(spacing: 1) {
+      Text(reading ?? " ")
+        .font(.system(size: 24))
+        .foregroundStyle(.secondary)
+      Text(base)
+        .font(.system(size: 42, weight: .medium))
+    }
   }
 }
 

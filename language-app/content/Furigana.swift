@@ -10,6 +10,22 @@ public struct FuriganaSegment: Equatable, Sendable {
   }
 }
 
+/// A piece of a phrase that a line break may not split: a reading sits above `base`, and
+/// `trailing` holds characters that Japanese line-break rules keep on the same line.
+public struct FuriganaUnit: Equatable, Sendable {
+  public let base: String
+  public let reading: String?
+  public let trailing: String
+
+  public init(base: String, reading: String? = nil, trailing: String = "") {
+    self.base = base
+    self.reading = reading
+    self.trailing = trailing
+  }
+
+  public var text: String { base + trailing }
+}
+
 public enum FuriganaParser {
   public static func parse(_ source: String) -> [FuriganaSegment] {
     var segments: [FuriganaSegment] = []
@@ -56,6 +72,76 @@ public enum FuriganaParser {
     }
     flushPlain()
     return segments
+  }
+
+  /// Characters that may not open a line: small kana, the repeat and long vowel marks,
+  /// closing brackets and trailing punctuation.
+  private static let neverStartsALine = Set(
+    "、。，．・：；？！ー々ゝゞぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮ）］｝〕〉》」』】〟’”,.:;?!")
+  /// Characters that may not close a line, so the next character joins them.
+  private static let neverEndsALine = Set("（［｛〔〈《「『【〝‘“")
+
+  /// Splits a phrase into the units a line may break between. A kanji run keeps its reading,
+  /// Japanese text breaks between characters, and Latin words stay whole.
+  public static func breakableUnits(_ source: String) -> [FuriganaUnit] {
+    var units: [FuriganaUnit] = []
+
+    func appendToLast(_ character: Character) {
+      guard let last = units.last else {
+        units.append(FuriganaUnit(base: String(character)))
+        return
+      }
+      units[units.count - 1] = FuriganaUnit(
+        base: last.base,
+        reading: last.reading,
+        trailing: last.trailing + String(character)
+      )
+    }
+
+    for segment in parse(source) {
+      if let reading = segment.reading {
+        units.append(FuriganaUnit(base: segment.text, reading: reading))
+        continue
+      }
+      for character in segment.text {
+        let last = units.last
+        if let last, character.isWhitespace || neverStartsALine.contains(character)
+          || closesWithOpener(last)
+        {
+          appendToLast(character)
+        } else if let last, last.reading == nil, last.trailing.isEmpty,
+          staysInTheSameWord(last.base, character)
+        {
+          units[units.count - 1] = FuriganaUnit(base: last.base + String(character))
+        } else {
+          units.append(FuriganaUnit(base: String(character)))
+        }
+      }
+    }
+    return units
+  }
+
+  private static func closesWithOpener(_ unit: FuriganaUnit) -> Bool {
+    guard let last = unit.trailing.last ?? unit.base.last else { return false }
+    return neverEndsALine.contains(last)
+  }
+
+  /// Latin script has no break between letters, so a word is one unit.
+  private static func staysInTheSameWord(_ base: String, _ next: Character) -> Bool {
+    guard let previous = base.last else { return false }
+    return !breaksBetweenCharacters(previous) && !breaksBetweenCharacters(next)
+      && !previous.isWhitespace && !next.isWhitespace
+  }
+
+  /// Japanese wraps between characters; Latin script does not.
+  private static func breaksBetweenCharacters(_ character: Character) -> Bool {
+    character.unicodeScalars.contains { scalar in
+      (0x3000...0x30ff).contains(scalar.value)
+        || (0x3400...0x4dbf).contains(scalar.value)
+        || (0x4e00...0x9fff).contains(scalar.value)
+        || (0xf900...0xfaff).contains(scalar.value)
+        || (0xff00...0xff60).contains(scalar.value)
+    }
   }
 
   public static func displayText(_ source: String) -> String {
