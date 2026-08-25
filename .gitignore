@@ -14,5 +14,7 @@ xcode.bazelrc
 /.bsp
 /.sourcekit-lsp
 
+/.tmp/
+
 # android
 .aswb/
