@@ -33,7 +33,7 @@ public final class DeckStore {
 
   public init(
     directory: URL = DeckStore.defaultDirectory,
-    seedFrom bundle: Bundle? = .main,
+    bundledDecks: [URL] = DeckStore.bundledDeckURLs(),
     defaults: UserDefaults = .standard
   ) {
     self.directory = directory
@@ -43,12 +43,18 @@ public final class DeckStore {
     } catch {
       errors.append("The decks folder could not be created.")
     }
-    if let bundle { seed(from: bundle) }
+    seed(from: bundledDecks)
     reload()
   }
 
   public static var defaultDirectory: URL {
     URL.documentsDirectory.appending(path: "decks", directoryHint: .isDirectory)
+  }
+
+  public static func bundledDeckURLs(in bundle: Bundle = .main) -> [URL] {
+    let nested = bundle.urls(forResourcesWithExtension: "csv", subdirectory: "decks") ?? []
+    let root = bundle.urls(forResourcesWithExtension: "csv", subdirectory: nil) ?? []
+    return nested + root
   }
 
   public func deck(id: String) -> Deck? {
@@ -124,18 +130,13 @@ public final class DeckStore {
 
   // MARK: - Files
 
+  /// The recorded digest stays as the bundled text that was copied in, never the text being
+  /// written. That is what lets the next launch tell an edited deck from an untouched copy.
   private func write(_ deck: Deck, to destination: URL) throws {
-    let text = CSVDeckWriter.encode(deck)
     do {
-      try Data(text.utf8).write(to: destination, options: .atomic)
+      try Data(CSVDeckWriter.encode(deck).utf8).write(to: destination, options: .atomic)
     } catch {
       throw DeckStoreError.writeFailed(deck.name)
-    }
-    // An edited deck must stop tracking the bundled copy it came from.
-    var digests = seededDigests()
-    if digests[destination.lastPathComponent] != nil {
-      digests[destination.lastPathComponent] = digest(of: text)
-      saveSeededDigests(digests)
     }
   }
 
@@ -160,11 +161,9 @@ public final class DeckStore {
     }
   }
 
-  private func seed(from bundle: Bundle) {
-    let nested = bundle.urls(forResourcesWithExtension: "csv", subdirectory: "decks") ?? []
-    let root = bundle.urls(forResourcesWithExtension: "csv", subdirectory: nil) ?? []
+  private func seed(from bundledDecks: [URL]) {
     let sources = Dictionary(
-      (nested + root).map { ($0.lastPathComponent, $0) },
+      bundledDecks.map { ($0.lastPathComponent, $0) },
       uniquingKeysWith: { first, _ in first }
     )
 

@@ -17,7 +17,7 @@ import Testing
 private func emptyDeckStore() throws -> (store: DeckStore, directory: URL, defaults: UserDefaults) {
   let directory = URL.temporaryDirectory.appending(path: "decks-\(UUID().uuidString)")
   let defaults = try #require(UserDefaults(suiteName: "decks-\(UUID().uuidString)"))
-  return (DeckStore(directory: directory, seedFrom: nil, defaults: defaults), directory, defaults)
+  return (DeckStore(directory: directory, bundledDecks: [], defaults: defaults), directory, defaults)
 }
 
 @MainActor
@@ -26,11 +26,69 @@ private func emptyDeckStore() throws -> (store: DeckStore, directory: URL, defau
   try Data("ja,en\n猫[ねこ],cat\n".utf8).write(to: directory.appending(path: "japanese.csv"))
   try Data("es,en\nhola,hello\n".utf8).write(to: directory.appending(path: "spanish.csv"))
 
-  let reopened = DeckStore(directory: directory, seedFrom: nil, defaults: defaults)
+  let reopened = DeckStore(directory: directory, bundledDecks: [], defaults: defaults)
   #expect(store.decks.isEmpty)
   #expect(reopened.decks.map(\.name) == ["Japanese", "Spanish"])
   #expect(reopened.decks.map(\.languageCode) == ["ja", "es"])
   #expect(Set(reopened.decks.map(\.id)).count == 2)
+}
+
+@MainActor
+@Test func editsToABundledDeckSurviveRelaunching() throws {
+  let directory = URL.temporaryDirectory.appending(path: "seed-\(UUID().uuidString)")
+  let bundled = URL.temporaryDirectory.appending(path: "bundle-\(UUID().uuidString)")
+  try FileManager.default.createDirectory(at: bundled, withIntermediateDirectories: true)
+  let source = bundled.appending(path: "anime.csv")
+  try Data("ja,en\n猫[ねこ],cat\n犬[いぬ],dog\n".utf8).write(to: source)
+  let defaults = try #require(UserDefaults(suiteName: "seed-\(UUID().uuidString)"))
+
+  func launch() -> DeckStore {
+    DeckStore(directory: directory, bundledDecks: [source], defaults: defaults)
+  }
+
+  // First launch copies the bundled deck in.
+  let first = launch()
+  var deck = try #require(first.decks.first)
+  #expect(deck.name == "Anime")
+  #expect(deck.cards.count == 2)
+
+  // The reader rewrites a card and adds one.
+  deck.cards[0] = DeckCard(prompt: "猫[ねこ]", answer: "a cat, edited", languageCode: "ja")
+  deck.cards.append(DeckCard(prompt: "鳥[とり]", answer: "bird", languageCode: "ja"))
+  try first.replace(deck)
+
+  // Relaunching must not put the bundled copy back over the edit.
+  let second = launch()
+  let reopened = try #require(second.decks.first)
+  #expect(reopened.cards.count == 3)
+  #expect(reopened.cards[0].answer == "a cat, edited")
+
+  // A newer bundled deck still leaves the edited copy alone.
+  try Data("ja,en\n猫[ねこ],cat\n犬[いぬ],dog\n魚[さかな],fish\n".utf8).write(to: source)
+  #expect(try #require(launch().decks.first).cards.count == 3)
+
+  // Deleting the deck lets the bundled copy seed again, now at its newer contents.
+  try second.delete(reopened)
+  #expect(try #require(launch().decks.first).cards.count == 3)
+  #expect(try #require(launch().decks.first).cards[2].prompt == "魚[さかな]")
+}
+
+@MainActor
+@Test func anUneditedBundledDeckIsRefreshedWhenTheBundleChanges() throws {
+  let directory = URL.temporaryDirectory.appending(path: "refresh-\(UUID().uuidString)")
+  let bundled = URL.temporaryDirectory.appending(path: "bundle-\(UUID().uuidString)")
+  try FileManager.default.createDirectory(at: bundled, withIntermediateDirectories: true)
+  let source = bundled.appending(path: "japanese.csv")
+  try Data("ja,en\n猫[ねこ],cat\n".utf8).write(to: source)
+  let defaults = try #require(UserDefaults(suiteName: "refresh-\(UUID().uuidString)"))
+
+  func launch() -> DeckStore {
+    DeckStore(directory: directory, bundledDecks: [source], defaults: defaults)
+  }
+  #expect(try #require(launch().decks.first).cards.count == 1)
+
+  try Data("ja,en\n猫[ねこ],cat\n犬[いぬ],dog\n".utf8).write(to: source)
+  #expect(try #require(launch().decks.first).cards.count == 2)
 }
 
 @MainActor
@@ -50,7 +108,7 @@ private func emptyDeckStore() throws -> (store: DeckStore, directory: URL, defau
   ]
   try store.replace(deck)
 
-  let reopened = DeckStore(directory: directory, seedFrom: nil, defaults: defaults)
+  let reopened = DeckStore(directory: directory, bundledDecks: [], defaults: defaults)
   let saved = try #require(reopened.deck(id: deck.id))
   #expect(saved.cards.map(\.prompt) == ["走[はし]る", "歩[ある]く"])
   // A comma in an answer has to survive the CSV round trip.
@@ -58,7 +116,7 @@ private func emptyDeckStore() throws -> (store: DeckStore, directory: URL, defau
 
   try store.delete(deck)
   #expect(store.decks.isEmpty)
-  #expect(DeckStore(directory: directory, seedFrom: nil, defaults: defaults).decks.isEmpty)
+  #expect(DeckStore(directory: directory, bundledDecks: [], defaults: defaults).decks.isEmpty)
 }
 
 @MainActor
