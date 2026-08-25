@@ -17,6 +17,10 @@ reading above the word and speaks the reading instead of the annotation. For
 Japanese decks the answer side also shows romaji derived from those readings, so
 no extra CSV column is needed.
 
+The gear menu also sets a speaking speed per deck, from 0.5× to 2× the system's
+default rate, so a fast dialogue deck can be slowed down without touching the
+others. A new speed applies the next time playback starts.
+
 The gear menu lists every installed voice that speaks the deck's language, with
 its gender and quality tier, and remembers the choice per language. Without a
 choice the app picks the best sounding voice it can find, preferring male and

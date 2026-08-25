@@ -203,7 +203,7 @@ private struct StudyCardView: View {
         QueueCountsView(counts: store.counts)
         Spacer()
         Button {
-          speech.toggle(card.prompt, languageCode: card.languageCode)
+          speech.toggle(card.prompt, languageCode: card.languageCode, rate: store.speechRate)
         } label: {
           Label(
             speech.isPlaying ? "Stop" : "Play",
@@ -259,9 +259,11 @@ private struct StudyCardView: View {
     .frame(maxWidth: 720)
     // Each card starts speaking on repeat, so the button starts on Stop. This runs on the
     // main run loop instead of in a task, keeping speech off Swift concurrency threads.
-    .onAppear { speech.start(card.prompt, languageCode: card.languageCode) }
+    .onAppear {
+      speech.start(card.prompt, languageCode: card.languageCode, rate: store.speechRate)
+    }
     .onChange(of: card.id) { _, _ in
-      speech.start(card.prompt, languageCode: card.languageCode)
+      speech.start(card.prompt, languageCode: card.languageCode, rate: store.speechRate)
     }
   }
 }
@@ -800,6 +802,27 @@ private struct SettingsView: View {
                 Text(VoiceCatalog.describe(voice)).tag(voice.identifier)
               }
             }
+          }
+          VStack(alignment: .leading, spacing: 4) {
+            LabeledContent("Speaking speed") {
+              Text(String(format: "%.1f×", store.speechRate))
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+            }
+            Slider(
+              value: $store.speechRate,
+              in: StudyStore.speechRateRange,
+              step: 0.1
+            ) {
+              Text("Speaking speed")
+            } minimumValueLabel: {
+              Text("slow").font(.caption2).foregroundStyle(.secondary)
+            } maximumValueLabel: {
+              Text("fast").font(.caption2).foregroundStyle(.secondary)
+            }
+            .labelsHidden()
+            // The rate applies when playback next starts, matching how the voice picker behaves.
+            .onChange(of: store.speechRate) { _, _ in speech.stop() }
           }
         } header: {
           Text("Voice")

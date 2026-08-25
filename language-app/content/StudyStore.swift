@@ -10,6 +10,9 @@ public final class StudyStore {
   public var showingAnswer = false
 
   public static let defaultNewCardsPerDay = 20
+  /// Multiplier on the system's default speech rate.
+  public static let defaultSpeechRate = 1.0
+  public static let speechRateRange = 0.5...2.0
 
   private let defaults: UserDefaults
   private let calendar: Calendar
@@ -30,6 +33,10 @@ public final class StudyStore {
     "language-app.new-per-day.v1.\(deck?.id ?? "unknown")"
   }
 
+  private var rateKey: String {
+    "language-app.speech-rate.v1.\(deck?.id ?? "unknown")"
+  }
+
   /// How many unseen cards enter the queue each day, Anki's new-card limit.
   public var newCardsPerDay: Int {
     didSet {
@@ -42,9 +49,26 @@ public final class StudyStore {
     }
   }
 
+  /// How fast this deck's prompts are spoken, as a multiple of the system's default rate.
+  public var speechRate: Double {
+    didSet {
+      let clamped = min(max(speechRate, Self.speechRateRange.lowerBound), Self.speechRateRange.upperBound)
+      guard clamped == speechRate else {
+        speechRate = clamped
+        return
+      }
+      defaults.set(clamped, forKey: rateKey)
+    }
+  }
+
   public init(deck: Deck, defaults: UserDefaults = .standard, calendar: Calendar = .current) {
     let key = "language-app.new-per-day.v1.\(deck.id)"
     newCardsPerDay = max(0, defaults.object(forKey: key) as? Int ?? Self.defaultNewCardsPerDay)
+    let storedRate = defaults.object(forKey: "language-app.speech-rate.v1.\(deck.id)") as? Double
+    speechRate = min(
+      max(storedRate ?? Self.defaultSpeechRate, Self.speechRateRange.lowerBound),
+      Self.speechRateRange.upperBound
+    )
     daily = DailyProgress(day: calendar.startOfDay(for: Date()))
     self.defaults = defaults
     self.calendar = calendar

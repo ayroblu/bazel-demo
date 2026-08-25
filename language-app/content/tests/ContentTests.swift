@@ -1,3 +1,4 @@
+import AVFoundation
 import Foundation
 import Testing
 @testable import LanguageContent
@@ -80,6 +81,38 @@ private func emptyDeckStore() throws -> (store: DeckStore, directory: URL, defau
   #expect(throws: DeckStoreError.unreadableFile(broken.lastPathComponent)) {
     _ = try store.importDeck(from: broken)
   }
+}
+
+@MainActor
+@Test func speechRateIsPerDeckClampedAndPersisted() throws {
+  let japanese = try CSVDeckLoader.load(name: "Japanese", data: Data("ja,en\n猫[ねこ],cat\n".utf8))
+  let spanish = try CSVDeckLoader.load(name: "Spanish", data: Data("es,en\ngato,cat\n".utf8))
+  let suite = "rate-\(UUID().uuidString)"
+  let defaults = try #require(UserDefaults(suiteName: suite))
+  defer { defaults.removePersistentDomain(forName: suite) }
+
+  let store = StudyStore(deck: japanese, defaults: defaults)
+  #expect(store.speechRate == StudyStore.defaultSpeechRate)
+
+  store.speechRate = 1.4
+  #expect(StudyStore(deck: japanese, defaults: defaults).speechRate == 1.4)
+  // The setting belongs to one deck only.
+  #expect(StudyStore(deck: spanish, defaults: defaults).speechRate == StudyStore.defaultSpeechRate)
+
+  store.speechRate = 9
+  #expect(store.speechRate == StudyStore.speechRateRange.upperBound)
+  store.speechRate = -1
+  #expect(store.speechRate == StudyStore.speechRateRange.lowerBound)
+}
+
+@MainActor
+@Test func speechRateMultiplierStaysInsideTheSupportedRange() {
+  #expect(SpeechPlayer.utteranceRate(multiplier: 1) == AVSpeechUtteranceDefaultSpeechRate)
+  #expect(
+    SpeechPlayer.utteranceRate(multiplier: 0.5) == AVSpeechUtteranceDefaultSpeechRate / 2)
+  #expect(SpeechPlayer.utteranceRate(multiplier: 2) > AVSpeechUtteranceDefaultSpeechRate)
+  #expect(SpeechPlayer.utteranceRate(multiplier: 50) == AVSpeechUtteranceMaximumSpeechRate)
+  #expect(SpeechPlayer.utteranceRate(multiplier: -3) == AVSpeechUtteranceMinimumSpeechRate)
 }
 
 @MainActor

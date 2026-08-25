@@ -13,6 +13,7 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
   private let synthesizer = AVSpeechSynthesizer()
   private var phrase: String?
   private var languageCode: String?
+  private var rate = AVSpeechUtteranceDefaultSpeechRate
   private var repeatWork: DispatchWorkItem?
 
   public init(voices: VoicePreferences = VoicePreferences()) {
@@ -22,13 +23,24 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
   }
 
   /// Speaks the phrase from the beginning and keeps repeating it until stopped.
-  public func start(_ annotatedText: String, languageCode: String) {
+  /// The rate is a multiple of the system's default speaking rate.
+  public func start(_ annotatedText: String, languageCode: String, rate multiplier: Double = 1) {
     stop()
     activateAudioSession()
     phrase = annotatedText
     self.languageCode = languageCode
+    rate = Self.utteranceRate(multiplier: multiplier)
     isPlaying = true
     speakOnce()
+  }
+
+  /// Maps a multiplier onto the range AVSpeechUtterance accepts.
+  public static func utteranceRate(multiplier: Double) -> Float {
+    let scaled = Float(multiplier) * AVSpeechUtteranceDefaultSpeechRate
+    return min(
+      max(scaled, AVSpeechUtteranceMinimumSpeechRate),
+      AVSpeechUtteranceMaximumSpeechRate
+    )
   }
 
   public func stop() {
@@ -39,11 +51,11 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
     deactivateAudioSession()
   }
 
-  public func toggle(_ annotatedText: String, languageCode: String) {
+  public func toggle(_ annotatedText: String, languageCode: String, rate multiplier: Double = 1) {
     if isPlaying {
       stop()
     } else {
-      start(annotatedText, languageCode: languageCode)
+      start(annotatedText, languageCode: languageCode, rate: multiplier)
     }
   }
 
@@ -68,7 +80,7 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
     guard let phrase, let languageCode else { return }
     let utterance = AVSpeechUtterance(string: FuriganaParser.speechText(phrase))
     utterance.voice = voices.voice(for: languageCode) ?? AVSpeechSynthesisVoice(language: languageCode)
-    utterance.rate = AVSpeechUtteranceDefaultSpeechRate
+    utterance.rate = rate
     utterance.volume = 1
     synthesizer.speak(utterance)
   }
