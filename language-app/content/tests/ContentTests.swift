@@ -120,6 +120,26 @@ private func emptyDeckStore() throws -> (store: DeckStore, directory: URL, defau
 }
 
 @MainActor
+@Test func deletingADeckDropsItsStudyProgress() throws {
+  let (store, _, defaults) = try emptyDeckStore()
+  var deck = try store.createDeck(name: "My Verbs", languageCode: "ja", answerColumnName: "en")
+  deck.cards = [DeckCard(prompt: "走[はし]る", answer: "to run", languageCode: "ja")]
+  try store.replace(deck)
+
+  let study = StudyStore(deck: deck, defaults: defaults)
+  study.newCardsPerDay = 5
+  study.grade(.easy)
+  #expect(!StudyStore(deck: deck, defaults: defaults).reviewStates.isEmpty)
+
+  try store.delete(deck)
+
+  let recreated = try store.createDeck(name: "My Verbs", languageCode: "ja", answerColumnName: "en")
+  let reopened = StudyStore(deck: recreated, defaults: defaults)
+  #expect(reopened.reviewStates.isEmpty)
+  #expect(reopened.newCardsPerDay == StudyStore.defaultNewCardsPerDay)
+}
+
+@MainActor
 @Test func importingNumbersTheFileWhenTheNameIsTaken() throws {
   let (store, directory, _) = try emptyDeckStore()
   let source = URL.temporaryDirectory.appending(path: "kanji-\(UUID().uuidString).csv")
@@ -432,7 +452,7 @@ private func numberedDeck(_ count: Int) throws -> Deck {
   return try CSVDeckLoader.load(name: "Japanese", data: Data("ja,en\n\(rows)\n".utf8))
 }
 
-private let middayToday = Calendar.current.startOfDay(for: Date()).addingTimeInterval(12 * 3_600)
+private let middayToday = SchedulerCalendar().startOfDay(for: Date()).addingTimeInterval(8 * 3_600)
 
 @MainActor
 @Test func leavingAndReturningToADeckChangesNoSchedule() throws {

@@ -8,7 +8,10 @@ swift_library(
     srcs = glob(["*.swift"]),
     copts = STRICT_MAINACTOR_COPTS,
     module_name = "LanguageContent",
-    deps = ["//language-app/scheduler"],
+    deps = [
+        "//language-app/scheduler",
+        "//swift-shared/Log",
+    ],
 )
 
 swift_test(

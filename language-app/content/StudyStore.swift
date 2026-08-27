@@ -22,21 +22,18 @@ public final class StudyStore {
   public private(set) var clock = Date()
   private var daily: DailyProgress
 
-  private var persistenceKey: String {
-    "language-app.review-states.v3.\(deck?.id ?? "unknown")"
-  }
+  private static let keyPrefixes = [
+    "language-app.review-states.v3.",
+    "language-app.daily.v1.",
+    "language-app.new-per-day.v1.",
+    "language-app.speech-rate.v1.",
+  ]
 
-  private var dailyKey: String {
-    "language-app.daily.v1.\(deck?.id ?? "unknown")"
-  }
-
-  private var limitKey: String {
-    "language-app.new-per-day.v1.\(deck?.id ?? "unknown")"
-  }
-
-  private var rateKey: String {
-    "language-app.speech-rate.v1.\(deck?.id ?? "unknown")"
-  }
+  private var deckId: String { deck?.id ?? "unknown" }
+  private var persistenceKey: String { Self.keyPrefixes[0] + deckId }
+  private var dailyKey: String { Self.keyPrefixes[1] + deckId }
+  private var limitKey: String { Self.keyPrefixes[2] + deckId }
+  private var rateKey: String { Self.keyPrefixes[3] + deckId }
 
   /// How many unseen cards enter the queue each day, Anki's new-card limit.
   public var newCardsPerDay: Int {
@@ -67,9 +64,9 @@ public final class StudyStore {
     defaults: UserDefaults = .standard,
     calendar: SchedulerCalendar = SchedulerCalendar()
   ) {
-    let key = "language-app.new-per-day.v1.\(deck.id)"
+    let key = Self.keyPrefixes[2] + deck.id
     newCardsPerDay = max(0, defaults.object(forKey: key) as? Int ?? Self.defaultNewCardsPerDay)
-    let storedRate = defaults.object(forKey: "language-app.speech-rate.v1.\(deck.id)") as? Double
+    let storedRate = defaults.object(forKey: Self.keyPrefixes[3] + deck.id) as? Double
     speechRate = min(
       max(storedRate ?? Self.defaultSpeechRate, Self.speechRateRange.lowerBound),
       Self.speechRateRange.upperBound
@@ -204,6 +201,13 @@ public final class StudyStore {
     guard kept.count != reviewStates.count else { return }
     reviewStates = kept
     saveProgress()
+  }
+
+  /// Every key this store writes, so a deleted deck leaves nothing behind.
+  public static func removeStoredData(deckId: String, from defaults: UserDefaults) {
+    for prefix in keyPrefixes {
+      defaults.removeObject(forKey: prefix + deckId)
+    }
   }
 
   public func resetProgress() {

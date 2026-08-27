@@ -1,4 +1,5 @@
 import LanguageScheduler
+import Log
 import SwiftUI
 
 public struct ContentView: View {
@@ -6,8 +7,15 @@ public struct ContentView: View {
   @State private var importing = false
   @State private var creating = false
   @State private var errorMessage: String?
+  @State private var deleting: Deck?
 
   public init() {}
+
+  private var emptyStateMessage: String {
+    decks.errors.isEmpty
+      ? "No decks yet. Use the plus button to add one."
+      : decks.errors.joined(separator: "\n")
+  }
 
   public var body: some View {
     NavigationStack {
@@ -16,11 +24,24 @@ public struct ContentView: View {
           ContentUnavailableView(
             "No decks",
             systemImage: "rectangle.stack.badge.minus",
-            description: Text(decks.errors.joined(separator: "\n"))
+            description: Text(emptyStateMessage)
           )
         } else {
           List(decks.decks) { deck in
-            DeckLink(deck: deck, decks: decks)
+            DeckLink(deck: deck, decks: decks, deleting: $deleting)
+          }
+          .confirmationDialog(
+            deleting.map { "Delete \($0.name)?" } ?? "",
+            isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
+            titleVisibility: .visible,
+            presenting: deleting
+          ) { deck in
+            Button("Delete deck", role: .destructive) {
+              tryLog("deleteDeck") { try decks.delete(deck) }
+            }
+            Button("Cancel", role: .cancel) {}
+          } message: { deck in
+            Text("The deck file and its \(deck.cards.count) cards are removed from this device.")
           }
         }
       }
@@ -66,15 +87,16 @@ public struct ContentView: View {
 private struct DeckLink: View {
   let deck: Deck
   let decks: DeckStore
+  @Binding var deleting: Deck?
   @State private var store: StudyStore
   @State private var confirmingReset = false
-  @State private var confirmingDelete = false
   @State private var inspecting = false
   @State private var browsing = false
 
-  init(deck: Deck, decks: DeckStore) {
+  init(deck: Deck, decks: DeckStore, deleting: Binding<Deck?>) {
     self.deck = deck
     self.decks = decks
+    _deleting = deleting
     _store = State(initialValue: StudyStore(deck: deck))
   }
 
@@ -91,12 +113,13 @@ private struct DeckLink: View {
         confirmingReset = true
       }
       Button("Delete deck", systemImage: "trash", role: .destructive) {
-        confirmingDelete = true
+        deleting = deck
       }
     }
-    // Deleting a deck cannot be undone, so a swipe opens the same confirmation.
     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-      Button("Delete", systemImage: "trash", role: .destructive) { confirmingDelete = true }
+      Button("Delete", systemImage: "trash", role: .destructive) {
+        tryLog("deleteDeck") { try decks.delete(deck) }
+      }
     }
     // The deck file can change while this row is on screen, so the study queue follows it.
     .onChange(of: deck) { _, updated in store.updateDeck(updated) }
@@ -115,16 +138,6 @@ private struct DeckLink: View {
       Button("Cancel", role: .cancel) {}
     } message: {
       Text("Every card in this deck becomes new again. This cannot be undone.")
-    }
-    .confirmationDialog(
-      "Delete \(deck.name)?",
-      isPresented: $confirmingDelete,
-      titleVisibility: .visible
-    ) {
-      Button("Delete deck", role: .destructive) { try? decks.delete(deck) }
-      Button("Cancel", role: .cancel) {}
-    } message: {
-      Text("The deck file and its \(deck.cards.count) cards are removed from this device.")
     }
   }
 }
@@ -309,7 +322,7 @@ private struct BrowseDeckView: View {
   @Environment(\.dismiss) private var dismiss
   @State private var speech = SpeechPlayer()
   @State private var session: BrowseSession
-  @State private var autoRunning = false
+  @State private var autoRunning = true
   @State private var autoStep = 0
   @State private var showingSettings = false
 
@@ -376,8 +389,10 @@ private struct BrowseDeckView: View {
           .padding()
           .frame(maxWidth: 720)
           .onAppear {
-            guard !autoRunning else { return }
-            speech.start(card.prompt, languageCode: card.languageCode, rate: speechRate)
+            speech.onRemotePlay = { startAuto() }
+            speech.onRemotePause = { stopAuto() }
+            guard autoRunning else { return }
+            startAuto()
           }
           .onChange(of: card.id) { _, _ in
             guard !autoRunning else { return }
@@ -413,6 +428,8 @@ private struct BrowseDeckView: View {
     }
     .onDisappear {
       autoRunning = false
+      speech.onRemotePlay = nil
+      speech.onRemotePause = nil
       speech.stop()
     }
     #if os(macOS)

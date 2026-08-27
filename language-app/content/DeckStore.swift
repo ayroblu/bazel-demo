@@ -123,6 +123,7 @@ public final class DeckStore {
       throw DeckStoreError.writeFailed(deck.name)
     }
     decks.removeAll { $0.id == deck.id }
+    StudyStore.removeStoredData(deckId: deck.id, from: defaults)
     var digests = seededDigests()
     digests.removeValue(forKey: target.lastPathComponent)
     saveSeededDigests(digests)
@@ -154,10 +155,6 @@ public final class DeckStore {
       } catch {
         errors.append("\(url.lastPathComponent): \(error.localizedDescription)")
       }
-    }
-
-    if decks.isEmpty, errors.isEmpty {
-      errors.append("No decks yet. Use the plus button to add one.")
     }
   }
 
