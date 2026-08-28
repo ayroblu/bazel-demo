@@ -7,8 +7,7 @@ import Observation
 public final class StudyStore {
   public private(set) var deck: Deck?
   public private(set) var reviewStates: [String: ReviewState] = [:]
-  public private(set) var errorMessage: String?
-  public var showingAnswer = false
+  public private(set) var showingAnswer = false
 
   public static let defaultNewCardsPerDay = 20
   /// Multiplier on the system's default speech rate.
@@ -19,7 +18,7 @@ public final class StudyStore {
   private let calendar: SchedulerCalendar
 
   /// Drives the due-card queue; intra-day steps need re-evaluation while the deck is open.
-  public private(set) var clock = Date()
+  private var clock = Date()
   private var daily: DailyProgress
 
   private static let keyPrefixes = [
@@ -253,7 +252,6 @@ public final class StudyStore {
       reviewStates = try JSONDecoder().decode([String: ReviewState].self, from: data)
     } catch {
       reviewStates = [:]
-      errorMessage = "Saved review progress could not be read."
     }
   }
 

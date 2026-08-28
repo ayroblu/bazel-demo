@@ -6,7 +6,7 @@ public enum BrowseSpeechStep: Equatable, Sendable {
 public enum AutoBrowse {
   public static let defaultQuestionRepeats = 3
   public static let questionRepeatsRange = 1...10
-  public static let alternations = 3
+  private static let alternations = 3
 
   public static func steps(questionRepeats: Int = defaultQuestionRepeats) -> [BrowseSpeechStep] {
     let repeats = min(

@@ -54,7 +54,7 @@ public enum VoiceCatalog {
     installedVoices.first { $0.identifier == identifier }
   }
 
-  public static func qualityLabel(_ voice: AVSpeechSynthesisVoice) -> String {
+  private static func qualityLabel(_ voice: AVSpeechSynthesisVoice) -> String {
     switch voice.quality {
     case .premium: "Premium"
     case .enhanced: "Enhanced"
@@ -62,7 +62,7 @@ public enum VoiceCatalog {
     }
   }
 
-  public static func genderLabel(_ voice: AVSpeechSynthesisVoice) -> String? {
+  private static func genderLabel(_ voice: AVSpeechSynthesisVoice) -> String? {
     switch voice.gender {
     case .male: "Male"
     case .female: "Female"

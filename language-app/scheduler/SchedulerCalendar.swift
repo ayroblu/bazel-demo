@@ -31,10 +31,6 @@ public struct SchedulerCalendar: Sendable {
     startOfDay(byAdding: 1, to: date)
   }
 
-  public func isSameDay(_ first: Date, _ second: Date) -> Bool {
-    startOfDay(for: first) == startOfDay(for: second)
-  }
-
   /// Whole days between two instants, which is what FSRS calls elapsed days. Two reviews in
   /// one Anki day are zero days apart no matter how many hours separate them.
   public func elapsedDays(from start: Date, to end: Date) -> Int {

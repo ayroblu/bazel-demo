@@ -7,13 +7,13 @@ public struct DeckCard: Codable, Identifiable, Equatable, Sendable {
   public let languageCode: String
 
   public init(prompt: String, answer: String, languageCode: String) {
-    self.id = Self.makeID(languageCode: languageCode, prompt: prompt, answer: answer)
+    self.id = Self.makeId(languageCode: languageCode, prompt: prompt, answer: answer)
     self.prompt = prompt
     self.answer = answer
     self.languageCode = languageCode
   }
 
-  private static func makeID(languageCode: String, prompt: String, answer: String) -> String {
+  private static func makeId(languageCode: String, prompt: String, answer: String) -> String {
     Data("\(languageCode)\u{1f}\(prompt)\u{1f}\(answer)".utf8).base64EncodedString()
   }
 }
@@ -37,8 +37,6 @@ public struct QueueCounts: Equatable, Sendable {
     self.learning = learning
     self.review = review
   }
-
-  public var total: Int { new + learning + review }
 }
 
 /// Per-day new-card budget, reset when the calendar day rolls over.

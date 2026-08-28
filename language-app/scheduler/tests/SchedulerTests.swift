@@ -117,9 +117,6 @@ private func expectClose(_ actual: Double, _ expected: Double, tolerance: Double
   #expect(anki.startOfDay(for: at(10, 23, 30)) == at(10, 4))
   #expect(anki.endOfDay(for: at(10, 23, 30)) == at(11, 4))
 
-  #expect(anki.isSameDay(at(10, 5), at(11, 3, 59)))
-  #expect(!anki.isSameDay(at(10, 5), at(11, 4, 1)))
-
   // Elapsed days count day boundaries crossed, not hours.
   #expect(anki.elapsedDays(from: at(10, 5), to: at(10, 23)) == 0)
   #expect(anki.elapsedDays(from: at(10, 23), to: at(11, 3)) == 0)
@@ -373,17 +370,15 @@ private func expectClose(_ actual: Double, _ expected: Double, tolerance: Double
 
 @Test func ratingsAreOrderedOnceTheCardHasGraduated() {
   let graduated = review(review(nil, .good, at(1)), .good, at(1, 10, 10))
-  let previews = FSRSScheduler.previewIntervals(for: graduated, now: graduated.due, calendar: anki)
+  let intervals = Dictionary(
+    uniqueKeysWithValues: CardRating.allCases.map { rating in
+      (rating, review(graduated, rating, graduated.due).scheduledInterval)
+    })
 
   // Again sends the card back to a ten minute step, so it is always the shortest.
-  #expect(previews[.again] == 600)
-  #expect(previews[.hard]! < previews[.good]!)
-  #expect(previews[.good]! < previews[.easy]!)
-
-  // The preview under each button has to match what pressing it actually does.
-  for rating in CardRating.allCases {
-    #expect(previews[rating] == review(graduated, rating, graduated.due).scheduledInterval)
-  }
+  #expect(intervals[.again] == 600)
+  #expect(intervals[.hard]! < intervals[.good]!)
+  #expect(intervals[.good]! < intervals[.easy]!)
 }
 
 @Test func difficultyClimbsWithLapsesAndFallsWithEasyReviews() {

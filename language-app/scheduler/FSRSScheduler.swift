@@ -20,8 +20,8 @@ public enum FSRSScheduler {
   public static let maximumIntervalDays = 36_500
 
   /// Anki's default deck preset steps.
-  public static let learningSteps: [TimeInterval] = [60, 600]
-  public static let relearningSteps: [TimeInterval] = [600]
+  private static let learningSteps: [TimeInterval] = [60, 600]
+  private static let relearningSteps: [TimeInterval] = [600]
 
   public static func review(
     _ previous: ReviewState?,
@@ -74,17 +74,6 @@ public enum FSRSScheduler {
       calendar: calendar
     )
     return state
-  }
-
-  public static func previewIntervals(
-    for previous: ReviewState?,
-    now: Date = Date(),
-    calendar: SchedulerCalendar = SchedulerCalendar()
-  ) -> [CardRating: TimeInterval] {
-    Dictionary(
-      uniqueKeysWithValues: CardRating.allCases.map { rating in
-        (rating, review(previous, rating: rating, now: now, calendar: calendar).scheduledInterval)
-      })
   }
 
   // MARK: - Step scheduling
