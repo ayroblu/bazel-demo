@@ -185,6 +185,29 @@ private func emptyDeckStore() throws -> (store: DeckStore, directory: URL, defau
 }
 
 @MainActor
+@Test func browseQuestionRepeatsArePerDeckClampedAndPersisted() throws {
+  let japanese = try CSVDeckLoader.load(name: "Japanese", data: Data("ja,en\n猫[ねこ],cat\n".utf8))
+  let spanish = try CSVDeckLoader.load(name: "Spanish", data: Data("es,en\ngato,cat\n".utf8))
+  let suite = "repeats-\(UUID().uuidString)"
+  let defaults = try #require(UserDefaults(suiteName: suite))
+  defer { defaults.removePersistentDomain(forName: suite) }
+
+  let store = StudyStore(deck: japanese, defaults: defaults)
+  #expect(store.browseQuestionRepeats == AutoBrowse.defaultQuestionRepeats)
+
+  store.browseQuestionRepeats = 5
+  #expect(StudyStore(deck: japanese, defaults: defaults).browseQuestionRepeats == 5)
+  #expect(
+    StudyStore(deck: spanish, defaults: defaults).browseQuestionRepeats
+      == AutoBrowse.defaultQuestionRepeats)
+
+  store.browseQuestionRepeats = 99
+  #expect(store.browseQuestionRepeats == AutoBrowse.questionRepeatsRange.upperBound)
+  store.browseQuestionRepeats = 0
+  #expect(store.browseQuestionRepeats == AutoBrowse.questionRepeatsRange.lowerBound)
+}
+
+@MainActor
 @Test func speechRateMultiplierStaysInsideTheSupportedRange() {
   #expect(SpeechPlayer.utteranceRate(multiplier: 1) == AVSpeechUtteranceDefaultSpeechRate)
   #expect(
@@ -657,11 +680,20 @@ private let middayToday = SchedulerCalendar().startOfDay(for: Date()).addingTime
 }
 
 @Test func autoPlayReadsTheQuestionThreeTimesThenAlternatesWithTheAnswer() {
-  let steps = AutoBrowse.steps
+  let steps = AutoBrowse.steps()
 
   #expect(steps.prefix(3).allSatisfy { $0 == .question })
   #expect(steps.dropFirst(3) == [.answer, .question, .answer, .question, .answer, .question])
   #expect(steps.filter { $0 == .answer }.count == 3)
+}
+
+@Test func autoPlayQuestionRepeatsAreConfigurableAndClamped() {
+  #expect(AutoBrowse.steps(questionRepeats: 1).prefix(2) == [.question, .answer])
+  #expect(AutoBrowse.steps(questionRepeats: 5).prefix(6) == [.question, .question, .question, .question, .question, .answer])
+  #expect(
+    AutoBrowse.steps(questionRepeats: 0) == AutoBrowse.steps(questionRepeats: AutoBrowse.questionRepeatsRange.lowerBound))
+  #expect(
+    AutoBrowse.steps(questionRepeats: 99) == AutoBrowse.steps(questionRepeats: AutoBrowse.questionRepeatsRange.upperBound))
 }
 
 @Test func autoPlayAdvancesToTheNextCardAndStopsAtTheEnd() throws {

@@ -127,7 +127,11 @@ private struct DeckLink: View {
       DeckInspectorView(deck: deck, decks: decks, store: store)
     }
     .sheet(isPresented: $browsing) {
-      BrowseDeckView(deck: deck, speechRate: store.speechRate)
+      BrowseDeckView(
+        deck: deck,
+        speechRate: store.speechRate,
+        questionRepeats: store.browseQuestionRepeats
+      )
     }
     .confirmationDialog(
       "Reset progress for \(deck.name)?",
@@ -319,6 +323,7 @@ private struct CardFaceView: View {
 private struct BrowseDeckView: View {
   let deck: Deck
   let speechRate: Double
+  let questionRepeats: Int
   @Environment(\.dismiss) private var dismiss
   @State private var speech = SpeechPlayer()
   @State private var session: BrowseSession
@@ -326,9 +331,10 @@ private struct BrowseDeckView: View {
   @State private var autoStep = 0
   @State private var showingSettings = false
 
-  init(deck: Deck, speechRate: Double) {
+  init(deck: Deck, speechRate: Double, questionRepeats: Int) {
     self.deck = deck
     self.speechRate = speechRate
+    self.questionRepeats = questionRepeats
     _session = State(initialValue: BrowseSession(cards: deck.cards))
   }
 
@@ -457,12 +463,13 @@ private struct BrowseDeckView: View {
 
   private func playAutoStep() {
     guard autoRunning, let card = session.card else { return }
-    guard autoStep < AutoBrowse.steps.count else {
+    let steps = AutoBrowse.steps(questionRepeats: questionRepeats)
+    guard autoStep < steps.count else {
       guard session.nextCard() else { return stopAuto() }
       autoStep = 0
       return playAutoStep()
     }
-    let step = AutoBrowse.steps[autoStep]
+    let step = steps[autoStep]
     if step == .answer { session.reveal() }
     speech.speakOnce(
       step == .question ? card.prompt : card.answer,
@@ -1094,6 +1101,23 @@ private struct SettingsView: View {
           Text("Voice")
         } footer: {
           Text(Self.voiceDownloadHint)
+        }
+
+        Section {
+          Stepper(
+            value: $store.browseQuestionRepeats,
+            in: AutoBrowse.questionRepeatsRange
+          ) {
+            LabeledContent("Question repeats") {
+              Text("\(store.browseQuestionRepeats)")
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+            }
+          }
+        } header: {
+          Text("Browse")
+        } footer: {
+          Text("Auto play reads the question this many times before the first answer.")
         }
 
         Section {
