@@ -401,7 +401,7 @@ private struct BrowseDeckView: View {
             startAuto()
           }
           .onChange(of: card.id) { _, _ in
-            guard !autoRunning else { return }
+            guard !autoRunning, speech.isPlaying else { return }
             speech.start(card.prompt, languageCode: card.languageCode, rate: speechRate)
           }
         } else {
