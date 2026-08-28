@@ -10,14 +10,43 @@ furigana uses `word[reading]` notation, for example `日本語[にほんご]`: t
 the reading above the word, speaks it instead of the annotation, and shows romaji on
 the answer side. Wrapping part of a prompt in `**` marks the word the card teaches, as
 in `俺[おれ]は**強[つよ]い**`; the app shows it bold and underlined and drops the
-asterisks everywhere else. `slime.csv` holds a thousand phrases of casual anime
-dialogue from *That Time I Got Reincarnated as a Slime*, ordered from the show's most
-common vocabulary down, each phrase introducing one new word and reusing only words
-taught earlier. `spanish.csv` holds a thousand beginner phrases built the same way,
-ordered by subtitle frequency, where each card teaches one new noun or verb form and
-every conjugation counts as its own word. Bundled decks are copied into the
-app's documents directory on first launch, and refreshed from the bundle while the
-copy is unedited.
+asterisks everywhere else. Bundled decks are copied into the app's documents directory
+on first launch, and refreshed from the bundle while the copy is unedited.
+
+## Included decks
+
+`slime.csv` is a thousand phrases of casual anime dialogue from *That Time I Got
+Reincarnated as a Slime*; `spanish.csv` is a thousand beginner Spanish phrases.
+`spanish.csv` is the better model to copy. Both follow the same recipe:
+
+- Start from a frequency-ordered wordlist of a thousand words, counted over a corpus
+  that matches the deck: the show's own subtitles for `slime.csv`, Spanish subtitles at
+  large for `spanish.csv`. Most common first.
+- One card per word, in that order: card *i* teaches word *i*, so the deck is a
+  thousand lines plus the header.
+- A word is a form, not a dictionary entry. Every conjugation is its own card.
+- i+1: apart from the one new word, every content word in the phrase must already have
+  been taught on an earlier line. Grammar is free — particles, articles, pronouns,
+  prepositions, the copula, and conjugation endings never count as vocabulary.
+- The prompt is a real phrase or short sentence someone would say, 2–6 words, never a
+  bare word. Vary the shape: questions, replies, exclamations. The first cards have
+  almost no vocabulary to lean on, so keep them very short.
+- Exactly one `**bold**` span per line, marking the new word as it is spelled in the
+  wordlist, conjugation and furigana included.
+- The answer field is `translation; note`. The translation is natural English for the
+  whole phrase, not word by word.
+- The note is one sentence of at most 16 words: what kind of word it is, then what it
+  means, then the nuance the translation loses — register, how wide the meaning is,
+  what a compound literally says, how this show uses it. It must never restate the
+  translation, compare the word to one the learner has not met, or discuss spelling or
+  pronunciation.
+- Exactly one comma per line, the field separator. Any comma inside a field forces the
+  whole field to be quoted, so reword instead. No tabs, no duplicate prompts.
+- Japanese lines annotate every kanji run with a hiragana reading in square brackets,
+  including inside the bold span: `落[お]ち着[つ]く`.
+- Validate before shipping: the authoring briefs and their `check_deck.py` /
+  `check_notes.py` validators live in `.tmp/japanese` and `.tmp/spanish`, which is
+  untracked scratch, not part of the build.
 
 ## Studying
 
