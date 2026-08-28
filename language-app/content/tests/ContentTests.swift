@@ -302,6 +302,27 @@ private func emptyDeckStore() throws -> (store: DeckStore, directory: URL, defau
 }
 
 @MainActor
+@Test func marksTheNewWordAndKeepsItOutOfTheTextAndSpeech() {
+  let source = "俺[おれ]は**強[つよ]い**"
+  #expect(FuriganaParser.parse(source) == [
+    FuriganaSegment(text: "俺", reading: "おれ"),
+    FuriganaSegment(text: "は"),
+    FuriganaSegment(text: "強", reading: "つよ", emphasized: true),
+    FuriganaSegment(text: "い", emphasized: true),
+  ])
+  #expect(FuriganaParser.displayText(source) == "俺は強い")
+  #expect(FuriganaParser.speechText(source) == "おれはつよい")
+  #expect(Romaji.transliterate(source) == "ore wa tsuyoi")
+
+  let units = FuriganaParser.breakableUnits(source)
+  #expect(units.map(\.text) == ["俺", "は", "強", "い"])
+  #expect(units.map(\.emphasized) == [false, false, true, true])
+
+  // A lone asterisk is ordinary text.
+  #expect(FuriganaParser.displayText("3*4") == "3*4")
+}
+
+@MainActor
 @Test func japaneseTextBreaksBetweenCharactersButLatinWordsStayWhole() {
   // A phrase with no kanji has to offer a break after every character, or it cannot wrap.
   let kana = FuriganaParser.breakableUnits("このままじゃまずいことになるぞ")

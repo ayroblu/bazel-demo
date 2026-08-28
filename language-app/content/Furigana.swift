@@ -3,10 +3,12 @@ import Foundation
 public struct FuriganaSegment: Equatable, Sendable {
   public let text: String
   public let reading: String?
+  public let emphasized: Bool
 
-  public init(text: String, reading: String? = nil) {
+  public init(text: String, reading: String? = nil, emphasized: Bool = false) {
     self.text = text
     self.reading = reading
+    self.emphasized = emphasized
   }
 }
 
@@ -16,11 +18,15 @@ public struct FuriganaUnit: Equatable, Sendable {
   public let base: String
   public let reading: String?
   public let trailing: String
+  public let emphasized: Bool
 
-  public init(base: String, reading: String? = nil, trailing: String = "") {
+  public init(
+    base: String, reading: String? = nil, trailing: String = "", emphasized: Bool = false
+  ) {
     self.base = base
     self.reading = reading
     self.trailing = trailing
+    self.emphasized = emphasized
   }
 
   public var text: String { base + trailing }
@@ -33,16 +39,27 @@ public enum FuriganaParser {
     var base = ""
     var reading = ""
     var insideReading = false
+    var emphasized = false
 
     func flushPlain() {
       if !plain.isEmpty {
-        segments.append(FuriganaSegment(text: plain))
+        segments.append(FuriganaSegment(text: plain, emphasized: emphasized))
         plain = ""
       }
     }
 
-    for character in source {
-      if character == "[", !insideReading {
+    let characters = Array(source)
+    var position = 0
+    while position < characters.count {
+      let character = characters[position]
+      position += 1
+      if character == "*", !insideReading, position < characters.count,
+        characters[position] == "*"
+      {
+        position += 1
+        flushPlain()
+        emphasized.toggle()
+      } else if character == "[", !insideReading {
         if let range = plain.range(of: #"[\p{Han}々〆ヵヶ]+$"#, options: .regularExpression) {
           base = String(plain[range])
           plain.removeSubrange(range)
@@ -53,7 +70,7 @@ public enum FuriganaParser {
         }
       } else if character == "]", insideReading {
         if !base.isEmpty, !reading.isEmpty {
-          segments.append(FuriganaSegment(text: base, reading: reading))
+          segments.append(FuriganaSegment(text: base, reading: reading, emphasized: emphasized))
         } else {
           plain += base + "[" + reading + "]"
         }
@@ -94,13 +111,16 @@ public enum FuriganaParser {
       units[units.count - 1] = FuriganaUnit(
         base: last.base,
         reading: last.reading,
-        trailing: last.trailing + String(character)
+        trailing: last.trailing + String(character),
+        emphasized: last.emphasized
       )
     }
 
     for segment in parse(source) {
+      let emphasized = segment.emphasized
       if let reading = segment.reading {
-        units.append(FuriganaUnit(base: segment.text, reading: reading))
+        units.append(
+          FuriganaUnit(base: segment.text, reading: reading, emphasized: emphasized))
         continue
       }
       for character in segment.text {
@@ -110,11 +130,12 @@ public enum FuriganaParser {
         {
           appendToLast(character)
         } else if let last, last.reading == nil, last.trailing.isEmpty,
-          staysInTheSameWord(last.base, character)
+          last.emphasized == emphasized, staysInTheSameWord(last.base, character)
         {
-          units[units.count - 1] = FuriganaUnit(base: last.base + String(character))
+          units[units.count - 1] = FuriganaUnit(
+            base: last.base + String(character), emphasized: emphasized)
         } else {
-          units.append(FuriganaUnit(base: String(character)))
+          units.append(FuriganaUnit(base: String(character), emphasized: emphasized))
         }
       }
     }

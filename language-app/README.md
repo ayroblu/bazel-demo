@@ -8,11 +8,14 @@ Decks are CSV files. The first column header is a BCP 47 language code for Apple
 speech synthesizer, such as `ja` or `es`; the second column is the answer. Japanese
 furigana uses `word[reading]` notation, for example `日本語[にほんご]`: the app shows
 the reading above the word, speaks it instead of the annotation, and shows romaji on
-the answer side. `japanese.csv` and `anime.csv` hold a thousand phrases each, ordered
-from the most common vocabulary down and introducing one new noun or verb per phrase,
-polite Japanese in the first and casual anime dialogue in the second. `spanish.csv`
-is a ten card sample. Bundled decks are copied into the app's documents directory on
-first launch, and refreshed from the bundle while the copy is unedited.
+the answer side. Wrapping part of a prompt in `**` marks the word the card teaches, as
+in `俺[おれ]は**強[つよ]い**`; the app shows it bold and underlined and drops the
+asterisks everywhere else. `slime.csv` holds a thousand phrases of casual anime
+dialogue from *That Time I Got Reincarnated as a Slime*, ordered from the show's most
+common vocabulary down, each phrase introducing one new word and reusing only words
+taught earlier. `spanish.csv` is a ten card sample. Bundled decks are copied into the
+app's documents directory on first launch, and refreshed from the bundle while the
+copy is unedited.
 
 ## Studying
 

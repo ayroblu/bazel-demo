@@ -542,9 +542,9 @@ private struct FuriganaText: View {
     WrappingRow(spacing: 0, lineSpacing: 8) {
       ForEach(Array(FuriganaParser.breakableUnits(source).enumerated()), id: \.offset) { _, unit in
         HStack(alignment: .bottom, spacing: 0) {
-          ruby(unit.base, reading: unit.reading)
+          ruby(unit.base, reading: unit.reading, emphasized: unit.emphasized)
           if !unit.trailing.isEmpty {
-            ruby(unit.trailing, reading: nil)
+            ruby(unit.trailing, reading: nil, emphasized: unit.emphasized)
           }
         }
         .fixedSize()
@@ -554,13 +554,14 @@ private struct FuriganaText: View {
   }
 
   /// A reading sits above its base characters only, so trailing kana keep a blank line above.
-  private func ruby(_ base: String, reading: String?) -> some View {
+  private func ruby(_ base: String, reading: String?, emphasized: Bool) -> some View {
     VStack(spacing: 1) {
       Text(reading ?? " ")
-        .font(.system(size: 24))
+        .font(.system(size: 24, weight: emphasized ? .bold : .regular))
         .foregroundStyle(.secondary)
       Text(base)
-        .font(.system(size: 42, weight: .medium))
+        .font(.system(size: 42, weight: emphasized ? .heavy : .medium))
+        .underline(emphasized)
     }
   }
 }
