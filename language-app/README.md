@@ -13,7 +13,9 @@ in `俺[おれ]は**強[つよ]い**`; the app shows it bold and underlined and 
 asterisks everywhere else. `slime.csv` holds a thousand phrases of casual anime
 dialogue from *That Time I Got Reincarnated as a Slime*, ordered from the show's most
 common vocabulary down, each phrase introducing one new word and reusing only words
-taught earlier. `spanish.csv` is a ten card sample. Bundled decks are copied into the
+taught earlier. `spanish.csv` holds a thousand beginner phrases built the same way,
+ordered by subtitle frequency, where each card teaches one new noun or verb form and
+every conjugation counts as its own word. Bundled decks are copied into the
 app's documents directory on first launch, and refreshed from the bundle while the
 copy is unedited.
 

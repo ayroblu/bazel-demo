@@ -1,11 +1,1001 @@
 es,en
-hola,hello; a common greeting.
-gracias,thank you; an expression of gratitude.
-por favor,please; used to make a request polite.
-agua,water; the clear liquid people drink.
-comida,food; anything eaten for nourishment.
-amigo,friend; a male friend or a person of unspecified gender.
-amiga,friend; a female friend.
-hoy,today; the current day.
-mañana,tomorrow or morning; the meaning depends on context.
-adiós,goodbye; said when leaving.
+**Es** para mí,It's for me; Ser marks identity or an inherent trait; for a state or a place Spanish switches to estar.
+¿**Está** aquí?,Is he here?; Estar covers location and passing states so it is the verb for where something is right now.
+**Estoy** bien,I'm fine; Feelings and conditions take estar; soy bien is wrong even though English uses one verb for both.
+Todavía no **ha**...,He still hasn't; Ha is haber for él/ella/usted and can never stand alone — a participle must follow as in ha comido.
+¡**Vamos** ya!,Let's go already!; Ir in the nosotros form doubles as the let's-go command so it works as both statement and push.
+¿**Hay** algo?,Is there anything?; Hay is impersonal and invariable — hay muchas cosas stays hay and never becomes han.
+No **tengo** nada,I don't have anything; Tener yo form; stacking no with nada is required rather than a double negative mistake.
+¿Cómo **estás**?,How are you?; The tú form of estar asking about mood or health; ¿cómo eres? would ask what kind of person you are.
+No **sé** por qué,I don't know why; Saber has the irregular yo sé for facts and information; the accent separates it from the pronoun se.
+Yo ya lo **he**...,I already have; He is haber for yo and only works as an auxiliary — it needs a participle like hecho or visto behind it.
+Tengo que **ser** yo,It has to be me; The infinitive of ser; use it for who or what something is rather than how it feels.
+Él **tiene** algo mío,He has something of mine; Tiene is tener for él/ella and is also the polite form you use with usted.
+No **puedo** más,I can't take any more; Poder yo form is irregular; no puedo más is the set way to say you are at your limit.
+No **quiero** nada más,I don't want anything else; Querer yo form; with a person querer shifts from wanting to loving.
+No sé qué **hacer**,I don't know what to do; Hacer covers both do and make so Spanish never distinguishes the two.
+Todo **fue** por ti,It was all because of you; Fue is the preterite of ser and also of ir so context decides between was and went.
+**Gracias** por todo,Thanks for everything; Gracias is always plural and feminine; the singular gracia means grace or a joke.
+Otra **vez** no,Not again; Vez is feminine and its plural is veces; una vez means once and dos veces twice.
+Él **era** así antes,He used to be like that; Era is the imperfect of ser for how things once were with no clear end point.
+No **soy** así,I'm not like that; Soy is the irregular yo of ser for identity and character rather than a passing mood.
+¿**Son** para mí?,Are they for me?; Son is ser for ellos and also the form you use with ustedes.
+¿Qué **tienes** ahí?,What have you got there?; Tienes is tener for tú so it fits a friend but never usted.
+**Creo** que sí,I think so; Creer is believe or think an opinion; creo que sí is the standard yes-probably reply.
+Ahora **voy** para allá,I'm on my way there now; Voy is the irregular yo of ir and the plain present already covers the near future.
+¿**Sabes** algo de él?,Do you know anything about him?; Saber is knowing facts while conocer is being acquainted with a person.
+**Estaba** aquí antes,It was here earlier; Estaba is the imperfect of estar for a background situation with no defined end.
+¿**Puede** ser?,Could that be?; Puede is poder for él/ella/usted and puede ser is the everyday way to say maybe.
+Tú **eres** así,You're just like that; Eres is ser for tú describing character; estás would describe today's mood instead.
+Eso no es **verdad**,That isn't true; Verdad is feminine and tacked onto a sentence as ¿verdad? it becomes the tag right?.
+Vamos a mi **casa**,Let's go to my place; Casa is feminine and in the fixed phrase en casa it drops the article.
+No tengo **tiempo**,I don't have time; Tiempo is masculine and also means weather so hace buen tiempo is about the sky.
+¿Cómo **va** todo?,How's everything going?; Va is ir for él/ella/usted; with things it means how they are going rather than movement.
+Por **favor** no,Please don't; Favor is masculine and por favor is fixed with por and never with para.
+¿Qué **quieres** de mí?,What do you want from me?; Quieres is querer for tú; said of a person it means you love them.
+Lo **siento** mucho,I'm very sorry; Siento is sentir to feel and the lo is obligatory in the apology.
+¿Está el **señor** aquí?,Is the gentleman here?; Señor is Mr or sir and pairs with usted; before a name it takes el as in el señor García.
+**Hace** mucho tiempo,A long time ago; Hace is hacer for él/ella and with a time span it means ago.
+**Has** de hacer algo,You have to do something; Has is haber for tú; has de plus infinitive is obligation and sounds Spanish rather than Latin American.
+¿Qué quieres **decir**?,What do you mean?; Decir is say or tell and querer decir is the idiom for to mean.
+**Tenemos** que hacer algo,We have to do something; Tenemos is tener for nosotros and tener que is the ordinary way to say must.
+¿Dónde **están** todos?,Where is everybody?; Están is estar for ellos and ustedes and it is the form for location.
+¿Tú **puedes** hacer eso?,Can you do that?; Puedes is poder for tú covering both being able to and being allowed to.
+No puedo **ver** nada,I can't see anything; Ver is passive seeing while mirar is deliberately looking at something.
+¡**Hombre** por favor!,Oh come on!; Hombre is a man but thrown into speech in Spain it works as a nudge like come on.
+Así es la **vida**,That's life; Vida is feminine and mi vida is a common term of endearment for a partner or child.
+Hay muchas **cosas**,There are lots of things; Cosas is the plural of the feminine cosa; one thing is una cosa.
+Tengo que **ir**,I have to go; Ir is wildly irregular once conjugated and ir a plus infinitive is the going-to future.
+Tengo diez **años**,I'm ten years old; Age uses tener not ser; año is masculine and the ñ matters since ano is anus.
+Quiero **estar** aquí,I want to be here; The infinitive estar is for states and location; ser would claim identity instead.
+Todo el **día**,All day; Día is masculine despite ending in a and buenos días is plural as a greeting.
+Esta **noche** no puedo,I can't tonight; Noche is feminine (la noche) and esta noche is the normal way to say tonight; the plural buenas noches works as both hello and goodbye after dark.
+Ya **estamos** aquí,We're here now; Estar we-form present for location and passing states; somos would claim identity instead.
+Estoy de **acuerdo** contigo,I agree with you; Masculine noun used in the fixed phrase estar de acuerdo con alguien; on its own ¡De acuerdo! is simply OK.
+No tengo **trabajo**,I don't have a job; Masculine noun covering both job and work; spelled identically to trabajo meaning I work; context alone separates them.
+Me **parece** bien,Sounds good to me; Parecer he/she/usted present; me parece is how Spanish says I think; parecerse a is to resemble someone.
+Hay mucha **gente** aquí,There are a lot of people here; Feminine and grammatically singular even though English people is plural; say la gente es amable and never son.
+Lo que **sea** está bien,Whatever works is fine; Present subjunctive of ser for él/usted; lo que sea is whatever; it appears after cuando and para que where English keeps a plain verb.
+Mi **padre** no está,My father isn't in; Masculine; the plural padres normally means parents of both sexes; in Mexican slang padre also means great.
+**Mira** esto,Look at this; Tú imperative of mirar; with usted it becomes mire; in speech it is often just a filler like hey or listen.
+¿Quién lo **dijo**?,Who said that?; Decir he/she/usted preterite built on the irregular stem dij- with no accent; the regular form dició does not exist.
+¿Qué **quiere** usted?,What do you want?; Querer he/she/usted present with the e to ie stem change; querer a una persona means to love them.
+**Podría** ser,It could be; Conditional of poder shared by yo and él; the polite way to ask favours and to hedge a guess.
+Quiero **hablar** contigo,I want to talk to you; Infinitive; you speak con someone and de a topic; hablar a alguien sounds like addressing rather than chatting.
+¿A dónde **vas**?,Where are you going?; Ir tú present from a wholly irregular verb; vas a plus infinitive is the everyday future much like English going to.
+¿Qué **pasa**?,What's going on?; Pasar he/she/it present; it stretches over to happen and to pass by and to spend time.
+**Han** de hablar conmigo,They have to talk to me; Haber they/ustedes present; normally the perfect auxiliary as in han hablado while haber de plus infinitive is a formal obligation.
+¿Tienes **dinero**?,Do you have any money?; Masculine and uncountable so there is no plural and no un dinero; amounts take algo de dinero.
+Quiero ver el **mundo**,I want to see the world; Masculine; the set phrase todo el mundo means everybody rather than the entire planet.
+Un **momento** por favor,One moment please; Masculine; en este momento is right now and por el momento means for the time being.
+¿Puedo **tener** uno?,Can I have one?; The infinitive behind tengo and tienes; tener que plus infinitive is the main way to say have to.
+He **estado** aquí,I have been here; Past participle of estar and also a masculine noun meaning state; after haber a participle never changes for gender or number.
+**Había** mucha gente,There were a lot of people; Impersonal there was or there were; always singular no matter how many things follow since it is the past of hay.
+No **tenía** dinero,He didn't have any money; Tener imperfect and the same form for yo and él so a pronoun is often needed; the imperfect suits lasting past situations.
+¿Y tu **madre**?,And your mother?; Feminine; to her face most people say mamá and madre turns up in some very strong Mexican insults.
+**Vale** hasta mañana,Okay see you tomorrow; Vale is Spain's all-purpose okay from valer to be worth while Latin America prefers bueno or dale.
+¿Qué **lugar** es este?,What place is this?; Masculine; en lugar de means instead of and tener lugar means to take place.
+¿Qué estás **haciendo**?,What are you doing?; Gerund of hacer on the irregular stem haci-; it only pairs with estar and never acts as a noun the way English doing does.
+Nadie **sabe** nada,Nobody knows anything; Saber he/she/usted present with its odd yo form sé; saber is knowing facts while conocer is being acquainted with people or places.
+**Podemos** ir mañana,We can go tomorrow; Poder we-form present; the o to ue change of puedo drops out in nosotros.
+**Espera** un momento,Hold on a second; Both the he/she present and the tú command of esperar which means wait and hope and expect all at once.
+¿Qué ha **sido** de él?,What became of him?; Past participle of ser and invariable after haber; there is no form serido.
+Es otra **cosa**,That's something else; Feminine singular of the plural cosas you already know; alguna cosa is a wordier algo and la cosa es que means the thing is.
+¿Cómo está su **hijo**?,How is your son?; Masculine with hija for a girl; the plural hijos covers children of both sexes and hijo is also warm address to a young person.
+¿Qué **tipo** de hombre?,What kind of man?; Masculine; tipo de is the standard kind of and on its own tipo is a casual guy or bloke.
+¿Eres su **amigo**?,Are you his friend?; Masculine with amiga for a woman; unlike English boyfriend it implies nothing romantic since that is novio.
+¿Quién es esa **mujer**?,Who is that woman?; Feminine; it doubles as wife so mi mujer usually means my wife rather than my woman.
+**Mamá** ya voy,Mom I'm coming; The accent puts the stress on the last syllable and is obligatory since mama without it means breast.
+¿Está **papá** en casa?,Is dad home?; Stressed on the final syllable; drop the accent and papa means potato or pope depending on the country.
+Hace tres **días**,Three days ago; Día is masculine despite ending in -a so it takes los días; the greeting buenos días is always plural.
+¿Qué **dice** ella?,What does she say?; Decir he/she/usted present with the e to i change; dice que introduces reported speech and the que can never be dropped.
+**Necesito** hablar contigo,I need to talk to you; Necesitar yo present and fully regular; it takes a direct object with no preposition as in necesito dinero.
+Yo no **dije** eso,I didn't say that; Decir yo preterite; the irregular stem shifts the stress back so there is no accent unlike regular dí endings.
+**Oye** ¿tienes un momento?,Hey have you got a minute?; The tú command of oír used as an attention-getter; oír is hearing while escuchar is deliberate listening.
+Me **gusta** este lugar,I like this place; Gustar means to be pleasing so the thing liked is the subject and the person takes me or te; yo gusto is wrong.
+Sólo **quería** verte,I just wanted to see you; Querer imperfect for yo and él alike; it softens a request the way English uses I was hoping to.
+¿**Será** verdad?,Can it be true?; Ser he/she/usted future; Spanish also uses this future for guesses meaning it must be or it probably is.
+Puede **haber** algo,There might be something; The infinitive behind hay and había; after another verb it carries the there is meaning as in debe haber.
+En otra **parte**,Somewhere else; Feminine; en alguna parte means somewhere and formar parte de is to be part of something.
+¿Cuál es tu **nombre**?,What's your name?; Masculine; in speech ¿cómo te llamas? is far more common and a nombre de means in the name of.
+¡Qué **mierda**!,What a mess!; Literally shit and genuinely vulgar; used alone as a curse and after a noun as de mierda to mean lousy.
+Eso **debe** ser verdad,That must be true; Debe is deber for él/ella/usted and before an infinitive it means must or ought to; here it marks a guess about what is likely rather than an obligation.
+No he **visto** nada,I haven't seen anything; Visto is the irregular past participle of ver — never vido or veído — and it stays invariable after haber.
+No me **importa** nada,I don't care at all; Importar behaves like gustar: the thing that matters is the subject and the person goes in the me/te/le slot. No importa on its own means never mind.
+**Tienen** mucho dinero,They have a lot of money; Tienen is tener for ellos and for ustedes together; Latin Americans use it to address a group politely where Spain would say tenéis.
+**Hemos** visto todo,We've seen everything; Hemos is the we-form of haber and only ever an auxiliary — for possession Spanish uses tenemos.
+Tienes **razón**,You're right; Spanish says to have reason where English says to be right; razón is feminine and its plural razones loses the accent.
+Quiero **saber** la verdad,I want to know the truth; Saber is knowing facts or information while conocer is being acquainted with people and places.
+¿Quién **hizo** esto?,Who did this?; Hizo is the irregular preterite of hacer for él/ella/usted; the z spelling appears only here while the yo form is hice.
+A **veces** no sé,Sometimes I don't know; Veces is the plural of vez with the z to c switch; a veces means sometimes and dos veces means twice.
+Ellos no **ven** nada,They don't see anything; Ven is ver for ellos but it is also the tú command of venir meaning come here — only context separates them.
+No tengo **idea**,I have no idea; Idea is feminine and the stress falls on the e — i-de-a — so no accent is written; the clipped ni idea is the everyday way to say no clue.
+Hay un **problema**,There's a problem; Problema is masculine even though it ends in a — it comes from Greek — so el problema and los problemas.
+¿Qué **hora** es?,What time is it?; Hora is feminine and means a clock hour or an appointment slot; time as an abstract quantity is tiempo.
+**Amor** de mi vida,Love of my life; Amor is masculine and mi amor is a normal endearment for a partner or a child; hacer el amor is the physical sense.
+Él no **ve** bien,He doesn't see well; Ve is ver for él/ella/usted and simultaneously the tú command of ir — ve a casa means go home.
+Toda mi **familia** está aquí,My whole family is here; Familia is feminine and grammatically singular so it takes a singular verb where British English often uses a plural.
+La **policía** está aquí,The police are here; La policía is the force as a whole and takes a singular verb; un policía is a single male officer.
+Yo **debería** irme,I should go; Debería is the conditional of deber and softens must into should; the yo and él forms are identical so a pronoun clears it up.
+Esa **chica** no me quiere,That girl doesn't like me; Chica is a girl or a young woman and is also the feminine adjective for small; in parts of Latin America it can mean girlfriend.
+¡Vamos **chicos**!,Let's go guys!; The masculine plural chicos covers a mixed group and is the usual way to address friends of any gender.
+Él me **cuenta** todo,He tells me everything; Contar means both to tell a story and to count and its stem changes o to ue; the noun la cuenta is the bill.
+¿Qué **haces** aquí?,What are you doing here?; Haces is hacer for tú covering both do and make; the simple present here translates as the English continuous.
+Quiero **salir** de aquí,I want to get out of here; Salir is leaving an enclosed place rather than departing on a trip; the yo form is irregular salgo and salir con means to date.
+¡**Vaya** problema!,What a problem!; Vaya is the subjunctive of ir but as an exclamation it means wow or what a; it doubles as the usted command go.
+Te **veo** mañana,See you tomorrow; Veo is the irregular yo form of ver; Spanish uses this plain present for a fixed future arrangement.
+Son mis **amigos**,They're my friends; The masculine plural amigos includes women; amigo stays strictly platonic while novio is a romantic partner.
+Mi **hermano** es policía,My brother is a police officer; Hermano is masculine and the plural hermanos means siblings of mixed gender.
+**Pensé** que era mi amigo,I thought he was my friend; Pensé is the yo preterite of pensar and the written accent carries the stress; the e to ie change of pienso never happens in the preterite.
+No **sabía** nada de esto,I didn't know anything about this; Sabía is the imperfect of saber shared by yo and él; supe would instead mean I found out at a moment.
+Tengo algo en la **cabeza**,I've got something in my head; Cabeza is feminine and beyond the body part it carries ideas — perder la cabeza is to lose one's head.
+Gracias **cariño**,Thanks sweetheart; Cariño is a masculine noun meaning affection and stays masculine when used to address a woman; tener cariño a alguien is to be fond of someone.
+¿Qué **digo** ahora?,What do I say now?; Digo is the irregular yo form of decir with an inserted g; dropped into a sentence it works as a filler meaning I mean.
+¿A dónde **van** ustedes?,Where are you all going?; Van is ir for ellos and for ustedes; with a plus an infinitive it becomes the everyday future they're going to.
+Dos **hombres** están aquí,Two men are here; Hombres is the plural of hombre; as a bare interjection hombre expresses surprise or protest rather than referring to a man.
+**Somos** amigos,We're friends; Somos is ser for nosotros and marks identity that defines us; estamos would describe a passing state or a location instead.
+Esa no es **forma** de hablar,That's no way to talk; Forma is feminine and means both shape and manner; estar en forma is to be physically fit.
+Está a mi **lado**,He's next to me; Lado is masculine and al lado de means beside; por otro lado shifts an argument to the other hand.
+**Debo** hablar contigo,I have to talk to you; Debo is deber for yo and with an infinitive it means must; with a direct object like debo dinero it means I owe.
+**Sería** un problema,It would be a problem; Sería is the conditional of ser and yo and él share it; besides hypotheticals it politely softens a claim.
+En ese **caso** no voy,In that case I'm not going; Caso is masculine; hacer caso means to pay attention or obey and en caso de means in case of.
+Ustedes **pueden** salir,You can go out; Pueden is poder for ellos and ustedes with the o to ue change; it covers both being able and having permission.
+¿Qué **pasó**?,What happened?; Pasó is the preterite of pasar for él; the accent is what separates it from paso; ¿qué pasa? asks about right now instead.
+Ese **chico** es mi hermano,That boy is my brother; Chico is a boy or a young guy and as an adjective it means small — un coche chico.
+Yo no **hice** nada,I didn't do anything; Hice is the yo preterite of hacer and takes no written accent while the él form switches the c to a z in hizo.
+Hay muchas **personas** aquí,There are a lot of people here; Personas is feminine even for a group of men and is what you count; gente is a singular mass noun and never takes a number.
+¿Está la **señora** en casa?,Is the lady of the house in?; Señora is feminine and is used for a married or older woman while señorita marks a younger one; it also means wife.
+Quiero **volver** a casa,I want to go back home; Volver is returning to where you came from and its present stem is vuelvo; volver a plus an infinitive means to do something again.
+Vamos por ese **camino**,Let's go along that path; Camino is a masculine road or path and is also the yo form of caminar; en camino means on the way.
+Está **hablando** con mi madre,He's talking to my mother; Hablando is the gerund of hablar and only works after estar for an action in progress — as a subject Spanish needs the infinitive hablar.
+De ninguna **manera**,No way; Manera is feminine and swaps freely with forma for way or method; de ninguna manera is a flat refusal.
+¿Quién es esa **persona**?,Who is that person?; Persona is always feminine even for a man so una persona alta can be your brother.
+Necesito tu **ayuda**,I need your help; Feminine noun built from ayudar; shouted alone it is a cry for help while ¡Ayúdame! asks one specific person.
+¿Sabes esta **historia**?,Do you know this story?; It covers both story and history so la historia de mi familia is a tale and not a school subject.
+**Iba** a decir algo,I was going to say something; Ir in the imperfect — yo and él share this form so only context says who; iba a plus infinitive is the past of voy a.
+**Supongo** que sí,I suppose so; Suponer yo present with the irregular -go ending like tengo; speakers use it to hedge much as English drops in I guess.
+No **entiendo** nada,I do not understand anything; Entender yo present with e turning into ie in the stem; entender is grasping meaning while comprender sounds formal.
+Hay alguien en la **puerta**,Someone is at the door; Feminine; it stretches from a house door to a city gate to an airport gate while puerto with -o is a harbour.
+¿**Ves** lo que digo?,Do you see what I mean?; Ver tú present — short and irregular; keep it apart from the noun vez which is a time or occasion.
+Nada va a **pasar**,Nothing is going to happen; Pasar spreads over to happen and to pass by and to spend time; pasar de something is to skip it.
+¿Qué **significa** eso?,What does that mean?; Significar third person singular; in everyday speech quiere decir is even more common for the same idea.
+¿Qué día de la **semana** es?,What day of the week is it?; Feminine; el fin de semana is the weekend and older speakers say ocho días for a week.
+**Espero** verte hoy,I hope to see you today; Esperar yo present does triple duty for hope and wait and expect; in the hope sense the next verb turns subjunctive.
+Un **año** más aquí,One more year here; Masculine; the tilde is vital because ano without it is anus; hace un año means a year ago.
+Los **niños** no están,The kids are not here; The masculine plural covers mixed groups of boys and girls; these are small children while chicos suits teenagers.
+¡**Tío**! ¿Qué haces?,Hey man! What are you doing?; Literally an uncle but in Spain it is the everyday word for dude; Latin Americans hear only the family sense.
+¡Qué **suerte** tienes!,You are so lucky!; Feminine; Spanish has luck rather than being lucky so it is tener suerte and ¡Suerte! alone wishes someone well.
+Vamos a otra **ciudad**,We are going to another city; Feminine with the plural ciudades; a ciudad is a proper city while a small town is a pueblo.
+Ni **siquiera** sabe mi nombre,He does not even know my name; It pairs with ni to mean not even and standing alone after a negative it sounds bookish.
+¿Quieres **venir** conmigo?,Do you want to come with me?; Venir is motion toward the speaker so when someone calls you answer ya voy and never ya vengo.
+Mi **hija** tiene dos años,My daughter is two years old; Feminine counterpart of hijo; the plural hijos covers children of both sexes together.
+Me **gustaría** hablar contigo,I would like to talk with you; Gustar in the conditional meaning it would please me so the thing desired is the subject and there is no yo form.
+Espera cinco **minutos**,Wait five minutes; Masculine el minuto; un minuto by itself is just a moment rather than a measured length of time.
+La **muerte** de su padre,His father's death; Feminine despite the -e ending; muerto is the adjective and participle so you say está muerto and not está muerte.
+¿Puedes **dejar** eso aquí?,Can you leave that here?; Dejar is leaving a thing behind or letting somebody do something; for leaving a place you need salir or irse.
+En **realidad** no lo sé,Actually I do not know; Feminine; en realidad corrects what was just said instead of announcing anything about reality.
+No **deja** de hablar,He does not stop talking; Dejar third person singular and also the tú command; dejar de plus infinitive is how Spanish says stop doing something.
+Tenemos **problemas**,We have problems; Masculine although it ends in -a because the root is Greek so it is los problemas and un problema grande.
+Nadie me **da** nada,Nobody gives me anything; Dar third person singular; the yo form is the odd doy and da igual means it makes no difference.
+Mi **corazón** es tuyo,My heart is yours; Masculine and the plural corazones drops the accent; it also serves as an endearment like cariño.
+Tengo **miedo**,I am scared; Masculine; fear is something you have in Spanish so it is tener miedo and never estar miedo.
+¿Dónde está el **jefe**?,Where is the boss?; Masculine with la jefa for a woman; it is a workplace supervisor and also a joking way to address a stranger.
+Quiero un poco de **agua**,I want a little water; Feminine yet it takes el agua because feminine nouns starting with stressed a- swap the article; adjectives stay feminine as in agua fría.
+Hace tres **horas** que espero,I have been waiting three hours; Plural of la hora; it serves for clock time and for stretches of time and ¿a qué hora? asks when.
+El **poder** es todo,Power is everything; This infinitive also works as a masculine noun so el poder is power while puedo is the verb.
+Mi **esposa** está en casa,My wife is at home; Feminine with esposo or marido for a husband; the plural esposas also means handcuffs.
+¡**Manos** arriba!,Hands up!; Plural of la mano which stays feminine despite the -o so it is las manos frías.
+**Debes** ver esto,You must see this; Deber tú present carrying obligation; tienes que sounds more forceful and deber de instead guesses that something is probably so.
+¿**Viene** alguien más?,Is anyone else coming?; Venir third person singular with the e to ie change; it points toward the speaker unlike va.
+¡**Venga**! ¡Vamos!,Come on! Let's go!; The subjunctive of venir doubling as the usted command; in Spain a bare ¡Venga! means fine or come on.
+Tiene los **ojos** de su madre,She has her mother's eyes; Masculine plural of el ojo; body parts take the article and not a possessive and ¡Ojo! warns you to watch out.
+Quiero **encontrar** un lugar,I want to find a place; The o becomes ue when stressed as in encuentro; encontrarse con somebody is bumping into them by chance.
+Dame la **mano**,Give me your hand; Feminine although it ends in -o so la mano and mi mano derecha; the diminutive manita is common.
+Ese **niño** es mi hijo,That boy is my son; A niño is a small child while chico reaches up to young men; de niño means when I was a kid.
+No quiero ver tu **cara**,I do not want to see your face; Feminine; tener buena cara is looking healthy and the adjective caro instead means expensive.
+¡**Cuidado** con el agua!,Careful with the water!; A masculine noun for care; tener cuidado is how you say be careful and con names the danger.
+Tres **noches** sin ti,Three nights without you; Plural of la noche; buenas noches both greets and says goodbye and de noche means at night.
+Es el **fin** del mundo,It is the end of the world; Masculine; por fin is at last and fin de semana is the weekend while final points to a last scene or match.
+¿Vamos a **tomar** algo?,Shall we go for a drink?; Tomar takes something and also drinks it so tomar algo is having a drink; in Spain coger grabs but tomar consumes.
+**Escucha** a tu madre,Listen to your mother; Escuchar third person and tú command; escuchar is deliberate listening while oír is just hearing a sound.
+Estamos a **punto** de salir,We are about to leave; Masculine; a punto de plus infinitive is about to and un punto is also a dot or a full stop.
+¿**Sigue** aquí?,Is he still here?; Sigue is seguir third person present and also the tú command; with a place or adjective it means still is rather than follows.
+Espero que **haya** agua,I hope there is water; Haya is the present subjunctive twin of hay; espero que forces it and hay would be wrong after que.
+Mi **equipo** es mi familia,My team is my family; Equipo is masculine and also means the gear or kit for a job; it never means the match itself.
+Tu padre **necesita** ayuda,Your father needs help; Necesita is necesitar third person so it serves él ella and usted; with a friend you say necesitas.
+¿A qué hora vas a **llegar**?,What time are you going to arrive?; Llegar takes a before a place never en; venir instead means coming toward the speaker.
+El **doctor** ya está aquí,The doctor is already here; Doctor works as a title of address on its own and drops the article when you call the person; the feminine is doctora.
+Ojalá **hubiera** tiempo,If only there were time; Hubiera is the past subjunctive of haber for unreal wishes and if-clauses; after ojalá it signals the thing is not so.
+Mi **coche** está en casa,My car is at home; Coche is the everyday word in Spain while most of Latin America says carro or auto.
+¿Qué **hago** ahora?,What do I do now?; Hago is the irregular yo form of hacer and the g shows up only there since the rest runs haces hace hacemos.
+Tengo **clase** por la mañana,I have class in the morning; Clase is feminine and also means kind or sort; tener clase takes no article.
+¿Por qué **dices** eso?,Why do you say that?; Dices is decir tú present; the stem vowel turns to i in digo dices dice but stays e in decimos.
+¿Cómo se **llama** tu madre?,What is your mother's name?; Llamarse is literally how she calls herself which is how Spanish asks names; without se llama means calls or phones.
+**Toma** mi mano,Take my hand; Toma as a command is what you say while handing something over like here you go; tomar also covers drinking.
+La **tierra** es nuestra casa,The earth is our home; Tierra is feminine and stretches over soil land and the planet; the planet gets a capital in writing.
+Esta **guerra** no tiene fin,This war has no end; Guerra is feminine; dar guerra is the idiom for being a handful.
+Déjame **pensar** un momento,Let me think for a moment; Pensar en is to think about something pensar de is your opinion of it and pensar plus infinitive means to intend.
+Espero que **pueda** venir,I hope she can come; Pueda is the subjunctive of poder where o becomes ue; espero que requires this mood.
+Hay **sangre** en el agua,There is blood in the water; Sangre is feminine and has no ordinary plural; a sangre fría means in cold blood.
+Las **mujeres** ya están aquí,The women are here already; Mujeres is the plural of mujer with the stress still on the last syllable; mujer also means wife.
+Solo una **vuelta** más,Just one more lap; Vuelta is a turn a lap or the change you get back; dar la vuelta is to turn around.
+**Fui** yo,It was me; Fui is the preterite yo form shared by ser and ir so only context tells them apart; here it is ser.
+No quiero **trabajar** hoy,I don't want to work today; Trabajar en names the workplace and trabajar de names the job you do.
+No he **tenido** tiempo,I haven't had time; Tenido is the participle of tener and appears with haber where it never changes for gender.
+Este **juego** me gusta,I like this game; Juego is masculine and is spelled the same as the yo form of jugar so watch the context.
+Su **cuerpo** no está bien,His body isn't well; Cuerpo is masculine and also means a corps or body of people; de cuerpo entero means full-length.
+¿Puedo **entrar**?,Can I come in?; Entrar takes en in Spain and a in much of Latin America but never a bare object.
+Nadie me **cree**,Nobody believes me; Creer a a person is believing what they say while creer en is believing in something or someone.
+Ella no **podía** hablar,She couldn't speak; Podía is the imperfect and paints an ongoing inability whereas pudo would mean she failed at one moment.
+**Debemos** irnos ahora,We have to go now; Debemos is deber nosotros present; deber plus infinitive is obligation while deber de plus infinitive is a guess.
+Dame una **oportunidad**,Give me a chance; Oportunidad is feminine and is the normal word for a chance; luck is suerte instead.
+¿Dónde está mi **teléfono**?,Where is my phone?; Teléfono keeps its accent on the second e; on the phone is por teléfono.
+**Necesitamos** más tiempo,We need more time; Necesitamos is the nosotros present; necesitar takes its object directly and necesitar de sounds bookish.
+Al **final** no pasó nada,In the end nothing happened; El final is an ending while la final is a championship match; al final means in the end.
+¿Vas a la **fiesta**?,Are you going to the party?; Fiesta is feminine and also means a public holiday; you hacer una fiesta rather than make one.
+¿Dónde **estabas** anoche?,Where were you last night?; Estabas is the imperfect tú form of estar and is normal for past location while estuviste sounds like a finished visit.
+Todos **quieren** dinero,Everybody wants money; Quieren covers ellos and ustedes; querer a a person shifts the meaning to loving them.
+El **auto** de mi hermano,My brother's car; Auto is short for automóvil and is usual in Mexico and the Southern Cone where Spain says coche.
+¿Me puedes **dar** algo?,Can you give me something?; Dar is badly irregular with doy and di and it builds idioms like dar miedo to be scary.
+Quiero **vivir** aquí,I want to live here; Vivir en is where you live and vivir de is what you live on; it also just means to be alive.
+Mi **hermana** no sabe nada,My sister knows nothing; Hermana is feminine while the plural hermanos covers a mixed set of siblings.
+¿Cuál es tu **número**?,What's your number?; Número is masculine and keeps its accent; ask with cuál not qué when choosing among known things.
+Sólo dos **meses** más,Just two more months; Meses adds es because mes ends in a consonant and the stress stays put so no accent is written.
+No es mi **culpa**,It's not my fault; Culpa is feminine; tener la culpa is to be at fault and echar la culpa is to blame someone.
+Los niños están en la **escuela**,The kids are at school; Escuela is feminine and usually means primary school while colegio and instituto cover later years.
+Se ha **ido** ya,He has already left; Ido is the participle of ir but with se the verb means to leave rather than to go.
+¿Qué estás **diciendo**?,What are you saying?; Diciendo is the gerund of decir with the stem vowel switched to i; estar plus gerund is the only way to build the progressive.
+Tu jefe **habla** mucho,Your boss talks a lot; Habla is hablar third person and the tú command; hablar con is to talk to someone and hablar de is about a topic.
+Quizás **esté** en el coche,Maybe it's in the car; Esté is the subjunctive of estar with a written accent; quizás pulls the subjunctive when you are unsure.
+Tengo una **pregunta**,I have a question; Pregunta is the noun and preguntar the verb; you hacer una pregunta since decir never works here.
+Las **chicas** están hablando,The girls are talking; Chicas covers girls and young women and the masculine chicos is what you use for a mixed group.
+¿**Eran** tus amigos?,Were they your friends?; Imperfect of ser for they or ustedes — it describes how people and things used to be; a single finished past event would use fueron instead.
+¿Qué está **pasando**?,What's going on?; Gerund of pasar; with estar it reports something unfolding right now. Pasar also means to pass by or to spend time.
+¿Dónde está el **capitán**?,Where is the captain?; Masculine noun for the military rank and for a team captain; the plural capitanes loses the written accent.
+Mi hermana tiene un **bebé**,My sister has a baby; Bebé stays masculine even for a girl unless you deliberately say la bebé; the accent puts the stress on the last syllable and the plural is bebés.
+No **sabemos** nada,We don't know anything; Saber we-form present; the irregularity of this verb sits only in yo sé so sabemos is regular. It is knowledge of facts rather than of people.
+¿Te gusta la **comida**?,Do you like the food?; Feminine noun that means food in general and also the main meal of the day — in Spain that is lunch rather than dinner.
+No quiero **morir**,I don't want to die; Infinitive of morir; the o becomes ue when stressed as in muero. Adding the pronoun as morirse softens it or makes it figurative like dying of laughter.
+No **conozco** a ese hombre,I don't know that man; Conocer yo present with the irregular -zc- spelling; conocer is being acquainted with people or places while saber is knowing facts. A person needs the personal a in front.
+¿Vamos a **comer** algo?,Shall we go eat something?; Infinitive to eat; ir a plus an infinitive is the everyday way to talk about the near future. On its own comer often means to have lunch.
+Un **vino** por favor,A wine please; Masculine el vino; the same spelling is also the preterite of venir so only context tells you which one you are hearing.
+¿Tienes la **lista**?,Do you have the list?; Feminine noun for a list; it doubles as the adjective meaning ready with estar and clever with ser.
+Quiero que lo **haga** él,I want him to do it; Present subjunctive of hacer for él ella or usted and also the polite usted command; querer que always forces this mood.
+Tengo dos **hijos**,I have two children; The masculine plural covers sons and any mixed group of sons and daughters; only an all-girl group uses hijas.
+Mis **padres** están aquí,My parents are here; In the plural padre normally means the two parents together rather than several fathers; that other reading needs clear context.
+La **habitación** está lista,The room is ready; Feminine like every -ción noun; it points to a bedroom or hotel room while cuarto is vaguer. The plural drops the accent as habitaciones.
+No puedo **creer** esto,I can't believe this; Infinitive to believe; creer que takes the indicative but the negative no creo que takes the subjunctive. Creer en is to believe in something.
+Estoy **pensando** en ti,I'm thinking about you; Gerund of pensar; pensar en is to have someone on your mind while pensar de asks for an opinion. The e to ie change vanishes outside the stressed forms.
+**Fueron** dos días,It was two days; Preterite they-form of both ser and ir — one form for two verbs. It states a finished fact whereas eran paints ongoing background.
+¿De qué se **trata**?,What's it about?; Tratarse de is the set phrase for what something is about; tratar de plus infinitive means to try and tratar a alguien is to treat a person.
+Te estoy **buscando**,I'm looking for you; Gerund of buscar; the verb takes no preposition at all so never say busco por. Only a human object adds the personal a.
+Nunca **tuve** miedo,I was never afraid; Preterite yo of tener with the irregular stem tuv- and an unstressed ending. Tenía would instead describe a lasting state.
+Te **amo** mucho,I love you so much; Amar yo present; it is weightier than te quiero which is what couples and families actually say daily. As a noun el amo means master.
+Eres muy **joven**,You're very young; The same form serves both genders as el joven and la joven; the plural jóvenes picks up an accent. Used alone it names a young person.
+Un **par** de horas,A couple of hours; Masculine noun; un par de is the normal way to say a couple of. The unrelated phrase a la par means at the same rate.
+¿Qué **hacen** aquí?,What are they doing here?; Hacer for they or ustedes; the only irregular present form is yo hago. Here it asks what people are up to rather than what they make.
+Vamos a **seguir** así,We'll keep going like this; Infinitive meaning to continue or to follow; the e turns into i as in sigo. Seguir plus a gerund is how Spanish says to keep on doing something.
+¿Qué **dicen** ellos?,What do they say?; Decir for they or ustedes with the e to i change on top of the irregular yo digo. Dicen que is the standard opener for reported gossip.
+No tengo ni **puta** idea,I haven't got a clue; Literally a whore but far more often a vulgar intensifier; this phrase is very crude so keep it away from strangers and work.
+Ellos no **saben** nada,They don't know anything; Saber for they or ustedes; the form itself is regular even though yo is the odd sé. It covers facts and information not acquaintance with people.
+No tiene **sentido**,It doesn't make sense; Masculine noun for meaning sense and also direction of travel; it is identical to the past participle of sentir.
+No **hagas** eso,Don't do that; Negative tú command of hacer; negative commands borrow the subjunctive so no haces is wrong. The affirmative command is the short haz.
+Hay que **esperar** un poco,We have to wait a bit; One infinitive does the work of to wait to hope and to expect; when you wait for a person add a as in esperar a mi hermana.
+Tiene un **arma**,He has a weapon; The noun is feminine yet takes el arma because it starts with a stressed a; in the plural it goes back to las armas.
+Son cinco **dólares**,That's five dollars; The accent on dólar survives in the plural dólares; Spanish writes currency names in lowercase.
+**Estaban** en la casa,They were at the house; Estar imperfect for they or ustedes; it sets the scene or a lasting position in the past. Eran would give identity rather than place.
+Es por tu **seguridad**,It's for your safety; Feminine as all -dad nouns are; it covers safety and security and also confidence — con seguridad means surely.
+**Estuvo** aquí ayer,He was here yesterday; Preterite of estar for él ella or usted built on the irregular stem estuv-; it frames a finished stay while estaba would be background.
+No te **preocupes**,Don't worry; A subjunctive doing duty as the negative tú command of preocuparse; the te is obligatory and the polite version is no se preocupe.
+Dame tu **palabra**,Give me your word; Feminine noun for a word and for a promise you make; a swearword is a palabrota.
+Te estamos **esperando**,We're waiting for you; Gerund of esperar; paired with estar it means waiting at this moment. Nothing like for goes before the thing awaited.
+No **queda** nada,There's nothing left; Quedar for what remains; with a pronoun quedarse means to stay and quedar con alguien is to arrange to meet someone.
+¿Está en su **oficina**?,Is he in his office?; Feminine noun for a workplace office or a public bureau; a doctor's room is a consulta instead.
+No puedes **matar** a nadie,You can't kill anyone; Regular infinitive to kill; the personal a is needed before the victim. Matarse covers dying in an accident and also working yourself to death.
+**Iré** contigo,I'll go with you; Future yo of ir formed on ir plus é so the accent is essential; in speech voy a ir is much more common than this tense.
+El bebé está en la **cama**,The baby is in bed; Feminine noun; hacer la cama is to make the bed and irse a la cama is to turn in for the night.
+No he **oído** nada,I haven't heard anything; Participle of oír and the i needs its accent to break the vowels apart; the same word is the noun for the inner ear. Oír is passive hearing while escuchar is deliberate listening.
+No **habría** problemas,There wouldn't be any problems; Conditional of haber; standing alone it means there would be and before a participle it builds would have. It is not interchangeable with the subjunctive hubiera.
+¿Dónde **estará** mi teléfono?,Where can my phone be?; Estar future for él ella or usted; Spanish very often uses this future to guess about the present so it reads as I wonder where it is.
+Me **dio** su número,He gave me his number; Preterite of dar for él ella or usted; dar is so short that di and dio carry no written accent at all.
+Es un **recuerdo** de mi padre,It's a keepsake from my father; Masculine noun for a memory or a souvenir; it is spelled exactly like recuerdo meaning I remember. In the plural recuerdos also sends regards.
+No está **siendo** justo,He is not being fair; The gerund of ser is rare because ser describes what things are; estar siendo frames identity as temporary behaviour someone is choosing right now.
+Espero que **tenga** razón,I hope he is right; Subjunctive third person of tener after espero que; it is also the polite command form for usted so ¡tenga! means here you are.
+No hay **luz** aquí,There is no light here; Feminine despite ending in z and its plural is luces; it covers daylight; a lamp and the electricity supply.
+¿Qué **demonios** hace?,What the hell is he doing?; Plural demonio used as a mild swear filler after qué; singular el demonio is the actual devil and would not fit here.
+Quiero **dormir** un poco,I want to sleep a bit; Dormir is being asleep while dormirse is falling asleep; it stem-changes to duermo in the present.
+No es su **sitio**,This is not his place; Masculine and means spot or seat rather than lugar's wider sense of place; un sitio web is a website.
+¿Puedo **ayudar** en algo?,Can I help with something?; Ayudar takes a personal a before the person helped as in ayudar a mi madre; the thing you help with follows con or en.
+Tengo que **conseguir** dinero,I have to get hold of some money; Conseguir is obtaining after effort unlike neutral tener or recibir; the e becomes i in consigo.
+Mi **marido** no sabe nada,My husband knows nothing; Masculine and the everyday word for husband; esposo sounds more formal and mujer is often used for wife where English keeps husband and wife parallel.
+Déjame en **paz**,Leave me alone; Feminine noun paz means peace and its plural is paces; en paz here is idiomatic for alone rather than peaceful.
+No me gusta tu **plan**,I do not like your plan; Masculine and its plural is planes with an added e; tener plan de is not used - Spanish says planear or pensar plus infinitive.
+Me ha **dado** su palabra,He has given me his word; Regular past participle of dar; with haber it never agrees so it stays dado even about a woman.
+Su padre **murió** ayer,His father died yesterday; Third person preterite of morir with a stem vowel change to u; morirse adds an emotional or sudden sense as in se murió de repente.
+Todo el **pueblo** lo sabe,The whole village knows; Masculine and means both a small town and a people as a nation; the sense comes from context alone.
+¿Ha **venido** alguien?,Has anyone come?; Participle of venir; venir is coming toward the speaker so a Spanish speaker says voy where English says I am coming to you.
+¡Ya **basta** de problemas!,Enough problems already!; Bastar is used impersonally in the third person; basta con eso means that is enough and it never takes a personal subject like I.
+Un **paso** a la vez,One step at a time; Masculine noun for a step or pace; identical in spelling to paso from pasar so only the article tells you it is a noun.
+**Deberíamos** hablar de esto,We should talk about this; Conditional of deber for we and it is the polite way to suggest; debemos hablar would sound like a hard obligation.
+Me gusta esta **música**,I like this music; Feminine and used without an article after de as in clase de música; it also covers sheet music and a band's sound.
+Quiero que **diga** la verdad,I want him to tell the truth; Present subjunctive of decir built on the digo stem; as an usted command diga is how you answer the phone - ¿diga?.
+Espera un **minuto**,Hold on a minute; Masculine and in speech it rarely means sixty seconds; it is the general just a second the way English uses minute.
+Voy a **llamar** a la policía,I am going to call the police; Llamar covers phoning; shouting for; and naming; llamarse is what you use for your own name.
+Nadie **piensa** en mí,Nobody thinks about me; Third person of pensar with the e to ie change; pensar en is having something on your mind while pensar que states an opinion.
+No es mi **país**,It is not my country; Masculine and the accent stays in both numbers — país and países — because the i is pronounced separately.
+Soy el **rey** del mundo,I am the king of the world; Masculine with plural reyes; los Reyes can mean the king and queen together or the Three Wise Men at Epiphany.
+**Perdón** por lo de ayer,Sorry about yesterday; Masculine noun used as a standalone apology or to get past someone; perdona and perdone are the verb forms if you want to say excuse me to a person.
+Hace **falta** más tiempo,More time is needed; Feminine noun for a lack; hacer falta is the normal way to say something is needed and the thing needed is the subject not the object.
+**Pienso** en ti siempre,I think about you always; First person of pensar; the yo form keeps the ie change while pensamos loses it.
+¿Dónde **diablos** estabas?,Where the hell were you?; Plural diablo works exactly like demonios as an intensifier after a question word; it is mild and common in dubbing.
+He **perdido** mi trabajo,I have lost my job; Participle of perder; perder covers losing objects; missing a train and losing a game so context decides the English.
+Esa **niña** es mi hija,That girl is my daughter; Feminine niña is a child up to about twelve while chica starts around the teens; calling a grown woman niña sounds patronising.
+¿Está bien **señorita**?,Are you all right miss?; Feminine title once meaning unmarried and now dated; señora is the safer address for any adult woman you do not know.
+**Lleva** dos horas esperando,He has been waiting two hours; Llevar plus a time span plus a gerund is the standard way to say how long something has been going on where English uses have been.
+Está en el **hospital**,He is in hospital; Masculine and Spanish keeps the article el where British English drops it; the plural hospitales adds es.
+Alguien te ha **llamado**,Somebody has called you; Participle of llamar; with ser it means named as in un hombre llamado Juan; here with haber it is the phone call sense.
+¿Qué **hacemos** ahora?,What do we do now?; First person plural present of hacer and identical to the command let us do; only tone and context separate the two.
+¿Me puedes **llevar** a casa?,Can you take me home?; Llevar is carrying something away from here while traer is bringing it toward the speaker.
+¿Tienes **fuego**?,Got a light?; Masculine and literally fire; asking for fuego is the normal way to ask for a light for a cigarette.
+Él **tuvo** la culpa,It was his fault; Third person preterite of tener and irregular with no accent on the o; tener la culpa is the set phrase for being to blame.
+Voy a **poner** música,I am going to put some music on; Poner is placing or switching on and its yo form is pongo; ponerse plus clothing is putting it on yourself.
+Hay gente en la **calle**,There are people in the street; Feminine despite ending in e; en la calle also means outdoors or homeless depending on context.
+**Acaba** de salir,He has just left; Acabar de plus infinitive is the only natural way to say has just done something; on its own acabar means to finish.
+Es la **prueba** que necesito,It is the proof I need; Feminine and stretches from proof to a test to a rehearsal or a fitting; a school exam is usually examen.
+Este **libro** es mío,This book is mine; Masculine; note libro is the physical book while libre with an e means free so the two are unrelated.
+Todo está en **orden**,Everything is in order; Masculine el orden is arrangement or sequence but feminine la orden is a command or a religious order; the article changes the meaning.
+Estuvo aquí dos **semanas**,He was here for two weeks; Plural of semana; Spanish needs no preposition for a duration so no word matches the English for.
+¿Quieres un **café**?,Do you want a coffee?; Masculine and the accent falls on the last syllable; the plural is cafés and the same word names the cafe you drink it in.
+Vamos a **empezar** ahora,We are going to start now; Empezar and comenzar are interchangeable; empezar a plus infinitive is the pattern and the yo form is empiezo.
+**Queremos** hablar contigo,We want to talk with you; First person plural of querer and one of the forms that keeps the plain e; queremos also means we love when a person follows.
+¿De quién es este **perro**?,Whose dog is this?; Masculine with perra as the female; perra used of a woman is a strong insult so stick to the masculine as the general word.
+Mira el **cielo**,Look at the sky; Masculine noun for both sky and heaven — el cielo covers the religious sense too and cielo is also a pet name like sweetheart.
+¿Cuál es tu **puesto**?,What is your position?; Masculine noun meaning post or job position; it also means a market stall and it is the past participle of poner so context decides.
+¿Cómo fue el **viaje**?,How was the trip?; Masculine noun despite the -e ending; it is the journey itself while a holiday abroad is unas vacaciones.
+¿Qué **haría** él?,What would he do?; Hacer in the conditional for él/ella/usted — the same form serves I would do so add yo if it is unclear who acts.
+No hagas más **preguntas**,Do not ask any more questions; Feminine plural of pregunta; Spanish says hacer una pregunta not decir so the verb is hacer.
+¿Qué **piensas** tú?,What do you think?; Pensar you-singular present with the e-to-ie stem change; pensar en means to think about something and pensar plus infinitive means to plan to.
+Te he **querido** siempre,I have always loved you; Past participle of querer; as an adjective it means dear and it opens letters as querido Juan.
+Voy a **buscar** ayuda,I am going to get help; Infinitive covering both to look for and to fetch — no preposition follows it so busco a mi hermano needs no for.
+No te **diré** nada,I will not tell you anything; Decir in the future for yo and one of the irregular futures built on dir- not decir-.
+Eso **suena** bien,That sounds good; Sonar he/she/it present with the o-to-ue change; do not confuse it with soñar which is to dream.
+¿Quieres **jugar** conmigo?,Do you want to play with me?; Jugar is playing a game while tocar is playing an instrument; it takes a in jugar al fútbol.
+Necesito **cambio** para el café,I need change for the coffee; Masculine noun for change as in coins or a switch; en cambio as a phrase means on the other hand.
+Vamos a ver una **película**,Let us watch a movie; Feminine noun that also means a roll of film; the cinema building is el cine.
+Eso vale **millones**,That is worth millions; Plural of millón and it keeps de before a noun as in dos millones de personas.
+**Habrá** una fiesta mañana,There will be a party tomorrow; The future of impersonal hay; it stays singular even with plural things as in habrá muchos problemas.
+El **resto** es para ti,The rest is for you; Masculine noun for the remainder; the plural los restos means remains or leftovers.
+Nos **vemos** mañana,See you tomorrow; Ver we-present; the reflexive nos vemos is the standard casual goodbye rather than a statement about seeing.
+El **presidente** habla ahora,The president is speaking now; Masculine but the same form serves a woman as la presidente although la presidenta is common.
+¿Dónde está mi **ropa**?,Where are my clothes?; Feminine and always singular in Spanish even though English uses a plural; one garment is una prenda.
+No quiero **perder** el tiempo,I do not want to waste time; Perder covers losing and missing a train and wasting time; the yo form is irregular pierdo.
+**Vuelve** a casa ya,Come back home now; Volver he/she/it present and also the tú command; volver a plus infinitive means to do something again.
+El **agente** quiere hablar contigo,The agent wants to talk to you; Noun with one form for both genders — la agente for a woman with only the article changing.
+No tengo **palabras**,I have no words; Feminine plural of palabra; tomar la palabra is to take the floor and a swear word is una palabrota.
+No hay **información** todavía,There is no information yet; Feminine and uncountable so never informaciones for pieces of information.
+¿Qué **hará** ahora?,What will he do now?; Hacer future for él/ella/usted with the shortened har- stem.
+¿**Entiendes** lo que digo?,Do you understand what I am saying?; Entender you-singular present; it is the everyday verb for grasping meaning while comprender sounds more formal.
+Estoy **trabajando** aquí,I am working here; Gerund of trabajar; Spanish uses the simple present for habits so use trabajo aquí for your usual job.
+Solo estaba **tratando** de ayudar,I was just trying to help; Gerund of tratar and it needs de before an infinitive; tratarse de means to be about something.
+Es un **trato** justo,It is a fair deal; Masculine noun for a deal or agreement and also how you treat someone; ¡trato hecho! seals a bargain.
+¿Puedo **usar** tu teléfono?,Can I use your phone?; Usar is the plain to use while utilizar is its more formal twin; for wearing clothes Spanish also says usar.
+No tienes **derecho**,You have no right; Masculine noun for a legal right and also the field of law; as an adjective it means right-hand or straight.
+De ningún **modo**,No way; Masculine noun for manner; de modo que means so that and modo is interchangeable with manera in most phrases.
+Llámame cuando **quieras**,Call me whenever you like; Querer subjunctive for tú — cuando plus subjunctive is required for a future moment that has not happened.
+**Podríamos** ir mañana,We could go tomorrow; Poder conditional for nosotros on the irregular podr- stem; it is the polite way to float a suggestion.
+¿Has visto las **noticias**?,Have you seen the news?; Feminine plural; one item is una noticia so a single piece of news is grammatically singular here.
+No lo he **encontrado**,I have not found it; Past participle of encontrar; encontrarse con someone is to run into them and encontrarse also describes how you feel.
+Todo está bajo **control**,Everything is under control; Masculine noun and also a checkpoint or an inspection; the plural is controles.
+No hay lugar para el **odio**,There is no room for hate; Masculine noun for hatred but also the yo form of odiar so yo odio means I hate.
+Estoy **frente** a tu casa,I am in front of your house; Frente a means facing or opposite; el frente is a war front while la frente is your forehead.
+El **sexo** no es amor,Sex is not love; Masculine noun covering both the act and the male or female category as in sexo masculino.
+**Estaré** aquí mañana,I will be here tomorrow; Estar future for yo and the accent on the final syllable is what marks the future — estare without it is not a word.
+¡Tienen **armas**!,They have guns!; Plural of arma which is feminine yet takes el arma in the singular because of the stressed a sound.
+¿**Recuerdas** mi nombre?,Do you remember my name?; Recordar you-singular present with the o-to-ue change; it takes no preposition so never recordar de.
+Es una **amiga** de mi hermana,She is a friend of my sister; Feminine of amigo; using mi amiga about a girlfriend can imply romance so people say una amiga to stay neutral.
+El **grupo** ya está aquí,The group is already here; Masculine and it takes a singular verb even though it names many people.
+No es tu **asunto**,It is none of your business; Masculine noun for a matter or affair; asuntos exteriores is foreign affairs.
+**Acabo** de llegar,I have just arrived; Acabar yo present and acabar de plus infinitive is the normal way to say you just did something.
+Deja un **mensaje**,Leave a message; Masculine noun despite ending in -e; a text is un mensaje de texto and mandar is the usual verb for sending one.
+Gracias por su **atención**,Thank you for your attention; Feminine noun; prestar atención is to pay attention and ¡atención! works as a shouted warning.
+Eso hace **daño**,That hurts; Masculine noun for harm; hacer daño is the normal way to say to hurt and hacerse daño is to hurt yourself.
+¿Qué **sucede** aquí?,What's going on here?; Suceder is happen; it is the neutral written-sounding verb where speech usually says pasar — ¿qué pasa? is far more common out loud.
+No quiero **cambiar** nada,I don't want to change anything; Cambiar covers both changing something and changing yourself; for changing clothes or trains Spanish adds a reflexive or de — cambiarse; cambiar de tren.
+No **seas** así,Don't be like that; Seas is the ser subjunctive for tú and it is the form negative commands must use; there is no negative form built on eres.
+¿Qué tienes en la **boca**?,What have you got in your mouth?; La boca is feminine; it also means the mouth of a river or a tunnel; the shut-up command is cállate la boca — never a literal close-your-mouth.
+Ella me **dejó** ayer,She left me yesterday; Dejó is dejar third-person preterite and covers left as in abandoned and left behind an object; for leaving a place yourself you need salir or irse.
+Fue un **error** mío,It was my mistake; El error is masculine and everyday Spanish for a mistake; cometer un error is the verb pairing — never hacer un error.
+A lo **largo** del camino,Along the way; Largo is length as a noun even though you meet it far more as the adjective long; a lo largo de is a fixed phrase meaning along or throughout.
+Vale la **pena**,It's worth it; La pena is grief or pity; valer la pena is the idiom for being worth the trouble and qué pena on its own means what a shame.
+Escucha su **voz**,Listen to her voice; La voz is feminine and its plural is las voces; en voz alta means aloud rather than in a loud voice.
+No pienso en el **futuro**,I don't think about the future; El futuro is the noun; as a time expression Spanish says en el futuro where English drops the article in phrases like in future.
+Mi madre no se **siente** bien,My mother doesn't feel well; Siente is sentir for él or ella; reflexive sentirse describes how someone feels while plain sentir takes an object — siento frío.
+Es un **secreto** entre nosotros,It's a secret between us; El secreto works as noun and adjective; en secreto means secretly and guardar un secreto is the verb you keep it with.
+¿Dónde está el **baño**?,Where's the bathroom?; El baño is the room and also a bath; in Latin America you also hear el servicio or el sanitario and asking for it with dónde está is the polite default.
+**Pensaba** que era tu amigo,I thought he was your friend; Pensaba is the imperfect and serves both yo and él; it reports a belief you held over time whereas pensé marks the moment the thought struck.
+Ella es mi **novia**,She's my girlfriend; La novia is a girlfriend and also a bride at a wedding; the masculine novio works the same way so context tells you which.
+Tengo **sueño** ahora,I'm sleepy now; El sueño is both a dream and sleepiness; tener sueño is being sleepy while estar soñando is dreaming.
+**Haz** lo que quieras,Do whatever you want; Haz is the irregular tú command from hacer and drops the expected e; the usted form is haga and the negative is no hagas.
+No tengo **fuerza** hoy,I've got no strength today; La fuerza is strength or force; the plural las fuerzas often means armed forces and a la fuerza means by force or unwillingly.
+**Deben** esperar aquí,They have to wait here; Deben is deber for ellos and expresses obligation; add de and it flips to probability — deben de estar aquí means they must be here.
+¿Qué se **supone** que haga?,What am I supposed to do?; Suponer means to suppose or assume; the impersonal se supone que is the standard way Spanish says supposed to.
+**Estábamos** en la fiesta,We were at the party; Estábamos is the estar imperfect for nosotros and sets a background scene; estuvimos would frame the whole visit as finished.
+**Estuve** allí dos horas,I was there for two hours; Estuve is the estar preterite for yo and bounds the stay; estaba would leave the duration open.
+No **encontré** mi teléfono,I didn't find my phone; Encontré is encontrar preterite for yo and keeps the o of the stem because the stress moves to the ending.
+Ha **vuelto** a casa,He's come back home; Vuelto is the irregular past participle of volver; volver a plus an infinitive means to do something again.
+Siento mucho **dolor**,I'm in a lot of pain; El dolor is pain and takes de for the body part — dolor de cabeza; Spanish says tener dolor or duele rather than a verb for hurt.
+Me **encanta** tu casa,I love your house; Encantar works backwards like gustar so the thing loved is the subject and me is the one delighted; for people Spanish uses querer or amar instead.
+¿Qué **edad** tienes?,How old are you?; La edad is age and Spanish asks with tener not ser; the shorter cuántos años tienes is more common in speech.
+Está de **pie** ahí,He's standing over there; El pie is the foot and its plural is los pies; estar de pie means standing and a pie means on foot.
+Quiero **ganar** dinero,I want to earn money; Ganar covers both earning and winning; ganar a alguien is beating a person while ganarse la vida is making a living.
+No hay **aire** aquí,There's no air in here; El aire is masculine; it also means a draught and al aire libre means outdoors.
+Lo **lamento** mucho,I'm very sorry; Lamento is lamentar for yo and is a formal apology or condolence; lo siento is the everyday version and the noun lamento means a moan.
+Fue un **asesinato**,It was a murder; El asesinato is the act while el asesino is the killer; Spanish keeps the two words apart where English reuses murder.
+Nadie me **vio** entrar,Nobody saw me go in; Vio is ver preterite for él and carries no accent unlike vi and vieron patterns; after verbs of perception Spanish uses a plain infinitive where English uses -ing.
+Ha **llegado** el momento,The moment has come; Llegado is llegar's participle; llegar means to arrive somewhere and needs a for the destination — llegar a casa.
+**Disculpe** ¿puede ayudarme?,Excuse me can you help me?; Disculpe is the usted command from disculpar and is how you flag down a stranger politely; disculpa is the tú version and perdón works for both.
+Tengo una **cita** mañana,I have an appointment tomorrow; La cita is an appointment of any kind including with a doctor and only sometimes a romantic date; it also means a quotation.
+Sin ti no **estaría** aquí,Without you I wouldn't be here; Estaría is the estar conditional for yo and él alike; it states what would be the case and pairs with si clauses.
+¿Por qué **fuiste** allí?,Why did you go there?; Fuiste is the preterite tú form of ir but the identical form also belongs to ser; only context tells you whether it means you went or you were.
+No entiendo este **sistema**,I don't understand this system; Sistema ends in a yet is masculine like problema and tema because of its Greek origin — el sistema.
+Mucho **gusto** señora,Pleased to meet you madam; El gusto is taste or pleasure; mucho gusto is the fixed greeting on being introduced and el gusto es mío is the reply.
+Tengo un **negocio** aquí,I run a business here; El negocio is a business or a deal; los negocios means business in general as in hombre de negocios.
+Eso está en tu **mente**,That's in your head; La mente is feminine and means the mind as faculty; for memory Spanish prefers memoria and tener en mente means to bear in mind.
+Vivir en el **campo**,To live in the countryside; El campo is the countryside and also a field or a sports pitch; en el campo contrasts with en la ciudad.
+**Mire** usted esto,Take a look at this; Mire is the usted command from mirar and the tú version is mira; mirar is looking on purpose while ver is just seeing.
+No entiendes la **situación**,You don't understand the situation; La situación is feminine and its plural drops the accent — situaciones; it also means the location of a building.
+Estamos en el **hotel**,We're at the hotel; El hotel is masculine and stressed on the last syllable; the h is silent so it sounds like o-tel.
+Esto no **funciona**,This doesn't work; Funcionar is used for machines and plans working; for a person working you need trabajar.
+Quiero una **foto** contigo,I want a photo with you; La foto is feminine because it shortens la fotografía even though it ends in o; the plural is las fotos.
+Necesito un **abogado** ahora,I need a lawyer now; El abogado is a lawyer and the feminine is la abogada; abogar por means to advocate for something.
+He **terminado** mi trabajo,I've finished my work; Terminado is terminar's participle; terminar and acabar are interchangeable for finishing but acabar de plus infinitive means to have just done something.
+Tengo que **pagar** el hotel,I have to pay for the hotel; Infinitive of pagar; the thing bought takes por as in pagar por la comida but the bill or the price itself is a plain direct object.
+Él **mató** a mi padre,He killed my father; Third-person preterite of matar; a human object needs the personal a even though English has no equivalent.
+Te **llamo** mañana,I'll call you tomorrow; Llamar means both to call by phone and to name; with a reflexive pronoun it becomes me llamo for stating your own name.
+¿Cómo te **sientes** hoy?,How do you feel today?; Reflexive sentirse is how you feel; drop the te and sentir means to feel something or to regret it.
+¿Qué te **ocurre**?,What's wrong with you?; Ocurrir is used impersonally for things happening to someone; it also covers an idea occurring to you as in se me ocurre algo.
+Nadie **recuerda** mi nombre,Nobody remembers my name; Recordar is stem-changing o to ue in the present; it also means to remind someone and takes no reflexive pronoun unlike acordarse de.
+Es la **mitad** del dinero,It's half the money; Feminine noun; Spanish says la mitad de rather than using half as an adjective before the noun.
+Haz lo que **quiera** ella,Do whatever she wants; Present subjunctive of querer; after lo que it signals an open unknown choice where the indicative quiere would name one specific wish.
+Me gusta tu **pelo**,I like your hair; Masculine and singular for a whole head of hair; cabello is the polite alternative and un pelo is a single strand.
+¿**Tenías** miedo?,Were you scared?; Tener you-singular imperfect for how things were over a stretch of past time; tuviste miedo would point at one single moment of fear.
+¿**Viste** mi foto?,Did you see my photo?; Ver you-singular preterite; it is spelled the same as a form of vestir so context decides and it carries no accent.
+Mi hermana **llegó** tarde,My sister arrived late; Third-person preterite of llegar; the accent carries the stress and llego without it means I arrive.
+Gracias por tu **compañía**,Thanks for your company; Feminine noun covering both a business firm and the company of another person; the accent on the í splits it from the a so the word has four syllables.
+No tenemos ninguna **relación**,We have no relationship at all; Feminine like all nouns in -ción and the plural adds -es while dropping the accent as relaciones.
+Mi padre **conoce** la ciudad,My father knows the city; Conocer is being familiar with places and people while saber is knowing facts; the first person is irregular as conozco.
+No quiero que **pase** nada,I don't want anything to happen; Present subjunctive of pasar required after quiero que; on its own ¡pase! is the polite invitation to come in.
+Tengo un **montón** de trabajo,I have loads of work; Masculine; literally a heap and colloquially un montón de works like English tons of.
+**Creí** que era mi amigo,I thought he was my friend; Creer first-person preterite with the accent on the í; creí is a belief you have since dropped while creía describes a lasting assumption.
+La **cena** está lista,Dinner is ready; Feminine noun for the evening meal; the verb cenar means to eat it so no extra word like have is needed.
+No puedo **sentir** mi mano,I can't feel my hand; Infinitive; lo siento uses this same verb to apologise so sentir covers physical sensation and regret alike.
+Fue a **través** de mi hermano,It was through my brother; Almost always in the fixed phrase a través de meaning across or by way of; it is never used as a noun on its own.
+Fue un **accidente**,It was an accident; Masculine despite the -e ending; it means a car crash as well as a mishap and the word itself blames nobody.
+Tú **eras** el jefe,You were the boss; Ser you-singular imperfect for describing a past role or state; fuiste would frame it as one finished event.
+No **pudo** ayudar,He couldn't help; Poder third-person preterite meaning he tried and failed at that moment; podía would only describe a lasting inability.
+Mi madre **vive** aquí,My mother lives here; Vivir third-person present and fully regular; it also means to be alive so vive can answer whether someone survived.
+Hasta la **vista**,See you around; Feminine noun for sight or a view; this is a set farewell and punto de vista is a point of view.
+Espera en la **línea**,Hold the line; Feminine with the accent on the í; it covers a phone line a queue and a drawn line alike.
+Por aquí **caballeros**,This way gentlemen; Plural of caballero which originally meant a horseman; it is the polite address for men and the label on men's toilets.
+¿Qué **haremos** ahora?,What will we do now?; Hacer we-form future; the stem is the irregular har- rather than hacer- while the ending is the standard future one.
+Me **dan** mucho miedo,They really scare me; Dar third-person plural present; dar miedo is the normal way to say something frightens you with the frightened person as an indirect object.
+Voy a la **tienda**,I'm going to the shop; Feminine; it also means a tent as in tienda de campaña.
+Quiero **comprar** un coche,I want to buy a car; Regular infinitive; the person you buy from also takes a so comprar a alguien can mean buying from or for them.
+¿Has **entendido** la pregunta?,Have you understood the question?; Past participle of entender and invariable after haber; entendido on its own works as an acknowledgement like understood.
+Trabajo en el **centro**,I work downtown; Masculine; el centro means the city centre or downtown with no extra word needed.
+Hace un **mes** de eso,That was a month ago; Masculine and the plural is meses; hace plus a time span is how Spanish says ago.
+Hay mucho **sol** hoy,It's very sunny today; Masculine; Spanish treats sunshine as a quantity you have so hace sol or hay sol replaces an adjective.
+No seas **tonto**,Don't be silly; Works as noun and adjective and becomes tonta for a woman; it is teasing between friends but insulting from a stranger.
+Tengo mucha **hambre**,I'm really hungry; Feminine despite el hambre which takes el only to avoid the clash of two a sounds so you still say mucha; tener hambre literally has hunger.
+La comida está en la **mesa**,The food is on the table; Feminine; poner la mesa is to set the table and a flat-topped hill is also a mesa.
+Necesito una **respuesta** ahora,I need an answer now; Feminine; it covers an answer or a reaction and the verb is responder or contestar.
+Es una **carta** de mi hija,It's a letter from my daughter; Feminine; the same word is a playing card and a restaurant menu as in a la carta.
+No tenemos **pruebas**,We have no evidence; Plural of prueba; in the plural it usually means evidence or proof while the singular is a test or an attempt.
+Ese es su **novio**,That's her boyfriend; Masculine; the same word means groom at a wedding and novia is the feminine pair.
+¿Te **gustan** mis ojos?,Do you like my eyes?; Gustar agrees with the thing liked and not the liker so a plural thing forces gustan while the person stays an indirect object.
+No **pude** dormir anoche,I couldn't sleep last night; Poder first-person preterite; the stem vowel becomes u and the ending takes no accent unlike regular -í preterites.
+¿De quién es este **traje**?,Whose suit is this?; Masculine despite the -e ending; it means a suit or an outfit and traje is also the preterite of traer so context matters.
+Dame la **dirección**,Give me the address; Feminine; it means a postal address a direction of travel and the management of a company.
+Me **dijeron** la verdad,They told me the truth; Decir third-person plural preterite built on the irregular dij- stem with no accent on the ending.
+Ha sido un **placer**,It's been a pleasure; Masculine; con placer is a warm yes to a request and placer as a verb survives only in very formal writing.
+Espero que **sean** amigos,I hope they'll be friends; Ser third-person plural present subjunctive triggered by espero que; the indicative son would state it as plain fact.
+**Tendrá** que esperar,He will have to wait; Future of tener third person singular; tener que plus infinitive is the everyday way to say have to; this same form covers él ella and usted.
+¿Dónde está el **barco**?,Where is the boat?; Masculine el barco covers anything from a rowboat to a ship; a big passenger ship is often un buque or un crucero.
+Mi **profesor** es muy joven,My teacher is very young; Masculine; the feminine is la profesora and the plural los profesores keeps no accent shift; Spanish uses profesor for school teachers too not only at university.
+Gracias por el **servicio**,Thanks for the service; Masculine; in a restaurant el servicio can also mean the tip included and in Spain los servicios are the toilets.
+Ese **muchacho** es mi hijo,That boy is my son; Masculine and quite dated or regional; chico is the neutral everyday word and in Mexico chavo or in Argentina pibe is what you actually hear.
+Tengo una **reunión** a las tres,I have a meeting at three; Feminine; note the accent on the last syllable which disappears in the plural reuniones; it means a meeting or gathering not a reunion of old friends.
+Lo he **dejado** en casa,I have left it at home; Past participle of dejar; participles after haber never change for gender so it stays dejado even if a woman says it.
+Eso es la **ley**,That is the law; Feminine despite ending in a consonant and the plural is leyes; la ley is law as rules while el derecho is law as a field of study.
+**Quisiera** hablar con usted,I would like to speak with you; Past subjunctive of querer used as a polite request; softer than quiero and more formal than me gustaría.
+**Hubo** un accidente,There was an accident; The past of hay from haber; use hubo for a single completed event and había for background description.
+Me gusta este **programa**,I like this show; Masculine even though it ends in a because it comes from Greek like problema and tema; the plural is los programas.
+Mi **carrera** ha terminado,My career is over; Feminine; carrera also means a race or a university degree so estudio una carrera means I am doing a degree.
+Hoy es mi **cumpleaños**,Today is my birthday; Masculine and already ends in s so it never changes in the plural; you say feliz cumpleaños never buen cumpleaños.
+¡Vamos **muchachos**!,Let us go guys!; Plural of muchacho and used to address a mixed group; chicos is the modern neutral choice and Spain prefers chicos or tíos.
+Un dolor en el **culo**,A pain in the ass; Masculine and crude everywhere though in Spain it lands milder than the English word; trasero is the polite choice.
+Esta **canción** me encanta,I love this song; Feminine; the accent goes when it becomes canciones; a canción is the song itself while la letra is the lyrics.
+Mi hija está en la **universidad**,My daughter is at university; Feminine; Spanish says en la universidad with the article where English drops it.
+¿Vas a la **boda**?,Are you going to the wedding?; Feminine and it is the ceremony and party; el matrimonio is the marriage as an institution and casarse is to get married.
+No **tengas** miedo,Do not be afraid; This is tener you-singular subjunctive which is exactly what a negative command needs; the affirmative would be ten miedo.
+¿Qué **hacía** tu padre?,What did your father do?; Imperfect of hacer for repeated or ongoing past; hizo would ask about one finished action instead.
+Espero que **estés** bien,I hope you are well; Estar you-singular subjunctive triggered by espero que; the indicative estás would be wrong after that verb.
+Te espero en la **sala**,I will wait for you in the living room; Feminine; la sala is a living room in Latin America while Spain says el salón and a hospital ward is also una sala.
+**Llevo** dos horas aquí,I have been here two hours; First person of llevar; llevar plus a time span is how Spanish expresses how long something has been going on with no perfect tense.
+Es tu **decisión**,It is your decision; Feminine and the plural is decisiones; you take a decision with tomar not with hacer.
+**Espere** un momento por favor,Wait a moment please; Subjunctive of esperar working as the usted command; to a friend you would say espera.
+Pásame la **sal**,Pass me the salt; Feminine la sal even though it looks masculine; do not confuse it with sal the command from salir which is spelled the same.
+Nadie **entra** aquí,Nobody comes in here; Entrar third person present; Spanish says entrar en or entrar a never entrar plus a bare noun.
+Sin **embargo** no es verdad,However it is not true; Masculine; on its own it means a seizure or trade embargo but sin embargo is a fixed phrase meaning however.
+Quiero **escuchar** la música,I want to listen to the music; Infinitive; escuchar is listening on purpose while oír is just hearing a sound.
+Mi **abuela** vive aquí,My grandmother lives here; Feminine; the masculine is abuelo and los abuelos means the grandparents as a pair.
+¿Qué **hicieron** ustedes?,What did you all do?; Hacer third person plural preterite with the stem change to hic and no accent; hacían would be the imperfect.
+Está en el **suelo**,It is on the floor; Masculine; el suelo is the floor or the ground outdoors while el piso is a floor of a building or a flat in Spain.
+¿Puedo ver las **fotos**?,Can I see the photos?; Feminine la foto shortened from fotografía which is why it stays feminine despite the o ending.
+Tu hermano está en la **cárcel**,Your brother is in prison; Feminine and the accent stays put in cárceles; Spanish uses en la cárcel with the article.
+Mi madre siempre **decía** eso,My mother always said that; Imperfect of decir which pairs naturally with siempre for habits; dijo would mean she said it once.
+Estoy **intentando** dormir,I am trying to sleep; Gerund of intentar; intentar plus a bare infinitive takes no preposition unlike tratar de dormir.
+Es una **maldición** de familia,It is a family curse; Feminine; shouted alone it works as a mild damn in dubbed film speech but real speakers rarely say it.
+Necesito un poco de **silencio**,I need a bit of quiet; Masculine; en silencio means silently and guardar silencio is to keep quiet.
+Mi jefe ya **salió**,My boss already left; Salir third person preterite with the accent on the o; salir con alguien also means to date someone.
+Nos vemos en el **club**,See you at the club; Masculine borrowed word and the plural is los clubes; the final b is usually dropped so it sounds like clu.
+Tengo que **terminar** esto,I have to finish this; Infinitive; terminar and acabar are interchangeable here but acabar de plus infinitive means to have just done something.
+**Temo** que sea tarde,I am afraid it is late; First person of temer; temer que takes the subjunctive and in speech tener miedo de is far more common.
+Solo era una **broma**,It was just a joke; Feminine; you make a joke with hacer una broma and gastar una broma is to play a prank on someone.
+El **gobierno** no dice la verdad,The government does not tell the truth; Masculine and takes a singular verb unlike British English which says the government are.
+Te lo **prometo**,I promise you; First person of prometer; the double pronoun order is always indirect then direct so te lo not lo te.
+Mira a la **cámara**,Look at the camera; Feminine; la cámara is also a chamber as in a legislative body and en cámara lenta means in slow motion.
+Tu madre **llamó** anoche,Your mother called last night; Llamar third person preterite; llamar a alguien needs the personal a and llamarse is what your name is.
+Es un **regalo** para ti,It is a gift for you; Masculine; the verb is regalar and de regalo means thrown in free.
+Todos están **muertos**,They are all dead; Plural of muerto used as an adjective with estar because death is a state; un muerto as a noun means a dead man.
+Es un **ataque** al corazón,It is a heart attack; Masculine; ataque al corazón is the everyday phrase while doctors say infarto and un ataque de nervios is a panic attack.
+¿Por qué no me **das** algo?,Why don't you give me something?; Dar you-singular present; the yo form is doy and never do — dar is irregular only in the first person.
+Estoy aquí por **negocios**,I'm here on business; Plural negocios covers business in general while singular negocio is one deal or one shop.
+Ojalá **pudiera** ayudarte,I wish I could help you; Past subjunctive of poder used for polite or unreal wishes; after si and ojalá Spanish needs this form where English says just could.
+El **avión** ya se fue,The plane already left; Masculine despite ending in -n; the accent moves in the plural aviones.
+Es una **investigación** de la policía,It's a police investigation; Feminine like all -ción nouns; the plural drops the accent — investigaciones.
+Todo **acabó** bien,It all ended well; Acabar he-she-it past; acabar de plus infinitive instead means to have just done something.
+Hay que **mantener** el silencio,We have to keep quiet; Mantener conjugates exactly like tener — mantengo not manteno — and covers keeping something up as well as supporting a family.
+Mi hijo está en el **ejército**,My son is in the army; Masculine; it is the institution as a whole so Spanish says en el ejército where English drops the article.
+Necesito un **papel**,I need a piece of paper; Masculine; the same word is an actor's role and un papel is one sheet since paper as material is uncountable.
+Está en dos **partes**,It's in two parts; Feminine parte; the fixed phrase por otra parte means on the other hand not in another part.
+Yo no **diría** eso,I wouldn't say that; Conditional of decir built on the irregular stem dir-; the same form serves yo and él so the pronoun clears it up.
+Al **principio** no lo sabía,At first I didn't know; Masculine; al principio is a time expression meaning at the start and principio also means a moral principle.
+**Teniente** tenemos un problema,Lieutenant we have a problem; Same form for a man or a woman — la teniente — and used bare as direct address without any article.
+No tengo ningún **deseo**,I have no desire at all; Masculine; the verb is desear so tener deseo de is the noun version of wanting something.
+No quiero que te **vayas**,I don't want you to go; Present subjunctive of ir for tú; querer que forces the subjunctive whenever the two subjects differ.
+La **nave** no funciona,The ship isn't working; Feminine; a nave is a large ship or spacecraft while barco is any ordinary boat.
+Nadie **sale** de aquí,Nobody leaves here; Salir he-she-it present; the yo form is salgo with a stray g and salir de is leaving a place while salir con is dating someone.
+Todo esto es **basura**,All this is garbage; Feminine and uncountable so never una basura; used freely for nonsense or bad work as well as actual trash.
+No hay **contacto** con el equipo,There's no contact with the team; Masculine; ponerse en contacto con is the normal way to say get in touch with someone.
+Mi **esposo** murió,My husband died; Masculine partner of esposa; marido is more common in Spain while esposo sounds slightly formal everywhere.
+El **tren** llegó tarde,The train arrived late; Masculine; you travel en tren with no article and the plural is trenes.
+No **encontramos** nada,We didn't find anything; Encontrar we-form; present and past look identical here so context decides and nada after the verb still needs the earlier no.
+Es el **alma** de la fiesta,He's the life of the party; Alma is feminine but takes el because it starts with stressed a — el alma buena and in the plural las almas.
+Te debo una **disculpa**,I owe you an apology; Feminine noun from disculpar; pedir disculpas is to apologise while the bare disculpa also works as excuse me.
+**Anda** con cuidado,Walk carefully; Andar he-she-it present used as a command here; andar is walking around generally while ir is going somewhere specific.
+Nuestro **matrimonio** acabó,Our marriage is over; Masculine; it is both the wedding institution and the married couple themselves.
+Esto es una **locura**,This is madness; Feminine from loco; qué locura is the everyday exclamation for anything crazy.
+Tiene un corazón de **oro**,She has a heart of gold; Masculine and uncountable; de oro is the way Spanish makes the adjective golden since there is no separate word.
+Con **permiso** señora,Excuse me ma'am; Masculine; con permiso is what you say squeezing past someone not an apology like perdón.
+Quiero hablar con el **director**,I want to speak to the manager; Masculine; the feminine is la directora and the word covers a boss a school principal and a film director alike.
+Estás en **peligro**,You're in danger; Masculine; the adjective is peligroso and estar en peligro uses estar because it is a temporary state.
+Todos quieren **libertad**,Everyone wants freedom; Feminine like other -tad nouns; abstract so it usually drops the article after a verb.
+Me **alegro** de verte,I'm glad to see you; Alegrarse is reflexive so the me is obligatory; alegro without it would mean I cheer someone else up.
+**Tendremos** que esperar,We'll have to wait; Future of tener on the irregular stem tendr-; tener que plus infinitive is the ordinary way to say have to.
+Está a la **derecha**,It's on the right; Feminine noun for the right-hand side; derecho is a right or the law so keep the two apart.
+¿Dónde se **encuentra** el hotel?,Where is the hotel?; Encontrar he-she-it present; with se it means to be located and is more formal than está.
+De **pies** a cabeza,From head to toe; Plural of pie; Spanish runs the idiom feet first and a pie means on foot.
+No hay **espacio** aquí,There's no room here; Masculine; espacio is physical room as well as outer space and for time you would say tiempo.
+Mi **abuelo** era profesor,My grandfather was a teacher; Masculine; abuelos in the plural means grandparents of both genders not only grandfathers.
+No te **esperaba** aquí,I didn't expect you here; Imperfect of esperar for yo or él; esperar is expecting waiting and hoping all in one verb.
+¿Qué estás **mirando**?,What are you looking at?; Gerund of mirar; mirar is looking deliberately while ver is just seeing and no preposition follows it.
+¡**Salud** y dinero!,Health and money!; Feminine; salud is the toast you say clinking glasses and also what you say after a sneeze.
+¡Qué **sorpresa** verte aquí!,What a surprise to see you here!; Feminine; qué sorpresa takes no article unlike English which needs a.
+Lo he **pensado** mucho,I've thought about it a lot; Past participle of pensar; with haber it never changes ending and pensar en is thinking about while pensar que is believing.
+Él fue mi **maestro**,He was my teacher; Masculine; maestro is a primary school teacher or a master of a craft while profesor teaches older students.
+Vete al **infierno**,Go to hell; Masculine; irse al infierno keeps the article where English drops it and qué infierno describes any ordeal.
+Ellos **podrían** ayudarnos,They could help us; Conditional of poder for they; it softens a suggestion while pudieron would state that they managed it.
+¿Quiénes son esos **tipos**?,Who are those guys?; Plural of tipo; for people it is informal for guys but un tipo de also means a kind of something.
+Mi **tía** vive en la ciudad,My aunt lives in the city; Feminine of tío; in Spain tía doubles as slang for a woman the way tío means dude.
+No hubo ningún **crimen**,There was no crime; Masculine; crimen is a serious offence usually violent while a minor one is un delito.
+¿Nos hemos **conocido** antes?,Have we met before?; Past participle of conocer used with haber; conocer a alguien in the preterite or perfect means to meet someone for the first time.
+La **iglesia** está cerca,The church is nearby; Feminine noun for the building and for the institution; Spanish says ir a la iglesia without an article change.
+Un **intento** más,One more try; Masculine noun for an attempt; identical in spelling to intento meaning I try so word order tells you which one it is.
+La **mayoría** de la gente,Most people; Feminine noun meaning the majority; it takes a singular verb even though it refers to many.
+Te **doy** mi palabra,I give you my word; Irregular yo present of dar; the y ending shows up in doy voy soy estoy and nowhere else.
+¿Qué **hicimos** mal?,What did we do wrong?; Nosotros preterite of hacer on the stem hic- so never hacimos; the c keeps its soft s or th sound.
+Esa **escena** me encanta,I love that scene; Feminine noun for a scene in a film or a place where something happened; la escena del crimen is the fixed phrase.
+¿Está en tu **piso**?,Is it in your flat?; Masculine noun meaning apartment in Spain and floor or storey elsewhere; Latin America usually says departamento for the home.
+Esa es la **señal**,That is the signal; Feminine despite ending in a consonant; it covers signal sign and road sign but not a written notice.
+Es todo un **honor**,It is quite an honour; Masculine noun; the h is silent so it sounds like onor.
+La casa está en **llamas**,The house is on fire; Feminine plural of llama meaning flame; spelled the same as llamas from llamar so context decides.
+**Abre** la puerta ahora,Open the door now; Third person present of abrir doubling as the tú command; the usted command is abra.
+Mi **cerebro** no funciona,My brain is not working; Masculine noun; use it for the organ while mente is the mind you think with.
+¿De **veras** lo hizo?,Did he really do it?; Only lives in the set phrase de veras meaning really; never use veras on its own.
+Estoy **viendo** la película,I am watching the film; Gerund of ver and irregular since it is not veiendo; ver covers both seeing and watching.
+Ella **pone** la mesa,She sets the table; Third person present of poner; the tú command drops to just pon.
+Me **pregunto** por qué,I wonder why; Preguntar with the reflexive me means to wonder not to ask; plain pregunto is I ask.
+Está en la **cocina**,It is in the kitchen; Feminine noun for kitchen and for cuisine; the identical cocina from cocinar means he cooks.
+**Vestido** de novia,Wedding dress; Masculine noun for a dress; it is also the participle of vestir so vestido de negro means dressed in black.
+¿De quién es ese **caballo**?,Whose horse is that?; Masculine noun; a mare is yegua and the plural caballos can mean horses in general.
+**Vienen** hacia aquí,They are coming this way; Third person plural present of venir; venir is movement toward the speaker while ir is away.
+Hay **vidas** en juego,Lives are at stake; Plural of vida; en juego is the Spanish way of saying at stake.
+Nos vemos en el **bar**,See you at the bar; Masculine borrowed noun; in Spain a bar also serves coffee and food all day.
+Necesito un **corte** de pelo,I need a haircut; El corte is a cut while la corte is a court or a royal court so the article changes the meaning.
+¿Qué **sucedió** aquí?,What happened here?; Third person preterite of suceder; slightly more formal than pasó and it never means to succeed.
+No toma **drogas**,He does not take drugs; Feminine plural; la droga is a narcotic while medicine is medicamento or medicina.
+La policía te **busca**,The police are looking for you; Third person present of buscar; it already contains for so never add para or por after it.
+No como **carne**,I do not eat meat; Feminine noun for meat and for flesh; la carne de res is beef.
+**Parecía** más joven,He seemed younger; Third person imperfect of parecer for how things looked over time; parecerse a means to resemble.
+¿Dónde está su **departamento**?,Where is his apartment?; Masculine noun meaning apartment across most of Latin America and department or government agency elsewhere.
+Vamos al **mar**,Let us go to the sea; Normally masculine el mar though sailors and poets say la mar; playa is the beach itself.
+Sin **duda** es él,Without doubt it is him; Feminine noun; the verb dudar keeps the same stem and no dudo que takes the subjunctive.
+Hay alguien en el **edificio**,There is someone in the building; Masculine noun for a building as a structure; a house is casa and an office block is this.
+Quiero **conocer** a tu madre,I want to meet your mother; Conocer is being acquainted with people or places while saber is knowing facts; it needs the personal a before a person.
+Estoy a **cargo** aquí,I am in charge here; Masculine noun; estar a cargo is to be in charge and un cargo is also a post or a criminal charge.
+Ella es la **víctima**,She is the victim; Always feminine la víctima even when the person is a man.
+No tengo **energía** hoy,I have no energy today; Feminine noun for personal energy and for electrical power; the g sounds like a harsh h.
+Tengo **frío**,I am cold; Spanish has the cold with tener; hace frío is for the weather and estoy frío would mean your body is cold to the touch.
+**Hablo** con mi jefe,I am talking to my boss; Yo present of hablar; hablar con is to talk to someone and hablar de is to talk about something.
+Hay un **baile** esta noche,There is a dance tonight; Masculine noun for a dance or a ball; the art form is la danza.
+Mi padre **trabaja** aquí,My father works here; Third person present of trabajar; trabajar en is where you work and trabajar de is the job you do.
+La **misión** ha terminado,The mission is over; Feminine like almost every noun in ión; the plural adds es and drops the accent as misiones.
+Está a la **izquierda**,It is on the left; Feminine noun for the left side and for the political left; the z sounds like s in Latin America.
+¿Quieres **beber** algo?,Do you want something to drink?; Infinitive of beber; tomar is the everyday word for having a drink in Latin America.
+**Deje** el arma en el suelo,Put the weapon on the ground; Usted command of dejar and also its subjunctive; the tú command is deja.
+Te **daré** una respuesta,I will give you an answer; Yo future of dar built on the short stem dar plus é so never daeré.
+¿**Sabías** eso?,Did you know that?; Tú imperfect of saber for knowing something over a period; supiste would mean you found it out.
+Cuando **puedas** llámame,Call me when you can; Tú present subjunctive of poder; cuando about the future always takes the subjunctive.
+**Puso** el dinero ahí,He put the money there; Third person preterite of poner and irregular with no accent; puso not ponió.
+**Creía** en ti,He believed in you; Third person imperfect of creer for a lasting belief; creer en is to believe in and creer a is to believe what someone says.
+¿Cuándo vas a **regresar**?,When are you coming back?; Regresar is the plain verb for going back to a place and is the everyday choice in Latin America where Spain prefers volver; unlike volver it never means to do something again.
+El tren **llega** tarde,The train is arriving late; This is llegar for he she it or usted; the destination always needs a: llega a casa.
+No puedo **entender** nada,I can't understand a thing; Entender is grasping meaning; comprender is the more formal twin and saber is knowing a fact rather than following it.
+¿Quieres **mirar** la foto?,Do you want to look at the photo?; Mirar is aiming your eyes on purpose while ver is just seeing; with people it takes a: mirar a tu padre.
+Voy a **sacar** el coche,I'm going to get the car out; Sacar is taking something out of somewhere and it swallows many English verbs: sacar una foto sacar dinero sacar la basura.
+Has **cambiado** mucho,You've changed a lot; After haber the participle is frozen as cambiado; only when it works as an adjective does it agree: una vida cambiada.
+¿Quién **trae** la cena?,Who's bringing dinner?; Traer moves something toward the speaker while llevar moves it away; the yo form is irregular: traigo.
+En mi **opinión** es tarde,In my opinion it's late; Opinión is feminine and the accent disappears in the plural: opiniones.
+**Verás** que todo sale bien,You'll see that it all works out; Future of ver for tú; in speech it is mostly reassurance or a way to open a story rather than a real prediction.
+Espera dos **segundos**,Hold on two seconds; Masculine and the same word as the ordinal second; in speech un segundo means any short moment.
+Una **cerveza** por favor,One beer please; Cerveza is feminine; in a Spanish bar people order una caña for a small draft.
+Si **estuviera** aquí,If he were here; Imperfect subjunctive of estar shared by yo and él; si plus this form marks something contrary to fact.
+Ellos no me **creen**,They don't believe me; Creer a alguien is believing a person while creer en is believing in something; no creo also does duty for I don't think so.
+¿Puedes **oír** eso?,Can you hear that?; Oír is hearing that just reaches you; escuchar is choosing to listen; the forms are irregular: oigo oyes oye.
+**Tendría** que hablar contigo,I'd have to talk with you; Conditional of tener and the same form for yo and él; tener que plus infinitive is the everyday way to say have to.
+No hemos **hablado** hoy,We haven't talked today; Participle of hablar; you talk con a person and de a topic and sobre for a subject at length.
+**Hablamos** mañana,We'll talk tomorrow; For -ar verbs the nosotros form is identical in the present and the preterite so only context tells you which; here the future sense comes from mañana.
+La **reina** está aquí,The queen is here; Feminine partner of rey and also the queen in chess and cards.
+Ese **tema** me importa,That subject matters to me; Tema is masculine even though it ends in -a because it came from Greek: el tema los temas.
+Pasó dos años en **prisión**,He spent two years in prison; Prisión is feminine and sounds institutional or legal while cárcel is the ordinary word for the building.
+Nadie sabe el **porqué**,Nobody knows the reason why; As a noun it takes an article and a plural: los porqués; keep it apart from the question por qué and the answer porque.
+Espero que **vuelva** pronto,I hope he comes back soon; Present subjunctive of volver for él or usted with the o turning into ue; espero que forces the subjunctive.
+El **público** está esperando,The audience is waiting; Singular and masculine even for a crowd; it is also an adjective and en público means in front of people.
+¿Qué **ocurrió** aquí?,What happened here?; Preterite of ocurrir for él; things ocurren while people hacen; se me ocurrió means an idea hit me.
+Tenemos que **salvar** al niño,We have to save the boy; Salvar is rescuing from danger; money you ahorras and a file you guardas.
+Vamos a ver el **partido**,Let's go watch the match; Masculine and it covers both a sports match and a political party.
+Murió a **causa** del frío,He died because of the cold; Feminine; a causa de is the set phrase for because of and in court a causa is a case.
+El **sargento** no está aquí,The sergeant isn't here; Masculine even for a woman: la sargento; ranks like this are used bare when you address someone.
+¿Quieres **cenar** conmigo?,Do you want to have dinner with me?; Spanish has one verb per meal so cenar replaces the whole phrase; the noun is la cena.
+Es mi **compañero** de trabajo,He's my coworker; Compañero and compañera cover colleague teammate and classmate; only context makes it romantic.
+Se **llevó** mi coche,He took my car; Preterite of llevar for él; the reflexive llevarse means to make off with something and llevar takes things away while traer brings them here.
+No **existe** otra forma,There's no other way; Existir for él; no existe flatly denies that a thing is real where no hay just says none is around.
+No conozco esta **zona**,I don't know this area; Feminine; zona is a part of a city or a stretch of land rather than a room-sized space.
+Fue su **destino**,It was his fate; Masculine and it does double duty for fate and for the place a trip ends.
+La **base** del problema,The root of the problem; Base is feminine although it ends in -e; a base de means by means of and una base is also a military base.
+**Solía** jugar aquí,He used to play here; Imperfect of soler for yo and él; the verb means to be in the habit of and is almost never used outside the present and the imperfect.
+El **cliente** siempre tiene razón,The customer is always right; One form for both genders: el cliente and la cliente; clienta is heard but not everywhere.
+Mañana tengo un **encuentro**,I have a meeting tomorrow; Masculine noun for a meeting or a run-in; it looks exactly like the yo form of encontrar.
+Nadie **encontró** el dinero,Nobody found the money; Preterite of encontrar for él and the ue of encuentro is gone here; encontrarse con someone is bumping into them.
+No quiero una **pelea**,I don't want a fight; Feminine and it covers a shouting match as well as a real fistfight; it is also pelear for él.
+Vamos hacia el **norte**,We're heading north; Masculine; al norte de is the way to place something and the compass points stay lowercase.
+Nunca **quise** eso,I never wanted that; Preterite of querer for yo on the irregular stem quis-; no quise usually means I refused rather than I didn't feel like it.
+El **coronel** dio la orden,The colonel gave the order; Masculine and unchanged for a woman: la coronel; one r in Spanish unlike the English spelling.
+**Apuesto** que no lo sabías,I bet you didn't know; Apostar for yo; apuesto que is a casual I bet that; as an adjective apuesto means good-looking.
+¿**Vienes** con nosotros?,Are you coming with us?; Venir for tú with the e turning into ie; venir is movement toward the speaker so answering a call you say voy not vengo.
+**Necesitan** ayuda,They need help; Third person plural and also the ustedes form; necesitar takes its object bare with no preposition.
+El **té** está frío,The tea is cold; Masculine and the accent is what separates it from the pronoun te; the plural is tés.
+El **juicio** fue largo,The trial was long; Masculine; besides a trial it means judgement or sanity as in perder el juicio.
+Espero que **podamos** ir,I hope we can go; Present subjunctive of poder for nosotros; espero que and para que both pull this form.
+¿Dónde está mi **llave**?,Where's my key?; Feminine; cerrar con llave is to lock and in much of Latin America a llave is also a tap or a wrench.
+Estás **equivocado**,You're wrong; Past participle of equivocarse used as an adjective with estar; Spanish says you "are mistaken" as a state so it agrees in gender - equivocada to a woman.
+¿Cuál es su **posición**?,What's your position?; Feminine like almost every -ción noun; used for physical location and for a stance in an argument or a job rank.
+Tengo dolor de **espalda**,My back hurts; Feminine and normally singular for one person's back; it is the back of a body while respaldo is the back of a chair.
+Fue todo un **éxito**,It was a real success; Masculine and never means "exit" - that false friend trips up English speakers; tener éxito is the way to say to succeed.
+De todos **modos** voy,I'm going anyway; Plural of modo; de todos modos is a fixed filler meaning anyway or in any case and the plural is obligatory there.
+Abre la **ventana**,Open the window; Feminine; it is a window in a wall while a shop window is escaparate or vidriera.
+**Veamos** qué pasa,Let's see what happens; Present subjunctive of ver used as a we-command; as an interjection it softens into a thoughtful "let's see" or "well now".
+Es una **especie** de broma,It's some kind of joke; Feminine despite ending in -e; una especie de is the everyday way to say "a sort of" and separately it means a biological species.
+No **teníamos** dinero,We didn't have any money; Tener we-form imperfect for an ongoing past situation; the preterite tuvimos would mean we got money at one moment.
+No hay **diferencia**,There's no difference; Feminine; the verb is not "hacer diferencia" - use no importa or da igual for "it makes no difference".
+Hay muchas **formas**,There are many ways; Plural of forma; here it means ways or methods rather than shapes and de todas formas parallels de todos modos.
+Quiero **pedir** un favor,I want to ask a favor; Pedir is asking for something you want while preguntar is asking a question; it stem-changes to pido and pide.
+Dame un **ejemplo**,Give me an example; Masculine; por ejemplo is the standard "for example" and dar el ejemplo is to set an example.
+Escucha la **radio**,Listen to the radio; Feminine when it means the broadcast or set even though it ends in -o; el radio is a radius or in some countries the device itself.
+Hay que mantener la **calma**,We have to stay calm; Feminine noun not an adjective; ¡calma! on its own works as "easy now" and calmarse is the reflexive verb.
+No hay lugar como el **hogar**,There's no place like home; Masculine and warmer than casa - it is the household or hearth rather than the building.
+**Volveré** mañana,I'll be back tomorrow; Volver I-form future; the stem stays volv- so no o-to-ue change happens in the future tense.
+Está en el **fondo** del mar,It's at the bottom of the sea; Masculine; it covers the bottom of something and also the back of a room and en el fondo means "deep down".
+**Iremos** en tren,We'll go by train; Ir we-form future built on the irregular ir- stem; note vamos alone often serves as the future in speech.
+Ya se **habían** ido,They had already left; Haber they-form imperfect for the pluperfect; pair it with a participle and never with an infinitive.
+No es de este **planeta**,It's not from this planet; Masculine despite the -a ending like problema and tema because of its Greek origin.
+Con **respecto** a eso,Regarding that; Masculine and only appears in the phrases con respecto a and al respecto; do not confuse it with respeto meaning esteem.
+Espero tu **regreso**,I await your return; Masculine noun from regresar; commoner in Latin America where vuelta or regreso both work and estar de regreso means to be back.
+**Debido** al mal tiempo,Due to the bad weather; Participle of deber but here fixed in debido a meaning "because of"; the a is required.
+**Seré** tu amigo,I'll be your friend; Ser I-form future on the irregular ser- stem; ser is used for lasting identity so a role like friend takes ser not estar.
+Ellos **tenían** razón,They were right; Tener they-form imperfect; tener razón is "to have reason" where English uses to be so never estar for being right.
+Quiero **leer** ese libro,I want to read that book; Regular -er infinitive but its participle leído and preterite leyó carry accents and a y.
+No puedo **parar**,I can't stop; Parar is stopping motion or activity while dejar de means to quit doing something; parada is the noun for a bus stop.
+**Dejé** la llave aquí,I left the key here; Dejar I-form preterite; dejar is leaving an object behind while salir is a person leaving a place.
+Te tengo mucho **respeto**,I have a lot of respect for you; Masculine; Spanish uses tener respeto a alguien and faltar el respeto is to be disrespectful.
+Voy a **escribir** una carta,I'm going to write a letter; Regular -ir verb but the participle is the irregular escrito; escribir a is to write to a person.
+Nos vemos en la **estación**,See you at the station; Feminine like other -ción nouns; it also means a season of the year and estación de policía is a police station.
+Ella me **pidió** ayuda,She asked me for help; Pedir he-she preterite with the e-to-i change; the thing requested follows directly with no preposition.
+No tengo ninguna **pista**,I don't have a single clue; Feminine; a clue or lead and also a track or runway and dance floor - context decides.
+Eres una **estrella**,You're a star; Feminine even for a man; it covers stars in the sky and celebrities just as in English.
+Mi hijo está **enfermo**,My son is sick; Works as adjective and as noun for a patient; illness is a temporary state so it takes estar not ser.
+Me **duele** la cabeza,My head hurts; Doler he-she present with the o-to-ue change; it works like gustar - the body part is the subject and you are the indirect object.
+No creo en los **sueños**,I don't believe in dreams; Plural of sueño; the same word means sleep so tengo sueño is I'm sleepy not I have a dream.
+Ya lo **veremos**,We'll see about that; Ver we-form future; as a set reply it signals polite doubt rather than a real plan to look.
+Son **órdenes** del capitán,Those are the captain's orders; Plural of orden and feminine in the sense of a command; masculine el orden means tidiness or sequence.
+Estoy muy **ocupado** ahora,I'm very busy right now; Participle of ocupar used as an adjective with estar; it also describes a taken seat or an engaged phone line.
+**Corre** que viene la policía,Run — the police are coming; Correr he-she present doubling as the tú command; for -er verbs the tú command and the third person look identical.
+No he **podido** dormir,I haven't been able to sleep; Irregular participle of poder; use it only with haber and keep pude for a completed one-off attempt.
+No me **dejes** aquí,Don't leave me here; Present subjunctive of dejar for a negative tú command; the plain dejas would be wrong after no.
+Es otro **nivel**,It's another level; Masculine with plural niveles; otro nivel is common slang praise and a nivel de meaning "at the level of" is widely criticized in careful writing.
+¿**Habéis** visto a mi hermano?,Have you all seen my brother?; Haber you-plural present used only in Spain; Latin America says han visto with ustedes.
+Necesitamos alguien con **experiencia**,We need someone with experience; Feminine; it covers both know-how and a single episode you lived through.
+¿Dónde está la **salida**?,Where's the exit?; Feminine noun from salir; also a departure time and dar la salida is to start a race.
+Puedes **confiar** en mí,You can trust me; Confiar takes en for trusting a person and it stem-splits into confío and confías with an accent.
+Eso era lo que **necesitaba**,That was what I needed; Necesitar imperfect and identical for yo and él so context or a pronoun tells you who.
+Tú y yo somos **hermanos**,You and I are brothers; Hermano is masculine and the plural hermanos covers a mixed group of siblings; only all-female groups take hermanas.
+¿Dónde están mis **zapatos**?,Where are my shoes?; El zapato is masculine and you buy them by the par; the singular is used for one shoe only.
+¿De qué **color** es?,What colour is it?; Color is masculine even though nouns in -or often look otherwise; Spanish asks de qué color rather than what colour.
+Sólo un **vistazo**,Just a quick look; Vistazo lives almost entirely in echar or dar un vistazo; alone it means a glance not a stare.
+Voy a **tratar**,I am going to try; Tratar de plus infinitive is to try; tratar a alguien is to treat a person; without de it is not "to try about".
+A mi **parecer** es tarde,In my view it is late; Here parecer is a noun meaning opinion; a mi parecer is fixed and does not take de.
+El **juez** no está,The judge is not in; Juez is masculine but is used for women too; the plural is jueces and the feminine jueza is newer.
+El **paciente** no habla,The patient is not talking; Paciente has one form for both genders so only el or la marks sex; it is also the adjective patient.
+Espero que lo **hayas** visto,I hope you have seen it; Hayas is the tú present subjunctive of haber and is forced by espero que; the indicative has would be wrong here.
+¿Tienes una **bolsa**?,Do you have a bag?; Bolsa is feminine; capitalised la Bolsa is the stock exchange and in Spain a handbag is a bolso.
+Esto no es **arte**,This is not art; Arte is masculine in the singular yet feminine in the plural as in las bellas artes.
+Los niños están **jugando**,The kids are playing; Jugando is the gerund of jugar and covers games and sport; playing an instrument is tocar.
+¿Cuánto tiempo **llevas** aquí?,How long have you been here?; Llevas is llevar for tú; llevar plus a time span replaces English present perfect; it also means to carry or to wear.
+Me **alegra** verte,I am glad to see you; Alegra works backwards from English since the pleasing thing is the subject; me alegro de is the reflexive alternative.
+¿Quieres **bailar** conmigo?,Do you want to dance with me?; Bailar is the plain verb to dance and takes con for a partner; the noun baile is the dance itself.
+El **diablo** existe,The devil exists; Diablo is masculine; the plural in ¿qué diablos? is just an exclamation and has no religious sense.
+No **oí** nada,I did not hear anything; Oí is the yo preterite of oír and needs the accent; oír is passive hearing while escuchar is deliberate listening.
+No creo que **sepa** nada,I do not think he knows anything; Sepa is the present subjunctive of saber on the irregular stem sep- and serves yo usted él and ella.
+Vamos al **sur**,We are heading south; Sur is masculine and takes el; direction is al sur or hacia el sur not just sur.
+La **banda** ya llegó,The band has arrived; Banda is feminine and covers a music group and a criminal gang; banda sonora is a soundtrack.
+Quiero **aprender** a bailar,I want to learn to dance; Aprender needs a before an infinitive; aprender de memoria is to learn by heart.
+¿Cuál es el **precio**?,What is the price?; Precio is masculine; a mitad de precio means half price and precioso is unrelated meaning lovely.
+No tengo **ganas**,I do not feel like it; Ganas is feminine plural and the singular gana is rare; tener ganas de plus infinitive is the everyday way to say you feel like doing something.
+**Tuvimos** un problema,We had a problem; Tuvimos is tener for nosotros in the preterite with the irregular tuv- stem; teníamos would describe an ongoing situation instead.
+**Volvió** a casa anoche,She came back home last night; Volvió is volver for él or ella in the preterite; volver a plus infinitive means to do something again.
+Estos son mis **libros**,These are my books; Libro is masculine; a librería sells books while a library is a biblioteca.
+Me duele un **ojo**,One of my eyes hurts; Ojo is masculine and ¡Ojo! shouted alone means watch out.
+**Serán** las tres,It must be about three; Serán is the future of ser for ellos and ustedes; Spanish uses this future to guess at the time rather than to predict.
+¡**Cielos**! ¿Qué pasó?,Good heavens! What happened?; The plural cielos is only an exclamation; singular cielo means sky or heaven and is also a pet name.
+No he **matado** a nadie,I have not killed anyone; Matado is the participle of matar used after haber; muerto is the participle you use for dying not for killing.
+A sus órdenes **comandante**,At your orders commander; Comandante has one form for both genders; it is a military rank and also what you call an airline captain.
+Necesitamos **acción**,We need action; Acción is feminine and its plural acciones drops the accent; in finance una acción is a share.
+Esas son las **reglas**,Those are the rules; Regla is feminine and also means a ruler for drawing and colloquially a period.
+Es una **obra** de arte,It is a work of art; Obra is feminine and covers an artwork a stage play and a building site; the road sign obras means roadworks.
+Hay **esperanza** todavía,There is still hope; Esperanza is the feminine noun from esperar which itself blurs hoping waiting and expecting.
+Es **cuestión** de tiempo,It is a matter of time; Cuestión is feminine and means issue or matter; a question you actually ask is una pregunta.
+No me **molesta**,It does not bother me; Molesta puts the annoying thing as the subject just like gusta; it never carries the English sense of molest.
+Estamos **teniendo** problemas,We are having problems; Teniendo is the gerund of tener; Spanish rarely puts tener in the progressive except with events like problems or a baby.
+Necesito el **informe**,I need the report; Informe is masculine; the adjective informe means shapeless and the verb is informar.
+El **río** está frío,The river is cold; Río is masculine and the accent separates it from rio the preterite of reír.
+¿Puedes **abrir** la puerta?,Can you open the door?; Abrir is regular in the present but its participle is the irregular abierto.
+Prometo no **tocar** nada,I promise not to touch anything; Tocar is to touch and also to play an instrument; me toca a mí means it is my turn.
+Te voy a **contar** algo,I am going to tell you something; Contar means both to count and to tell a story; contar con alguien is to rely on them.
+**Sigo** aquí,I am still here; Sigo is seguir for yo with the e to i change; seguir plus a gerund means to keep on doing something.
+Está en el **interior**,It is inside; As a noun interior is masculine and means the inside; ropa interior is underwear.
+¿Es tu **apartamento**?,Is this your flat?; Apartamento is the usual word in much of Latin America while Spain says piso and Mexico departamento.
+Que no me **vea** nadie,Let nobody see me; Vea is the present subjunctive of ver for él ella and usted and doubles as the usted command.
+¿Dónde **estáis**?,Where are you all?; Estáis is the vosotros form of estar used only in Spain; Latin America says están even to friends.
+No me **preocupa** el dinero,Money does not worry me; Preocupa makes the worrying thing the subject; to say you worry about something use me preocupo por.
+**Tomó** mi mano,He took my hand; Tomó is tomar for él or ella in the preterite; tomar means to take and also to drink so tomar algo is to have a drink.
+La película **empieza** ahora,The film starts now; Third person present of empezar with the e turning into ie; to start doing something you need empezar a plus an infinitive.
+Así **empezó** la guerra,That is how the war began; Third person preterite of empezar; the z hardens to c in the yo form empecé so the sound stays the same.
+Quiero que **vayan** a casa,I want them to go home; Present subjunctive of ir for they or ustedes; it doubles as the ustedes command so ¡vayan! is get going.
+**Llaman** a la puerta,Someone is knocking; Llamar covers phoning and naming and knocking; llaman with no subject is the normal way to say somebody is at the door.
+**Perdona** mi error,Sorry about my mistake; The tú command of perdonar and the casual sorry you use with a friend; with usted it becomes perdone.
+**Vuelvo** en dos minutos,I will be back in two minutes; Yo present of volver with o becoming ue; volver a plus infinitive means to do a thing again.
+Fue un **golpe** de suerte,It was a stroke of luck; Masculine and means a blow or knock; de golpe means all of a sudden and un golpe de estado is a coup.
+He **acabado** mi trabajo,I have finished my work; Participle of acabar and fixed after haber; estar acabado said of a person means washed up rather than done.
+Me gusta su **estilo**,I like his style; Masculine; it means manner as much as fashion and algo por el estilo is how you say something along those lines.
+¿Podemos **quedar** mañana?,Can we meet up tomorrow?; In Spain quedar is arranging to meet; it also means to be left over as in queda poco and quedarse is to stay.
+Tengo dos **cartas** para ti,I have two letters for you; Plural of the feminine carta; the same word covers letters you post and playing cards so only context tells you which.
+¡Hay una **bomba** aquí!,There is a bomb here!; Feminine; it also means a pump for water and in Spain pasarlo bomba is to have a great time.
+Tiene una **pistola** en la mano,He has a gun in his hand; Feminine and means a handgun specifically while arma is any weapon at all.
+Quiero **probar** la comida,I want to taste the food; Probar is tasting or trying out and also proving something; probarse with the pronoun is trying clothes on.
+Lo que diga su **majestad**,Whatever your majesty says; Majestad is feminine so it is su majestad even for a king although adjectives agree with the monarch's own sex — su majestad está preocupado.
+¿Puedes **traer** el café?,Can you bring the coffee?; Traer is bringing towards the speaker while llevar is taking away; the yo form is irregular traigo.
+El coche está en **marcha**,The car is running; Feminine; estar en marcha means up and running or underway and in Spain irse de marcha is going out at night.
+Mi **vuelo** sale a las dos,My flight leaves at two; Masculine noun from volar; it is spelled exactly like vuelo meaning I fly so the article is what marks it as a noun.
+Te dejé una **nota**,I left you a note; Feminine; the same word is a school grade and a musical note; se nota que belongs to the verb notar instead.
+**Estaremos** aquí mañana,We will be here tomorrow; Future of estar for we on the regular stem estar-; it is about place or state so seremos would be wrong here.
+No tiene ningún **valor**,It has no value at all; Masculine and covers both worth in money and courage; tener valor is to be brave rather than to be worth.
+¿Cuál es el **objetivo**?,What is the goal?; Masculine; it is a goal or target and also a camera lens; as an adjective it means unbiased.
+De **repente** dijo algo,Suddenly he said something; Repente survives only inside the fixed phrase de repente and is never used on its own.
+**Debía** dinero a mi jefe,He owed my boss money; Third person imperfect of deber; besides owing it carries should have as in debía saberlo so context decides.
+¿Quién **irá** a la fiesta?,Who will go to the party?; Future of ir for he she or usted; the stem stays ir- and only the accented ending changes.
+No tengo la **entrada**,I do not have the ticket; Feminine; it is a ticket for a show and also an entrance or way in; travel tickets are billetes not entradas.
+No te **dejaré** solo,I will not leave you alone; Future of dejar for I; dejar is leaving something behind or allowing and dejar de plus infinitive is to quit doing.
+Quiero **evitar** problemas,I want to avoid trouble; Evitar is avoiding or preventing; no pude evitarlo is I could not help it and evitar que takes the subjunctive.
+Esta **máquina** no funciona,This machine is broken; Feminine; escribir a máquina means to type and una máquina de café is a coffee maker.
+Me duele el **cuello**,My neck hurts; Masculine and also the collar of a shirt; with body parts Spanish uses el not a possessive like my.
+**Conocí** a tu hermana ayer,I met your sister yesterday; Preterite of conocer for I and it means met for the first time; the imperfect conocía means already knew her.
+Eran otros **tiempos**,Those were different times; Plural of tiempo meaning eras or periods; time as a quantity stays singular so mucho tiempo never becomes muchos tiempos.
+Espero que **tome** el tren,I hope he takes the train; Present subjunctive of tomar for he she or usted and also the usted command; ¡tome! offered with the hand means here you are.
+Los **animales** tienen hambre,The animals are hungry; Masculine plural of animal formed with -es; called of a person it means a brute so no seas animal is do not be an oaf.
+Si **tuviera** más tiempo,If I had more time; Imperfect subjunctive of tener; after si it sets up something unreal and pairs with a conditional like tendría.
+Vino con su **pareja**,He came with his partner; Feminine even when the partner is a man; it means both a couple and one member of it and en pareja is as a couple.
+Este **verano** iremos al mar,This summer we will go to the sea; Masculine; with seasons you say en verano with no article and el verano only when you point at a specific one.
+Algún día **serás** jefe,One day you will be the boss; Future of ser for tú; it also voices a guess or a jab as in ¡serás tonto! meaning what a fool you are.
+Eso es una **mentira**,That is a lie; Feminine; parece mentira means it is hard to believe and the person who tells them is a mentiroso.
+Quiero pagar con **tarjeta**,I want to pay by card; Feminine and covers a bank card or a greeting card; con tarjeta drops the article; playing cards are cartas.
+Que **hagan** su trabajo,Let them do their job; Present subjunctive of hacer for they built on the hago stem; as an ustedes command hagan el favor is please do.
+**Perdí** mi teléfono ayer,I lost my phone yesterday; Preterite of perder for I; the ie of pierdo disappears in the past and perderse means to get lost.
+¿Quieres **correr** conmigo?,Do you want to go running with me?; Correr is to run and also what time or news does when it passes or spreads; in Spain correrse is vulgar.
+¿Quién ha **traído** esto?,Who brought this?; Participle of traer; the i takes an accent so it is heard as its own syllable and never agrees after haber.
+Cuando **llegue** mi padre,When my father arrives; Present subjunctive of llegar with a u added to keep the g hard; cuando about the future always takes the subjunctive.
+Mi hermano **usa** mi ropa,My brother wears my clothes; Third person of usar which covers using a thing and wearing clothes; se usa is the way to say one uses.
+Voy a **intentar** algo,I am going to try something; Intentar takes an infinitive with no preposition while tratar needs de; intentar is attempting and probar is testing.
+Estas **flores** son para ti,These flowers are for you; Plural of la flor which adds -es; flor is feminine even though it does not end in a.
+Me está **dando** miedo,It is starting to scare me; Gerund of dar; dar miedo is the normal way to say something is frightening and estar dando puts it in this moment.
+No tengo otra **opción**,I have no other choice; Feminine like every noun in -ción and the plural loses the accent as opciones.
+Estamos en una **isla**,We are on an island; Feminine noun; and Spanish says en una isla where English says on an island.
+**Cierra** la puerta por favor,Close the door please; This is cerrar for he/she or the usted command; the e becomes ie when stressed so yo cierro but nosotros cerramos.
+Me encanta tu **piel**,I love your skin; Feminine despite ending in a consonant; it also means hide or leather in the sense of the material.
+Él no es mi **enemigo**,He is not my enemy; Masculine; a woman is la enemiga and Spanish uses ser here because it is identity not a passing state.
+Te **dejo** el dinero aquí,I am leaving the money here for you; Dejar is to leave something behind; use salir or irse when a person leaves a place.
+Somos **jóvenes** todavía,We are still young; Plural of joven and the accent appears only in the plural to keep the stress; it works as noun or adjective.
+¿Has **pedido** la comida?,Have you ordered the food?; Past participle of pedir which is asking for a thing; preguntar is asking a question.
+Mi madre no **entiende** nada,My mother does not understand anything; Entender for he/she/usted; the double negative no plus nada is required in Spanish.
+Quiero **justicia** para mi hijo,I want justice for my son; Feminine and used without an article after verbs like querer; el juez comes from the same family.
+Nadie me **despierta** por la mañana,Nobody wakes me up in the morning; Despertar for he/she; with a reflexive pronoun me despierto means I wake up by myself.
+Sólo **pido** un poco de paz,I am only asking for a little peace; Pedir for yo with the e turning into i; unlike decir it adds no g so pido never becomes pigo.
+¡Qué **calor** hace aquí!,It is so hot in here!; Masculine noun meaning heat and Spanish says hace calor with hacer for weather and tengo calor for a person.
+Las **luces** de la ciudad,The city lights; Plural of luz where the z turns to c before es; feminine.
+No me **refiero** a ti,I am not talking about you; Referirse always takes a pronoun plus a and is the normal way to say I mean; not the verb for meaning of words.
+Ayer **fuimos** a la fiesta,Yesterday we went to the party; Preterite we form of ir; identical to the preterite of ser so context decides between we went and we were.
+La **batalla** ha terminado,The battle is over; Feminine; a batalla is one fight inside a guerra which is the whole war.
+Ella **intenta** ayudar,She is trying to help; Intentar for he/she and it is followed straight by the infinitive with no preposition; tratar needs de.
+Me duele el **brazo**,My arm hurts; Masculine; Spanish uses the article el and not a possessive for body parts.
+Quiero que **salga** de mi casa,I want him to leave my house; Present subjunctive of salir built on the yo form salgo; querer que always forces the subjunctive.
+No puedo **recordar** su nombre,I cannot remember his name; Infinitive of recordar; acordarse de is the everyday alternative and needs the pronoun.
+Tenemos que **escapar** de aquí,We have to escape from here; Infinitive; escapar takes de before the place and often appears as escaparse.
+**Señores** hay un problema,Gentlemen there is a problem; Plural of señor with no accent since señores is already stressed correctly; used to address a group politely.
+Sólo **quedan** dos minutos,Only two minutes are left; Quedar for they meaning to remain; quedarse with a pronoun means to stay somewhere.
+No siento mis **piernas**,I cannot feel my legs; Feminine plural of pierna; the leg of a table is la pata not la pierna.
+Mañana tengo una **visita**,I have a visitor tomorrow; Feminine and it covers both the visit and the person visiting regardless of their gender.
+¿Qué estás **usando**?,What are you using?; Gerund of usar; for wearing clothes Spanish prefers llevar though usar is heard in Latin America.
+Hemos **ganado** el juego,We have won the game; Past participle of ganar which covers winning and earning money.
+No hagas ningún **movimiento**,Do not make any movement; Masculine; also used for a political or artistic movement.
+A **pesar** de todo te quiero,In spite of everything I love you; A pesar de is a fixed phrase for in spite of; the same word as the verb to weigh so think of weight bearing down.
+Estoy de **vacaciones**,I am on holiday; Feminine and always plural; estar de vacaciones is the fixed phrase for being away.
+¿Quién ha **tomado** mi coche?,Who has taken my car?; Past participle of tomar; tomar covers taking and drinking while llevar is taking something somewhere.
+¿Dónde **habías** estado?,Where had you been?; Haber in the imperfect for tú; it only builds compound tenses so it never stands alone as had.
+¿Tienes **planes** para esta noche?,Do you have plans tonight?; Masculine plural of plan; the singular has no accent and neither does the plural.
+Vamos al **cine** esta noche,Let us go to the movies tonight; Masculine; el cine is both the building and the art form and there is no plural in this sense.
+Ahora te **toca** a ti,Now it is your turn; Tocar for he/she; besides touching and playing an instrument tocarle a alguien means it is that person's turn.
+No tengo **confianza** en él,I do not trust him; Feminine; tener confianza en is how you say to trust and con confianza means openly.
+No recuerdo sus **nombres**,I do not remember their names; Masculine plural of nombre; el nombre is the first name and el apellido is the surname.
+**Esperen** aquí un momento,Wait here a moment; Present subjunctive of esperar used as the ustedes command; esperar covers waiting and hoping.
+¿Dónde están mis **pantalones**?,Where are my trousers?; Masculine and normally plural for one garment; the singular pantalón carries an accent that the plural drops.
+Eso no es una **defensa**,That is not a defence; Feminine even when it refers to a male defender on a team.
+La fiesta **terminó** temprano,The party ended early; Terminar preterite for he/she and the accent on the o marks the past; without it termino means I finish.
+Ha **salido** de la casa,He has left the house; Past participle of salir and it is regular; salir de means to leave a place.
+Siento mucha **presión**,I feel a lot of pressure; Feminine like other nouns in ión; the plural presiones loses the accent.
+Tenemos un **testigo**,We have a witness; Masculine but it stays testigo for a woman too; only the article changes to la.
+**Deberían** llamar a la policía,They should call the police; Deber in the conditional for they; the conditional softens it to should while deben means they must.
+Lo he **olvidado** todo,I have forgotten everything; Past participle of olvidar; olvidarse de with the pronoun is just as common in speech.
+Los **soldados** están aquí,The soldiers are here; Masculine plural; a mixed group still takes the masculine form.
+**Resulta** que tenías razón,It turns out you were right; Resultar for he/she and resulta que is the set phrase for it turns out that.
+Todo **depende** de ti,It all depends on you; Depender always takes de where English uses on.
+No hay ningún **motivo**,There is no reason; Masculine; motivo is the reason or grounds for doing something while razón is being right or a reason in argument.
+¿Puedes hablar **inglés**?,Can you speak English?; Languages are masculine and stay lowercase in Spanish; the accent drops in inglesa and ingleses.
+Está en el **estudio**,He's in the study; This is the noun for a study room or a recording studio; los estudios means someone's schooling.
+Esto tiene que **acabar**,This has to end; Acabar is terminar with a plainer feel; acabar de plus infinitive means to have just done something and acabar con means to wipe out.
+No entiendo mis **sentimientos**,I don't understand my feelings; Masculine; un sentimiento is an emotion while el sentido is a meaning or a sense.
+¿Qué estás **tomando**?,What are you drinking?; Gerund of tomar; with a glass in hand tomar is to drink and estar plus gerund pins it to this very moment.
+Me **dieron** el trabajo,They gave me the job; Ellos preterite of dar; it borrows the -ir endings and carries no accent so dieron never daron.
+**Parecen** dos hermanos,They look like brothers; Parecer is to seem or look like; add se and parecerse a means to physically resemble someone.
+¿Dónde están mis **llaves**?,Where are my keys?; La llave is feminine and also names a faucet or a wrench.
+Los **perros** están fuera,The dogs are outside; The masculine plural covers a mixed pack; perras is the feminine and is an insult aimed at people.
+¿Cuál es el **propósito**?,What's the purpose?; Masculine; a propósito is the everyday phrase and means either on purpose or by the way.
+¿Ya sabes la **noticia**?,Have you heard the news?; Feminine and countable so una noticia is one single item; the plural noticias is the news on TV.
+Vamos a **partir** ahora,We're leaving now; Partir is to depart or to split something; the form you hear most is a partir de meaning starting from.
+Está a diez **metros**,It's ten metres away; Masculine; el metro is also the subway and the abbreviation m takes no period.
+No hay **clientes** hoy,There are no customers today; Cliente ends in -e for both sexes so el or la does the work; clienta exists but sounds dated.
+Nadie **podrá** entrar,Nobody will be able to get in; Future of poder for él or usted on the short stem podr-; it often softens a guess rather than stating a fact.
+Esto es **ridículo**,This is ridiculous; It works as adjective and noun; hacer el ridículo is to make a fool of yourself and it agrees as ridícula.
+**Damas** y caballeros,Ladies and gentlemen; Dama is formal and ceremonial where señoras is what you say daily; las damas is also the game of checkers.
+La **operación** fue un éxito,The operation was a success; Feminine and it covers surgery as well as a police or military job; the accent vanishes in operaciones.
+Mi hijo no **come** nada,My son doesn't eat a thing; Third person present of comer and also the tú command; in Spain comer on its own means to have lunch.
+Mi padre tiene una **empresa**,My father owns a business; Feminine; empresa is a firm as a business venture while compañía leans to the legal company.
+Vamos al **laboratorio**,Let's go to the lab; Masculine and never clipped the way English says lab; stress falls on the -to-.
+Fue tu **elección**,It was your choice; Feminine; singular is a choice and the plural elecciones is a political election.
+Dame un **beso**,Give me a kiss; Masculine noun behind the verb besar; dos besos is the normal greeting in Spain and the way to sign off a message.
+Escucha esta **conversación**,Listen to this conversation; Feminine with plural conversaciones; a casual chat is una charla in Spain and una plática in Mexico.
+Ven a mis **brazos**,Come into my arms; Masculine; keep brazos apart from armas since one is arms on your body and the other is weapons.
+El **espíritu** sigue aquí,The spirit is still here; Masculine even though it ends in -u; it also means a ghost and the plural is espíritus.
+¿Por qué no me **dejas**?,Why won't you leave me alone?; Tú present of dejar; dejar is to leave something behind or to let someone do a thing and dejar de plus infinitive is to quit doing it.
+No me **interesa** nada,I'm not interested at all; It behaves like gustar so the topic is the subject and you say me interesa; yo interesa is wrong.
+Tengo **fe** en ti,I have faith in you; Feminine and about as short as a Spanish noun gets; de buena fe means in good faith and the plural is never used.
+Ella nunca **muestra** miedo,She never shows fear; Mostrar changes o to ue when stressed so muestra not mostra; enseñar is the more casual way to show something.
+Es una **trampa**,It's a trap; Feminine; hacer trampa is to cheat at a game so the word covers trickery as well as traps.
+No tengo **memoria** de eso,I have no memory of that; Feminine and it names the faculty itself; one particular memory is un recuerdo.
+Es todo lo **contrario**,It's exactly the opposite; Lo contrario is the opposite and al contrario is on the contrary; as a noun it also means the opponent.
+Mi hijo es **soldado**,My son is a soldier; It ends in -o yet a woman is la soldado; after ser a profession drops the article.
+¿Puedo **subir**?,Can I come up?; Subir is to go up and also to get into a car or to upload a file; its opposite is bajar.
+Es mi **turno**,It's my turn; Masculine; besides your turn in a game it means a work shift as in turno de noche.
+Me **encantaría** ir,I'd love to go; Conditional of encantar in the gustar pattern; it is the polite way to accept an invitation.
+Nos vemos en el **restaurante**,See you at the restaurant; Masculine and it keeps a final -e that English dropped; plural restaurantes.
+Está **saliendo** ahora,He's leaving right now; Gerund of salir; estar saliendo con alguien is how you say two people are dating.
+Gracias por la **bienvenida**,Thanks for the welcome; Feminine as a noun; used as a greeting it agrees with the arrival so bienvenido bienvenida or bienvenidos.
+Vas a **caer**,You're going to fall; Caer is to fall but a person tripping normally uses caerse; the yo form is caigo and me cae bien means I like someone.
+Te **llevaré** a casa,I'll take you home; Yo future of llevar; llevar carries something away from where you are while traer brings it toward you.
+No hay **leche**,There's no milk; Feminine; in Spain ¡la leche! is a shout of surprise and tener mala leche is being in a foul mood.
+Mira las **estrellas**,Look at the stars; Feminine; it covers film stars and hotel ratings just as in English.
+**Prefiero** el café,I prefer coffee; Yo present of preferir with e turning into ie; an infinitive follows it bare as in prefiero ir.
+¿Funciona la **red**?,Is the network working?; Feminine; it means a net and a network and la red is also the internet.
+**Oiga** señor,Excuse me sir; Usted command of oír and the normal way to flag down a stranger or a waiter; oye is the tú version.
+Espero que **estén** bien,I hope they're all right; Present subjunctive of estar for ellos or ustedes; the accent is required and phrases like espero que force this mood.
+Tenemos **cuentas** que pagar,We have bills to pay; Feminine plural of cuenta for bills or bank accounts; it is also the tú form of contar and darse cuenta means to realize.
+Voy a llamar un **taxi**,I'm going to call a taxi; Masculine with plural taxis; the driver is un taxista across Latin America.
+Ese **anillo** es de mi madre,That ring is my mother's; Masculine; it is any ring including a wedding one; anillo de boda where English says wedding band.
+No quiero **preguntar** otra vez,I don't want to ask again; Preguntar is asking a question while pedir is asking for a thing; you preguntar por a person to ask after them.
+La **victoria** es nuestra,The victory is ours; Feminine; also a woman's name so capitalization is what tells them apart in writing.
+No soy ningún **héroe**,I'm no hero; Masculine and the accent stays on the e in the plural héroes; a woman is la heroína.
+Ya he **decidido**,I've already decided; Past participle of decidir so it never changes for gender after he; decidirse a hacer algo is making up your mind to do it.
+No me gustan esas **películas**,I don't like those movies; Feminine plural; película is also the physical film or a thin layer like the film on milk.
+¿Quién es el **responsable**?,Who's in charge?; One form for both genders: el responsable and la responsable; as an adjective it also means reliable.
+Necesito un **trago**,I need a drink; Masculine; a trago is a swallow or a shot of alcohol while bebida is any drink; pasar un mal trago is a rough time.
+Ella **volverá** mañana,She'll come back tomorrow; Future of volver for él or ella; the ue never appears in the future because the stem is unstressed.
+Está detrás del **árbol**,He's behind the tree; Masculine; the plural árboles keeps the written accent on the á even though it adds a syllable.
+El niño no tiene **dientes**,The boy has no teeth; Masculine plural of diente; teeth are dientes but a molar is muela and toothache is dolor de muelas.
+Un **camión** pasó por aquí,A truck came by here; Masculine; the accent drops in the plural camiones; in Mexico a camión is also a city bus.
+No quiero **vender** la casa,I don't want to sell the house; Vender is selling and comprar is buying; se vende on a sign is what English calls for sale.
+Quiero que me **llame**,I want him to call me; Present subjunctive of llamar for él or usted; querer que always forces this form and never the infinitive.
+Tenemos que **luchar**,We have to fight; Luchar is struggling or fighting for a cause while pelear is a physical scrap; luchar por is what you fight for.
+El **cabo** no dijo nada,The corporal said nothing; Masculine; it is also a cape of land and the end of something: al fin y al cabo means after all.
+¿Qué es ese **ruido**?,What's that noise?; Masculine; hacer ruido is to make noise and a rumour is also un ruido in some regions.
+La **lucha** no ha terminado,The fight isn't over; Feminine; it covers a struggle or a movement as well as wrestling as a sport.
+Nadie **muere** hoy,Nobody dies today; Morir for él with o turning into ue; morirse de risa or de hambre is the everyday exaggerated use.
+Mi **reloj** no funciona,My watch isn't working; Masculine; the same word is a clock and a wristwatch and the plural is relojes.
+El **gato** está en la mesa,The cat is on the table; Masculine and a female cat is la gata; a gato is also a car jack.
+Vamos a **averiguar** la verdad,We're going to find out the truth; Averiguar is finding something out by digging while encontrar is simply finding; the u is pronounced in averiguar.
+Tengo miedo de **volar**,I'm afraid of flying; Volar is flying and the o becomes ue in vuelo; it also means to blow something up.
+¿**Vendrá** tu padre?,Will your father come?; Future of venir on the irregular stem vendr-; do not confuse it with vender forms like venderá.
+Salió **corriendo** de la casa,He ran out of the house; Gerund of correr; salir corriendo is the normal way to say to rush out rather than a separate verb.
+Sigo **yendo** a clase,I'm still going to class; Gerund of ir and completely irregular since iendo would be wrong; seguir plus gerund is to keep on doing something.
+Mi hija va al **colegio**,My daughter goes to school; Masculine; a colegio is usually a primary or secondary school often private while universidad is higher up.
+No hace ningún **sonido**,It doesn't make a sound; Masculine; sonido is a sound in general and ruido is an unwanted one; volume on a device is el sonido too.
+Es todo un **caballero**,He's a real gentleman; Masculine; originally a horseman from caballo and now a gentleman; on a door it marks the men's room.
+No sé el **código**,I don't know the code; Masculine; it is a PIN or a legal code alike and the accent is on the first o.
+¿Qué quieres que **hagamos**?,What do you want us to do?; Present subjunctive of hacer for nosotros built on hag-; hagamos alone works as a let's do it.
+No veo la **imagen**,I can't see the picture; Feminine despite ending in n and the plural shifts the accent to imágenes.
+No vale el **riesgo**,It's not worth the risk; Masculine; correr un riesgo is to take a risk and arriesgar is the verb.
+Ya **llegamos** a casa,We're home; Llegar for nosotros and identical in the preterite so context decides; llegar a is arriving somewhere with no preposition like English's at.
+¿Hay **pan** en casa?,Is there bread at home?; Masculine and uncountable in normal use so un pan is a loaf; ser pan comido is to be dead easy.
+Vale un **millón** de dólares,It's worth a million dollars; Masculine and unlike cien it needs de before the noun: un millón de personas; the plural is millones.
+La **dama** quiere hablar contigo,The lady wants to talk to you; Feminine; dama is formal or old-fashioned where mujer or señora is everyday; it is also the queen in cards.
+Quiero agua con **hielo**,I want water with ice; Masculine and uncountable so no un; romper el hielo works just like breaking the ice.
+Se **cayó** en la calle,He fell in the street; Preterite of caer for él with the y and the accent; caerse with se is the normal way to say to fall over.
+La **prensa** ya lo sabe,The press already knows; Feminine and singular even though it means all the journalists; it is also a press machine.
+Ellos **vengan** su muerte,They avenge his death; Vengar for ellos meaning to avenge; it looks exactly like the subjunctive of venir so only the sentence tells you which verb.
+Prefiero **caminar**,I'd rather walk; Caminar is walking and andar overlaps but also means to go about or to function; dar un paseo is to go for a stroll.
+No hay nada en la **televisión**,There's nothing on TV; Feminine; the set itself is often el televisor and Spanish says en la televisión where English says on TV.
+No **pasará** nada,Nothing will happen; Future of pasar for él; pasar covers happening as well as passing so qué pasará is what will happen.
+Hay **momentos** así,There are moments like that; Masculine plural; en este momento is right now and por el momento is for the time being.
+¿Puedo **coger** tu coche?,Can I take your car?; In Spain coger is the ordinary verb for taking or catching but in much of Latin America it is vulgar so tomar or agarrar is safer.
+Hay una **posibilidad**,There's a chance; Feminine like most nouns in dad; the plural is posibilidades and it also means the means to do something.
+Ojalá **hubiese** venido,I wish he had come; Imperfect subjunctive of haber for él and hubiera is equally correct; it builds the past unreal as in si hubiese sabido.
+Ese es mi **asiento**,That's my seat; Masculine; from sentarse so it is also the seat of a chair; tomar asiento is a polite have a seat.
+El **proyecto** ha terminado,The project is finished; Masculine; the y sounds like a soft consonant here and proyectar is to project or to plan.
