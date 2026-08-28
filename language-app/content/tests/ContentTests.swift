@@ -14,6 +14,34 @@ import Testing
 }
 
 @MainActor
+@Test func loadsEveryBundledDeck() throws {
+  let directory = URL(filePath: FileManager.default.currentDirectoryPath)
+    .appending(path: "language-app/decks")
+  let files = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
+    .filter { $0.pathExtension == "csv" }
+  #expect(files.count >= 4)
+  for file in files {
+    let deck = try CSVDeckLoader.load(
+      name: file.deletingPathExtension().lastPathComponent, data: try Data(contentsOf: file))
+    #expect(!deck.cards.isEmpty)
+    #expect(Set(deck.cards.map(\.prompt)).count == deck.cards.count)
+  }
+}
+
+@MainActor
+@Test func fillsAnEmptyJapaneseAnswerWithRomaji() throws {
+  let deck = try CSVDeckLoader.load(name: "Kana", data: Data("ja,en\nき,\nきゃ,\nは,ha\n".utf8))
+  #expect(deck.cards.map(\.answer) == ["ki", "kya", "ha"])
+}
+
+@MainActor
+@Test func rejectsAnEmptyAnswerWithoutRomaji() throws {
+  #expect(throws: CSVDeckError.invalidRow(2)) {
+    try CSVDeckLoader.load(name: "Spanish", data: Data("es,en\nhola,\n".utf8))
+  }
+}
+
+@MainActor
 private func emptyDeckStore() throws -> (store: DeckStore, directory: URL, defaults: UserDefaults) {
   let directory = URL.temporaryDirectory.appending(path: "decks-\(UUID().uuidString)")
   let defaults = try #require(UserDefaults(suiteName: "decks-\(UUID().uuidString)"))
@@ -668,6 +696,32 @@ private let middayToday = SchedulerCalendar().startOfDay(for: Date()).addingTime
   session.back()
   #expect(session.card == deck.cards[0])
   #expect(session.showingAnswer)
+}
+
+@Test func browsingRandomlyKeepsEveryCardInADifferentOrder() throws {
+  let csv = "ja,en\n" + (1...20).map { "card\($0),answer\($0)\n" }.joined()
+  let deck = try CSVDeckLoader.load(name: "Japanese", data: Data(csv.utf8))
+  var generator = SeededGenerator(seed: 42)
+  let session = BrowseSession(cards: deck.cards, using: &generator)
+
+  #expect(session.cards.sorted { $0.id < $1.id } == deck.cards.sorted { $0.id < $1.id })
+  #expect(session.cards != deck.cards)
+  #expect(session.card == session.cards[0])
+  #expect(!session.showingAnswer)
+}
+
+private struct SeededGenerator: RandomNumberGenerator {
+  private var state: UInt64
+
+  init(seed: UInt64) { state = seed &+ 0x9e37_79b9_7f4a_7c15 }
+
+  mutating func next() -> UInt64 {
+    state = state &+ 0x9e37_79b9_7f4a_7c15
+    var z = state
+    z = (z ^ (z >> 30)) &* 0xbf58_476d_1ce4_e5b9
+    z = (z ^ (z >> 27)) &* 0x94d0_49bb_1331_11eb
+    return z ^ (z >> 31)
+  }
 }
 
 @Test func browsingAnEmptyDeckHasNoCard() {

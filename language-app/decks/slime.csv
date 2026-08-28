@@ -1,5 +1,5 @@
 ja,en
-**しよう**か,Shall we do it?; Verb for doing anything and it turns a plain noun into an action.
+**する**のか,Are you going to do it?; Verb for doing anything and it turns a plain noun into an action.
 **いる**のか,So you're here?; Verb for being somewhere that applies only to people and animals.
 するしか**ない**,We have no choice but to do it; Adjective of absence saying something simply does not exist.
 **言[い]う**な,Don't say that; Verb for putting words out including quoting what someone else said.
@@ -13,6 +13,7 @@ ja,en
 **この**俺[おれ]がする,I'll be the one to do it; Demonstrative that must sit before a noun and can boast about oneself.
 **私[わたし]**は何[なに]もしない,I'm not doing anything; Neutral pronoun for oneself usable by anyone though men sound formal with it.
 **そう**言[い]う事[こと]か,So that's how it is?; Adverb meaning in that manner and pointing back at what was just said.
+**来[き]た**ぞ,Here it comes; Past of the verb to come whose stem takes a ki sound here.
 **その**事[こと]は私[わたし]がする,I'll handle that matter; Demonstrative attaching to a noun for something the listener already has in view.
 俺[おれ]は**魔王[まおう]**だ,I am the demon lord; Noun naming the top rank of monster ruler in this world.
 **これ**は何[なに]だ,What is this?; Demonstrative for a thing in my own space that works as a noun.
@@ -27,6 +28,7 @@ ja,en
 俺[おれ]も**行[い]く**,I'm going too; Verb for motion away from where the speaker stands.
 魔王[まおう]を**見[み]た**,I saw the demon lord; Verb for plain seeing or watching and after another verb means trying.
 魔王[まおう]になる**者[もの]**だ,He's the one who will become demon lord; Noun for a person defined by a role and it sounds cold.
+**行[い]った**のか,So you went?; Past of the verb to go with a shortened stem that no regular rule predicts.
 **我[われ]**は行[い]く,I shall go; Archaic lofty pronoun for oneself used by dragons and demon lords.
 お前[まえ]も**魔物[まもの]**か,So you're a monster too?; Noun for a hostile magical creature and literally says demon thing.
 お前[まえ]の事[こと]は**分[わ]かって**いる,I know all about you; Verb for understanding that arrives on its own without deliberate effort.
@@ -63,8 +65,8 @@ ja,en
 いい**所[ところ]**だな,Nice place; Noun for a spot and also an abstract point in an argument.
 **貴様[きさま]**に力[ちから]はない,You have no power; Hostile pronoun for the person addressed and shouting it picks a fight.
 **先生[せんせい]**は魔法[まほう]を知[し]っている,The teacher knows magic; Noun for a teacher or master of a craft literally born earlier.
-この国[くに]の**王[おう]**は誰[だれ]だ,Who is the king of this country; Noun for a king that mostly lives inside longer compound titles.
-**こっち**に来[こ]い,Come over here; Casual demonstrative for this direction and it also stands for my own side.
+この国[くに]の**王[おう]**は誰[だれ]だ,Who is the king of this country; Noun for a king whose authority comes from a royal line ruling humans.
+**こっち**を見[み]ろ,Look over here; Casual demonstrative for this direction and it also stands for my own side.
 ちょっと**考[かんが]えさせて**くれ,Let me think for a second; Verb for deliberate reasoning you can be interrupted in the middle of.
 その**人[ひと]**を知[し]っている,I know that person; Noun for a person as a fellow human being.
 本当[ほんとう]の事[こと]を言[い]って**しまった**,I went and told the truth; Expression marking an action as finished and usually regretted afterwards.
@@ -74,8 +76,10 @@ ja,en
 この**世界[せかい]**に来[き]た,I came to this world; Noun for the world literally saying generation boundary and central to this genre.
 あなたが我[わ]が**主[あるじ]**か,Are you my master; Noun for the lord one serves and it implies sworn loyalty.
 これが**王国[おうこく]**の力[ちから]か,So this is the kingdom's strength; Noun for a kingdom literally king country and ruled by human royalty.
+お前[まえ]が**しろ**,You do it; Blunt command form of the verb to do which no regular rule predicts.
 国[くに]を**作[つく]る**,I am going to build a country; Verb for making concrete things and also for founding an organisation.
 この**町[まち]**に人[ひと]はいない,There is nobody in this town; Noun for a town or a city district with shops and people.
+来[き]て**よかった**,I am glad I came; Past of the adjective good which builds every inflected form on a yo stem.
 お前[まえ]は**強[つよ]い**な,You are strong; Adjective for strength that also covers skill level and intensity of flavour.
 俺[おれ]たちは**人間[にんげん]**じゃない,We are not human; Noun for humans as a species and the yardstick monsters get measured against.
 国[くに]の**ため**に死[し]ぬ,To die for one's country; Noun expressing purpose after a possessive and cause after a past verb.
@@ -100,7 +104,7 @@ ja,en
 **しかし**相手[あいて]は魔王[まおう]だ,But our opponent is a demon lord; Stiff conjunction marking a reversal and at home in written argument.
 **やっぱり**お前[まえ]は強[つよ]い,You really are strong after all; Adverb confirming a suspicion you already held before the evidence arrived.
 **こいつ**は強[つよ]い奴[やつ]だ,This guy is strong; Pronoun pointing at a person close by with the bluntness used for objects.
-手[て]を**出[だ]す**な,Keep your hands off; Verb for pushing something outward that also means to meddle or pick a fight.
+手[て]を**出[だ]す**な,Keep your hands off; Transitive verb for putting something out which with hands means meddling or picking a fight.
 **二人[ふたり]**で行[い]こう,Let's go the two of us; Noun counting a pair of people and often meaning together as a couple.
 **問題[もんだい]**は何[なに]だ,What's the problem; Noun covering troubles and exam questions alike since it literally asks about a topic.
 もう**大丈夫[だいじょうぶ]**だ,I'm fine now; Adjective about safety or condition that also serves as a gentle refusal of an offer.
@@ -136,7 +140,7 @@ ja,en
 **子供[こども]**が二人[ふたり]いる,There are two children; Noun for the young in general also thrown at adults behaving immaturely.
 **森[もり]**に誰[だれ]かいる,Someone's in the forest; Noun for dense wild woodland where creatures live and travellers get lost.
 **風呂[ふろ]**を作[つく]ろう,Let's build a bath; Noun for the soaking tub and its room which means communal comfort here.
-**早[はや]く**来[こ]い,Come quickly; Adjective for happening ahead of expected time and by extension coming quickly.
+**早[はや]く**しろ,Hurry up; Adjective for happening ahead of expected time and by extension doing something fast.
 **竜[りゅう]**の力[ちから]をもらった,I received a dragon's power; Noun for the eastern serpentine dragon sitting at the top of monster power.
 俺[おれ]を**呼[よ]んだ**か,Did you call me; Verb for calling out to summon someone that also means naming something.
 この国[くに]を**守[まも]る**,I will protect this country; Verb for guarding what you value which also covers keeping promises and rules.
@@ -155,9 +159,10 @@ ja,en
 **一人[ひとり]**で行[い]く,I'll go alone; Counting word for a single person that also expresses doing something unaccompanied.
 **今回[こんかい]**は違[ちが]う,This time is different; Noun framing one specific round or attempt within a series of them.
 俺[おれ]が**戦[たたか]う**,I'll do the fighting; Verb for sustained combat between sides covering wars duels and struggles.
-**敵[てき]**は強[つよ]い,The enemy is strong; Noun for the hostile side you must beat in a fight.
+**敵[てき]**は強[つよ]い,The enemy is strong; Noun for the opposing side which also labels any harmful thing such as illness.
 もう**やめろ**,Cut it out already; Verb for dropping an action underway whose bare command is shouted and blunt.
 人間[にんげん]の**勇者[ゆうしゃ]**か,So you're the humans' hero; Literally a brave person but here a class granted power to kill demon lords.
+ここに**来[こ]い**,Come here; Command form of the verb to come with a stem reading found nowhere else.
 力[ちから]を**得[え]た**,I have obtained power; Bookish verb for coming into possession that also means can after a verb stem.
 お前[まえ]を**認[みと]める**,I recognize you; Verb for conceding a fact or granting someone standing within a group.
 **確[たし]か**な話[はなし]か,Is that reliable information?; Adjective for solid certainty that hedges into probably when it opens a sentence.
@@ -171,7 +176,7 @@ ja,en
 **年[とし]**を取[と]ったな,You've gotten old; Noun for a year that also carries how many a person has lived.
 我[われ]ら**一同[いちどう]**の主[あるじ]だ,He is master to all of us; Formal noun treating a gathered group as one body behind its collective title.
 **僕[ぼく]**が守[まも]る,I'll protect you; Gentle masculine pronoun used by boys and mild mannered men of any age.
-**いつ**来[く]るんだ,When is he coming?; Question word asking at what time something happens.
+**いつ**来[く]るんだ,When is he coming?; Question word for time that builds always and someday when a particle attaches.
 **進化[しんか]**したのか,You evolved?; Noun for a creature ranking up into a stronger body and new title.
 何[なに]も**見[み]えない**,I can't see a thing; Verb for something landing in view without anyone choosing to look.
 何[なに]を**食[く]った**,What did you eat?; Coarse masculine verb for eating that also appears in idioms about consuming time.
@@ -248,7 +253,7 @@ ja,en
 俺[おれ]に**付[つ]いて**来[こ]い,Follow me; Verb for something being stuck onto another thing including tagging along behind.
 **我々[われわれ]**は仲間[なかま]だ,We are comrades; Formal pronoun for us suited to speeches and declarations by leaders.
 この**戦[たたか]い**に勝[か]つ,We'll win this battle; Noun for an armed clash covering one duel or a long campaign.
-まだ**立[た]てる**か,Can you still stand?; Verb for a person rising and holding upright on their own feet.
+ここに**立[た]て**,Stand here; Verb for a person rising and holding upright on their own feet.
 俺[おれ]は**すぐ**行[い]く,I'm going right away; Adverb for immediacy in time and also for nearness in distance.
 それは**意味[いみ]**が分[わ]からない,I don't get what that means; Noun for the sense a word or an action carries and the point of it.
 お前[まえ]の**役[やく]**は何[なん]だ,What's your part in this; Noun for the part you play inside a group or on a stage.
@@ -333,7 +338,7 @@ ja,en
 これは**まずい**,This is bad; Adjective for foul-tasting food and for a situation going badly wrong.
 これで**最後[さいご]**だ,This is the last one; Noun for the final item in a sequence and the point where things stop.
 **巣[す]**に戻[もど]る,It is heading back to the nest; Noun for any creature's home base from hive to den to hideout.
-中[なか]に**入[い]れて**くれ,Let me put it inside; Transitive verb for placing something into a container or space.
+中[なか]に**入[い]れて**くれ,Put it inside for me; Transitive verb for placing something into a container or space.
 **陛下[へいか]**が待[ま]っている,His Majesty is waiting; Honorific noun attached to a monarch and never used about yourself.
 その**格好[かっこう]**は何[なん]だ,What is that getup; Noun for outward looks and clothing and how presentable you seem.
 **絶対[ぜったい]**に許[ゆる]さない,I will never forgive that; Adverb pushing a statement to total certainty in either direction.
@@ -372,7 +377,7 @@ ja,en
 **せっかく**作[つく]った料理[りょうり]だぞ,I went to all that trouble cooking this; Adverb flagging effort or a rare chance in danger of going to waste.
 俺[おれ]たちは**友達[ともだち]**だろ,We're friends aren't we?; Noun for a personal companion chosen freely out of liking.
 その力[ちから]を**利用[りよう]**する,We'll put that power to use; Noun for turning something to your advantage and calculating when applied to people.
-それで**よろしい**,That will do; Stiff formal adjective granting approval downward to someone beneath you.
+それで**よろしい**,That is acceptable; Stiff formal adjective granting approval downward to someone beneath you.
 **普通[ふつう]**の人間[にんげん]じゃない,He's no ordinary human; Noun for the unremarkable baseline everyone assumes without saying.
 もっと**話[はな]そう**,Let's talk more; Verb for the act of speaking with someone about something.
 **完全[かんぜん]**に負[ま]けた,I lost utterly; Adjective saying nothing is missing and working adverbially as thoroughly.
@@ -383,7 +388,7 @@ ja,en
 その**場合[ばあい]**はどうする,What do we do in that case?; Noun for a hypothetical set of circumstances despite looking spatial.
 **最初[さいしょ]**から知[し]っていた,I knew from the very start; Noun for the opening item of a sequence before anything else happens.
 **師匠[ししょう]**と呼[よ]んでくれ,Call me master; Noun for the master of a craft you apprentice yourself under.
-**迷宮[めいきゅう]**の下[した]に行[い]く,We're going down into the labyrinth; Noun literally meaning bewildering palace for a maze built to confuse you.
+**迷宮[めいきゅう]**の中[なか]に入[はい]る,We're going into the labyrinth; Noun literally meaning bewildering palace for a maze built to confuse you.
 **たった**一人[ひとり]で戦[たたか]った,He fought all on his own; Adverb clinging to a number to stress how small it is.
 お前[まえ]の**行動[こうどう]**は早[はや]かった,You acted fast; Noun for observable conduct or a course of action a person takes.
 時間[じかん]が**かかる**な,This is going to take a while; Verb where time or money is the subject being consumed.
@@ -409,7 +414,7 @@ ja,en
 **ちゃんと**仕事[しごと]をしろ,Do the job properly; Casual spoken adverb meaning done the way it ought to be with nothing skipped.
 あいつは強[つよ]い**戦士[せんし]**だ,That guy is a strong warrior; Noun for the fighting role itself with no oath of service to any lord implied.
 では**参[まい]ります**,Well then — I'm on my way; Humble verb for your own going or coming toward a superior and also shouted when attacking.
-**大[おお]きい**魔物[まもの]が出[で]た,A big monster showed up; Adjective for physical size only so it says nothing about how many there are.
+**大[おお]きい**魔物[まもの]が出[で]た,A big monster showed up; Adjective for size that also covers a loud voice and a serious problem.
 次回[じかい]が**楽[たの]しみ**だ,I'm looking forward to the next one; Noun for anticipation so the pleasure it names is still ahead of you.
 みんな**元気[げんき]**か,Is everyone doing all right; Adjective built from origin plus spirit covering both sound health and visible liveliness.
 会[あ]えて**嬉[うれ]しい**,I'm glad we could meet; Adjective for a spike of gladness at an event and it reports your own feeling.
@@ -446,7 +451,7 @@ ja,en
 その話[はなし]に**興味[きょうみ]**がある,That story interests me; Noun for the pull you feel toward something and it takes ni on that target.
 魔力[まりょく]が**増[ま]した**,My magic power has grown; Literary intransitive verb for a rise in amount or degree happening of itself.
 **水[みず]**を飲[の]む,I'm going to drink some water; Noun for cold water only so heated water falls outside its range entirely.
-**マスター**の言[い]う通[とお]りだ,Just as you say Master; Loanword for the man behind a bar counter or someone who has mastered a craft.
+**マスター**の言[い]う通[とお]りだ,Just as you say Master; Loanword for addressing the person you serve such as an employer or a barman.
 **思念[しねん]**で話[はな]せ,Talk to me by thought; Noun for a thought pushed mind to mind and this world uses it for telepathy.
 そいつの顔[かお]を**打[う]った**,I smacked him in the face; Verb for one sharp blow with something held and it hides in taking measures.
 誰[だれ]も**答[こた]えない**,Nobody answers; Verb for replying to a question or a call and it marks that with ni.
@@ -540,7 +545,7 @@ ja,en
 その**武器[ぶき]**を置[お]け,Put that weapon down; Noun for the whole category of martial implements including guns and clubs.
 お前[まえ]は**偉[えら]い**な,You did well; Adjective praising character or rank and often used warmly toward children.
 戦[たたか]いが**始[はじ]まる**,The battle is starting; Verb for something starting on its own so the thing beginning is the subject.
-あいつは**化[ば]け物[もの]**だ,That guy is a monster; Noun thrown in awe or insult at a being of unnatural overwhelming power.
+あいつは**化[ば]け物[もの]**だ,That guy is a freak of nature; Noun thrown in awe or insult at a being of unnatural overwhelming power.
 **嘘[うそ]**をつくなよ,Do not lie; Noun for a falsehood which shouted alone works as an exclamation of disbelief.
 **ポーション**を飲[の]め,Drink the potion; Loanword noun for a game healing item with no link to food servings.
 魔法[まほう]が**効[き]かない**,The magic is not working; Verb taking the remedy or attack as its subject when it produces an effect.
@@ -670,7 +675,7 @@ ja,en
 **決[けっ]して**忘[わす]れないぞ,I will never forget it; Adverb demanding a negative later and hardening the refusal that follows.
 私[わたし]の**側[そば]**にいて,Stay by my side; Noun for physical closeness within arm's reach of a person.
 よく**働[はたら]いて**くれた,You worked hard for me; Verb for putting in labour and also for a skill or device functioning.
-俺[おれ]が**最強[さいきょう]**だ,I am the strongest; Noun for the absolute top of strength with a boastful ring.
+俺[おれ]が**最強[さいきょう]**だ,I am the mightiest of all; Noun for the absolute top of strength with a boastful ring.
 俺[おれ]は父[ちち]に**似[に]て**いる,I take after my father; Verb for resemblance which is felt as a lasting state.
 **貴殿[きでん]**の実力[じつりょく]を認[みと]める,I acknowledge your ability; Pronoun for stiff respectful address between men of rank in letters.
 相手[あいて]の心[こころ]を**読[よ]む**,I read my opponent's mind; Verb for reading text and also intentions or the flow of a situation.
@@ -693,7 +698,7 @@ ja,en
 この料理[りょうり]は**最高[さいこう]**だ,This food is the best; Noun for the highest point often shouted as plain delight.
 子供[こども]が**泣[な]いて**いる,A child is crying; Verb for weeping with tears from a human being.
 師匠[ししょう]に**褒[ほ]められた**,My master praised me; Verb for a superior commending someone below them.
-**腹[はら]**を刺[さ]された,He was stabbed in the belly; Noun for the outer belly and the seat of anger and resolve.
+**腹[はら]**を刺[さ]された,I got stabbed in the belly; Noun for the outer belly and the seat of anger and resolve.
 陛下[へいか]が**自[みずか]ら**来[き]た,His Majesty came in person; Adverb saying the important party acted in person.
 作戦[さくせん]を**開始[かいし]**する,We are commencing the operation; Noun for a formal commencement announced in official register.
 **立派[りっぱ]**な騎士[きし]だな,He is a fine knight; Adjective praising impressive substance in bearing achievement or a building.
@@ -740,7 +745,7 @@ ja,en
 一人[ひとり]だけ**生[い]き残[のこ]った**,Only one survived; Verb literally living on for outlasting the others who died around you.
 **礼[れい]**を言[い]わせてくれ,Let me thank you; Noun covering words of thanks the bow itself and a gift returned.
 仲間[なかま]に**加[くわ]えてくれ**,Let me join your group; Verb for adding one item into a set that already exists.
-**余[よ]**が魔王[まおう]だ,I am the demon lord; Pronoun an archaic grandiose first person reserved for a monarch addressing subjects.
+**余[よ]**が魔王[まおう]だ,It is I who am the demon lord; Pronoun an archaic grandiose first person reserved for a monarch addressing subjects.
 **おいら**も行[い]くぜ,I am coming too; Pronoun a rustic cheerful first person marking a plain-talking country type.
 **人形[にんぎょう]**みたいに動[うご]く,It moves like a puppet; Noun literally person shape for dolls and marionettes also someone acting without will.
 これを**差[さ]し上[あ]げます**,Please accept this; Verb for humbly handing something up to a superior lowering yourself in the act.
@@ -748,7 +753,7 @@ ja,en
 **試合[しあい]**が始[はじ]まる,The match is starting; Noun for a scheduled bout fought under agreed rules before spectators.
 俺[おれ]に**誓[ちか]え**,Swear it to me; Verb for making a solemn vow before someone whose authority binds you.
 ポーションが**なくなった**,We are out of potions; Verb for stock running out or an object vanishing also a euphemism for dying.
-**風[かぜ]**が強[つよ]い,The wind is strong; Noun for wind and also the cold illness you catch.
+**風[かぜ]**が強[つよ]い,The wind is strong; Noun for moving air and also for a manner or style in set expressions.
 俺[おれ]の話[はなし]を**無視[むし]した**な,You ignored what I said; Noun for nothing plus look meaning you deliberately pretend not to notice something.
 この町[まち]は**きれい**だな,This town is lovely; Adjective covering pretty and spotless and it inflects like a na-adjective despite appearances.
 料理[りょうり]が**得意[とくい]**なんだ,I'm good at cooking; Adjective for a skill you feel confident in also meaning visibly smug.
@@ -781,7 +786,7 @@ ja,en
 **平和[へいわ]**が一番[いちばん]だ,Peace is what matters most; Noun for the state of no war between groups larger than individuals.
 **一応[いちおう]**確認[かくにん]しておく,I'll check just to be safe; Adverb hedging that something is enough for now and done just in case.
 **体内[たいない]**の魔力[まりょく]を感[かん]じる,I can feel the magic inside the body; Noun literally body inside for the anatomical interior common in skill explanations.
-**ゲーム**じゃないんだぞ,This isn't a game; Loanword noun for a video or board game never a sporting fixture.
+**ゲーム**じゃないんだぞ,This isn't a game; Loanword noun for video and board games and also a sporting contest.
 一人[ひとり]は**寂[さび]しい**な,Being alone is lonely; Adjective for the ache of something missing covering desolate places too.
 俺[おれ]は力[ちから]を**求[もと]めた**,I sought power; Verb for actively seeking or demanding what you feel you need.
 **夜[よる]**まで待[ま]て,Wait until night; Noun for the night hours treated as a stretch of time.
@@ -838,7 +843,7 @@ ja,en
 もう一[いっ]**回[かい]**言[い]え,Say it one more time; Counter for discrete repetitions of an act such as tries or attempts.
 **めでたい**日[ひ]だな,What a joyous day; Adjective for occasions worth celebrating and applied to a person it means naive.
 **おぬし**は何者[なにもの]だ,Who are you; Archaic pronoun used by swordsmen and old sages toward an equal or a lesser.
-**日記[にっき]**を読[よ]むな,Don't read my diary; Noun naming the physical book of daily records and never a single entry.
+**日記[にっき]**を読[よ]むな,Don't read my diary; Noun for the daily written record and also each single entry you write.
 **部隊[ぶたい]**が到着[とうちゃく]した,The unit has arrived; Noun for a named military formation smaller than a full army.
 **法皇[ほうおう]**に会[あ]いたい,I want to meet the pontiff; Noun for the church head who rules as a monarch in his own right.
 **素直[すなお]**に答[こた]えろ,Answer me straight; Adjective for unguarded compliance which praises a child and jabs at an adult.
@@ -848,7 +853,7 @@ ja,en
 この**薬[くすり]**が効[き]く,This medicine works; Noun covering any drug or remedy including powders pills and healing potions.
 腹[はら]が**いっぱい**だ,I am full; Adverb from one cupful so it pictures a container filled to the brim.
 **異常[いじょう]**はないか,Anything abnormal to report; Noun for anything off the norm and the standard term in a status check.
-**強力[きょうりょく]**な魔法[まほう]だ,That is powerful magic; Adjective for the raw force a thing or a spell packs and never a fighter.
+**強力[きょうりょく]**な魔法[まほう]だ,That is powerful magic; Adjective for the sheer force a spell weapon or ally brings to bear.
 町[まち]の**周辺[しゅうへん]**は安全[あんぜん]だ,The area around the town is safe; Noun naming the ring of land around a point you name first.
 みんなで**移動[いどう]**しよう,Let's all move out; Noun for relocating a body or a unit to another place and never politics.
 話[はなし]が**逆[ぎゃく]**だぞ,You have got it backwards; Noun for reversed direction and heading a clause it flips to on the contrary.
@@ -859,7 +864,7 @@ ja,en
 お前[まえ]の**勘違[かんちが]い**だ,You have got the wrong idea; Noun for a wrong conclusion your own gut instinct led you to.
 成功[せいこう]は何[なん]**パーセント**だ,What are the odds of success; Loanword noun for exact hundredths and the precise technical option for stating odds.
 **急[きゅう]**な話[はなし]で悪[わる]いな,Sorry for the sudden request; Adjective for abruptness or urgency built on the sense of hurrying.
-**酒[さけ]**を飲[の]もう,Let's have a drink; Noun covering every alcoholic drink and not only the brewed rice kind.
+**酒[さけ]**を飲[の]もう,Let's have some booze; Noun covering every alcoholic drink and not only the brewed rice kind.
 仲間[なかま]を**裏切[うらぎ]った**のか,Did you betray your own comrades; Verb literally cutting at someone from behind their own back.
 強[つよ]い**けど**負[ま]けた,He is strong but he lost; Casual conjunction marking opposition and often left hanging at a sentence end to hedge.
 住民[じゅうみん]を**避難[ひなん]**させろ,Get the residents to safety; Noun for an organized move out of danger ordered for civilians.
@@ -893,7 +898,7 @@ ja,en
 **変[へん]**な奴[やつ]だ,What a weird guy; Adjective framing oddness as deviation from normal so it calls people creepy.
 **意外[いがい]**な結果[けっか]だった,The result was unexpected; Adjective for what falls outside what you were expecting to happen.
 調査[ちょうさ]の**対象[たいしょう]**は誰[だれ]だ,Who is the subject of the investigation; Noun for the neutral thing an action is aimed at with no hostility.
-魔物[まもの]が**たくさん**いるぞ,There are loads of monsters; Adverb for a plain large quantity of things you could count.
+魔物[まもの]が**たくさん**いるぞ,There are loads of monsters; Adverb for a large amount of anything countable or not in casual speech.
 ドワーフに**鉱石[こうせき]**を売[う]る,We sell ore to the dwarves; Noun for unrefined rock dug up as raw material for smiths.
 神[かみ]の**加護[かご]**があるはずだ,There should be divine protection; Noun for protection bestowed only by gods or higher beings on a mortal.
 **忠誠[ちゅうせい]**を誓[ちか]う,I swear my loyalty; Noun for sworn allegiance owed by a retainer to his lord.
@@ -904,7 +909,7 @@ ja,en
 魔物[まもの]に**関[かん]する**報告[ほうこく]だ,This is a report on the monsters; Verb for being about a topic used in stiff written reports.
 **ごめん**な 待[ま]たせた,Sorry to keep you waiting; Casual apology expression between equals and far too light for a superior.
 **爆炎[ばくえん]**の魔法[まほう]だ,It is explosive-flame magic; Noun coined from burst and flame for a named attack in this world.
-**ちょうど**いい時[とき]だ,You came at just the right moment; Adverb pinning something exactly on a point of time size or amount.
+**ちょうど**いい時[とき]だ,This is just the right time; Adverb pinning something exactly on a point of time size or amount.
 お前[まえ]の**活躍[かつやく]**を期待[きたい]する,I expect great things from you; Noun for visible achievement that other people notice and talk about.
 **一気[いっき]**に飲[の]め,Down it in one; Noun for doing something with no pause used of drinking and of finishing work.
 **突然[とつぜん]**現[あらわ]れたな,You showed up out of nowhere; Adverb for an abrupt turn that is usually unwelcome or alarming.

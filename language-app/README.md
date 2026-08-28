@@ -11,20 +11,35 @@ the reading above the word, speaks it instead of the annotation, and shows romaj
 the answer side. Wrapping part of a prompt in `**` marks the word the card teaches, as
 in `俺[おれ]は**強[つよ]い**`; the app shows it bold and underlined and drops the
 asterisks everywhere else. Bundled decks are copied into the app's documents directory
-on first launch, and refreshed from the bundle while the copy is unedited.
+on first launch, and refreshed from the bundle while the copy is unedited. A Japanese
+row may leave the answer empty, as `きゃ,`, and the app fills it in with the romaji of
+the prompt.
 
 ## Included decks
 
-`slime.csv` is a thousand phrases of casual anime dialogue from *That Time I Got
+`slime.csv` is 1005 phrases of casual anime dialogue from *That Time I Got
 Reincarnated as a Slime*; `spanish.csv` is a thousand beginner Spanish phrases.
-`spanish.csv` is the better model to copy. Both follow the same recipe:
+`variations.csv` teaches the Japanese endings that the two vocabulary decks leave
+unexplained: the past, the negative, the te form, the imperative, the volitional, the
+conditionals, the potential, the passive and the causative, each on a verb from
+`slime.csv`. `hiragana.csv` and `katakana.csv` are the kana charts, in gojūon order,
+with the answers left empty so the romaji is generated, except where the automatic
+reading would mislead: `は` and `へ` are given as letters rather than as particles, and
+`っ` and `ー` are described in words.
+
+`spanish.csv` is the better model to copy for a new vocabulary deck. It and `slime.csv`
+follow the same recipe:
 
 - Start from a frequency-ordered wordlist of a thousand words, counted over a corpus
   that matches the deck: the show's own subtitles for `slime.csv`, Spanish subtitles at
   large for `spanish.csv`. Most common first.
-- One card per word, in that order: card *i* teaches word *i*, so the deck is a
-  thousand lines plus the header.
-- A word is a form, not a dictionary entry. Every conjugation is its own card.
+- One card per word, in that order: card *i* teaches word *i*, so the file is the
+  wordlist plus a header.
+- In Spanish a word is a form, so every conjugation is its own card. In Japanese the
+  endings are regular and person-free, so the wordlist holds dictionary words and
+  `variations.csv` teaches the endings once. Only forms no rule predicts — 来[き]た,
+  行[い]った, しろ, 来[こ]い, よかった — get their own wordlist entry, placed at the
+  frequency of that form in the corpus.
 - i+1: apart from the one new word, every content word in the phrase must already have
   been taught on an earlier line. Grammar is free — particles, articles, pronouns,
   prepositions, the copula, and conjugation endings never count as vocabulary.
@@ -32,7 +47,8 @@ Reincarnated as a Slime*; `spanish.csv` is a thousand beginner Spanish phrases.
   bare word. Vary the shape: questions, replies, exclamations. The first cards have
   almost no vocabulary to lean on, so keep them very short.
 - Exactly one `**bold**` span per line, marking the new word as it is spelled in the
-  wordlist, conjugation and furigana included.
+  wordlist, conjugation and furigana included. Pick the form the source actually uses
+  most, and one that cannot be read as a different word.
 - The answer field is `translation; note`. The translation is natural English for the
   whole phrase, not word by word.
 - The note is one sentence of at most 16 words: what kind of word it is, then what it
@@ -46,7 +62,8 @@ Reincarnated as a Slime*; `spanish.csv` is a thousand beginner Spanish phrases.
   including inside the bold span: `落[お]ち着[つ]く`.
 - Validate before shipping: the authoring briefs and their `check_deck.py` /
   `check_notes.py` validators live in `.tmp/japanese` and `.tmp/spanish`, which is
-  untracked scratch, not part of the build.
+  untracked scratch, not part of the build. `bazel test //language-app/content` also
+  loads every deck in `decks/` and fails on a malformed or duplicated card.
 
 ## Studying
 
@@ -62,8 +79,9 @@ Once the day is finished, "Day completed!" offers extra cards for today only.
 
 ## Editing decks
 
-Long pressing a deck offers "Browse deck", "Inspect deck", "Reset progress" and
-"Delete deck", and swiping a deck deletes it too. The plus button uploads a CSV deck
+Long pressing a deck offers "Browse deck", "Browse randomly", "Inspect deck",
+"Reset progress" and "Delete deck", and swiping a deck deletes it too. "Browse
+randomly" shuffles the deck once for that browse session. The plus button uploads a CSV deck
 or creates an empty one by hand.
 
 Browsing reads a deck in file order and leaves the schedule alone: the arrows at the

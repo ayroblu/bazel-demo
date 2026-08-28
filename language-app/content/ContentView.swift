@@ -91,6 +91,7 @@ private struct DeckLink: View {
   @State private var confirmingReset = false
   @State private var inspecting = false
   @State private var browsing = false
+  @State private var browsingRandom = false
 
   init(deck: Deck, decks: DeckStore, deleting: Binding<Deck?>) {
     self.deck = deck
@@ -107,6 +108,7 @@ private struct DeckLink: View {
     }
     .contextMenu {
       Button("Browse deck", systemImage: "book") { browsing = true }
+      Button("Browse randomly", systemImage: "shuffle") { browsingRandom = true }
       Button("Inspect deck", systemImage: "list.bullet.rectangle") { inspecting = true }
       Button("Reset progress", systemImage: "arrow.counterclockwise", role: .destructive) {
         confirmingReset = true
@@ -130,6 +132,14 @@ private struct DeckLink: View {
         deck: deck,
         speechRate: store.speechRate,
         questionRepeats: store.browseQuestionRepeats
+      )
+    }
+    .sheet(isPresented: $browsingRandom) {
+      BrowseDeckView(
+        deck: deck,
+        speechRate: store.speechRate,
+        questionRepeats: store.browseQuestionRepeats,
+        shuffled: true
       )
     }
     .confirmationDialog(

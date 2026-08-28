@@ -3,8 +3,14 @@ public struct BrowseSession: Equatable, Sendable {
   public private(set) var index: Int
   public private(set) var showingAnswer: Bool
 
-  public init(cards: [DeckCard]) {
-    self.cards = cards
+  public init(cards: [DeckCard], shuffled: Bool = false) {
+    self.cards = shuffled ? cards.shuffled() : cards
+    index = 0
+    showingAnswer = false
+  }
+
+  public init(cards: [DeckCard], using generator: inout some RandomNumberGenerator) {
+    self.cards = cards.shuffled(using: &generator)
     index = 0
     showingAnswer = false
   }

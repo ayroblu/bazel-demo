@@ -7,15 +7,21 @@ struct BrowseDeckView: View {
   @Environment(\.dismiss) private var dismiss
   @State private var speech = SpeechPlayer()
   @State private var session: BrowseSession
-  @State private var autoRunning = true
+  @State private var mode: PlaybackMode = .auto
   @State private var autoStep = 0
   @State private var showingSettings = false
 
-  init(deck: Deck, speechRate: Double, questionRepeats: Int) {
+  private enum PlaybackMode {
+    case read
+    case off
+    case auto
+  }
+
+  init(deck: Deck, speechRate: Double, questionRepeats: Int, shuffled: Bool = false) {
     self.deck = deck
     self.speechRate = speechRate
     self.questionRepeats = questionRepeats
-    _session = State(initialValue: BrowseSession(cards: deck.cards))
+    _session = State(initialValue: BrowseSession(cards: deck.cards, shuffled: shuffled))
   }
 
   var body: some View {
@@ -23,31 +29,24 @@ struct BrowseDeckView: View {
       Group {
         if let card = session.card {
           VStack(spacing: 24) {
-            HStack {
-              Text("\(session.index + 1) of \(deck.cards.count)")
-                .font(.subheadline)
-                .monospacedDigit()
-                .foregroundStyle(.secondary)
-              Spacer()
+            CardFaceView(card: card, showingAnswer: session.showingAnswer) {
+              HStack {
+                Text("\(session.index + 1) of \(deck.cards.count)")
+                  .font(.subheadline)
+                  .monospacedDigit()
+                  .foregroundStyle(.secondary)
+                Spacer()
+              }
             }
 
-            CardFaceView(card: card, showingAnswer: session.showingAnswer)
-
             VStack(spacing: 16) {
-              HStack {
-                SpeechToggleButton(card: card, speech: speech, rate: speechRate)
-                  .disabled(autoRunning)
-                Spacer()
-                Button {
-                  autoRunning ? stopAuto() : startAuto()
-                } label: {
-                  Label(
-                    autoRunning ? "Stop auto" : "Auto",
-                    systemImage: autoRunning ? "stop.fill" : "play.fill"
-                  )
-                }
-                .buttonStyle(.bordered)
+              Picker("Playback", selection: $mode) {
+                Text("Read").tag(PlaybackMode.read)
+                Text("Off").tag(PlaybackMode.off)
+                Text("Auto").tag(PlaybackMode.auto)
               }
+              .pickerStyle(.segmented)
+              .labelsHidden()
 
               HStack(spacing: 12) {
                 Button("Previous", systemImage: "chevron.left") {
@@ -75,13 +74,15 @@ struct BrowseDeckView: View {
           .padding()
           .frame(maxWidth: 720)
           .onAppear {
-            speech.onRemotePlay = { startAuto() }
-            speech.onRemotePause = { stopAuto() }
-            guard autoRunning else { return }
-            startAuto()
+            speech.onRemotePlay = { mode = .auto }
+            speech.onRemotePause = { mode = .off }
+            apply(mode, card: card)
+          }
+          .onChange(of: mode) { _, newMode in
+            apply(newMode, card: card)
           }
           .onChange(of: card.id) { _, _ in
-            guard !autoRunning, speech.isPlaying else { return }
+            guard mode == .read else { return }
             speech.start(card.prompt, languageCode: card.languageCode, rate: speechRate)
           }
         } else {
@@ -96,7 +97,7 @@ struct BrowseDeckView: View {
       .toolbar {
         ToolbarItem(placement: .primaryAction) {
           Button("Voices", systemImage: "gearshape") {
-            stopAuto()
+            mode = .off
             showingSettings = true
           }
         }
@@ -113,7 +114,7 @@ struct BrowseDeckView: View {
       }
     }
     .onDisappear {
-      autoRunning = false
+      mode = .off
       speech.onRemotePlay = nil
       speech.onRemotePause = nil
       speech.stop()
@@ -123,29 +124,37 @@ struct BrowseDeckView: View {
     #endif
   }
 
+  private func apply(_ mode: PlaybackMode, card: DeckCard) {
+    switch mode {
+    case .read:
+      speech.start(card.prompt, languageCode: card.languageCode, rate: speechRate)
+    case .off:
+      speech.stop()
+    case .auto:
+      startAuto()
+    }
+  }
+
   private func startAuto() {
     speech.stop()
     autoStep = 0
-    autoRunning = true
     playAutoStep()
   }
 
-  private func stopAuto() {
-    autoRunning = false
-    speech.stop()
-  }
-
   private func restartAutoIfRunning() {
-    guard autoRunning else { return }
+    guard mode == .auto else { return }
     autoStep = 0
     playAutoStep()
   }
 
   private func playAutoStep() {
-    guard autoRunning, let card = session.card else { return }
+    guard mode == .auto, let card = session.card else { return }
     let steps = AutoBrowse.steps(questionRepeats: questionRepeats)
     guard autoStep < steps.count else {
-      guard session.nextCard() else { return stopAuto() }
+      guard session.nextCard() else {
+        mode = .off
+        return
+      }
       autoStep = 0
       return playAutoStep()
     }
@@ -156,7 +165,7 @@ struct BrowseDeckView: View {
       languageCode: step == .question ? card.languageCode : deck.answerColumnName,
       rate: speechRate
     ) {
-      guard autoRunning else { return }
+      guard mode == .auto else { return }
       autoStep += 1
       playAutoStep()
     }

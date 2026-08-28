@@ -1,12 +1,20 @@
 import SwiftUI
 
-struct CardFaceView: View {
+struct CardFaceView<Header: View>: View {
   let card: DeckCard
   let showingAnswer: Bool
+  @ViewBuilder let header: Header
+
+  init(card: DeckCard, showingAnswer: Bool, @ViewBuilder header: () -> Header) {
+    self.card = card
+    self.showingAnswer = showingAnswer
+    self.header = header()
+  }
 
   var body: some View {
     ScrollView {
       VStack(spacing: 24) {
+        header
         Spacer(minLength: 8)
         FuriganaText(source: card.prompt)
           .frame(maxWidth: .infinity)
@@ -15,7 +23,8 @@ struct CardFaceView: View {
         if showingAnswer {
           Divider()
           if Romaji.isSupported(languageCode: card.languageCode),
-            let romaji = Romaji.transliterate(card.prompt)
+            let romaji = Romaji.transliterate(card.prompt),
+            romaji != card.answer
           {
             Text(romaji)
               .font(.system(size: 28))
@@ -37,6 +46,12 @@ struct CardFaceView: View {
       .frame(maxWidth: .infinity)
     }
     .scrollBounceBehavior(.basedOnSize)
+  }
+}
+
+extension CardFaceView where Header == EmptyView {
+  init(card: DeckCard, showingAnswer: Bool) {
+    self.init(card: card, showingAnswer: showingAnswer) { EmptyView() }
   }
 }
 

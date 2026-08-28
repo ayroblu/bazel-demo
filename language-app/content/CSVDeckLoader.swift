@@ -29,7 +29,10 @@ public enum CSVDeckLoader {
       }
       guard row.count == header.count else { throw CSVDeckError.invalidRow(offset + 2) }
       let prompt = row[0].trimmingCharacters(in: .whitespacesAndNewlines)
-      let answer = row[1...].joined(separator: " — ").trimmingCharacters(in: .whitespacesAndNewlines)
+      var answer = row[1...].joined(separator: " — ").trimmingCharacters(in: .whitespacesAndNewlines)
+      if answer.isEmpty, Romaji.isSupported(languageCode: header[0]) {
+        answer = Romaji.transliterate(prompt) ?? ""
+      }
       guard !prompt.isEmpty, !answer.isEmpty else { throw CSVDeckError.invalidRow(offset + 2) }
       return DeckCard(prompt: prompt, answer: answer, languageCode: header[0])
     }

@@ -18,5 +18,6 @@ swift_test(
     name = "content-tests",
     srcs = glob(["tests/*.swift"]),
     copts = STRICT_NONISOLATED_COPTS,
+    data = ["//language-app:decks"],
     deps = [":content"],
 )
