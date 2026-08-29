@@ -37,8 +37,11 @@ ios_application(
     ],
     infoplists = ["Resources/Info.plist"],
     minimum_os_version = "18.0",
-    # cp ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/<uuid>.mobileprovision .
-    provisioning_profile = "development.mobileprovision",
+    provisioning_profile = select({
+        # cp ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/<uuid>.mobileprovision .
+        "//conditions:default": "development.mobileprovision",
+        "@bazel-demo//:release_build": "distribution.mobileprovision",
+    }),
     resources = DEBUG_DECKS,
     visibility = ["//visibility:public"],
     deps = [":lib"],
