@@ -19,10 +19,13 @@ the prompt.
 
 `slime.csv` is 1005 phrases of casual anime dialogue from *That Time I Got
 Reincarnated as a Slime*; `spanish.csv` is a thousand beginner Spanish phrases.
-`variations.csv` teaches the Japanese endings that the two vocabulary decks leave
-unexplained: the past, the negative, the te form, the imperative, the volitional, the
-conditionals, the potential, the passive and the causative, each on a verb from
-`slime.csv`. `hiragana.csv` and `katakana.csv` are the kana charts, in gojūon order,
+`conjugation.csv` drills the Japanese endings that the vocabulary decks leave
+unexplained. It is a paradigm table, not phrases: one conjugation kind at a time — the
+past, the negative, the te form, the polite forms, the imperative, the volitional, the
+potential, the passive, the causative, the conditionals and so on — and inside each
+kind the same base words, 行[い]く, 食[た]べる, する, 来[く]る, the adjective
+強[つよ]い and the copula, so the pattern for each verb class sits side by side. The
+bold span is the part that changes from the dictionary form. `hiragana.csv` and `katakana.csv` are the kana charts, in gojūon order,
 with the answers left empty so the romaji is generated, except where the automatic
 reading would mislead: `は` and `へ` are given as letters rather than as particles, and
 `っ` and `ー` are described in words.
@@ -37,7 +40,7 @@ follow the same recipe:
   wordlist plus a header.
 - In Spanish a word is a form, so every conjugation is its own card. In Japanese the
   endings are regular and person-free, so the wordlist holds dictionary words and
-  `variations.csv` teaches the endings once. Only forms no rule predicts — 来[き]た,
+  `conjugation.csv` teaches the endings once. Only forms no rule predicts — 来[き]た,
   行[い]った, しろ, 来[こ]い, よかった — get their own wordlist entry, placed at the
   frequency of that form in the corpus.
 - i+1: apart from the one new word, every content word in the phrase must already have

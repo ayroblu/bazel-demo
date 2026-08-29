@@ -7,7 +7,7 @@ struct BrowseDeckView: View {
   @Environment(\.dismiss) private var dismiss
   @State private var speech = SpeechPlayer()
   @State private var session: BrowseSession
-  @State private var mode: PlaybackMode = .auto
+  @State private var mode: PlaybackMode = .off
   @State private var autoStep = 0
   @State private var showingSettings = false
 
@@ -42,7 +42,7 @@ struct BrowseDeckView: View {
             VStack(spacing: 16) {
               Picker("Playback", selection: $mode) {
                 Text("Read").tag(PlaybackMode.read)
-                Text("Off").tag(PlaybackMode.off)
+                Text("No audio").tag(PlaybackMode.off)
                 Text("Auto").tag(PlaybackMode.auto)
               }
               .pickerStyle(.segmented)

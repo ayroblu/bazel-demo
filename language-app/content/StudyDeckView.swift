@@ -78,12 +78,14 @@ private struct StudyCardView: View {
     }
     .padding()
     .frame(maxWidth: 720)
-    // Each card starts speaking on repeat, so the button starts on Stop. This runs on the
-    // main run loop instead of in a task, keeping speech off Swift concurrency threads.
+    // The first card starts speaking on repeat, so the button starts on Stop. Later cards
+    // only speak if the previous one was still playing. This runs on the main run loop
+    // instead of in a task, keeping speech off Swift concurrency threads.
     .onAppear {
       speech.start(card.prompt, languageCode: card.languageCode, rate: store.speechRate)
     }
     .onChange(of: card.id) { _, _ in
+      guard speech.isPlaying else { return }
       speech.start(card.prompt, languageCode: card.languageCode, rate: store.speechRate)
     }
   }
