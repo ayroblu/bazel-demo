@@ -17,8 +17,19 @@ filegroup(
     visibility = ["//language-app:__subpackages__"],
 )
 
+DEBUG_DECKS = select({
+    "//:release_build": [],
+    "//conditions:default": [":decks"],
+})
+
+filegroup(
+    name = "AppIcon",
+    srcs = glob(["Assets.xcassets/AppIcon.appiconset/*"]),
+)
+
 ios_application(
     name = "language-app",
+    app_icons = [":AppIcon"],
     bundle_id = "com.ayroblu.language-app",
     families = [
         "iphone",
@@ -28,7 +39,7 @@ ios_application(
     minimum_os_version = "18.0",
     # cp ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/<uuid>.mobileprovision .
     provisioning_profile = "development.mobileprovision",
-    resources = [":decks"],
+    resources = DEBUG_DECKS,
     visibility = ["//visibility:public"],
     deps = [":lib"],
 )
@@ -40,7 +51,7 @@ macos_application(
     entitlements = "Resources/Mac.entitlements",
     infoplists = ["Resources/MacInfo.plist"],
     minimum_os_version = "14.0",
-    resources = [":decks"],
+    resources = DEBUG_DECKS,
     visibility = ["//visibility:public"],
     deps = [":lib"],
 )
