@@ -15,23 +15,9 @@ on first launch, and refreshed from the bundle while the copy is unedited. A Jap
 row may leave the answer empty, as `きゃ,`, and the app fills it in with the romaji of
 the prompt.
 
-## Included decks
+## Making a deck
 
-`slime.csv` is 1005 phrases of casual anime dialogue from *That Time I Got
-Reincarnated as a Slime*; `spanish.csv` is a thousand beginner Spanish phrases.
-`conjugation.csv` drills the Japanese endings that the vocabulary decks leave
-unexplained. It is a paradigm table, not phrases: one conjugation kind at a time — the
-past, the negative, the te form, the polite forms, the imperative, the volitional, the
-potential, the passive, the causative, the conditionals and so on — and inside each
-kind the same base words, 行[い]く, 食[た]べる, する, 来[く]る, the adjective
-強[つよ]い and the copula, so the pattern for each verb class sits side by side. The
-bold span is the part that changes from the dictionary form. `hiragana.csv` and `katakana.csv` are the kana charts, in gojūon order,
-with the answers left empty so the romaji is generated, except where the automatic
-reading would mislead: `は` and `へ` are given as letters rather than as particles, and
-`っ` and `ー` are described in words.
-
-`spanish.csv` is the better model to copy for a new vocabulary deck. It and `slime.csv`
-follow the same recipe:
+`spanish.csv` is the model to copy. It and `slime.csv` follow the same recipe:
 
 - Start from a frequency-ordered wordlist of a thousand words, counted over a corpus
   that matches the deck: the show's own subtitles for `slime.csv`, Spanish subtitles at
