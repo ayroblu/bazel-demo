@@ -30,8 +30,9 @@ public final class StudyStore {
 
   private static let undoLimit = 30
   private var undoStack: [GradeUndo] = []
-  /// Set by undo so the restored card is shown again regardless of queue order.
-  private var pinnedCardId: String?
+  /// The card on screen. It is chosen when a card is asked for and never changes under the
+  /// reader, so the queue is only consulted between cards.
+  private var currentCardId: String?
 
   private static let keyPrefixes = [
     "language-app.review-states.v3.",
@@ -110,6 +111,7 @@ public final class StudyStore {
     self.deck = deck
     loadProgress()
     loadDaily()
+    currentCardId = queuedCard()?.id
   }
 
   public var newCardsRemainingToday: Int {
@@ -139,10 +141,27 @@ public final class StudyStore {
   }
 
   public var currentCard: DeckCard? {
-    if let pinnedCardId, let card = deck?.cards.first(where: { $0.id == pinnedCardId }) {
-      return card
-    }
-    return dueCards.first
+    guard let currentCardId else { return nil }
+    return deck?.cards.first { $0.id == currentCardId }
+  }
+
+  /// Anki's learn-ahead limit: with nothing else waiting, a learning step due this soon is
+  /// shown early rather than making the reader wait for it.
+  public static let learnAheadLimit: TimeInterval = 20 * 60
+
+  private func queuedCard() -> DeckCard? {
+    if let card = dueCards.first { return card }
+    guard let deck else { return nil }
+    let horizon = clock.addingTimeInterval(Self.learnAheadLimit)
+    return
+      deck.cards
+      .compactMap { card -> (DeckCard, Date)? in
+        guard let state = reviewStates[card.id], state.phase != .review, state.due <= horizon
+        else { return nil }
+        return (card, state.due)
+      }
+      .min { $0.1 < $1.1 }
+      .map(\.0)
   }
 
   public var canUndo: Bool { !undoStack.isEmpty }
@@ -194,10 +213,13 @@ public final class StudyStore {
     showingAnswer = false
   }
 
-  /// Re-evaluates the queue so cards waiting on a learning step come back when they are due.
-  public func advanceClock(to date: Date = Date()) {
-    clock = date
-    rolloverIfNeeded(now: date)
+  /// Reads the clock and takes the next card from the queue. The only place the queue is
+  /// consulted, so nothing moves while a card is on screen.
+  public func advanceToNextCard(now: Date = Date()) {
+    clock = now
+    rolloverIfNeeded(now: now)
+    currentCardId = queuedCard()?.id
+    showingAnswer = false
   }
 
   /// Releases more unseen cards for today only; tomorrow returns to the daily limit.
@@ -206,6 +228,7 @@ public final class StudyStore {
     rolloverIfNeeded(now: now)
     daily.extraAllowance += count
     saveDaily()
+    advanceToNextCard(now: now)
   }
 
   public func grade(_ rating: CardRating, now: Date = Date()) {
@@ -214,7 +237,6 @@ public final class StudyStore {
     undoStack.append(
       GradeUndo(cardId: card.id, reviewState: reviewStates[card.id], daily: daily, clock: clock))
     if undoStack.count > Self.undoLimit { undoStack.removeFirst() }
-    pinnedCardId = nil
     rolloverIfNeeded(now: now)
     reviewStates[card.id] = FSRSScheduler.review(
       reviewStates[card.id],
@@ -226,9 +248,8 @@ public final class StudyStore {
       daily.introduced += 1
       saveDaily()
     }
-    clock = now
-    showingAnswer = false
     saveProgress()
+    advanceToNextCard(now: now)
   }
 
   /// Reverts the last grade and shows that card again on its answer, like Anki's undo.
@@ -241,7 +262,7 @@ public final class StudyStore {
     }
     daily = entry.daily
     clock = entry.clock
-    pinnedCardId = entry.cardId
+    currentCardId = entry.cardId
     showingAnswer = true
     saveProgress()
     saveDaily()
@@ -255,14 +276,14 @@ public final class StudyStore {
   /// were removed or rewritten is dropped rather than left stranded.
   public func updateDeck(_ deck: Deck) {
     self.deck = deck
-    showingAnswer = false
     undoStack = []
-    pinnedCardId = nil
     let live = Set(deck.cards.map(\.id))
     let kept = reviewStates.filter { live.contains($0.key) }
-    guard kept.count != reviewStates.count else { return }
-    reviewStates = kept
-    saveProgress()
+    if kept.count != reviewStates.count {
+      reviewStates = kept
+      saveProgress()
+    }
+    advanceToNextCard()
   }
 
   /// Every key this store writes, so a deleted deck leaves nothing behind.
@@ -274,12 +295,11 @@ public final class StudyStore {
 
   public func resetProgress() {
     reviewStates = [:]
-    showingAnswer = false
     undoStack = []
-    pinnedCardId = nil
     daily = DailyProgress(day: calendar.startOfDay(for: clock))
     defaults.removeObject(forKey: persistenceKey)
     defaults.removeObject(forKey: dailyKey)
+    advanceToNextCard(now: clock)
   }
 
   private func rolloverIfNeeded(now: Date) {

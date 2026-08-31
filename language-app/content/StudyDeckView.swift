@@ -18,16 +18,12 @@ struct StudyDeckView: View {
       }
     }
     .onAppear {
-      // Reopening a deck should start on the question, not a revealed answer.
-      store.hideAnswer()
-      store.advanceClock()
+      // Reopening a deck takes the next card, on its question rather than a revealed answer.
+      store.advanceToNextCard()
     }
     .onDisappear {
       speech.stop()
       if !showingSettings { store.hideAnswer() }
-    }
-    .onReceive(Timer.publish(every: 5, on: .main, in: .common).autoconnect()) { now in
-      store.advanceClock(to: now)
     }
     .navigationTitle(deck.name)
     .toolbar {

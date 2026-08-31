@@ -503,7 +503,7 @@ private func emptyDeckStore() throws -> (store: DeckStore, directory: URL, defau
   store.grade(.again, now: now)
   #expect(store.dueCards.count == 1)
 
-  store.advanceClock(to: now.addingTimeInterval(61))
+  store.advanceToNextCard(now: now.addingTimeInterval(61))
   #expect(store.dueCards.count == 2)
 }
 
@@ -543,7 +543,7 @@ private let middayToday = SchedulerCalendar().startOfDay(for: Date()).addingTime
   // Opening, closing and reopening the deck, and time passing, only move the queue on.
   for offset in [60.0, 600.0, 3_600.0, 86_400.0, 8 * 86_400.0] {
     store.hideAnswer()
-    store.advanceClock(to: now.addingTimeInterval(offset))
+    store.advanceToNextCard(now: now.addingTimeInterval(offset))
     store.revealAnswer()
     #expect(store.reviewStates == afterStudying)
   }
@@ -571,12 +571,12 @@ private let middayToday = SchedulerCalendar().startOfDay(for: Date()).addingTime
   #expect(store.isDayComplete)
 
   // Past midnight but before the rollover is still the same study day.
-  store.advanceClock(to: try at(11, 1))
+  store.advanceToNextCard(now: try at(11, 1))
   #expect(store.counts.new == 0)
   #expect(store.isDayComplete)
 
   // The rollover releases the next batch.
-  store.advanceClock(to: try at(11, 5))
+  store.advanceToNextCard(now: try at(11, 5))
   #expect(store.counts.new == 2)
   #expect(!store.isDayComplete)
 }
@@ -598,7 +598,7 @@ private let middayToday = SchedulerCalendar().startOfDay(for: Date()).addingTime
   #expect(store.isDayComplete)
 
   // Tomorrow releases the next batch without touching the limit.
-  store.advanceClock(to: middayToday.addingTimeInterval(86_400))
+  store.advanceToNextCard(now: middayToday.addingTimeInterval(86_400))
   #expect(store.counts.new == 2)
   #expect(!store.isDayComplete)
 }
@@ -616,7 +616,7 @@ private let middayToday = SchedulerCalendar().startOfDay(for: Date()).addingTime
 
   // The graduated card counts as a review only once it comes due.
   let graduated = try #require(store.reviewStates.values.first { $0.phase == .review })
-  store.advanceClock(to: graduated.due)
+  store.advanceToNextCard(now: graduated.due)
   #expect(store.counts.review == 1)
 }
 
@@ -637,7 +637,7 @@ private let middayToday = SchedulerCalendar().startOfDay(for: Date()).addingTime
   store.grade(.easy, now: middayToday)
   #expect(store.isDayComplete)
 
-  store.advanceClock(to: middayToday.addingTimeInterval(86_400))
+  store.advanceToNextCard(now: middayToday.addingTimeInterval(86_400))
   #expect(store.counts.new == 1)
 }
 
@@ -667,6 +667,43 @@ private let middayToday = SchedulerCalendar().startOfDay(for: Date()).addingTime
   store.grade(.easy, now: middayToday)
   #expect(store.currentCard == nil)
   #expect(!store.isDayComplete)
+}
+
+@MainActor
+@Test func theCardOnScreenNeverChangesUntilItIsGraded() throws {
+  let csv = "ja,en\n猫[ねこ],cat\n犬[いぬ],dog\n"
+  let deck = try CSVDeckLoader.load(name: "Japanese", data: Data(csv.utf8))
+  let defaults = try #require(UserDefaults(suiteName: "latch-\(UUID().uuidString)"))
+  let store = StudyStore(deck: deck, defaults: defaults)
+  let now = Date()
+
+  store.grade(.again, now: now)
+  let onScreen = try #require(store.currentCard)
+  store.revealAnswer()
+
+  #expect(onScreen == deck.cards[1])
+  #expect(store.currentCard == onScreen)
+  #expect(store.showingAnswer)
+
+  // The card graded "Again" came due while this one sat on screen, and is taken up only now.
+  store.grade(.easy, now: now.addingTimeInterval(61))
+  #expect(store.currentCard == deck.cards[0])
+  #expect(!store.showingAnswer)
+}
+
+@MainActor
+@Test func aLearningStepDueSoonIsShownEarlyRatherThanWaiting() throws {
+  let deck = try numberedDeck(1)
+  let defaults = try #require(UserDefaults(suiteName: "learn-ahead-\(UUID().uuidString)"))
+  let store = StudyStore(deck: deck, defaults: defaults)
+  let only = try #require(store.currentCard)
+
+  store.grade(.again, now: middayToday)
+  #expect(store.dueCards.isEmpty)
+  #expect(store.currentCard == only)
+
+  let state = try #require(store.reviewStates[only.id])
+  #expect(state.due.timeIntervalSince(middayToday) <= StudyStore.learnAheadLimit)
 }
 
 @MainActor

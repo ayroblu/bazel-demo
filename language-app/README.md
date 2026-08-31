@@ -66,6 +66,10 @@ Each deck introduces up to a set number of unseen cards a day, 20 by default. Re
 are never capped. The header counts new, again (cards on a same-day step) and review.
 Once the day is finished, "Day completed!" offers extra cards for today only.
 
+The queue is read only when a card is taken up — on opening the deck and after each
+grade — so the card on screen never changes on its own. With nothing else waiting, a
+learning step due within twenty minutes is shown early, Anki's learn-ahead limit.
+
 Undo in the toolbar, ⌘Z, takes back the last grades one by one, up to thirty, and
 brings each card back on its answer to be graded again.
 
