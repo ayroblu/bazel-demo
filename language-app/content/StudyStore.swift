@@ -21,6 +21,18 @@ public final class StudyStore {
   private var clock = Date()
   private var daily: DailyProgress
 
+  private struct GradeUndo {
+    let cardId: String
+    let reviewState: ReviewState?
+    let daily: DailyProgress
+    let clock: Date
+  }
+
+  private static let undoLimit = 30
+  private var undoStack: [GradeUndo] = []
+  /// Set by undo so the restored card is shown again regardless of queue order.
+  private var pinnedCardId: String?
+
   private static let keyPrefixes = [
     "language-app.review-states.v3.",
     "language-app.daily.v1.",
@@ -126,7 +138,14 @@ public final class StudyStore {
     seenDueCards + unseenCards.prefix(newCardsRemainingToday)
   }
 
-  public var currentCard: DeckCard? { dueCards.first }
+  public var currentCard: DeckCard? {
+    if let pinnedCardId, let card = deck?.cards.first(where: { $0.id == pinnedCardId }) {
+      return card
+    }
+    return dueCards.first
+  }
+
+  public var canUndo: Bool { !undoStack.isEmpty }
 
   public var counts: QueueCounts {
     guard let deck else { return QueueCounts() }
@@ -192,6 +211,10 @@ public final class StudyStore {
   public func grade(_ rating: CardRating, now: Date = Date()) {
     guard let card = currentCard else { return }
     let isFirstSight = reviewStates[card.id] == nil
+    undoStack.append(
+      GradeUndo(cardId: card.id, reviewState: reviewStates[card.id], daily: daily, clock: clock))
+    if undoStack.count > Self.undoLimit { undoStack.removeFirst() }
+    pinnedCardId = nil
     rolloverIfNeeded(now: now)
     reviewStates[card.id] = FSRSScheduler.review(
       reviewStates[card.id],
@@ -208,6 +231,22 @@ public final class StudyStore {
     saveProgress()
   }
 
+  /// Reverts the last grade and shows that card again on its answer, like Anki's undo.
+  public func undo() {
+    guard let entry = undoStack.popLast() else { return }
+    if let state = entry.reviewState {
+      reviewStates[entry.cardId] = state
+    } else {
+      reviewStates.removeValue(forKey: entry.cardId)
+    }
+    daily = entry.daily
+    clock = entry.clock
+    pinnedCardId = entry.cardId
+    showingAnswer = true
+    saveProgress()
+    saveDaily()
+  }
+
   public func isStudied(_ card: DeckCard) -> Bool {
     reviewStates[card.id] != nil
   }
@@ -217,6 +256,8 @@ public final class StudyStore {
   public func updateDeck(_ deck: Deck) {
     self.deck = deck
     showingAnswer = false
+    undoStack = []
+    pinnedCardId = nil
     let live = Set(deck.cards.map(\.id))
     let kept = reviewStates.filter { live.contains($0.key) }
     guard kept.count != reviewStates.count else { return }
@@ -234,6 +275,8 @@ public final class StudyStore {
   public func resetProgress() {
     reviewStates = [:]
     showingAnswer = false
+    undoStack = []
+    pinnedCardId = nil
     daily = DailyProgress(day: calendar.startOfDay(for: clock))
     defaults.removeObject(forKey: persistenceKey)
     defaults.removeObject(forKey: dailyKey)

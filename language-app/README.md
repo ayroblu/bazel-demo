@@ -66,6 +66,9 @@ Each deck introduces up to a set number of unseen cards a day, 20 by default. Re
 are never capped. The header counts new, again (cards on a same-day step) and review.
 Once the day is finished, "Day completed!" offers extra cards for today only.
 
+Undo in the toolbar, ⌘Z, takes back the last grades one by one, up to thirty, and
+brings each card back on its answer to be graded again.
+
 ## Editing decks
 
 Long pressing a deck offers "Browse deck", "Browse randomly", "Inspect deck",
@@ -74,7 +77,8 @@ randomly" shuffles the deck once for that browse session. The plus button upload
 or creates an empty one by hand.
 
 Browsing reads a deck in file order and leaves the schedule alone: the arrows at the
-bottom step back and forward, and forward reveals the answer before moving on. The
+bottom step back and forward, forward reveals the answer before moving on, and back
+returns to the question. The
 Auto button on the right plays a card hands free: the question three times, then the
 answer and question alternating three times, then the next card. The gear picks the
 question and answer voices, the answer voice coming from the deck's answer column

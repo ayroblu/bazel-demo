@@ -669,6 +669,87 @@ private let middayToday = SchedulerCalendar().startOfDay(for: Date()).addingTime
   #expect(!store.isDayComplete)
 }
 
+@MainActor
+@Test func undoRestoresTheGradedCardOnItsAnswer() throws {
+  let deck = try numberedDeck(3)
+  let suite = "undo-\(UUID().uuidString)"
+  let defaults = try #require(UserDefaults(suiteName: suite))
+  defer { defaults.removePersistentDomain(forName: suite) }
+  let store = StudyStore(deck: deck, defaults: defaults)
+  let first = try #require(store.currentCard)
+
+  #expect(!store.canUndo)
+  store.grade(.easy, now: middayToday)
+  #expect(store.currentCard != first)
+  #expect(!store.showingAnswer)
+  #expect(store.canUndo)
+
+  store.undo()
+  #expect(store.currentCard == first)
+  #expect(store.showingAnswer)
+  #expect(!store.isStudied(first))
+  #expect(!store.canUndo)
+}
+
+@MainActor
+@Test func undoWalksBackSeveralGradesAndRestoresTheDailyCount() throws {
+  let deck = try numberedDeck(3)
+  let suite = "undo-multi-\(UUID().uuidString)"
+  let defaults = try #require(UserDefaults(suiteName: suite))
+  defer { defaults.removePersistentDomain(forName: suite) }
+  let store = StudyStore(deck: deck, defaults: defaults)
+  store.newCardsPerDay = 2
+  let first = try #require(store.currentCard)
+
+  store.grade(.easy, now: middayToday)
+  let second = try #require(store.currentCard)
+  store.grade(.easy, now: middayToday)
+  #expect(store.newCardsRemainingToday == 0)
+
+  store.undo()
+  #expect(store.currentCard == second)
+  #expect(store.newCardsRemainingToday == 1)
+
+  store.undo()
+  #expect(store.currentCard == first)
+  #expect(store.newCardsRemainingToday == 2)
+  #expect(store.reviewStates.isEmpty)
+}
+
+@MainActor
+@Test func undoAfterTheLastCardBringsItBack() throws {
+  let deck = try numberedDeck(1)
+  let suite = "undo-last-\(UUID().uuidString)"
+  let defaults = try #require(UserDefaults(suiteName: suite))
+  defer { defaults.removePersistentDomain(forName: suite) }
+  let store = StudyStore(deck: deck, defaults: defaults)
+  let only = try #require(store.currentCard)
+
+  store.grade(.easy, now: middayToday)
+  #expect(store.currentCard == nil)
+
+  store.undo()
+  #expect(store.currentCard == only)
+  #expect(store.showingAnswer)
+}
+
+@MainActor
+@Test func gradingAnUndoneCardAgainRepeatsScheduling() throws {
+  let deck = try numberedDeck(2)
+  let suite = "undo-regrade-\(UUID().uuidString)"
+  let defaults = try #require(UserDefaults(suiteName: suite))
+  defer { defaults.removePersistentDomain(forName: suite) }
+  let store = StudyStore(deck: deck, defaults: defaults)
+  let first = try #require(store.currentCard)
+
+  store.grade(.easy, now: middayToday)
+  store.undo()
+  store.grade(.again, now: middayToday)
+
+  #expect(store.reviewStates[first.id]?.phase == .learning)
+  #expect(store.currentCard != first)
+}
+
 @Test func browsingWalksTheDeckInOrderThroughQuestionAndAnswer() throws {
   let csv = "ja,en\n猫[ねこ],cat\n犬[いぬ],dog\n"
   let deck = try CSVDeckLoader.load(name: "Japanese", data: Data(csv.utf8))
@@ -693,9 +774,12 @@ private let middayToday = SchedulerCalendar().startOfDay(for: Date()).addingTime
   #expect(session.index == 1)
 
   session.back()
+  #expect(session.card == deck.cards[1])
+  #expect(!session.showingAnswer)
+
   session.back()
   #expect(session.card == deck.cards[0])
-  #expect(session.showingAnswer)
+  #expect(!session.showingAnswer)
 }
 
 @Test func browsingRandomlyKeepsEveryCardInADifferentOrder() throws {

@@ -54,7 +54,6 @@ public struct BrowseSession: Equatable, Sendable {
       showingAnswer = false
     } else if index > 0 {
       index -= 1
-      showingAnswer = true
     }
   }
 }

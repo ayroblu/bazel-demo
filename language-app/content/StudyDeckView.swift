@@ -32,6 +32,11 @@ struct StudyDeckView: View {
     .navigationTitle(deck.name)
     .toolbar {
       ToolbarItem(placement: .primaryAction) {
+        Button("Undo", systemImage: "arrow.uturn.backward") { store.undo() }
+          .disabled(!store.canUndo)
+          .keyboardShortcut("z", modifiers: .command)
+      }
+      ToolbarItem(placement: .primaryAction) {
         Button("Settings", systemImage: "gearshape") { showingSettings = true }
       }
     }
