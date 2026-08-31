@@ -17,7 +17,10 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
   public var onRemotePlay: (() -> Void)?
   public var onRemotePause: (() -> Void)?
 
-  private let synthesizer = AVSpeechSynthesizer()
+  /// Shared and never released: TextToSpeech crashes if a synthesizer is deallocated
+  /// while it still has speech in flight.
+  private nonisolated(unsafe) static let synthesizer = AVSpeechSynthesizer()
+  private var synthesizer: AVSpeechSynthesizer { Self.synthesizer }
   private var phrase: String?
   private var languageCode: String?
   private var rate = AVSpeechUtteranceDefaultSpeechRate
@@ -32,6 +35,13 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
     self.voices = voices
     super.init()
     synthesizer.delegate = self
+  }
+
+  deinit {
+    let synthesizer = Self.synthesizer
+    guard synthesizer.delegate === self else { return }
+    synthesizer.delegate = nil
+    synthesizer.stopSpeaking(at: .immediate)
   }
 
   /// Speaks the phrase from the beginning and keeps repeating it until stopped.
@@ -127,6 +137,7 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
     // which iOS treats as finished audio and suspends once the screen locks.
     utterance.preUtteranceDelay = continuing ? Self.repeatPause : 0
     continuing = true
+    synthesizer.delegate = self
     updateNowPlaying(FuriganaParser.displayText(phrase))
     synthesizer.speak(utterance)
   }

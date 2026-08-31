@@ -21,6 +21,9 @@ struct StudyDeckView: View {
       // Reopening a deck takes the next card, on its question rather than a revealed answer.
       store.advanceToNextCard()
     }
+    .onChange(of: store.currentCard?.id) { _, cardId in
+      if cardId == nil { speech.stop() }
+    }
     .onDisappear {
       speech.stop()
       if !showingSettings { store.hideAnswer() }
