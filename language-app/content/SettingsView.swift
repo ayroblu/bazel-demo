@@ -76,10 +76,21 @@ struct SettingsView: View {
                 .keyboardType(.numberPad)
               #endif
           }
+          LabeledContent("Maximum reviews per day") {
+            TextField("", value: $store.reviewsPerDay, format: .number)
+              .multilineTextAlignment(.trailing)
+              .frame(width: 72)
+              .accessibilityLabel("Maximum reviews per day")
+              #if os(iOS)
+                .keyboardType(.numberPad)
+              #endif
+          }
         } header: {
           Text("Study")
         } footer: {
-          Text("Unseen cards enter the queue up to this many per day. Reviews are never capped.")
+          Text(
+            "Unseen cards enter the queue up to this many per day, and every card the day "
+              + "serves counts against the review limit.")
         }
 
         Section("Progress") {

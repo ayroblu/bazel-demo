@@ -10,6 +10,7 @@ public final class StudyStore {
   public private(set) var showingAnswer = false
 
   public static let defaultNewCardsPerDay = 20
+  public static let defaultReviewsPerDay = 200
   /// Multiplier on the system's default speech rate.
   public static let defaultSpeechRate = 1.0
   public static let speechRateRange = 0.5...2.0
@@ -40,6 +41,7 @@ public final class StudyStore {
     "language-app.new-per-day.v1.",
     "language-app.speech-rate.v1.",
     "language-app.browse-repeats.v1.",
+    "language-app.reviews-per-day.v1.",
   ]
 
   private var deckId: String { deck?.id ?? "unknown" }
@@ -48,6 +50,7 @@ public final class StudyStore {
   private var limitKey: String { Self.keyPrefixes[2] + deckId }
   private var rateKey: String { Self.keyPrefixes[3] + deckId }
   private var browseRepeatsKey: String { Self.keyPrefixes[4] + deckId }
+  private var reviewLimitKey: String { Self.keyPrefixes[5] + deckId }
 
   /// How many unseen cards enter the queue each day, Anki's new-card limit.
   public var newCardsPerDay: Int {
@@ -58,6 +61,18 @@ public final class StudyStore {
         return
       }
       defaults.set(clamped, forKey: limitKey)
+    }
+  }
+
+  /// How many cards the day's queue may hold, Anki's review limit. New cards spend it too.
+  public var reviewsPerDay: Int {
+    didSet {
+      let clamped = max(0, reviewsPerDay)
+      guard clamped == reviewsPerDay else {
+        reviewsPerDay = clamped
+        return
+      }
+      defaults.set(clamped, forKey: reviewLimitKey)
     }
   }
 
@@ -95,6 +110,8 @@ public final class StudyStore {
   ) {
     let key = Self.keyPrefixes[2] + deck.id
     newCardsPerDay = max(0, defaults.object(forKey: key) as? Int ?? Self.defaultNewCardsPerDay)
+    let storedReviewLimit = defaults.object(forKey: Self.keyPrefixes[5] + deck.id) as? Int
+    reviewsPerDay = max(0, storedReviewLimit ?? Self.defaultReviewsPerDay)
     let storedRate = defaults.object(forKey: Self.keyPrefixes[3] + deck.id) as? Double
     speechRate = min(
       max(storedRate ?? Self.defaultSpeechRate, Self.speechRateRange.lowerBound),
@@ -114,8 +131,17 @@ public final class StudyStore {
     currentCardId = queuedCard()?.id
   }
 
+  /// Anki spends one review limit on every card the day serves, new ones included.
+  public var reviewsRemainingToday: Int {
+    max(0, reviewsPerDay - daily.reviewed - daily.introduced)
+  }
+
+  /// Anki gathers reviews first, so new cards only get what the review limit has left over.
   public var newCardsRemainingToday: Int {
-    max(0, newCardsPerDay + daily.extraAllowance - daily.introduced)
+    min(
+      max(0, newCardsPerDay + daily.extraAllowance - daily.introduced),
+      max(0, reviewsRemainingToday - dueReviewCards.count)
+    )
   }
 
   public var extraCardsToday: Int { daily.extraAllowance }
@@ -124,20 +150,56 @@ public final class StudyStore {
     deck?.cards.filter { reviewStates[$0.id] == nil } ?? []
   }
 
-  private var seenDueCards: [DeckCard] {
+  private func dueCards(matching phases: Set<LearningPhase>, shuffleTies: Bool) -> [DeckCard] {
     guard let deck else { return [] }
-    return deck.cards
-      .compactMap { card -> (DeckCard, Date)? in
-        guard let due = reviewStates[card.id]?.due, due <= clock else { return nil }
-        return (card, due)
+    return deck.cards.enumerated()
+      .compactMap { position, card -> (card: DeckCard, due: Date, tie: UInt64)? in
+        guard let state = reviewStates[card.id], phases.contains(state.phase), state.due <= clock
+        else { return nil }
+        // Anki breaks a tie on the due day by hashing the card, so cards that came due
+        // together are not asked in the same order every day.
+        let tie =
+          shuffleTies
+          ? FSRSScheduler.hash(
+            cardId: card.id, salt: Int(state.lastReview?.timeIntervalSince1970 ?? 0))
+          : UInt64(position)
+        return (card, state.due, tie)
       }
-      .sorted { $0.1 < $1.1 }
-      .map(\.0)
+      .sorted { ($0.due, $0.tie) < ($1.due, $1.tie) }
+      .map(\.card)
   }
 
-  /// Cards waiting right now: everything already due, then today's remaining new cards.
+  private var dueReviewCards: [DeckCard] {
+    Array(dueCards(matching: [.review], shuffleTies: true).prefix(reviewsRemainingToday))
+  }
+
+  /// Cards waiting right now, in Anki's order: a learning step that has come due is shown
+  /// ahead of everything, then reviews with today's new cards spread evenly through them.
   public var dueCards: [DeckCard] {
-    seenDueCards + unseenCards.prefix(newCardsRemainingToday)
+    dueCards(matching: [.learning, .relearning], shuffleTies: false)
+      + Self.interspersed(dueReviewCards, Array(unseenCards.prefix(newCardsRemainingToday)))
+  }
+
+  /// Anki's intersperser, which spreads the shorter list evenly through the longer one.
+  private static func interspersed(_ one: [DeckCard], _ two: [DeckCard]) -> [DeckCard] {
+    let ratio = Double(one.count + 1) / Double(two.count + 1)
+    var mixed: [DeckCard] = []
+    mixed.reserveCapacity(one.count + two.count)
+    var oneIndex = 0
+    var twoIndex = 0
+    while oneIndex < one.count || twoIndex < two.count {
+      let takeTwo =
+        oneIndex == one.count
+        || (twoIndex < two.count && Double(twoIndex + 1) * ratio < Double(oneIndex + 1))
+      if takeTwo {
+        mixed.append(two[twoIndex])
+        twoIndex += 1
+      } else {
+        mixed.append(one[oneIndex])
+        oneIndex += 1
+      }
+    }
+    return mixed
   }
 
   public var currentCard: DeckCard? {
@@ -169,15 +231,13 @@ public final class StudyStore {
   public var counts: QueueCounts {
     guard let deck else { return QueueCounts() }
     let endOfDay = calendar.endOfDay(for: clock)
-    var counts = QueueCounts(new: min(newCardsRemainingToday, unseenCards.count))
+    var counts = QueueCounts(
+      new: min(newCardsRemainingToday, unseenCards.count),
+      review: dueReviewCards.count
+    )
     for card in deck.cards {
       guard let state = reviewStates[card.id] else { continue }
-      switch state.phase {
-      case .learning, .relearning:
-        if state.due < endOfDay { counts.learning += 1 }
-      case .review:
-        if state.due <= clock { counts.review += 1 }
-      }
+      if state.phase != .review, state.due < endOfDay { counts.learning += 1 }
     }
     return counts
   }
@@ -201,8 +261,26 @@ public final class StudyStore {
       reviewStates[card.id],
       rating: rating,
       now: now,
-      calendar: calendar
+      calendar: calendar,
+      fuzzSeed: fuzzSeed(for: card),
+      cardsDueIn: upcomingWorkload(excluding: card, now: now)
     ).scheduledInterval
+  }
+
+  /// Ties fuzz to the card, so the interval on the button is the one the card gets.
+  private func fuzzSeed(for card: DeckCard) -> UInt64 {
+    FSRSScheduler.fuzzSeed(cardId: card.id, reps: reviewStates[card.id]?.reps ?? 0)
+  }
+
+  /// How many cards each upcoming day already holds, which lets the scheduler put this one
+  /// on a quieter day. Only graduated cards are counted; steps are gone within the day.
+  private func upcomingWorkload(excluding card: DeckCard, now: Date) -> (Int) -> Int {
+    var booked: [Date: Int] = [:]
+    for (id, state) in reviewStates where id != card.id && state.phase == .review {
+      booked[calendar.startOfDay(for: state.due), default: 0] += 1
+    }
+    let calendar = calendar
+    return { days in booked[calendar.startOfDay(byAdding: days, to: now), default: 0] }
   }
 
   public func revealAnswer() {
@@ -234,6 +312,7 @@ public final class StudyStore {
   public func grade(_ rating: CardRating, now: Date = Date()) {
     guard let card = currentCard else { return }
     let isFirstSight = reviewStates[card.id] == nil
+    let wasReview = reviewStates[card.id]?.phase == .review
     undoStack.append(
       GradeUndo(cardId: card.id, reviewState: reviewStates[card.id], daily: daily, clock: clock))
     if undoStack.count > Self.undoLimit { undoStack.removeFirst() }
@@ -242,10 +321,17 @@ public final class StudyStore {
       reviewStates[card.id],
       rating: rating,
       now: now,
-      calendar: calendar
+      calendar: calendar,
+      fuzzSeed: fuzzSeed(for: card),
+      cardsDueIn: upcomingWorkload(excluding: card, now: now)
     )
     if isFirstSight {
       daily.introduced += 1
+      saveDaily()
+    } else if wasReview {
+      // Only answers given to a graduated card spend the review limit; walking a learning
+      // or relearning step does not.
+      daily.reviewed += 1
       saveDaily()
     }
     saveProgress()

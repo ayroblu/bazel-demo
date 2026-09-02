@@ -39,15 +39,26 @@ public struct QueueCounts: Equatable, Sendable {
   }
 }
 
-/// Per-day new-card budget, reset when the calendar day rolls over.
+/// Per-day card budget, reset when the calendar day rolls over.
 public struct DailyProgress: Codable, Equatable, Sendable {
   public var day: Date
   public var introduced: Int
+  public var reviewed: Int
   public var extraAllowance: Int
 
-  public init(day: Date, introduced: Int = 0, extraAllowance: Int = 0) {
+  public init(day: Date, introduced: Int = 0, reviewed: Int = 0, extraAllowance: Int = 0) {
     self.day = day
     self.introduced = introduced
+    self.reviewed = reviewed
     self.extraAllowance = extraAllowance
+  }
+
+  /// Progress saved before the review limit existed carries no review count.
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    day = try container.decode(Date.self, forKey: .day)
+    introduced = try container.decodeIfPresent(Int.self, forKey: .introduced) ?? 0
+    reviewed = try container.decodeIfPresent(Int.self, forKey: .reviewed) ?? 0
+    extraAllowance = try container.decodeIfPresent(Int.self, forKey: .extraAllowance) ?? 0
   }
 }

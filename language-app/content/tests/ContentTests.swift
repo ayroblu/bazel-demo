@@ -503,7 +503,8 @@ private func emptyDeckStore() throws -> (store: DeckStore, directory: URL, defau
   store.grade(.again, now: now)
   #expect(store.dueCards.count == 1)
 
-  store.advanceToNextCard(now: now.addingTimeInterval(61))
+  // A one minute step carries up to fifteen seconds of fuzz.
+  store.advanceToNextCard(now: now.addingTimeInterval(75))
   #expect(store.dueCards.count == 2)
 }
 
@@ -686,7 +687,7 @@ private let middayToday = SchedulerCalendar().startOfDay(for: Date()).addingTime
   #expect(store.showingAnswer)
 
   // The card graded "Again" came due while this one sat on screen, and is taken up only now.
-  store.grade(.easy, now: now.addingTimeInterval(61))
+  store.grade(.easy, now: now.addingTimeInterval(75))
   #expect(store.currentCard == deck.cards[0])
   #expect(!store.showingAnswer)
 }
@@ -704,6 +705,135 @@ private let middayToday = SchedulerCalendar().startOfDay(for: Date()).addingTime
 
   let state = try #require(store.reviewStates[only.id])
   #expect(state.due.timeIntervalSince(middayToday) <= StudyStore.learnAheadLimit)
+}
+
+@MainActor
+@Test func newCardsAreSpreadThroughTheReviewsRatherThanQueuedBehindThem() throws {
+  let deck = try numberedDeck(6)
+  let defaults = try #require(UserDefaults(suiteName: "mix-\(UUID().uuidString)"))
+  let store = StudyStore(deck: deck, defaults: defaults)
+  store.newCardsPerDay = 3
+
+  for _ in 0..<3 { store.grade(.easy, now: middayToday) }
+
+  // Once those three come due, the day's three new cards alternate with them.
+  store.advanceToNextCard(now: middayToday.addingTimeInterval(60 * 86_400))
+  #expect(store.dueCards.count == 6)
+  #expect(store.dueCards.map(store.isStudied) == [true, false, true, false, true, false])
+}
+
+@MainActor
+@Test func theReviewLimitCapsTheDayAndNewCardsSpendIt() throws {
+  let deck = try numberedDeck(10)
+  let defaults = try #require(UserDefaults(suiteName: "review-limit-\(UUID().uuidString)"))
+  let store = StudyStore(deck: deck, defaults: defaults)
+  store.newCardsPerDay = 10
+  store.reviewsPerDay = 3
+
+  // The new limit is generous, but only three cards fit inside the review limit.
+  #expect(store.reviewsRemainingToday == 3)
+  #expect(store.counts.new == 3)
+  #expect(store.dueCards.count == 3)
+
+  store.grade(.easy, now: middayToday)
+  #expect(store.counts.new == 2)
+  store.grade(.easy, now: middayToday)
+  store.grade(.easy, now: middayToday)
+  #expect(store.reviewsRemainingToday == 0)
+  #expect(store.counts.new == 0)
+  #expect(store.isDayComplete)
+}
+
+@MainActor
+@Test func dueReviewsQueueUpBehindTheLimitAndCrowdOutNewCards() throws {
+  let deck = try numberedDeck(6)
+  let defaults = try #require(UserDefaults(suiteName: "review-backlog-\(UUID().uuidString)"))
+  let store = StudyStore(deck: deck, defaults: defaults)
+  store.newCardsPerDay = 6
+  for _ in 0..<4 { store.grade(.easy, now: middayToday) }
+
+  store.reviewsPerDay = 2
+  store.advanceToNextCard(now: middayToday.addingTimeInterval(60 * 86_400))
+  #expect(store.counts.review == 2)
+  // Both slots go to reviews, so the two unseen cards wait for tomorrow.
+  #expect(store.counts.new == 0)
+  #expect(store.dueCards.count == 2)
+}
+
+@MainActor
+@Test func aBatchGraduatedTogetherIsSpreadEvenlyOverTheDaysAhead() throws {
+  let deck = try numberedDeck(12)
+  let defaults = try #require(UserDefaults(suiteName: "balance-\(UUID().uuidString)"))
+  let store = StudyStore(deck: deck, defaults: defaults)
+  store.newCardsPerDay = 12
+  for _ in 0..<12 { store.grade(.easy, now: middayToday) }
+
+  let calendar = SchedulerCalendar()
+  var perDay: [Date: Int] = [:]
+  for state in store.reviewStates.values {
+    perDay[calendar.startOfDay(for: state.due), default: 0] += 1
+  }
+  #expect(store.reviewStates.count == 12)
+  // Every card carries the same interval, so only balancing can share them out.
+  #expect(perDay.count >= 4)
+  #expect((perDay.values.max() ?? 0) - (perDay.values.min() ?? 0) <= 2)
+}
+
+@MainActor
+@Test func reviewsThatShareADueDateAreShuffledButHoldTheirOrder() throws {
+  let deck = try numberedDeck(8)
+  let defaults = try #require(UserDefaults(suiteName: "shuffle-\(UUID().uuidString)"))
+  let store = StudyStore(deck: deck, defaults: defaults)
+  store.newCardsPerDay = 8
+
+  // Good twice graduates every card to the same two day interval, which is short enough
+  // that fuzz leaves it alone, so all eight come due together.
+  for _ in 0..<8 { store.grade(.good, now: middayToday) }
+  let secondStep = middayToday.addingTimeInterval(13 * 60)
+  store.advanceToNextCard(now: secondStep)
+  for _ in 0..<8 { store.grade(.good, now: secondStep) }
+
+  let due = try #require(store.nextDueDate)
+  store.advanceToNextCard(now: due)
+  let order = store.dueCards
+  #expect(order.map(\.id).sorted() == deck.cards.map(\.id).sorted())
+  #expect(order != deck.cards)
+  #expect(store.dueCards == order)
+}
+
+@MainActor
+@Test func progressSavedBeforeTheReviewLimitStillLoads() throws {
+  let deck = try numberedDeck(5)
+  let suite = "legacy-daily-\(UUID().uuidString)"
+  let defaults = try #require(UserDefaults(suiteName: suite))
+  defer { defaults.removePersistentDomain(forName: suite) }
+
+  let day = SchedulerCalendar().startOfDay(for: Date())
+  let stored = "{\"day\":\(day.timeIntervalSinceReferenceDate),\"introduced\":2,\"extraAllowance\":1}"
+  defaults.set(Data(stored.utf8), forKey: "language-app.daily.v1." + deck.id)
+
+  let store = StudyStore(deck: deck, defaults: defaults)
+  store.newCardsPerDay = 5
+  #expect(store.newCardsRemainingToday == 4)
+  #expect(store.reviewsRemainingToday == StudyStore.defaultReviewsPerDay - 2)
+}
+
+@MainActor
+@Test func aLearningStepThatIsDueComesBeforeReviewsAndNewCards() throws {
+  let deck = try numberedDeck(3)
+  let defaults = try #require(UserDefaults(suiteName: "learning-first-\(UUID().uuidString)"))
+  let store = StudyStore(deck: deck, defaults: defaults)
+
+  store.grade(.easy, now: middayToday)
+  let later = middayToday.addingTimeInterval(60 * 86_400)
+  store.advanceToNextCard(now: later)
+
+  let lapsing = try #require(store.currentCard)
+  store.grade(.again, now: later)
+  #expect(store.currentCard != lapsing)
+
+  store.advanceToNextCard(now: later.addingTimeInterval(75))
+  #expect(store.dueCards.first == lapsing)
 }
 
 @MainActor

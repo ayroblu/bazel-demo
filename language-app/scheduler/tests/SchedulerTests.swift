@@ -31,15 +31,15 @@ private func days(_ state: ReviewState) -> Double {
   state.scheduledInterval / day
 }
 
-/// The published FSRS-5 defaults, restated here so the tests judge the implementation
+/// The published FSRS-6 defaults, restated here so the tests judge the implementation
 /// against the reference formulas rather than against themselves.
 private enum Reference {
   static let w = [
-    0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575,
-    0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898, 0.51655, 0.6621,
+    0.212, 1.2931, 2.3065, 8.2956, 6.4133, 0.8334, 3.0194, 0.001, 1.8722, 0.1666, 0.796,
+    1.4835, 0.0614, 0.2629, 1.6483, 0.6014, 1.8729, 0.5425, 0.0912, 0.0658, 0.1542,
   ]
-  static let factor = 19.0 / 81.0
-  static let decay = -0.5
+  static let decay = -w[20]
+  static let factor = exp(log(0.9) / decay) - 1
 
   static func retrievability(stability: Double, elapsedDays: Double) -> Double {
     pow(1 + factor * elapsedDays / stability, decay)
@@ -51,8 +51,8 @@ private enum Reference {
 
   static func nextDifficulty(_ difficulty: Double, _ rating: CardRating) -> Double {
     let delta = -w[6] * Double(rating.rawValue - 3)
-    let linear = difficulty + delta * (10 - difficulty) / 9
-    return min(max(w[7] * initialDifficulty(.easy) + (1 - w[7]) * linear, 1), 10)
+    let damped = difficulty + delta * (10 - difficulty) / 9
+    return min(max(w[7] * (initialDifficulty(.easy) - damped) + damped, 1), 10)
   }
 
   /// Stability after a successful review a day or more later.
@@ -79,11 +79,21 @@ private enum Reference {
     let forgotten =
       w[11] * pow(difficulty, -w[12]) * (pow(stability + 1, w[13]) - 1)
       * exp((1 - recall) * w[14])
-    return min(forgotten, stability)
+    return min(forgotten, stability / exp(w[17] * w[18]))
+  }
+
+  /// A day of fuzz plus a share of every range the interval reaches into.
+  static func fuzzDelta(_ interval: Double) -> Double {
+    guard interval >= 2.5 else { return 0 }
+    let ranges: [(Double, Double, Double)] = [
+      (2.5, 7, 0.15), (7, 20, 0.1), (20, .greatestFiniteMagnitude, 0.05),
+    ]
+    return ranges.reduce(1.0) { $0 + $1.2 * max(min(interval, $1.1) - $1.0, 0) }
   }
 
   static func shortTermStability(stability: Double, rating: CardRating) -> Double {
-    stability * exp(w[17] * (Double(rating.rawValue) - 3 + w[18]))
+    let change = exp(w[17] * (Double(rating.rawValue) - 3 + w[18])) * pow(stability, -w[19])
+    return stability * (rating == .again ? change : max(change, 1))
   }
 }
 
@@ -336,6 +346,26 @@ private func expectClose(_ actual: Double, _ expected: Double, tolerance: Double
   #expect(secondLapse.lapses == 2)
 }
 
+@Test func hardOnTheOnlyRelearningStepWaitsHalfAsLongAgain() {
+  let graduated = review(review(nil, .good, at(1)), .good, at(1, 10, 10))
+  let lapsed = review(graduated, .again, graduated.due)
+
+  // With a single 10m step, Anki spaces Hard at 15m so it is never equal to Again.
+  let hard = review(lapsed, .hard, lapsed.due)
+  #expect(hard.phase == .relearning)
+  #expect(hard.scheduledInterval == 900)
+  #expect(review(lapsed, .again, lapsed.due).scheduledInterval == 600)
+}
+
+@Test func passingASameDayRepeatNeverLowersStability() {
+  let first = review(nil, .easy, at(10, 9))
+  for rating in [CardRating.hard, .good, .easy] {
+    #expect(review(first, rating, at(10, 10)).stability >= first.stability)
+  }
+  // Failing one still may.
+  #expect(review(first, .again, at(10, 10)).stability < first.stability)
+}
+
 // MARK: - Multi-day runs
 
 @Test func aRunOfGoodsGrowsIntervalsAndAlwaysComesDueAtARollover() {
@@ -388,7 +418,8 @@ private func expectClose(_ actual: Double, _ expected: Double, tolerance: Double
     hardest = review(hardest, .again, at(day))
     day += 1
     #expect(hardest.difficulty <= 10)
-    #expect(hardest.stability >= 0.1)
+    // FSRS-6 floors stability at 0.001 days.
+    #expect(hardest.stability >= 0.001)
   }
   #expect(hardest.difficulty > 8)
 
@@ -414,6 +445,133 @@ private func expectClose(_ actual: Double, _ expected: Double, tolerance: Double
   }
   #expect(days(state) == Double(FSRSScheduler.maximumIntervalDays))
   #expect(state.due > state.lastReview!)
+}
+
+// MARK: - Fuzz
+
+private func fuzzed(
+  _ previous: ReviewState?,
+  _ rating: CardRating,
+  _ now: Date,
+  seed: UInt64
+) -> ReviewState {
+  FSRSScheduler.review(previous, rating: rating, now: now, calendar: anki, fuzzSeed: seed)
+}
+
+@Test func fuzzSpreadsIntervalsWithoutStrayingFromTheOneFsrsAsksFor() {
+  let graduated = review(review(nil, .good, at(1)), .good, at(1, 10, 10))
+  let plain = review(graduated, .good, graduated.due)
+  let allowed = Reference.fuzzDelta(days(plain)) + 1
+
+  var intervals: Set<Double> = []
+  for seed in UInt64(1)...50 {
+    let state = fuzzed(graduated, .good, graduated.due, seed: seed)
+    intervals.insert(days(state))
+    #expect(abs(days(state) - days(plain)) <= allowed)
+    #expect(days(state) >= 1)
+    // Fuzz moves the interval, never the memory the card is judged by.
+    expectClose(state.stability, plain.stability)
+    expectClose(state.difficulty, plain.difficulty)
+    #expect(state.due == anki.startOfDay(byAdding: Int(days(state)), to: graduated.due))
+  }
+  #expect(intervals.count > 1)
+}
+
+@Test func aCardsFuzzIsFixedByItsIdAndReviewCount() {
+  let seed = FSRSScheduler.fuzzSeed(cardId: "猫[ねこ]", reps: 2)
+  #expect(fuzzed(nil, .easy, at(1), seed: seed) == fuzzed(nil, .easy, at(1), seed: seed))
+  #expect(FSRSScheduler.fuzzSeed(cardId: "犬[いぬ]", reps: 2) != seed)
+  #expect(FSRSScheduler.fuzzSeed(cardId: "猫[ねこ]", reps: 3) != seed)
+}
+
+@Test func learningStepsComeDueALittleLateWhileReportingThePlainDelay() {
+  var offsets: Set<TimeInterval> = []
+  for seed in UInt64(1)...50 {
+    let state = fuzzed(nil, .again, at(1), seed: seed)
+    // Anki fuzzes when the step comes due, but shows the step itself on the button.
+    #expect(state.scheduledInterval == 60)
+    let offset = state.due.timeIntervalSince(at(1))
+    #expect(offset >= 60 && offset < 75)
+    offsets.insert(offset)
+  }
+  #expect(offsets.count > 1)
+}
+
+@Test func passingButtonsStayInOrderWhateverTheFuzz() {
+  let graduated = review(review(nil, .good, at(1)), .good, at(1, 10, 10))
+  for seed in UInt64(1)...50 {
+    let intervals = CardRating.allCases.map {
+      fuzzed(graduated, $0, graduated.due, seed: seed).scheduledInterval
+    }
+    #expect(intervals[0] == 600)
+    #expect(intervals[1] < intervals[2])
+    #expect(intervals[2] < intervals[3])
+  }
+}
+
+@Test func fuzzNeverPullsAGrowingIntervalBelowTheOldOne() {
+  var state = review(review(nil, .good, at(1)), .good, at(1, 10, 10))
+  for seed in UInt64(1)...30 {
+    let previous = days(state)
+    state = fuzzed(state, .good, state.due, seed: seed)
+    // Growth only stops at Anki's maximum interval.
+    #expect(days(state) > previous || previous == Double(FSRSScheduler.maximumIntervalDays))
+  }
+}
+
+// MARK: - Load balancing
+
+private func balanced(
+  _ previous: ReviewState?,
+  _ rating: CardRating,
+  _ now: Date,
+  seed: UInt64,
+  booked: @escaping (Int) -> Int
+) -> ReviewState {
+  FSRSScheduler.review(
+    previous, rating: rating, now: now, calendar: anki, fuzzSeed: seed, cardsDueIn: booked)
+}
+
+@Test func aQuietDayInTheFuzzRangeTakesTheCard() throws {
+  let graduated = review(review(nil, .good, at(1)), .good, at(1, 10, 10))
+  let plain = review(graduated, .easy, graduated.due)
+  let target = Int(days(plain))
+  // Every day of the range is buried under work except the earliest one.
+  let quiet = target - 1
+
+  for seed in UInt64(1)...50 {
+    let state = balanced(graduated, .easy, graduated.due, seed: seed) { $0 == quiet ? 0 : 500 }
+    #expect(Int(days(state)) == quiet)
+  }
+}
+
+@Test func balancingPrefersTheLighterOfTwoDays() {
+  let graduated = review(review(nil, .good, at(1)), .good, at(1, 10, 10))
+  let plain = review(graduated, .easy, graduated.due)
+  let target = Int(days(plain))
+
+  var chosen: [Int: Int] = [:]
+  for seed in UInt64(1)...200 {
+    let state = balanced(graduated, .easy, graduated.due, seed: seed) {
+      $0 == target ? 40 : 4
+    }
+    chosen[Int(days(state)), default: 0] += 1
+  }
+  // The heavily booked day is not banned, just unlikely.
+  #expect(chosen[target, default: 0] * 4 < chosen.values.reduce(0, +))
+  #expect(chosen.count > 1)
+}
+
+@Test func farOutIntervalsAreLeftToPlainFuzz() {
+  var state = review(nil, .easy, at(1))
+  while days(state) <= 90 {
+    state = review(state, .easy, state.due)
+  }
+  for seed in UInt64(1)...20 {
+    let unbalanced = fuzzed(state, .good, state.due, seed: seed)
+    let attempted = balanced(state, .good, state.due, seed: seed) { _ in 500 }
+    #expect(days(attempted) == days(unbalanced))
+  }
 }
 
 @Test func reviewingIsAPureFunctionOfStateRatingAndTime() {
