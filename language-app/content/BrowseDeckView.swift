@@ -53,9 +53,9 @@ struct BrowseDeckView: View {
                   session.back()
                   restartAutoIfRunning()
                 }
+                .frame(maxWidth: .infinity)
                 .disabled(!session.canGoBack)
                 .keyboardShortcut(.leftArrow, modifiers: [])
-                Spacer()
                 Button(
                   session.showingAnswer ? "Next card" : "Show answer",
                   systemImage: "chevron.right"
@@ -63,6 +63,7 @@ struct BrowseDeckView: View {
                   session.forward()
                   restartAutoIfRunning()
                 }
+                .frame(maxWidth: .infinity)
                 .disabled(!session.canGoForward)
                 .keyboardShortcut(.rightArrow, modifiers: [])
               }

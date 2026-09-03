@@ -74,6 +74,7 @@ private struct StudyCardView: View {
           RatingButtons(store: store)
         } else {
           Button("Show answer") { store.revealAnswer() }
+            .frame(maxWidth: .infinity)
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
             .keyboardShortcut(.space, modifiers: [])
