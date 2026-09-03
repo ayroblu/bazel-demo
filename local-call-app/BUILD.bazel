@@ -43,7 +43,7 @@ macos_application(
     bundle_name = "Local Call App",
     entitlements = "Resources/Mac.entitlements",
     infoplists = ["Resources/MacInfo.plist"],
-    minimum_os_version = "14.0",
+    minimum_os_version = "15.0",
     visibility = ["//visibility:public"],
     deps = [":lib"],
 )

@@ -11,10 +11,19 @@ internet or shared network is required.
   for the `p2p-audio-call` bonjour service; discovery stops while the app is
   backgrounded and resumes on foreground if it was running. Tap a discovered
   device to invite it, the other side gets an accept/decline prompt.
-* Audio: an `AVAudioEngine` mic tap is resampled to 16kHz mono Int16 PCM,
-  chunked to stay under the datagram MTU, and sent as unreliable datagrams
-  over the `MCSession`. Received packets are scheduled onto an
-  `AVAudioPlayerNode`.
+* Audio: an `AVAudioEngine` mic tap is resampled to 16kHz mono Int16 PCM and
+  written to an `MCSession` byte stream, one per direction, opened when the
+  call connects. Received samples are scheduled onto an `AVAudioPlayerNode`,
+  which plays its queue in order and never catches up, so audio queued past
+  200ms of backlog is dropped until the queue is back under 80ms. That keeps
+  the delay bounded when the link stalls or the two device clocks differ.
+* Ending: a call that ends for any reason plays a short descending two tone
+  chime through the call's own route before the engine is torn down, so a
+  drop is noticed without looking at the screen.
+* Diagnostics: the Logs screen is backed by a sqlite table that survives
+  relaunch (7 day retention). While connected, a heartbeat logs bytes sent and
+  received, time since the last packet each way, playback backlog and drops,
+  so a call that dies can be read back afterwards.
 * Routing: calls follow the system default input and output until you pin a
   device in the in-call menu pickers; picking the device that currently is
   the default clears the pin, so the call follows future default changes

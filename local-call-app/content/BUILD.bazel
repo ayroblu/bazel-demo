@@ -10,5 +10,7 @@ swift_library(
     module_name = "content",
     deps = [
         "//swift-shared/Log",
+        "//swift-shared/LogDb",
+        "//swift-shared/LogUi",
     ],
 )

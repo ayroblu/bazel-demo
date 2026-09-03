@@ -13,6 +13,8 @@ class CallViewModel: ObservableObject {
   @Published var inputLevel: Float = 0
   @Published var outputLevel: Float = 0
   private var levelTask: Task<Void, Never>?
+  private var statsTask: Task<Void, Never>?
+  private var isPlayingDisconnectChime = false
   @Published var isMuted = false {
     didSet {
       audio.isMuted = isMuted
@@ -84,6 +86,7 @@ class CallViewModel: ObservableObject {
       isMuted = false
       isInCall = true
       startLevelPolling()
+      startStatsLogging()
     } catch {
       log("failed to start audio", error)
       audio.stop()
@@ -93,11 +96,55 @@ class CallViewModel: ObservableObject {
     }
   }
 
+  /// The chime plays through the call's engine and route, so the engine is
+  /// only torn down once it has finished. The timeout covers a chime that
+  /// never reports back, e.g. when the route dies with the call.
   private func stopAudio() {
-    audio.stop()
-    routes.deactivate()
+    log("call audio stopping", multipeer.callStateSummary(), playbackSummary())
     isInCall = false
     stopLevelPolling()
+    statsTask?.cancel()
+    statsTask = nil
+    guard !isPlayingDisconnectChime else { return }
+    isPlayingDisconnectChime = true
+    audio.playChime {
+      Task { @MainActor [weak self] in
+        self?.finishStopAudio()
+      }
+    }
+    Task { @MainActor [weak self] in
+      try? await Task.sleep(for: .milliseconds(1200))
+      self?.finishStopAudio()
+    }
+  }
+
+  private func finishStopAudio() {
+    guard isPlayingDisconnectChime else { return }
+    isPlayingDisconnectChime = false
+    // A mic test or a new call started while the chime was playing owns the
+    // engine now.
+    guard !isInCall, !isTestingMic else { return }
+    audio.stop()
+    routes.deactivate()
+  }
+
+  private func playbackSummary() -> String {
+    let stats = audio.playbackStats()
+    return
+      "playback backlog=\(stats.backlogMs)ms played=\(stats.playedMs)ms dropped=\(stats.droppedMs)ms"
+  }
+
+  /// A heartbeat while in a call: without it a drop leaves no trace of which
+  /// side stopped sending, or whether audio was still flowing beforehand.
+  private func startStatsLogging() {
+    statsTask?.cancel()
+    statsTask = Task { [weak self] in
+      while !Task.isCancelled {
+        try? await Task.sleep(for: .seconds(5))
+        guard let self, self.isInCall else { return }
+        log("call stats", self.multipeer.callStateSummary(), self.playbackSummary())
+      }
+    }
   }
 
   private func stopLevelPolling() {

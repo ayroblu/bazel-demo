@@ -1,9 +1,11 @@
+import Log
+import LogDb
+import LogUi
 import MultipeerConnectivity
 import SwiftUI
 
 public struct ContentView: View {
   @StateObject private var vm = CallViewModel()
-  @StateObject private var logs = AppLogStore.shared
   @Environment(\.scenePhase) private var scenePhase
 
   public init() {}
@@ -20,7 +22,7 @@ public struct ContentView: View {
       .navigationTitle(vm.isInCall ? "In Call" : "Local Call")
       .toolbar {
         NavigationLink {
-          LogsView(logs: logs)
+          LogsUi()
         } label: {
           Label("Logs", systemImage: "doc.text.magnifyingglass")
         }
@@ -32,9 +34,12 @@ public struct ContentView: View {
       guard ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" else {
         return
       }
+      initLogDb()
+      registerLogEffects(effects: [stdoutEffect, logAtomEffect])
       await vm.requestMicPermission()
     }
     .onChange(of: scenePhase) { _, phase in
+      log("scene phase", String(describing: phase), vm.multipeer.callStateSummary())
       switch phase {
       case .background:
         vm.multipeer.handleDidEnterBackground()
@@ -63,30 +68,6 @@ public struct ContentView: View {
         if let invite = vm.multipeer.pendingInvite {
           vm.multipeer.respond(invite: invite, accept: false)
         }
-      }
-    }
-  }
-}
-
-struct LogsView: View {
-  @ObservedObject var logs: AppLogStore
-
-  var body: some View {
-    List {
-      if logs.lines.isEmpty {
-        Text("No logs yet")
-          .foregroundStyle(.secondary)
-      }
-      ForEach(Array(logs.lines.enumerated()), id: \.offset) { _, line in
-        Text(line)
-          .font(.system(.caption, design: .monospaced))
-          .textSelection(.enabled)
-      }
-    }
-    .navigationTitle("Logs")
-    .toolbar {
-      Button("Clear") {
-        logs.clear()
       }
     }
   }

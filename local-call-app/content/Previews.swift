@@ -46,9 +46,3 @@ private func makeInCallWithDevicesVM() -> CallViewModel {
       .navigationTitle("In Call")
   }
 }
-
-#Preview("Logs") {
-  NavigationStack {
-    LogsView(logs: AppLogStore.shared)
-  }
-}

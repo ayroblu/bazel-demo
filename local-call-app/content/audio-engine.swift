@@ -24,18 +24,39 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
   private var preferredOutputID: AudioDeviceID?
   #endif
 
-  // MCSession .unreliable sends are datagram-like: packets larger than the
-  // link MTU (~1400 bytes on peer-to-peer wifi) are silently dropped. macOS
-  // ignores the requested tap buffer size and delivers 100ms buffers (1600
-  // samples = 3200 bytes at 16kHz), so outgoing audio must be chunked to fit.
-  private let maxSamplesPerPacket = 640  // 40ms, 1280 bytes
-
   var onOutgoingAudio: (@Sendable (Data) -> Void)?
   var isMuted = false
 
   private let levelLock = NSLock()
   private var inputPeak: Float = 0
   private var outputPeak: Float = 0
+
+  // An AVAudioPlayerNode plays its queue in order and never catches up, so
+  // every network stall or clock difference would otherwise be added to the
+  // mouth-to-ear delay permanently. Audio queued past the high water mark is
+  // dropped until the backlog is back under the low water mark, which keeps
+  // latency bounded at the cost of a glitch when the link misbehaves.
+  private let backlogHighWaterFrames = 3200  // 200ms at 16kHz
+  private let backlogLowWaterFrames = 1280  // 80ms at 16kHz
+  private let playbackLock = NSLock()
+  private var pendingFrames = 0
+  private var isDroppingBacklog = false
+  private var playbackGeneration: UInt64 = 0
+  private var droppedFrames = 0
+  private var playedFrames = 0
+  private var lastBacklogLogAt: Date?
+
+  /// Snapshot of the playback queue for the periodic call log.
+  func playbackStats() -> (backlogMs: Int, playedMs: Int, droppedMs: Int) {
+    playbackLock.lock()
+    defer { playbackLock.unlock() }
+    let msPerFrame = 1000.0 / transportSampleRate
+    return (
+      Int(Double(pendingFrames) * msPerFrame),
+      Int(Double(playedFrames) * msPerFrame),
+      Int(Double(droppedFrames) * msPerFrame)
+    )
+  }
 
   /// Peak levels (0...1) accumulated since the last call; reading resets
   /// them, so a silent or stopped stream naturally reads as zero.
@@ -218,6 +239,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
   }
 
   private func tearDownEngine() {
+    resetBacklog()
     playerNode.stop()
     engine.inputNode.removeTap(onBus: 0)
     engine.stop()
@@ -269,23 +291,24 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
     inputPeak = max(inputPeak, peak)
     levelLock.unlock()
 
-    var start = 0
-    while start < outputFrames {
-      let end = min(outputFrames, start + maxSamplesPerPacket)
-      let data = samples[start..<end].withUnsafeBytes { Data($0) }
-      onOutgoingAudio(data)
-      start = end
-    }
+    onOutgoingAudio(samples.withUnsafeBytes { Data($0) })
   }
 
   func playIncoming(_ data: Data) {
     guard isRunning else { return }
     let frameCount = AVAudioFrameCount(data.count / MemoryLayout<Int16>.size)
     guard frameCount > 0 else { return }
+    guard let generation = reserveBacklog(frames: Int(frameCount)) else { return }
     guard let outBuffer = AVAudioPCMBuffer(pcmFormat: playbackFormat, frameCapacity: frameCount)
-    else { return }
+    else {
+      releaseBacklog(frames: Int(frameCount), generation: generation)
+      return
+    }
     outBuffer.frameLength = frameCount
-    guard let floatChannel = outBuffer.floatChannelData else { return }
+    guard let floatChannel = outBuffer.floatChannelData else {
+      releaseBacklog(frames: Int(frameCount), generation: generation)
+      return
+    }
     var peak: Float = 0
     data.withUnsafeBytes { (raw: UnsafeRawBufferPointer) in
       let samples = raw.bindMemory(to: Int16.self)
@@ -298,7 +321,81 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
     levelLock.lock()
     outputPeak = max(outputPeak, peak)
     levelLock.unlock()
-    playerNode.scheduleBuffer(outBuffer)
+    playerNode.scheduleBuffer(outBuffer, completionCallbackType: .dataPlayedBack) {
+      [weak self] _ in
+      self?.releaseBacklog(frames: Int(frameCount), generation: generation)
+    }
+  }
+
+  /// Plays the disconnect chime through the call's own route, ahead of
+  /// whatever incoming audio is still queued, and reports back when it has
+  /// finished so the caller can tear the engine down afterwards.
+  func playChime(completion: @escaping @Sendable () -> Void) {
+    guard isRunning, let buffer = makeChimeBuffer(format: playbackFormat) else {
+      completion()
+      return
+    }
+    resetBacklog()
+    playerNode.stop()
+    playerNode.play()
+    playerNode.scheduleBuffer(buffer, completionCallbackType: .dataPlayedBack) { _ in
+      completion()
+    }
+  }
+
+  /// Returns the playback generation the frames were counted against, or nil
+  /// when the queue is too far behind and the audio should be dropped.
+  private func reserveBacklog(frames: Int) -> UInt64? {
+    playbackLock.lock()
+    if isDroppingBacklog && pendingFrames <= backlogLowWaterFrames {
+      isDroppingBacklog = false
+    } else if !isDroppingBacklog && pendingFrames + frames > backlogHighWaterFrames {
+      isDroppingBacklog = true
+    }
+    guard !isDroppingBacklog else {
+      droppedFrames += frames
+      let shouldLog = shouldLogBacklogLocked()
+      let backlog = pendingFrames
+      let dropped = droppedFrames
+      playbackLock.unlock()
+      if shouldLog {
+        log("playback backlog too high, dropping audio", "backlog", backlog, "dropped", dropped)
+      }
+      return nil
+    }
+    pendingFrames += frames
+    let generation = playbackGeneration
+    playbackLock.unlock()
+    return generation
+  }
+
+  private func releaseBacklog(frames: Int, generation: UInt64) {
+    playbackLock.lock()
+    if generation == playbackGeneration {
+      pendingFrames = max(0, pendingFrames - frames)
+      playedFrames += frames
+    }
+    playbackLock.unlock()
+  }
+
+  /// Buffers already scheduled are flushed when the node stops, and their
+  /// completion handlers cannot be trusted to run, so the queue accounting
+  /// starts over on a new generation.
+  private func resetBacklog() {
+    playbackLock.lock()
+    playbackGeneration &+= 1
+    pendingFrames = 0
+    isDroppingBacklog = false
+    playbackLock.unlock()
+  }
+
+  private func shouldLogBacklogLocked() -> Bool {
+    let now = Date()
+    if let lastBacklogLogAt, now.timeIntervalSince(lastBacklogLogAt) < 5 {
+      return false
+    }
+    lastBacklogLogAt = now
+    return true
   }
 }
 
