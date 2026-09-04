@@ -14,9 +14,11 @@ internet or shared network is required.
 * Audio: an `AVAudioEngine` mic tap is resampled to 16kHz mono Int16 PCM and
   written to an `MCSession` byte stream, one per direction, opened when the
   call connects. Received samples are scheduled onto an `AVAudioPlayerNode`,
-  which plays its queue in order and never catches up, so audio queued past
-  200ms of backlog is dropped until the queue is back under 80ms. That keeps
-  the delay bounded when the link stalls or the two device clocks differ.
+  which plays its queue in order and never catches up, so a stall or a clock
+  difference would be added to the delay permanently. Instead of shedding
+  audio continuously, playback runs untouched until it falls more than a
+  second behind, then skips straight to the newest audio: one discontinuity
+  rather than constant chop.
 * Ending: a call that ends for any reason plays a short descending two tone
   chime through the call's own route before the engine is torn down, so a
   drop is noticed without looking at the screen.

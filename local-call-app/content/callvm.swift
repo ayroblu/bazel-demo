@@ -178,8 +178,9 @@ class CallViewModel: ObservableObject {
 
   private func playbackSummary() -> String {
     let stats = audio.playbackStats()
-    return
-      "playback backlog=\(stats.backlogMs)ms played=\(stats.playedMs)ms dropped=\(stats.droppedMs)ms"
+    return String(
+      format: "playback backlog=%dms received=%dms skipped=%dms resyncs=%d arrivalRate=%.2f",
+      stats.backlogMs, stats.receivedMs, stats.skippedMs, stats.resyncs, stats.arrivalRate)
   }
 
   /// A heartbeat while in a call: without it a drop leaves no trace of which
