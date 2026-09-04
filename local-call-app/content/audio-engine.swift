@@ -8,6 +8,10 @@ import CoreAudio
 nonisolated final class CallAudioEngine: @unchecked Sendable {
   private let engine = AVAudioEngine()
   private let playerNode = AVAudioPlayerNode()
+  /// Plays the queue slightly fast to catch up without dropping anything.
+  /// Rate here is tempo only, the unit keeps the pitch, so a caught-up voice
+  /// sounds hurried rather than squeaky.
+  private let timePitch = AVAudioUnitTimePitch()
   private let transportSampleRate = 16000.0
   private let playbackFormat = AVAudioFormat(standardFormatWithSampleRate: 16000, channels: 1)!
   private var isRunning = false
@@ -38,6 +42,9 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
   // untouched until the delay passes this much, then skips straight to the
   // newest audio: one discontinuity instead of permanent chop.
   private let maxBacklogFrames = 16000  // 1s at 16kHz
+  /// Below this the queue is normal jitter and is left alone.
+  private let catchUpFromFrames = 3200  // 200ms at 16kHz
+  private let maxCatchUpRate: Float = 1.08
   private let playbackLock = NSLock()
   private var scheduledFrames = 0
   private var receivedFrames = 0
@@ -45,6 +52,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
   private var resyncCount = 0
   private var firstIncomingAt: Date?
   private var lastStoppedLogAt: Date?
+  private var lastRateLogAt: Date?
 
   /// Snapshot of the playback queue for the periodic call log. `arrivalRate`
   /// is incoming audio seconds per elapsed second: above 1.0 the peer is
@@ -92,6 +100,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
 
   init() {
     engine.attach(playerNode)
+    engine.attach(timePitch)
     // AVFoundation stops the engine and posts this when the active device's
     // hardware format changes or the device goes away entirely (e.g. AirPods
     // connect or disconnect mid-call). Without a restart the call goes
@@ -216,7 +225,8 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
     applyPreferredDevices()
     warnIfMacInputMuted(deviceID: engine.inputNode.auAudioUnit.deviceID)
     #endif
-    engine.connect(playerNode, to: engine.mainMixerNode, format: playbackFormat)
+    engine.connect(playerNode, to: timePitch, format: playbackFormat)
+    engine.connect(timePitch, to: engine.mainMixerNode, format: playbackFormat)
     // The input format must be re-read on every (re)start: it changes when
     // the route changes (e.g. built-in mic at 48kHz vs AirPods HFP).
     let nodeFormat = engine.inputNode.outputFormat(forBus: 0)
@@ -257,7 +267,11 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
       throw error
     }
     playerNode.play()
-    log("audio engine running", engine.isRunning, "player", playerNode.isPlaying)
+    // The time pitch unit buys catch up at the cost of its own latency, so
+    // it is worth seeing what that costs on real hardware.
+    log(
+      "audio engine running", engine.isRunning, "player", playerNode.isPlaying,
+      "time pitch latency", timePitch.latency)
   }
 
   private func tearDownEngine() {
@@ -332,6 +346,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
     guard frameCount > 0 else { return }
     noteIncoming(frames: Int(frameCount))
     skipAheadIfBehind()
+    adjustCatchUpRate()
     guard let outBuffer = AVAudioPCMBuffer(pcmFormat: playbackFormat, frameCapacity: frameCount)
     else { return }
     outBuffer.frameLength = frameCount
@@ -366,11 +381,33 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
   /// Stopping the player flushes everything still queued and resets its
   /// render clock, so playback carries on from the audio that arrives next:
   /// the delay collapses back to nothing in one step.
+  /// Catching up by playing faster keeps every word, but only works on a
+  /// backlog worth seconds at most: at 1.08x a five second stall would take
+  /// a minute to absorb, so anything past a second is skipped instead.
+  private func adjustCatchUpRate() {
+    let backlog = backlogFrames()
+    let excess = Float(backlog - catchUpFromFrames)
+    let span = Float(maxBacklogFrames - catchUpFromFrames)
+    let rate =
+      excess <= 0 ? 1 : 1 + min(maxCatchUpRate - 1, (excess / span) * (maxCatchUpRate - 1))
+    guard abs(rate - timePitch.rate) > 0.005 else { return }
+    timePitch.rate = rate
+    playbackLock.lock()
+    let shouldLog = shouldLogLocked(&lastRateLogAt)
+    playbackLock.unlock()
+    if shouldLog {
+      log(
+        "playback catch up rate", rate, "backlog",
+        Int(Double(backlog) * 1000 / transportSampleRate), "ms")
+    }
+  }
+
   private func skipAheadIfBehind() {
     let backlog = backlogFrames()
     guard backlog > maxBacklogFrames else { return }
     playerNode.stop()
     playerNode.play()
+    timePitch.rate = 1
     playbackLock.lock()
     scheduledFrames = 0
     skippedFrames += backlog
@@ -401,6 +438,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
   /// Buffers already scheduled are flushed when the node stops, and the
   /// render clock restarts, so the queue accounting starts over with it.
   private func resetPlayback() {
+    timePitch.rate = 1
     playbackLock.lock()
     scheduledFrames = 0
     playbackLock.unlock()
