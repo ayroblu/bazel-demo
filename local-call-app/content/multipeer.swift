@@ -21,7 +21,7 @@ struct PendingInvite: Identifiable {
   let handler: SendableBox<(Bool, MCSession?) -> Void>
 }
 
-private var deviceName: String {
+var deviceName: String {
   #if os(macOS)
   Host.current().localizedName ?? ProcessInfo.processInfo.hostName
   #else
@@ -30,7 +30,7 @@ private var deviceName: String {
 }
 
 class MultipeerManager: ObservableObject {
-  let peerId = MCPeerID(displayName: deviceName)
+  let peerId: MCPeerID
   let session: MCSession
   private let advertiser: MCNearbyServiceAdvertiser
   private let browser: MCNearbyServiceBrowser
@@ -50,7 +50,11 @@ class MultipeerManager: ObservableObject {
   private var streamOpenAttempts = 0
   private var connectedAt: Date?
 
-  init() {
+  /// The name is overridable so two processes on one machine can call each
+  /// other without both claiming the same host name.
+  init(name: String = deviceName) {
+    let peerId = MCPeerID(displayName: name)
+    self.peerId = peerId
     session = MCSession(peer: peerId, securityIdentity: nil, encryptionPreference: .required)
     advertiser = MCNearbyServiceAdvertiser(
       peer: peerId, discoveryInfo: nil, serviceType: callServiceType)
@@ -153,9 +157,10 @@ class MultipeerManager: ObservableObject {
     do {
       let raw = try session.startStream(withName: "audio", toPeer: peer)
       let stream = AudioOutputStream(stream: raw, peerName: peer.displayName)
+      let peerBox = SendableBox(peer)
       stream.setOnClosed { [weak self] reason in
         Task { @MainActor [weak self] in
-          self?.handleStreamClosed(reason: reason, peer: peer)
+          self?.handleStreamClosed(reason: reason, peer: peerBox.value)
         }
       }
       outgoingStream = stream
@@ -178,9 +183,10 @@ class MultipeerManager: ObservableObject {
     let inputStream = AudioInputStream(stream: stream, peerName: peer.displayName) { data in
       onData?(data)
     }
+    let peerBox = SendableBox(peer)
     inputStream.setOnClosed { [weak self] reason in
       Task { @MainActor [weak self] in
-        self?.handleStreamClosed(reason: reason, peer: peer)
+        self?.handleStreamClosed(reason: reason, peer: peerBox.value)
       }
     }
     incomingStream = inputStream
@@ -218,6 +224,7 @@ class MultipeerManager: ObservableObject {
       "peers=\(session.connectedPeers.count)",
       "out=\(out.map { "\($0.sent / 1024)kB open=\($0.isOpen) dropped=\($0.dropped / 1024)kB" } ?? "none")",
       "in=\(input.map { "\($0.received / 1024)kB open=\($0.isOpen)" } ?? "none")",
+      "inEvents=\(incomingStream?.eventCount() ?? 0)",
       "sinceSend=\(sinceSend)",
       "sinceReceive=\(sinceReceive)",
     ].joined(separator: " ")

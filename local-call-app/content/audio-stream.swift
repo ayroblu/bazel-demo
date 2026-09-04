@@ -47,16 +47,6 @@ nonisolated final class StreamThread: NSObject, @unchecked Sendable {
   }
 }
 
-struct AudioStreamStats: Sendable {
-  var bytesSent = 0
-  var bytesDropped = 0
-  var bytesReceived = 0
-  var lastSendAt: Date?
-  var lastReceiveAt: Date?
-  var isOutputOpen = false
-  var isInputOpen = false
-}
-
 /// Writes captured audio to the peer over an `MCSession` byte stream. Audio
 /// is queued from the capture thread and written on the stream thread; the
 /// queue is capped because anything older than that is stale by the time it
@@ -170,6 +160,7 @@ nonisolated final class AudioOutputStream: NSObject, StreamDelegate, @unchecked 
         return
       }
       lock.lock()
+      let isFirst = bytesSent == 0
       bytesSent += written
       lastSendAt = Date()
       let isPartial = written < chunk.count
@@ -177,6 +168,9 @@ nonisolated final class AudioOutputStream: NSObject, StreamDelegate, @unchecked 
         pending = chunk.suffix(from: chunk.startIndex + written) + pending
       }
       lock.unlock()
+      if isFirst {
+        log("audio stream first bytes written", peerName, written)
+      }
       if isPartial {
         return
       }
@@ -217,6 +211,7 @@ nonisolated final class AudioInputStream: NSObject, StreamDelegate, @unchecked S
   private var leftover: UInt8?
   private let lock = NSLock()
   private var bytesReceived = 0
+  private var byteEvents = 0
   private var lastReceiveAt: Date?
   private var isOpen = false
   private var onClosed: (@Sendable (String) -> Void)?
@@ -265,31 +260,44 @@ nonisolated final class AudioInputStream: NSObject, StreamDelegate, @unchecked S
     return (bytesReceived, lastReceiveAt, isOpen)
   }
 
+  /// Exposed because events stopping while bytes keep arriving is the exact
+  /// shape of the failure this class had.
+  func eventCount() -> Int {
+    lock.lock()
+    defer { lock.unlock() }
+    return byteEvents
+  }
+
+  /// Exactly one read per event. Draining the stream in a loop here stops
+  /// MCSession delivering any further events, so the audio silently ends
+  /// while the session stays connected and the peer keeps writing.
   private func readAvailable() {
-    while stream.hasBytesAvailable {
-      let count = stream.read(&scratch, maxLength: scratch.count)
-      guard count > 0 else {
-        if count < 0 {
-          log("audio stream read failed", peerName, String(describing: stream.streamError))
-        }
-        return
+    let count = stream.read(&scratch, maxLength: scratch.count)
+    guard count > 0 else {
+      if count < 0 {
+        log("audio stream read failed", peerName, String(describing: stream.streamError))
       }
-      lock.lock()
-      bytesReceived += count
-      lastReceiveAt = Date()
-      lock.unlock()
-      var data = Data()
-      if let leftover {
-        data.append(leftover)
-        self.leftover = nil
-      }
-      data.append(contentsOf: scratch[0..<count])
-      if data.count % 2 == 1 {
-        leftover = data.removeLast()
-      }
-      if !data.isEmpty {
-        onData(data)
-      }
+      return
+    }
+    lock.lock()
+    let isFirst = bytesReceived == 0
+    bytesReceived += count
+    lastReceiveAt = Date()
+    lock.unlock()
+    if isFirst {
+      log("audio stream first bytes read", peerName, count)
+    }
+    var data = Data()
+    if let leftover {
+      data.append(leftover)
+      self.leftover = nil
+    }
+    data.append(contentsOf: scratch[0..<count])
+    if data.count % 2 == 1 {
+      leftover = data.removeLast()
+    }
+    if !data.isEmpty {
+      onData(data)
     }
   }
 
@@ -301,6 +309,9 @@ nonisolated final class AudioInputStream: NSObject, StreamDelegate, @unchecked S
       lock.unlock()
       log("audio stream in opened", peerName)
     case .hasBytesAvailable:
+      lock.lock()
+      byteEvents += 1
+      lock.unlock()
       readAvailable()
     case .errorOccurred:
       let reason = "in error \(String(describing: stream.streamError))"

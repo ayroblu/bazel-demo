@@ -45,6 +45,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
   private var droppedFrames = 0
   private var playedFrames = 0
   private var lastBacklogLogAt: Date?
+  private var lastStoppedLogAt: Date?
 
   /// Snapshot of the playback queue for the periodic call log.
   func playbackStats() -> (backlogMs: Int, playedMs: Int, droppedMs: Int) {
@@ -236,6 +237,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
       throw error
     }
     playerNode.play()
+    log("audio engine running", engine.isRunning, "player", playerNode.isPlaying)
   }
 
   private func tearDownEngine() {
@@ -295,7 +297,17 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
   }
 
   func playIncoming(_ data: Data) {
-    guard isRunning else { return }
+    guard isRunning else {
+      // Audio arriving while the engine is down is silent by definition, and
+      // has to be visible or it looks the same as a peer sending nothing.
+      playbackLock.lock()
+      let shouldLog = shouldLogLocked(&lastStoppedLogAt)
+      playbackLock.unlock()
+      if shouldLog {
+        log("received audio while engine stopped, discarding", data.count)
+      }
+      return
+    }
     let frameCount = AVAudioFrameCount(data.count / MemoryLayout<Int16>.size)
     guard frameCount > 0 else { return }
     guard let generation = reserveBacklog(frames: Int(frameCount)) else { return }
@@ -354,7 +366,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
     }
     guard !isDroppingBacklog else {
       droppedFrames += frames
-      let shouldLog = shouldLogBacklogLocked()
+      let shouldLog = shouldLogLocked(&lastBacklogLogAt)
       let backlog = pendingFrames
       let dropped = droppedFrames
       playbackLock.unlock()
@@ -389,12 +401,14 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
     playbackLock.unlock()
   }
 
-  private func shouldLogBacklogLocked() -> Bool {
+  /// Both dropping paths repeat every 100ms while they last, so each gets its
+  /// own 5 second throttle rather than silencing the other.
+  private func shouldLogLocked(_ lastLoggedAt: inout Date?) -> Bool {
     let now = Date()
-    if let lastBacklogLogAt, now.timeIntervalSince(lastBacklogLogAt) < 5 {
+    if let lastLoggedAt, now.timeIntervalSince(lastLoggedAt) < 5 {
       return false
     }
-    lastBacklogLogAt = now
+    lastLoggedAt = now
     return true
   }
 }

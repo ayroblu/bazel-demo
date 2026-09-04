@@ -1,0 +1,12 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_binary")
+load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
+
+swift_binary(
+    name = "harness",
+    srcs = ["main.swift"],
+    copts = STRICT_MAINACTOR_COPTS,
+    deps = [
+        "//local-call-app/content",
+        "//swift-shared/Log",
+    ],
+)

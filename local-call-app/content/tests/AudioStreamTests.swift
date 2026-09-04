@@ -38,6 +38,38 @@ final class AudioStreamTests: XCTestCase {
     input.close()
   }
 
+  func testAudioStreamSustainsContinuousAudio() {
+    // A call writes 3200 bytes every 100ms for its whole life, so reading has
+    // to keep up indefinitely, not just for the first buffer.
+    let (rawInput, rawOutput) = boundPair(bufferSize: 8192)
+    let total = 32000
+    let received = Received()
+    let gotAll = expectation(description: "received the whole run")
+    let input = AudioInputStream(stream: rawInput, peerName: "peer") { data in
+      if received.append(data) >= total {
+        gotAll.fulfill()
+      }
+    }
+    let output = AudioOutputStream(stream: rawOutput, peerName: "peer")
+
+    let chunk = Data(repeating: 3, count: 1600)
+    var writes = 0
+    let timer = Timer.scheduledTimer(withTimeInterval: 0.02, repeats: true) { timer in
+      output.send(chunk)
+      writes += 1
+      if writes == total / chunk.count {
+        timer.invalidate()
+      }
+    }
+    wait(for: [gotAll], timeout: 10)
+    timer.invalidate()
+
+    XCTAssertEqual(received.bytes().count, total)
+    XCTAssertEqual(input.stats().received, total)
+    output.close()
+    input.close()
+  }
+
   func testAudioStreamDropsBacklogWhenPeerStops() {
     // Nothing reads the input side, so the writer fills up and the send queue
     // has to shed the oldest audio instead of growing without bound.

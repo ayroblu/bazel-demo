@@ -34,6 +34,9 @@ internet or shared network is required.
   `AVAudioEngineConfigurationChange` so switching devices mid-call keeps the
   audio flowing.
 
+Two processes on one Mac can call each other without any devices, see
+`harness/README.md`.
+
 ## Building
 
 ```sh
