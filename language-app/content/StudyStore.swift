@@ -304,7 +304,10 @@ public final class StudyStore {
   public func addExtraCardsToday(_ count: Int, now: Date = Date()) {
     guard count > 0 else { return }
     rolloverIfNeeded(now: now)
-    daily.extraAllowance += count
+    // Lowering the daily limit mid day can leave more cards introduced than the limit
+    // allows, so cover that overshoot first or the extras are swallowed by it.
+    let overshoot = max(0, daily.introduced - (newCardsPerDay + daily.extraAllowance))
+    daily.extraAllowance += overshoot + count
     saveDaily()
     advanceToNextCard(now: now)
   }

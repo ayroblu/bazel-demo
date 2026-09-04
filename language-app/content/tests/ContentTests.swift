@@ -643,6 +643,24 @@ private let middayToday = SchedulerCalendar().startOfDay(for: Date()).addingTime
 }
 
 @MainActor
+@Test func extraCardsStillArriveAfterLoweringTheLimitBelowTodaysIntroduced() throws {
+  let deck = try numberedDeck(8)
+  let defaults = try #require(UserDefaults(suiteName: "extra-lowered-\(UUID().uuidString)"))
+  let store = StudyStore(deck: deck, defaults: defaults)
+  store.newCardsPerDay = 4
+  for _ in 0..<4 { store.grade(.easy, now: middayToday) }
+  #expect(store.isDayComplete)
+
+  store.newCardsPerDay = 2
+  store.addExtraCardsToday(2, now: middayToday)
+  #expect(!store.isDayComplete)
+  #expect(store.counts.new == 2)
+
+  store.advanceToNextCard(now: middayToday.addingTimeInterval(86_400))
+  #expect(store.counts.new == 2)
+}
+
+@MainActor
 @Test func dayCompletionAndLimitSurviveReopeningTheDeck() throws {
   let deck = try numberedDeck(3)
   let suite = "reopen-\(UUID().uuidString)"
