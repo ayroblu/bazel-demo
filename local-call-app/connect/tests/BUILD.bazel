@@ -7,9 +7,9 @@ swift_library(
     testonly = True,
     srcs = glob(["*.swift"]),
     copts = STRICT_NONISOLATED_COPTS,
-    module_name = "content_tests",
+    module_name = "connect_tests",
     deps = [
-        "//local-call-app/content",
+        "//local-call-app/connect",
     ],
 )
 

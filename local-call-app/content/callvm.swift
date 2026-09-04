@@ -1,9 +1,11 @@
 import AVFoundation
 import Log
-import MultipeerConnectivity
+import connect
 
 class CallViewModel: ObservableObject {
-  let multipeer = MultipeerManager()
+  static let shared = CallViewModel()
+
+  let transport = PeerTransport()
   let routes = AudioRouteController()
   private let audio = CallAudioEngine()
 
@@ -15,32 +17,109 @@ class CallViewModel: ObservableObject {
   private var levelTask: Task<Void, Never>?
   private var statsTask: Task<Void, Never>?
   private var isPlayingDisconnectChime = false
+  let connect = ConnectManager.shared
+  /// A call CallKit owns: it rings, it owns the audio session, and it decides
+  /// when the engine may start.
+  private var isSystemCall = false
+  private var isSystemAudioActive = false
+  private var isApplyingSystemMute = false
   @Published var isMuted = false {
     didSet {
       audio.isMuted = isMuted
+      guard isSystemCall, !isApplyingSystemMute else { return }
+      connect.setMuted(isMuted)
     }
   }
 
   init() {
-    audio.onOutgoingAudio = multipeer.makeSender()
+    audio.onOutgoingAudio = transport.makeSender()
     let audioBox = SendableBox(audio)
-    multipeer.onAudioData = { data in
+    transport.onAudioData = { data in
       audioBox.value.playIncoming(data)
     }
-    multipeer.onCallStarted = { [weak self] in
-      self?.startAudio()
+    transport.onCallStarted = { [weak self] in
+      self?.handleTransportConnected()
     }
-    multipeer.onCallEnded = { [weak self] in
-      self?.stopAudio()
+    transport.onCallEnded = { [weak self] in
+      self?.handleTransportEnded()
     }
     routes.onInterruption = { [weak self] began in
       self?.handleInterruption(began: began)
     }
-    #if os(macOS)
-    routes.onDevicesChanged = { [weak self] input, output in
-      self?.audio.setPreferredDevices(input: input, output: output)
+    connect.onStartTransport = { [weak self] peerName, invites in
+      guard let self else { return }
+      self.isSystemCall = true
+      try? self.routes.adopt()
+      self.transport.beginAutoConnect(to: peerName, invites: invites)
     }
-    #endif
+    connect.onStopTransport = { [weak self] in
+      guard let self else { return }
+      self.transport.cancelAutoConnect()
+      self.transport.disconnect()
+      self.isSystemCall = false
+      self.isSystemAudioActive = false
+      self.stopAudio()
+    }
+    connect.onAudioActivated = { [weak self] in
+      self?.startSystemAudio()
+    }
+    connect.onAudioDeactivated = { [weak self] in
+      self?.isSystemAudioActive = false
+    }
+    connect.onMute = { [weak self] muted in
+      guard let self else { return }
+      self.isApplyingSystemMute = true
+      self.isMuted = muted
+      self.isApplyingSystemMute = false
+    }
+  }
+
+  func startConnectServices() {
+    connect.start()
+  }
+
+  func setConnectScanning(_ scanning: Bool) {
+    connect.setScanning(scanning)
+  }
+
+  private func handleTransportConnected() {
+    if isSystemCall {
+      connect.transportDidConnect()
+      // The transport can come up while the call is still ringing, so the
+      // engine waits for CallKit to hand over the audio session.
+      if isSystemAudioActive, !audio.isActive {
+        startAudio()
+      }
+      return
+    }
+    startAudio()
+  }
+
+  private func handleTransportEnded() {
+    if isSystemCall {
+      connect.transportDidEnd()
+      return
+    }
+    stopAudio()
+  }
+
+  private func startSystemAudio() {
+    isSystemAudioActive = true
+    guard isSystemCall, !audio.isActive else { return }
+    startAudio()
+  }
+
+  private func activateRoute() throws {
+    if isSystemCall {
+      try routes.adopt()
+    } else {
+      try routes.activate()
+    }
+  }
+
+  private func deactivateRoute() {
+    guard !isSystemCall else { return }
+    routes.deactivate()
   }
 
   /// The system stops the engine and deactivates the session when another app
@@ -66,7 +145,7 @@ class CallViewModel: ObservableObject {
   private func resumeAudio(attempt: Int) {
     guard isInCall || isTestingMic, !audio.isActive else { return }
     do {
-      try routes.activate()
+      try activateRoute()
       try audio.start()
       log("call audio resumed", "attempt", attempt)
     } catch {
@@ -127,7 +206,7 @@ class CallViewModel: ObservableObject {
     // An incoming call can connect mid-test; hand the engine over cleanly.
     stopMicTest()
     do {
-      try routes.activate()
+      try activateRoute()
       log("call audio route activated")
       try audio.start()
       log("call audio started")
@@ -138,9 +217,9 @@ class CallViewModel: ObservableObject {
     } catch {
       log("failed to start audio", error)
       audio.stop()
-      routes.deactivate()
+      deactivateRoute()
       isInCall = false
-      multipeer.disconnect(statusMessage: "Connected, but audio failed to start: \(error.localizedDescription)")
+      transport.disconnect(statusMessage: "Connected, but audio failed to start: \(error.localizedDescription)")
     }
   }
 
@@ -148,7 +227,7 @@ class CallViewModel: ObservableObject {
   /// only torn down once it has finished. The timeout covers a chime that
   /// never reports back, e.g. when the route dies with the call.
   private func stopAudio() {
-    log("call audio stopping", multipeer.callStateSummary(), playbackSummary())
+    log("call audio stopping", transport.callStateSummary(), playbackSummary())
     isInCall = false
     stopLevelPolling()
     statsTask?.cancel()
@@ -173,7 +252,7 @@ class CallViewModel: ObservableObject {
     // engine now.
     guard !isInCall, !isTestingMic else { return }
     audio.stop()
-    routes.deactivate()
+    deactivateRoute()
   }
 
   private func playbackSummary() -> String {
@@ -191,7 +270,7 @@ class CallViewModel: ObservableObject {
       while !Task.isCancelled {
         try? await Task.sleep(for: .seconds(5))
         guard let self, self.isInCall else { return }
-        log("call stats", self.multipeer.callStateSummary(), self.playbackSummary())
+        log("call stats", self.transport.callStateSummary(), self.playbackSummary())
       }
     }
   }
@@ -220,7 +299,12 @@ class CallViewModel: ObservableObject {
   }
 
   func endCall() {
-    multipeer.disconnect()
+    if isSystemCall {
+      // CallKit has to end it, or the system call UI outlives the call.
+      connect.endCall()
+      return
+    }
+    transport.disconnect()
     stopAudio()
   }
 }

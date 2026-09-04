@@ -9,7 +9,6 @@ struct AudioOption: Identifiable, Hashable {
 nonisolated let isRunningInPreview =
   ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
 
-#if os(iOS)
 import AVFoundation
 import Log
 
@@ -67,13 +66,24 @@ class AudioRouteController: ObservableObject {
     }
   }
 
-  func activate() throws {
-    // .defaultToSpeaker only applies when the receiver would otherwise be
-    // chosen; connected AirPods or headphones still win, and we no longer
-    // force an override to the speaker on call start.
+  /// .defaultToSpeaker only applies when the receiver would otherwise be
+  /// chosen; connected AirPods or headphones still win, and we no longer
+  /// force an override to the speaker on call start.
+  func configure() throws {
     try session.setCategory(
       .playAndRecord, mode: .voiceChat, options: [.allowBluetoothHFP, .defaultToSpeaker])
+  }
+
+  func activate() throws {
+    try configure()
     try session.setActive(true)
+    refresh()
+  }
+
+  /// CallKit owns the session for a CallKit call: it activates it for us and
+  /// deactivates it when the call ends, so we only configure and read it.
+  func adopt() throws {
+    try configure()
     refresh()
   }
 
@@ -158,4 +168,3 @@ class AudioRouteController: ObservableObject {
     refresh()
   }
 }
-#endif

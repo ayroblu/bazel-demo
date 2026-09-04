@@ -1,19 +1,35 @@
 Local Call App
 ===============
 
-An offline audio call app for nearby iPhones and Macs. It uses MultipeerConnectivity,
-which connects devices directly over peer-to-peer wifi and bluetooth, so no
-internet or shared network is required.
+An offline audio call app for nearby iPhones and iPads. Signalling runs over
+bluetooth LE and audio over peer-to-peer wifi, so no internet or shared
+network is required. The wifi radio does have to be on, because peer-to-peer
+wifi is what carries the audio between devices that share no network.
 
 ## How it works
 
-* Discovery: pressing "Search for nearby devices" both advertises and browses
-  for the `p2p-audio-call` bonjour service; discovery stops while the app is
-  backgrounded and resumes on foreground if it was running. Tap a discovered
-  device to invite it, the other side gets an accept/decline prompt.
-* Audio: an `AVAudioEngine` mic tap is resampled to 16kHz mono Int16 PCM and
-  written to an `MCSession` byte stream, one per direction, opened when the
-  call connects. Received samples are scheduled onto an `AVAudioPlayerNode`,
+* Paired calling (iOS): the `connect` module keeps a small bluetooth LE
+  service advertised at all times, which iOS keeps doing in the background and
+  restores after termination, so a write from a paired device relaunches the
+  app and rings it through CallKit with no button pressed on either side.
+  Pair once from the lobby while both apps are open; after that a paired
+  device shows as in range and can be called straight away. Scanning is the
+  expensive half of bluetooth and only runs in the foreground, which is where
+  a caller always is. Once the call is answered the audio runs over the wifi
+  transport: the bluetooth link only carries invite, cancel, answer, decline,
+  busy and silenced, each signed with the secret exchanged at pairing.
+  CallKit owns the audio session for these calls, so the engine starts when it
+  hands the session over and stops when it takes it back.
+* Discovery: the `p2p-audio-call` bonjour service is advertised and browsed
+  only while a call is being set up, and a connection is accepted only from
+  the peer the bluetooth side named. There is no manual device list: a device
+  has to be paired before it can be called.
+* Audio: an `AVAudioEngine` mic tap with voice processing on, for the system's
+  echo cancellation and automatic gain control, is resampled to 16kHz mono
+  Int16 PCM and written to an `NWConnection` carrying both directions. It is
+  a TLS connection keyed by a pre-shared key built into the app, which
+  encrypts the call without authenticating the peer. Received samples are
+  scheduled onto an `AVAudioPlayerNode`,
   which plays its queue in order and never catches up on its own, so a stall
   or a clock difference would be added to the delay permanently. Past 200ms
   behind, playback speeds up smoothly to at most 1.08x through an
@@ -30,24 +46,24 @@ internet or shared network is required.
 * Routing: calls follow the system default input and output until you pin a
   device in the in-call menu pickers; picking the device that currently is
   the default clears the pin, so the call follows future default changes
-  (e.g. AirPods auto-switching) again. On iOS inputs come from
+  (e.g. AirPods auto-switching) again. Inputs come from
   `AVAudioSession.availableInputs` and the output picker offers
-  automatic/speaker; on macOS both pickers list CoreAudio devices and pin the
-  `AVAudioEngine` IO units directly. The engine restarts itself on
+  automatic/speaker. The engine restarts itself on
   `AVAudioEngineConfigurationChange` so switching devices mid-call keeps the
   audio flowing.
-
-Two processes on one Mac can call each other without any devices, see
-`harness/README.md`.
 
 ## Building
 
 ```sh
 bazel build //local-call-app
-bazel build //local-call-app:macos_app
-bazel run //local-call-app:macos
+bazel test //local-call-app/connect/tests //local-call-app/content/tests
 bazel run //local-call-app:xcodeproj && xed local-call-app.xcodeproj
 ```
+
+The app is iOS and iPadOS only: CallKit does not exist on macOS. Its modules
+only build in an iOS configuration, so name test targets explicitly rather
+than using `//local-call-app/...`, and the tests run on a simulator rather
+than the host.
 
 After updating Xcode, Bazel's cached toolchain config can point at SDKs that no
 longer exist (errors like "SDK ... cannot be located" or "'<build>' is not an
@@ -65,8 +81,8 @@ The `<workspace-hash>` directory is visible in any failing build's error output,
 or via `bazel info output_base` (it's the sibling `rules_xcodeproj.noindex`
 directory).
 
-MultipeerConnectivity and the microphone don't work in the iOS simulator, so run
-the iOS app on physical devices. To install on a device, add a
+Peer-to-peer wifi, bluetooth and the microphone don't work in the
+simulator, so run the app on physical devices. To install on a device, add a
 `provisioning_profile` for the `com.ayroblu.local-call-app` bundle id to the
 `ios_application` target, same as g1-app:
 
@@ -76,4 +92,7 @@ the iOS app on physical devices. To install on a device, add a
 
 Both devices need wifi and bluetooth enabled (airplane mode with them toggled
 back on is fine), and the app must be granted microphone and local network
-permissions on first launch.
+permissions on first launch. Local network permission cannot be granted from
+the background, so the app has to be opened once before paired calling works.
+Force quitting the app also stops it being relaunched for a call, which is a
+system rule no background mode gets around.

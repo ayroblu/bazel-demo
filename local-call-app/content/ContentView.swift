@@ -1,11 +1,24 @@
 import Log
 import LogDb
 import LogUi
-import MultipeerConnectivity
 import SwiftUI
+import connect
+
+private var didStartConnectServices = false
+
+/// Called from the app delegate, including a launch into the background
+/// triggered by a paired device ringing us over bluetooth.
+public func startConnectServices() {
+  guard !isRunningInPreview, !didStartConnectServices else { return }
+  didStartConnectServices = true
+  initLogDb()
+  registerLogEffects(effects: [stdoutEffect, logAtomEffect])
+  CallViewModel.shared.startConnectServices()
+}
 
 public struct ContentView: View {
-  @StateObject private var vm = CallViewModel()
+  @StateObject private var vm = CallViewModel.shared
+  @StateObject private var connect = ConnectManager.shared
   @Environment(\.scenePhase) private var scenePhase
 
   public init() {}
@@ -13,13 +26,13 @@ public struct ContentView: View {
   public var body: some View {
     NavigationStack {
       Group {
-        if vm.isInCall {
+        if vm.isInCall, !connect.state.isRinging {
           InCallView(vm: vm)
         } else {
           LobbyView(vm: vm)
         }
       }
-      .navigationTitle(vm.isInCall ? "In Call" : "Local Call")
+      .navigationTitle(connect.state.isRinging ? "Calling" : vm.isInCall ? "In Call" : "Local Call")
       .toolbar {
         NavigationLink {
           LogsUi()
@@ -34,55 +47,38 @@ public struct ContentView: View {
       guard ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" else {
         return
       }
-      initLogDb()
-      registerLogEffects(effects: [stdoutEffect, logAtomEffect])
+      startConnectServices()
+      vm.setConnectScanning(true)
       await vm.requestMicPermission()
     }
     .onChange(of: scenePhase) { _, phase in
-      log("scene phase", String(describing: phase), vm.multipeer.callStateSummary())
+      log("scene phase", String(describing: phase), vm.transport.callStateSummary())
       switch phase {
       case .background:
-        vm.multipeer.handleDidEnterBackground()
+        vm.transport.handleDidEnterBackground()
+        vm.setConnectScanning(false)
       case .active:
-        vm.multipeer.handleWillEnterForeground()
+        vm.setConnectScanning(true)
         vm.resumeAudioIfStopped()
       default:
         break
       }
     }
-    .alert(
-      "Incoming call from \(vm.multipeer.pendingInvite?.peer.displayName ?? "")",
-      isPresented: Binding(
-        get: { vm.multipeer.pendingInvite != nil },
-        set: { isPresented in
-          if !isPresented, let invite = vm.multipeer.pendingInvite {
-            vm.multipeer.respond(invite: invite, accept: false)
-          }
-        })
-    ) {
-      Button("Accept") {
-        if let invite = vm.multipeer.pendingInvite {
-          vm.multipeer.respond(invite: invite, accept: true)
-        }
-      }
-      Button("Decline", role: .cancel) {
-        if let invite = vm.multipeer.pendingInvite {
-          vm.multipeer.respond(invite: invite, accept: false)
-        }
-      }
-    }
+    .callSilencedAlert(connect)
   }
 }
 
 struct LobbyView: View {
   @ObservedObject var vm: CallViewModel
-  @ObservedObject var multipeer: MultipeerManager
+  @ObservedObject var transport: PeerTransport
   @ObservedObject var routes: AudioRouteController
+  @ObservedObject var connect: ConnectManager
 
   init(vm: CallViewModel) {
     self.vm = vm
-    self.multipeer = vm.multipeer
+    self.transport = vm.transport
     self.routes = vm.routes
+    self.connect = vm.connect
   }
 
   var body: some View {
@@ -95,65 +91,13 @@ struct LobbyView: View {
           .foregroundStyle(.red)
         }
       }
-      Section("This device") {
-        Label(multipeer.peerId.displayName, systemImage: "iphone")
-      }
-      if let status = multipeer.statusMessage {
+      ConnectSections(connect: connect)
+      if let status = transport.statusMessage {
         Section {
           Text(status)
             .font(.footnote)
             .foregroundStyle(.secondary)
         }
-      }
-      Section("Nearby devices") {
-        if !multipeer.isDiscovering {
-          Button {
-            multipeer.startDiscovery()
-          } label: {
-            Label(
-              "Search for nearby devices",
-              systemImage: "antenna.radiowaves.left.and.right")
-          }
-        } else if multipeer.discoveredPeers.isEmpty {
-          HStack {
-            ProgressView()
-            Text("Searching for nearby devices…")
-              .foregroundStyle(.secondary)
-          }
-        }
-        ForEach(multipeer.discoveredPeers, id: \.self) { peer in
-          Button {
-            multipeer.invite(peer: peer)
-          } label: {
-            HStack {
-              Label(
-                peer.displayName,
-                systemImage: multipeer.pendingInvite?.peer == peer
-                  ? "phone.arrow.down.left" : "phone.arrow.up.right")
-              Spacer()
-              if multipeer.connectingPeer == peer {
-                ProgressView()
-              } else if multipeer.pendingInvite?.peer == peer {
-                Text("Accept")
-                  .foregroundStyle(.green)
-              }
-            }
-          }
-          .disabled(multipeer.connectingPeer != nil && multipeer.connectingPeer != peer)
-        }
-        if multipeer.isDiscovering {
-          Button("Stop searching", role: .cancel) {
-            multipeer.stopDiscovery()
-          }
-          .foregroundStyle(.secondary)
-        }
-      }
-      Section {
-        Text(
-          "Both devices need this app open and searching, works over bluetooth and peer-to-peer wifi"
-        )
-        .font(.footnote)
-        .foregroundStyle(.secondary)
       }
       if vm.isTestingMic {
         Section("Mic test") {
@@ -179,17 +123,18 @@ struct LobbyView: View {
         }
       }
     }
+    .pairRequestAlert(connect)
   }
 }
 
 struct InCallView: View {
   @ObservedObject var vm: CallViewModel
-  @ObservedObject var multipeer: MultipeerManager
+  @ObservedObject var transport: PeerTransport
   @ObservedObject var routes: AudioRouteController
 
   init(vm: CallViewModel) {
     self.vm = vm
-    self.multipeer = vm.multipeer
+    self.transport = vm.transport
     self.routes = vm.routes
   }
 
@@ -199,7 +144,7 @@ struct InCallView: View {
         HStack {
           Image(systemName: "waveform")
             .foregroundStyle(.green)
-          Text(multipeer.connectedPeer?.displayName ?? "Connected")
+          Text(transport.connectedPeer?.name ?? "Connected")
             .font(.headline)
         }
       }

@@ -1,5 +1,5 @@
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
-load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
+load("@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_runner.bzl", "ios_xctestrun_runner")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
 load("//swift-shared:swift-ide.bzl", "ide")
@@ -37,25 +37,16 @@ ios_application(
     deps = [":lib"],
 )
 
-macos_application(
-    name = "macos_app",
-    bundle_id = "com.ayroblu.local-call-app.macos",
-    bundle_name = "Local Call App",
-    entitlements = "Resources/Mac.entitlements",
-    infoplists = ["Resources/MacInfo.plist"],
-    minimum_os_version = "15.0",
-    visibility = ["//visibility:public"],
-    deps = [":lib"],
-)
-
-sh_binary(
-    name = "macos",
-    srcs = ["run-macos.sh"],
-    data = [":macos_app"],
+# Tests run on a simulator: the app is iOS only, so its modules cannot be
+# built for the host.
+ios_xctestrun_runner(
+    name = "test_runner",
+    device_type = "iPhone 17",
+    random = True,
+    visibility = ["//local-call-app:__subpackages__"],
 )
 
 ide(
-    macos_xcode_targets = [":macos_app"],
     targets = ["//local-call-app"],
     xcode_project_name = "local-call-app",
     xcode_targets = [":local-call-app"],

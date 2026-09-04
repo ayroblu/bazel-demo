@@ -4,14 +4,11 @@ load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
 package(default_visibility = ["//local-call-app:__subpackages__"])
 
 swift_library(
-    name = "content",
+    name = "connect",
     srcs = glob(["*.swift"]),
     copts = STRICT_MAINACTOR_COPTS,
-    module_name = "content",
+    module_name = "connect",
     deps = [
-        "//local-call-app/connect",
         "//swift-shared/Log",
-        "//swift-shared/LogDb",
-        "//swift-shared/LogUi",
     ],
 )

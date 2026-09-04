@@ -9,13 +9,15 @@
 		<key>NSBonjourServices</key>
 		<array>
 			<string>_p2p-audio-call._tcp</string>
-			<string>_p2p-audio-call._udp</string>
 		</array>
 		<key>NSBluetoothAlwaysUsageDescription</key>
 		<string>Bluetooth is used to discover and connect to nearby iPhones for offline calls</string>
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>audio</string>
+			<string>voip</string>
+			<string>bluetooth-central</string>
+			<string>bluetooth-peripheral</string>
 		</array>
 
 		<key>ITSAppUsesNonExemptEncryption</key>
