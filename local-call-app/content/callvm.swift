@@ -33,11 +33,59 @@ class CallViewModel: ObservableObject {
     multipeer.onCallEnded = { [weak self] in
       self?.stopAudio()
     }
+    routes.onInterruption = { [weak self] began in
+      self?.handleInterruption(began: began)
+    }
     #if os(macOS)
     routes.onDevicesChanged = { [weak self] input, output in
       self?.audio.setPreferredDevices(input: input, output: output)
     }
     #endif
+  }
+
+  /// The system stops the engine and deactivates the session when another app
+  /// takes it, and never gives it back on its own. Stopping cleanly also ends
+  /// the engine's own restart attempts, which cannot succeed while the session
+  /// belongs to somebody else.
+  private func handleInterruption(began: Bool) {
+    guard isInCall || isTestingMic else { return }
+    if began {
+      // The session is already gone by the time this arrives, so stopping is
+      // bookkeeping, not a choice. A call should not lose to another app's
+      // audio though, so ask for the session straight back, which stops
+      // whatever took it. A mic test is not worth fighting for.
+      log("call audio interrupted, stopping engine")
+      audio.stop()
+      guard isInCall else { return }
+      resumeAudio(attempt: 1)
+      return
+    }
+    resumeAudio(attempt: 1)
+  }
+
+  private func resumeAudio(attempt: Int) {
+    guard isInCall || isTestingMic, !audio.isActive else { return }
+    do {
+      try routes.activate()
+      try audio.start()
+      log("call audio resumed", "attempt", attempt)
+    } catch {
+      log("call audio resume failed", "attempt", attempt, error)
+      // The other app can hold the session briefly after handing it back.
+      guard attempt < 5 else { return }
+      Task { @MainActor [weak self] in
+        try? await Task.sleep(for: .milliseconds(500))
+        self?.resumeAudio(attempt: attempt + 1)
+      }
+    }
+  }
+
+  /// The interruption ended notification does not always arrive, so returning
+  /// to the app is a second chance to notice the audio is dead.
+  func resumeAudioIfStopped() {
+    guard isInCall || isTestingMic, !audio.isActive else { return }
+    log("call audio stopped on foreground, resuming")
+    resumeAudio(attempt: 1)
   }
 
   func requestMicPermission() async {

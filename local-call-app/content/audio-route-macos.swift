@@ -22,6 +22,9 @@ class AudioRouteController: ObservableObject {
   /// effective devices may have changed.
   var onDevicesChanged: ((AudioDeviceID?, AudioDeviceID?) -> Void)?
 
+  /// Never called: CoreAudio has no session for another app to take.
+  var onInterruption: ((Bool) -> Void)?
+
   init() {
     guard !isRunningInPreview else { return }
     refresh()

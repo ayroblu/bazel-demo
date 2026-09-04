@@ -45,6 +45,7 @@ public struct ContentView: View {
         vm.multipeer.handleDidEnterBackground()
       case .active:
         vm.multipeer.handleWillEnterForeground()
+        vm.resumeAudioIfStopped()
       default:
         break
       }

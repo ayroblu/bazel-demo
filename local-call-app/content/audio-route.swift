@@ -34,12 +34,35 @@ class AudioRouteController: ObservableObject {
   private var automaticOutputName: String?
   private var automaticIsSpeaker = true
 
+  /// Called with true when another app takes the audio session, false when it
+  /// hands it back.
+  var onInterruption: ((Bool) -> Void)?
+
   init() {
     NotificationCenter.default.addObserver(
       forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main
     ) { [weak self] _ in
       Task { @MainActor in
         self?.refresh()
+      }
+    }
+    // A .playAndRecord session does not mix, so any app that starts playing
+    // audio takes the session, stops our engine and leaves it stopped. The
+    // call is silent both ways until we ask for the session back.
+    NotificationCenter.default.addObserver(
+      forName: AVAudioSession.interruptionNotification, object: nil, queue: .main
+    ) { [weak self] note in
+      guard
+        let raw = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
+        let type = AVAudioSession.InterruptionType(rawValue: raw)
+      else { return }
+      let options = (note.userInfo?[AVAudioSessionInterruptionOptionKey] as? UInt).map(
+        AVAudioSession.InterruptionOptions.init(rawValue:))
+      log(
+        "audio session interruption", type == .began ? "began" : "ended", "shouldResume",
+        options?.contains(.shouldResume) ?? false)
+      Task { @MainActor in
+        self?.onInterruption?(type == .began)
       }
     }
   }

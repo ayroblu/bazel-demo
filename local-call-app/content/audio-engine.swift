@@ -11,6 +11,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
   private let transportSampleRate = 16000.0
   private let playbackFormat = AVAudioFormat(standardFormatWithSampleRate: 16000, channels: 1)!
   private var isRunning = false
+  var isActive: Bool { isRunning }
   private var configChangeObserver: NSObjectProtocol?
 
   #if os(iOS)
