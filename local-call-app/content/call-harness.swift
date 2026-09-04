@@ -151,11 +151,16 @@ nonisolated final class ReceivedAudio: @unchecked Sendable {
     if firstAt == nil {
       firstAt = now
     }
+    var gap = 0.0
     if let lastAt {
-      longestGap = max(longestGap, now.timeIntervalSince(lastAt))
+      gap = now.timeIntervalSince(lastAt)
+      longestGap = max(longestGap, gap)
     }
     lastAt = now
     lock.unlock()
+    if gap > 0.5 {
+      log("harness receive gap", String(format: "%.1fs", gap), "ended")
+    }
   }
 
   func reset() {

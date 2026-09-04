@@ -11,7 +11,17 @@ nonisolated final class BlockBox: NSObject, @unchecked Sendable {
 /// One run loop thread owns all stream IO, so bytes never travel through the
 /// main thread or an audio render thread.
 nonisolated final class StreamThread: NSObject, @unchecked Sendable {
-  static let shared = StreamThread()
+  /// Reading and writing get their own threads: a write that blocks must not
+  /// stop the peer's audio being read.
+  static let reading = StreamThread(name: "call-audio-read")
+  static let writing = StreamThread(name: "call-audio-write")
+
+  private let name: String
+
+  init(name: String) {
+    self.name = name
+    super.init()
+  }
   private let lock = NSLock()
   private var thread: Thread?
 
@@ -29,7 +39,7 @@ nonisolated final class StreamThread: NSObject, @unchecked Sendable {
         RunLoop.current.run(mode: .default, before: .distantFuture)
       }
     }
-    thread.name = "call-audio-stream"
+    thread.name = name
     thread.qualityOfService = .userInitiated
     thread.start()
     ready.wait()
@@ -70,7 +80,7 @@ nonisolated final class AudioOutputStream: NSObject, StreamDelegate, @unchecked 
     self.stream = stream
     self.peerName = peerName
     super.init()
-    StreamThread.shared.run { [weak self] in
+    StreamThread.writing.run { [weak self] in
       guard let self else { return }
       self.stream.delegate = self
       self.stream.schedule(in: .current, forMode: .default)
@@ -96,7 +106,7 @@ nonisolated final class AudioOutputStream: NSObject, StreamDelegate, @unchecked 
   /// Foundation streams hold unowned.
   func close() {
     setOnClosed(nil)
-    StreamThread.shared.run { [self] in
+    StreamThread.writing.run { [self] in
       stream.close()
       stream.remove(from: .current, forMode: .default)
       stream.delegate = nil
@@ -117,7 +127,7 @@ nonisolated final class AudioOutputStream: NSObject, StreamDelegate, @unchecked 
     if shouldLogDrop {
       log("audio stream send queue full, dropping", dropped, "bytes")
     }
-    StreamThread.shared.run { [weak self] in
+    StreamThread.writing.run { [weak self] in
       self?.drain()
     }
   }
@@ -221,7 +231,7 @@ nonisolated final class AudioInputStream: NSObject, StreamDelegate, @unchecked S
     self.peerName = peerName
     self.onData = onData
     super.init()
-    StreamThread.shared.run { [weak self] in
+    StreamThread.reading.run { [weak self] in
       guard let self else { return }
       self.stream.delegate = self
       self.stream.schedule(in: .current, forMode: .default)
@@ -247,7 +257,7 @@ nonisolated final class AudioInputStream: NSObject, StreamDelegate, @unchecked S
   /// Foundation streams hold unowned.
   func close() {
     setOnClosed(nil)
-    StreamThread.shared.run { [self] in
+    StreamThread.reading.run { [self] in
       stream.close()
       stream.remove(from: .current, forMode: .default)
       stream.delegate = nil

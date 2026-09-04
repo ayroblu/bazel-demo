@@ -34,3 +34,14 @@ harness stats uptime=13s peers=1 out=387kB open=true dropped=0kB in=387kB
 This covers discovery, invites, the session, both audio streams and the
 disconnect path. It does not cover the audio engine, routing or the UI, which
 still need real devices.
+
+## Known stall right after connecting
+
+Every call shows one `receive gap` of about 5.5 seconds, starting about 2.3
+seconds after the peers connect, and then runs cleanly. It is a delivery pause
+inside MCSession, not lost data: writes block for the duration, everything
+written during the window arrives afterwards, and `in` still matches `out` at
+the end. The onset tracks the connection rather than the traffic, so delaying
+the first audio does not avoid the window. It is occasionally longer than 5.5
+seconds and occasionally hits only one direction, so a short run can end with
+`in` well behind `out`.
