@@ -73,11 +73,13 @@ private struct StudyCardView: View {
         if store.showingAnswer {
           RatingButtons(store: store)
         } else {
-          Button("Show answer") { store.revealAnswer() }
-            .frame(maxWidth: .infinity)
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .keyboardShortcut(.space, modifiers: [])
+          Button { store.revealAnswer() } label: {
+            Text("Show answer")
+              .frame(maxWidth: .infinity)
+          }
+          .buttonStyle(.borderedProminent)
+          .controlSize(.large)
+          .keyboardShortcut(.space, modifiers: [])
         }
       }
     }

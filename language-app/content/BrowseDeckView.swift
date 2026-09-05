@@ -49,21 +49,25 @@ struct BrowseDeckView: View {
               .labelsHidden()
 
               HStack(spacing: 12) {
-                Button("Previous", systemImage: "chevron.left") {
+                Button {
                   session.back()
                   restartAutoIfRunning()
+                } label: {
+                  Label("Previous", systemImage: "chevron.left")
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
                 .disabled(!session.canGoBack)
                 .keyboardShortcut(.leftArrow, modifiers: [])
-                Button(
-                  session.showingAnswer ? "Next card" : "Show answer",
-                  systemImage: "chevron.right"
-                ) {
+                Button {
                   session.forward()
                   restartAutoIfRunning()
+                } label: {
+                  Label(
+                    session.showingAnswer ? "Next card" : "Show answer",
+                    systemImage: "chevron.right"
+                  )
+                  .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
                 .disabled(!session.canGoForward)
                 .keyboardShortcut(.rightArrow, modifiers: [])
               }
