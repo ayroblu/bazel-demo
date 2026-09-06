@@ -1,6 +1,17 @@
+load("@build_bazel_rules_apple//apple:versioning.bzl", "apple_bundle_version")
 load("@bazel-demo//swift-shared:swift-ide.bzl", "ide")
 
 ide(
     targets = ["//swift-shared:all"],
     xcode_project_name = "swift-shared",
+)
+
+apple_bundle_version(
+    name = "version",
+    build_label_pattern = "{build}",
+    build_version = "{build}",
+    capture_groups = {"build": "\\d+"},
+    fallback_build_label = "0",
+    short_version_string = "1.0",
+    visibility = ["//visibility:public"],
 )

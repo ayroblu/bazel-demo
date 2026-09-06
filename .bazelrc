@@ -25,6 +25,8 @@ run:pro --ios_simulator_device="iPhone 17 Pro"
 
 build:macos --macos_cpus=arm64
 build:release --ios_multi_cpus=arm64 -c opt --apple_generate_dsym --define=apple.add_debugger_entitlement=no
+# //swift-shared:version turns BUILD_EMBED_LABEL into CFBundleVersion
+build:release --workspace_status_command="echo \"BUILD_EMBED_LABEL $(git rev-list --count HEAD)\""
 
 
 # sourcekit-lsp bsp

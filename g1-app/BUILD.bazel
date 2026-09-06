@@ -29,6 +29,7 @@ ios_application(
         ["Assets/*"],
         exclude_directories = 0,
     ),
+    version = "//swift-shared:version",
     visibility = ["//visibility:public"],
     deps = [":lib"],
 )
@@ -39,6 +40,7 @@ watchos_application(
     infoplists = ["//g1-app/watch-app:Info.plist"],
     minimum_os_version = "10.0",
     provisioning_profile = "5bc6ee9b-186f-4f5c-8525-0382a219531e.mobileprovision",
+    version = "//swift-shared:version",
     visibility = ["//visibility:public"],
     deps = ["//g1-app/watch-app"],
 )

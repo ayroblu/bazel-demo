@@ -34,6 +34,7 @@ ios_application(
     infoplists = ["Resources/Info.plist"],
     linkopts = ["-lsqlite3"],
     minimum_os_version = "18.0",
+    version = "//swift-shared:version",
     visibility = ["//visibility:public"],
     deps = [":lib"],
 )

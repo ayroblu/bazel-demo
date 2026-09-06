@@ -43,6 +43,7 @@ ios_application(
         "@bazel-demo//:release_build": "distribution.mobileprovision",
     }),
     resources = DEBUG_DECKS,
+    version = "//swift-shared:version",
     visibility = ["//visibility:public"],
     deps = [":lib"],
 )
