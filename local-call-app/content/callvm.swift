@@ -1,21 +1,21 @@
-import AVFoundation
 import Log
+import Observation
 import audio
 import connect
 import transport
 
-class CallViewModel: ObservableObject {
+@Observable class CallViewModel {
   static let shared = CallViewModel()
 
   let transport = PeerTransport(identity: ConnectManager.shared.localId.uuidString)
   let routes = AudioRouteController()
   private let audio = CallAudioEngine()
 
-  @Published var isInCall = false
-  @Published var isTestingMic = false
-  @Published var micPermissionDenied = false
-  @Published var inputLevel: Float = 0
-  @Published var outputLevel: Float = 0
+  var isInCall = false
+  var isTestingMic = false
+  var micPermissionDenied = false
+  var inputLevel: Float = 0
+  var outputLevel: Float = 0
   private var levelTask: Task<Void, Never>?
   private var statsTask: Task<Void, Never>?
   private var isPlayingDisconnectChime = false
@@ -25,7 +25,7 @@ class CallViewModel: ObservableObject {
   private var isSystemCall = false
   private var isSystemAudioActive = false
   private var isApplyingSystemMute = false
-  @Published var isMuted = false {
+  var isMuted = false {
     didSet {
       audio.isMuted = isMuted
       guard isSystemCall, !isApplyingSystemMute else { return }
@@ -271,7 +271,7 @@ class CallViewModel: ObservableObject {
     statsTask?.cancel()
     statsTask = Task { [weak self] in
       while !Task.isCancelled {
-        try? await Task.sleep(for: .seconds(5))
+        try? await Task.sleep(for: .seconds(10))
         guard let self, self.isInCall else { return }
         log("call stats", self.transport.callStateSummary(), self.playbackSummary())
       }
@@ -293,10 +293,10 @@ class CallViewModel: ObservableObject {
       while !Task.isCancelled {
         try? await Task.sleep(for: .milliseconds(100))
         guard let self else { return }
-        let levels = self.audio.takeLevels()
+        let taken = self.audio.takeLevels()
         // sqrt maps linear peaks onto a more perceptual bar scale
-        self.inputLevel = max(min(1, levels.input.squareRoot()), self.inputLevel * 0.7)
-        self.outputLevel = max(min(1, levels.output.squareRoot()), self.outputLevel * 0.7)
+        self.inputLevel = max(min(1, taken.input.squareRoot()), self.inputLevel * 0.7)
+        self.outputLevel = max(min(1, taken.output.squareRoot()), self.outputLevel * 0.7)
       }
     }
   }

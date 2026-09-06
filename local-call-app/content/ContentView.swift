@@ -19,8 +19,8 @@ public func startConnectServices() {
 }
 
 public struct ContentView: View {
-  @StateObject private var vm = CallViewModel.shared
-  @StateObject private var connect = ConnectManager.shared
+  @State private var vm = CallViewModel.shared
+  @State private var connect = ConnectManager.shared
   @Environment(\.scenePhase) private var scenePhase
 
   public init() {}
@@ -71,10 +71,11 @@ public struct ContentView: View {
 }
 
 struct LobbyView: View {
-  @ObservedObject var vm: CallViewModel
-  @ObservedObject var transport: PeerTransport
-  @ObservedObject var routes: AudioRouteController
-  @ObservedObject var connect: ConnectManager
+  let vm: CallViewModel
+  let transport: PeerTransport
+  let routes: AudioRouteController
+  let connect: ConnectManager
+  @State private var renamingPeer: PairedPeer?
 
   init(vm: CallViewModel) {
     self.vm = vm
@@ -93,7 +94,7 @@ struct LobbyView: View {
           .foregroundStyle(.red)
         }
       }
-      ConnectSections(connect: connect)
+      ConnectSections(connect: connect, renaming: $renamingPeer)
       if let status = transport.statusMessage {
         Section {
           Text(status)
@@ -109,7 +110,7 @@ struct LobbyView: View {
             selection: Binding(
               get: { routes.currentInputID },
               set: { routes.selectInput(id: $0) }))
-          AudioLevelBar(level: vm.inputLevel)
+          InputLevelBar(vm: vm)
           Button("End test", role: .cancel) {
             vm.stopMicTest()
           }
@@ -125,14 +126,17 @@ struct LobbyView: View {
         }
       }
     }
+    .sheet(item: $renamingPeer) { peer in
+      PairedPeerSheet(connect: connect, peer: peer)
+    }
     .pairRequestAlert(connect)
   }
 }
 
 struct InCallView: View {
-  @ObservedObject var vm: CallViewModel
-  @ObservedObject var transport: PeerTransport
-  @ObservedObject var routes: AudioRouteController
+  @Bindable var vm: CallViewModel
+  let transport: PeerTransport
+  let routes: AudioRouteController
 
   init(vm: CallViewModel) {
     self.vm = vm
@@ -162,7 +166,7 @@ struct InCallView: View {
           selection: Binding(
             get: { routes.currentInputID },
             set: { routes.selectInput(id: $0) }))
-        AudioLevelBar(level: vm.inputLevel)
+        InputLevelBar(vm: vm)
       }
       Section("Audio output") {
         AudioDevicePicker(
@@ -171,7 +175,7 @@ struct InCallView: View {
           selection: Binding(
             get: { routes.currentOutputID },
             set: { routes.selectOutput(id: $0) }))
-        AudioLevelBar(level: vm.outputLevel)
+        OutputLevelBar(vm: vm)
       }
       Section {
         Button(role: .destructive) {
@@ -185,6 +189,22 @@ struct InCallView: View {
     .onAppear {
       routes.refresh()
     }
+  }
+}
+
+struct InputLevelBar: View {
+  let vm: CallViewModel
+
+  var body: some View {
+    AudioLevelBar(level: vm.inputLevel)
+  }
+}
+
+struct OutputLevelBar: View {
+  let vm: CallViewModel
+
+  var body: some View {
+    AudioLevelBar(level: vm.outputLevel)
   }
 }
 

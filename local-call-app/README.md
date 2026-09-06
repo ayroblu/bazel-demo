@@ -13,7 +13,10 @@ wifi is what carries the audio between devices that share no network.
   restores after termination, so a write from a paired device relaunches the
   app and rings it through CallKit with no button pressed on either side.
   Pair once from the lobby while both apps are open; after that a paired
-  device shows as in range and can be called straight away. Scanning is the
+  device shows as in range and is called with the button on its row. Tapping
+  the rest of the row renames it: since iOS 16 a device only reports its
+  model as its name, so the name it gives itself is a fallback for the one
+  chosen here. Scanning is the
   expensive half of bluetooth and only runs in the foreground, which is where
   a caller always is. Once the call is answered the audio runs over the wifi
   transport: the bluetooth link only carries invite, cancel, answer, decline,

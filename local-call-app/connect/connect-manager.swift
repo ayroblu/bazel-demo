@@ -1,5 +1,6 @@
 import CallKit
 import Foundation
+import Observation
 import Log
 import UIKit
 
@@ -43,7 +44,7 @@ public nonisolated enum ConnectCallState: Equatable {
 /// with, who is in range, the bluetooth signalling, and the CallKit call. The
 /// audio transport stays in the app: this asks for it to be started and is
 /// told when it came up.
-public class ConnectManager: ObservableObject {
+@Observable public class ConnectManager {
   public static let shared = ConnectManager()
 
   private let store: PairingStore
@@ -57,19 +58,19 @@ public class ConnectManager: ObservableObject {
   private var transportConnected = false
   private var peerAccepted = false
 
-  @Published public private(set) var pairedPeers: [PairedPeer] = []
-  @Published public private(set) var nearby: [NearbyPeer] = []
-  @Published public private(set) var state: ConnectCallState = .idle
+  public private(set) var pairedPeers: [PairedPeer] = []
+  public private(set) var nearby: [NearbyPeer] = []
+  public private(set) var state: ConnectCallState = .idle
   /// This device's stable identity, which the transport advertises so that a
   /// call reaches the device it was agreed with rather than one that happens
   /// to share its name.
   public var localId: UUID { store.localId }
 
-  @Published public var pendingPairRequest: PairRequest?
-  @Published public var statusMessage: String?
+  public var pendingPairRequest: PairRequest?
+  public var statusMessage: String?
   /// Set on the caller when the other device could not ring because a Focus
   /// is on. Calling again within a few minutes often gets through.
-  @Published public var silencedPeerName: String?
+  public var silencedPeerName: String?
 
   /// Asks the app to bring the audio transport up against `peerName`. Only
   /// the caller invites, so the two sides cannot invite each other at once.
@@ -176,6 +177,16 @@ public class ConnectManager: ObservableObject {
     link.send(.pairAccept(name: link.localName), to: request.id)
   }
 
+  /// An empty name clears the nickname and falls back to what the device
+  /// calls itself.
+  public func rename(_ peer: PairedPeer, to nickname: String) {
+    guard var stored = store.peer(id: peer.id) else { return }
+    let trimmed = nickname.trimmingCharacters(in: .whitespacesAndNewlines)
+    stored.nickname = trimmed.isEmpty ? nil : trimmed
+    store.save(stored)
+    pairedPeers = store.peers
+  }
+
   public func unpair(_ peer: PairedPeer) {
     if state.peerId == peer.id {
       endCall()
@@ -189,13 +200,15 @@ public class ConnectManager: ObservableObject {
   public func call(_ peer: PairedPeer) {
     guard case .idle = state else { return }
     guard link.peripheralId(for: peer.id) != nil else {
-      statusMessage = "\(peer.name) is not in range"
+      statusMessage = "\(peer.displayName) is not in range"
       return
     }
+    // Whatever the last call ended with is no longer the current state.
+    statusMessage = nil
     let callId = UUID()
     state = .outgoing(peerId: peer.id, callId: callId)
     link.hold(peerId: peer.id)
-    callKit.startOutgoing(callId: callId, name: peer.name)
+    callKit.startOutgoing(callId: callId, name: peer.displayName)
   }
 
   public func endCall() {
@@ -262,7 +275,7 @@ public class ConnectManager: ObservableObject {
       finish(callId: callId, reason: .remoteEnded)
     case .silenced(let callId):
       guard state.callId == callId else { return }
-      silencedPeerName = store.peer(id: frame.senderId)?.name ?? "That device"
+      silencedPeerName = store.peer(id: frame.senderId)?.displayName ?? "That device"
       finish(callId: callId, reason: .unanswered)
     case .accept(let callId):
       guard state.callId == callId else { return }
@@ -283,12 +296,12 @@ public class ConnectManager: ObservableObject {
       link.send(.busy(callId: callId), to: peerId)
       return
     }
-    log("connect ringing for", peer.name, callId.uuidString)
+    log("connect ringing for", peer.displayName, callId.uuidString)
     state = .incoming(peerId: peerId, callId: callId)
     link.hold(peerId: peerId)
     Task { @MainActor [weak self] in
       guard let self else { return }
-      let result = await self.callKit.reportIncoming(callId: callId, name: peer.name)
+      let result = await self.callKit.reportIncoming(callId: callId, name: peer.displayName)
       guard case .reported = result else {
         self.failIncoming(callId: callId, from: peerId, silenced: result == .silenced)
         return
@@ -296,7 +309,7 @@ public class ConnectManager: ObservableObject {
       // Bringing the transport up while it rings means the audio is usually
       // ready by the time the call is answered. It stays silent until CallKit
       // activates the audio session.
-      self.onStartTransport?(peer.id, peer.name, false)
+      self.onStartTransport?(peer.id, peer.displayName, false)
       self.startRingTimeout(callId: callId, seconds: 35)
     }
   }
@@ -320,7 +333,7 @@ public class ConnectManager: ObservableObject {
       let peer = store.peer(id: peerId)
     else { return }
     link.send(.invite(callId: callId, name: link.localName), to: peerId)
-    onStartTransport?(peer.id, peer.name, true)
+    onStartTransport?(peer.id, peer.displayName, true)
     startTimeout(callId: callId, seconds: 25, reason: .unanswered) { manager in
       if case .outgoing = manager.state { return true }
       return false
@@ -339,7 +352,7 @@ public class ConnectManager: ObservableObject {
       let peer = store.peer(id: peerId)
     else { return }
     link.send(.accept(callId: callId), to: peerId)
-    onStartTransport?(peer.id, peer.name, false)
+    onStartTransport?(peer.id, peer.displayName, false)
     state = .active(peerId: peerId, callId: callId)
     startTransportTimeout(callId: callId, seconds: 20)
   }
@@ -396,8 +409,24 @@ public class ConnectManager: ObservableObject {
   /// Ends a call the user did not end, so CallKit has to be told.
   private func finish(callId: UUID, reason: CXCallEndedReason) {
     guard state.callId == callId else { return }
+    statusMessage = endedMessage(reason: reason)
     callKit.reportEnded(callId: callId, reason: reason)
     teardown()
+  }
+
+  /// The system call UI disappears on its own, so the lobby is the only place
+  /// left to say why a call stopped.
+  private func endedMessage(reason: CXCallEndedReason) -> String? {
+    let name = state.peerId.flatMap { store.peer(id: $0)?.displayName } ?? "The other device"
+    switch (reason, state) {
+    case (.unanswered, .outgoing): return "\(name) did not answer"
+    case (.unanswered, .incoming): return "Missed call from \(name)"
+    case (.failed, _): return "Could not connect to \(name)"
+    case (.remoteEnded, .outgoing): return "\(name) declined the call"
+    case (.remoteEnded, .incoming): return "\(name) cancelled the call"
+    case (.remoteEnded, .active): return "\(name) ended the call"
+    default: return nil
+    }
   }
 
   private func teardown() {

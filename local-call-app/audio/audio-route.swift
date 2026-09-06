@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 
 /// A platform-neutral device choice rendered by the in-call pickers.
 public struct AudioOption: Identifiable, Hashable {
@@ -20,16 +21,16 @@ import Log
 /// Follows the system default route until the user selects a specific input.
 /// Each picker action pins that exact port so repeated switching is explicit
 /// and does not pass through an intermediate automatic route.
-public class AudioRouteController: ObservableObject {
+@Observable public class AudioRouteController {
   private let session = AVAudioSession.sharedInstance()
 
   public static let automaticOutputID = "automatic"
   public static let speakerOutputID = "speaker"
 
-  @Published public var inputOptions: [AudioOption] = []
-  @Published public var outputOptions: [AudioOption] = []
-  @Published public var currentInputID: String?
-  @Published public var currentOutputID: String? = automaticOutputID
+  public var inputOptions: [AudioOption] = []
+  public var outputOptions: [AudioOption] = []
+  public var currentInputID: String?
+  public var currentOutputID: String? = automaticOutputID
   // nil = follow the system default input.
   private var pinnedInputUid: String?
   // Where automatic routing last pointed while no speaker override was
@@ -139,11 +140,17 @@ public class AudioRouteController: ObservableObject {
   }
 
   public func selectInput(id: String?) {
+    log("select input tapped", id ?? "none", "current", currentInputID ?? "none")
     if isRunningInPreview {
       currentInputID = id
       return
     }
-    guard let port = session.availableInputs?.first(where: { $0.uid == id }) else { return }
+    guard let port = session.availableInputs?.first(where: { $0.uid == id }) else {
+      log(
+        "select input has no matching port", id ?? "none", "available",
+        (session.availableInputs ?? []).map { $0.uid }.joined(separator: ","))
+      return
+    }
     do {
       // Always request the tapped port directly. Clearing the preference first
       // creates an intermediate route and makes a tap on the current/default
@@ -159,6 +166,7 @@ public class AudioRouteController: ObservableObject {
   }
 
   public func selectOutput(id: String?) {
+    log("select output tapped", id ?? "none", "current", currentOutputID ?? "none")
     guard let id else { return }
     if isRunningInPreview {
       currentOutputID = id
@@ -167,6 +175,7 @@ public class AudioRouteController: ObservableObject {
     do {
       try session.overrideOutputAudioPort(id == Self.speakerOutputID ? .speaker : .none)
       currentOutputID = id
+      log("selected output", id)
     } catch {
       log("failed to override output", error)
     }

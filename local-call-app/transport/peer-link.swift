@@ -1,7 +1,7 @@
-import Combine
 import Foundation
 import Log
 import Network
+import Observation
 
 nonisolated let callServiceType = "_p2p-audio-call._tcp"
 
@@ -54,13 +54,13 @@ public nonisolated struct Peer: Hashable {
 /// every device advertises and browses, and either side can dial. It runs
 /// only while a call is being set up, and a connection from anything other
 /// than that call's peer is refused.
-public class PeerTransport: ObservableObject {
-  let localIdentity: String
+@Observable public class PeerTransport {
+  private let localIdentity: String
 
-  @Published public var connectedPeer: Peer?
-  @Published var connectingPeer: Peer?
-  @Published public var statusMessage: String?
+  public var connectedPeer: Peer?
+  public var statusMessage: String?
 
+  private var connectingPeer: Peer?
   private var discoveredPeers: [Peer] = []
   private var isDiscovering = false
 

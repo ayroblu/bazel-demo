@@ -6,9 +6,18 @@ import Foundation
 /// identity again.
 public nonisolated struct PairedPeer: Codable, Equatable, Identifiable {
   public let id: UUID
+  /// What the device calls itself. It is refreshed from every call it places,
+  /// so it cannot double as a name the user chose.
   public var name: String
+  /// The name the user gave this device here, which wins when it is set.
+  public var nickname: String?
   var secret: Data
   var peripheralId: UUID?
+
+  public var displayName: String {
+    guard let nickname, !nickname.isEmpty else { return name }
+    return nickname
+  }
 }
 
 nonisolated protocol PairingStorage: AnyObject {

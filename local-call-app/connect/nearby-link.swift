@@ -24,7 +24,7 @@ public nonisolated struct NearbyPeer: Identifiable, Equatable {
 /// its signal characteristic relaunches the app to ring. Scanning is the
 /// expensive half and only runs in the foreground, which is where a caller is
 /// by definition.
-class NearbyLink: ObservableObject {
+class NearbyLink {
   private let store: PairingStore
   private let delegate = NearbyDelegate()
   private var central: CBCentralManager?
@@ -45,9 +45,9 @@ class NearbyLink: ObservableObject {
   private var resolveAttempts: [UUID: Date] = [:]
   private var pruneTask: Task<Void, Never>?
 
-  @Published private(set) var nearby: [NearbyPeer] = []
-  @Published private(set) var isScanning = false
-  @Published private(set) var isPoweredOn = false
+  private(set) var nearby: [NearbyPeer] = []
+  private(set) var isScanning = false
+  private(set) var isPoweredOn = false
 
   var onMessage: ((ConnectFrame) -> Void)?
   var onNearbyChanged: (([NearbyPeer]) -> Void)?

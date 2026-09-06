@@ -382,7 +382,6 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
 }
 
 enum CallAudioError: Error {
-  case noInput
   case routeNotReady
 }
 

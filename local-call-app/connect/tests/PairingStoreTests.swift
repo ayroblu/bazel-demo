@@ -22,6 +22,35 @@ final class PairingStoreTests: XCTestCase {
     XCTAssertEqual(reloaded.secret(for: peer.id), peer.secret)
   }
 
+  func testNicknameWinsOverTheReportedName() {
+    var peer = PairedPeer(id: UUID(), name: "iPhone", secret: Data([1]), peripheralId: nil)
+    XCTAssertEqual(peer.displayName, "iPhone")
+
+    peer.nickname = "Kitchen"
+    XCTAssertEqual(peer.displayName, "Kitchen")
+
+    // The device renaming itself must not take the user's name away.
+    peer.name = "iPhone (2)"
+    XCTAssertEqual(peer.displayName, "Kitchen")
+
+    peer.nickname = nil
+    XCTAssertEqual(peer.displayName, "iPhone (2)")
+  }
+
+  func testPeersPairedBeforeNicknamesStillLoad() {
+    let storage = MemoryPairingStorage()
+    let id = UUID()
+    let stored = """
+      [{"id":"\(id.uuidString)","name":"iPad","secret":"AQID"}]
+      """
+    storage.setPairingData(Data(stored.utf8), for: "connect.pairedPeers")
+
+    let store = PairingStore(storage: storage)
+    XCTAssertEqual(store.peers.count, 1)
+    XCTAssertNil(store.peer(id: id)?.nickname)
+    XCTAssertEqual(store.peer(id: id)?.displayName, "iPad")
+  }
+
   func testSaveReplacesAndRemoveDeletes() {
     let store = PairingStore(storage: MemoryPairingStorage())
     var peer = PairedPeer(id: UUID(), name: "iPad", secret: Data([1]), peripheralId: nil)

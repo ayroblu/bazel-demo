@@ -20,9 +20,9 @@ import audio
 }
 
 // Xcode previews re-execute the #Preview body with a JIT that miscompiles
-// imperative statements mutating @Published properties (the preview agent
-// segfaults in Combine), so the setup lives in a compiled function and the
-// body stays a single expression.
+// imperative statements mutating observed properties (the preview agent
+// segfaults), so the setup lives in a compiled function and the body stays a
+// single expression.
 @MainActor
 private func makeInCallWithDevicesVM() -> CallViewModel {
   let vm = CallViewModel()
