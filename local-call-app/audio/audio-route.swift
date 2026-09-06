@@ -1,12 +1,17 @@
 import Foundation
 
 /// A platform-neutral device choice rendered by the in-call pickers.
-struct AudioOption: Identifiable, Hashable {
-  let id: String
-  let name: String
+public struct AudioOption: Identifiable, Hashable {
+  public let id: String
+  public let name: String
+
+  public init(id: String, name: String) {
+    self.id = id
+    self.name = name
+  }
 }
 
-nonisolated let isRunningInPreview =
+public nonisolated let isRunningInPreview =
   ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
 
 import AVFoundation
@@ -15,16 +20,16 @@ import Log
 /// Follows the system default route until the user selects a specific input.
 /// Each picker action pins that exact port so repeated switching is explicit
 /// and does not pass through an intermediate automatic route.
-class AudioRouteController: ObservableObject {
+public class AudioRouteController: ObservableObject {
   private let session = AVAudioSession.sharedInstance()
 
-  static let automaticOutputID = "automatic"
-  static let speakerOutputID = "speaker"
+  public static let automaticOutputID = "automatic"
+  public static let speakerOutputID = "speaker"
 
-  @Published var inputOptions: [AudioOption] = []
-  @Published var outputOptions: [AudioOption] = []
-  @Published var currentInputID: String?
-  @Published var currentOutputID: String? = automaticOutputID
+  @Published public var inputOptions: [AudioOption] = []
+  @Published public var outputOptions: [AudioOption] = []
+  @Published public var currentInputID: String?
+  @Published public var currentOutputID: String? = automaticOutputID
   // nil = follow the system default input.
   private var pinnedInputUid: String?
   // Where automatic routing last pointed while no speaker override was
@@ -35,9 +40,9 @@ class AudioRouteController: ObservableObject {
 
   /// Called with true when another app takes the audio session, false when it
   /// hands it back.
-  var onInterruption: ((Bool) -> Void)?
+  public var onInterruption: ((Bool) -> Void)?
 
-  init() {
+  public init() {
     NotificationCenter.default.addObserver(
       forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main
     ) { [weak self] _ in
@@ -74,7 +79,7 @@ class AudioRouteController: ObservableObject {
       .playAndRecord, mode: .voiceChat, options: [.allowBluetoothHFP, .defaultToSpeaker])
   }
 
-  func activate() throws {
+  public func activate() throws {
     try configure()
     try session.setActive(true)
     refresh()
@@ -82,17 +87,17 @@ class AudioRouteController: ObservableObject {
 
   /// CallKit owns the session for a CallKit call: it activates it for us and
   /// deactivates it when the call ends, so we only configure and read it.
-  func adopt() throws {
+  public func adopt() throws {
     try configure()
     refresh()
   }
 
-  func deactivate() {
+  public func deactivate() {
     try? session.setActive(false, options: .notifyOthersOnDeactivation)
     currentOutputID = Self.automaticOutputID
   }
 
-  func refresh() {
+  public func refresh() {
     guard !isRunningInPreview else { return }
     let inputs = session.availableInputs ?? []
     inputOptions = inputs.map { AudioOption(id: $0.uid, name: $0.portName) }
@@ -133,7 +138,7 @@ class AudioRouteController: ObservableObject {
       "output", currentOutputID ?? "none")
   }
 
-  func selectInput(id: String?) {
+  public func selectInput(id: String?) {
     if isRunningInPreview {
       currentInputID = id
       return
@@ -153,7 +158,7 @@ class AudioRouteController: ObservableObject {
     }
   }
 
-  func selectOutput(id: String?) {
+  public func selectOutput(id: String?) {
     guard let id else { return }
     if isRunningInPreview {
       currentOutputID = id

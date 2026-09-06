@@ -1,7 +1,7 @@
 import AVFoundation
 import XCTest
 
-@testable import content
+@testable import audio
 
 final class CallChimeTests: XCTestCase {
   func testChimeBuffer() {

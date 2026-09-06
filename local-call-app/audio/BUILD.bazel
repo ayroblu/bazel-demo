@@ -4,16 +4,11 @@ load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
 package(default_visibility = ["//local-call-app:__subpackages__"])
 
 swift_library(
-    name = "content",
+    name = "audio",
     srcs = glob(["*.swift"]),
     copts = STRICT_MAINACTOR_COPTS,
-    module_name = "content",
+    module_name = "audio",
     deps = [
-        "//local-call-app/audio",
-        "//local-call-app/connect",
-        "//local-call-app/transport",
         "//swift-shared/Log",
-        "//swift-shared/LogDb",
-        "//swift-shared/LogUi",
     ],
 )

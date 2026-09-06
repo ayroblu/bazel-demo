@@ -1,7 +1,7 @@
 import AVFoundation
 import Log
 
-nonisolated final class CallAudioEngine: @unchecked Sendable {
+public nonisolated final class CallAudioEngine: @unchecked Sendable {
   private let engine = AVAudioEngine()
   private let playerNode = AVAudioPlayerNode()
   /// Plays the queue slightly fast to catch up without dropping anything.
@@ -11,14 +11,14 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
   private let transportSampleRate = 16000.0
   private let playbackFormat = AVAudioFormat(standardFormatWithSampleRate: 16000, channels: 1)!
   private var isRunning = false
-  var isActive: Bool { isRunning }
+  public var isActive: Bool { isRunning }
   private var configChangeObserver: NSObjectProtocol?
 
   private var routeChangeObserver: NSObjectProtocol?
   private var pendingRouteRestart: DispatchWorkItem?
 
-  var onOutgoingAudio: (@Sendable (Data) -> Void)?
-  var isMuted = false
+  public var onOutgoingAudio: (@Sendable (Data) -> Void)?
+  public var isMuted = false
 
   private let levelLock = NSLock()
   private var inputPeak: Float = 0
@@ -45,7 +45,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
   /// Snapshot of the playback queue for the periodic call log. `arrivalRate`
   /// is incoming audio seconds per elapsed second: above 1.0 the peer is
   /// producing faster than real time, which no amount of buffering can fix.
-  func playbackStats() -> (
+  public func playbackStats() -> (
     backlogMs: Int, receivedMs: Int, skippedMs: Int, resyncs: Int, arrivalRate: Double
   ) {
     let backlog = backlogFrames()
@@ -77,7 +77,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
 
   /// Peak levels (0...1) accumulated since the last call; reading resets
   /// them, so a silent or stopped stream naturally reads as zero.
-  func takeLevels() -> (input: Float, output: Float) {
+  public func takeLevels() -> (input: Float, output: Float) {
     levelLock.lock()
     defer { levelLock.unlock() }
     let levels = (inputPeak, outputPeak)
@@ -86,7 +86,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
     return levels
   }
 
-  init() {
+  public init() {
     engine.attach(playerNode)
     engine.attach(timePitch)
     // AVFoundation stops the engine and posts this when the active device's
@@ -120,7 +120,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
     pendingRouteRestart?.cancel()
   }
 
-  func start() throws {
+  public func start() throws {
     guard !isRunning else { return }
     isRunning = true
     do {
@@ -131,7 +131,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
     }
   }
 
-  func stop() {
+  public func stop() {
     guard isRunning else { return }
     isRunning = false
     pendingRouteRestart?.cancel()
@@ -257,7 +257,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
     onOutgoingAudio(samples.withUnsafeBytes { Data($0) })
   }
 
-  func playIncoming(_ data: Data) {
+  public func playIncoming(_ data: Data) {
     guard isRunning else {
       // Audio arriving while the engine is down is silent by definition, and
       // has to be visible or it looks the same as a peer sending nothing.
@@ -349,7 +349,7 @@ nonisolated final class CallAudioEngine: @unchecked Sendable {
   /// Plays the disconnect chime through the call's own route, ahead of
   /// whatever incoming audio is still queued, and reports back when it has
   /// finished so the caller can tear the engine down afterwards.
-  func playChime(completion: @escaping @Sendable () -> Void) {
+  public func playChime(completion: @escaping @Sendable () -> Void) {
     guard isRunning, let buffer = makeChimeBuffer(format: playbackFormat) else {
       completion()
       return
@@ -386,8 +386,8 @@ enum CallAudioError: Error {
   case routeNotReady
 }
 
-enum RecordingPermission {
-  static func hasPermissionToRecord() async -> Bool {
+public enum RecordingPermission {
+  public static func hasPermissionToRecord() async -> Bool {
     let granted = await withCheckedContinuation { continuation in
       AVAudioApplication.requestRecordPermission { authorized in
         continuation.resume(returning: authorized)

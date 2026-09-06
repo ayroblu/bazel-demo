@@ -52,18 +52,34 @@ wifi is what carries the audio between devices that share no network.
   `AVAudioEngineConfigurationChange` so switching devices mid-call keeps the
   audio flowing.
 
+## Modules
+
+| Module | Holds |
+|---|---|
+| `connect` | Bluetooth LE signalling, pairing and CallKit |
+| `transport` | The peer-to-peer wifi connection carrying call audio |
+| `audio` | The engine, routing and the disconnect chime |
+| `content` | SwiftUI views and `CallViewModel`, which wires the other three |
+
+`connect` depends on neither `transport` nor `audio`: it reports what a call
+needs through callbacks that `CallViewModel` connects up, so the three can be
+built and tested on their own.
+
 ## Building
 
 ```sh
 bazel build //local-call-app
-bazel test //local-call-app/connect/tests //local-call-app/content/tests
+bazel test //local-call-app/connect/tests //local-call-app/transport/tests \
+  //local-call-app/audio/tests --ios_multi_cpus=sim_arm64
 bazel run //local-call-app:xcodeproj && xed local-call-app.xcodeproj
 ```
 
-The app is iOS and iPadOS only: CallKit does not exist on macOS. Its modules
+The app is iOS and iPadOS only: CallKit does not exist on macOS. Most modules
 only build in an iOS configuration, so name test targets explicitly rather
-than using `//local-call-app/...`, and the tests run on a simulator rather
-than the host.
+than using `//local-call-app/...`. Tests run on a simulator rather than the
+host, which is what `--ios_multi_cpus=sim_arm64` selects: without it they
+build for macOS and fail on `UIKit`, and `--config=ios` builds for a device
+whose bundle the simulator then refuses to load.
 
 After updating Xcode, Bazel's cached toolchain config can point at SDKs that no
 longer exist (errors like "SDK ... cannot be located" or "'<build>' is not an

@@ -1,24 +1,21 @@
+import Combine
+import Foundation
 import Log
 import Network
-import UIKit
 
 nonisolated let callServiceType = "_p2p-audio-call._tcp"
 
-nonisolated final class SendableBox<T>: @unchecked Sendable {
-  let value: T
-  init(_ value: T) {
+public nonisolated final class SendableBox<T>: @unchecked Sendable {
+  public let value: T
+  public init(_ value: T) {
     self.value = value
   }
 }
 
-var deviceName: String {
-  UIDevice.current.name
-}
-
 /// A device offering the call service, as published over Bonjour.
-nonisolated struct Peer: Hashable {
+public nonisolated struct Peer: Hashable {
   let id: String
-  let name: String
+  public let name: String
   let endpoint: NWEndpoint
 
   init(id: String, name: String, endpoint: NWEndpoint) {
@@ -36,11 +33,11 @@ nonisolated struct Peer: Hashable {
 
   /// A peer reached through an accepted connection carries that connection's
   /// endpoint rather than the browsed service, so identity is the name.
-  static func == (lhs: Peer, rhs: Peer) -> Bool {
+  public static func == (lhs: Peer, rhs: Peer) -> Bool {
     lhs.id == rhs.id
   }
 
-  func hash(into hasher: inout Hasher) {
+  public func hash(into hasher: inout Hasher) {
     hasher.combine(id)
   }
 }
@@ -53,12 +50,12 @@ nonisolated struct Peer: Hashable {
 /// every device advertises and browses, and either side can dial. It runs
 /// only while a call is being set up, and a connection from anything other
 /// than that call's peer is refused.
-class PeerTransport: ObservableObject {
+public class PeerTransport: ObservableObject {
   let localName: String
 
-  @Published var connectedPeer: Peer?
+  @Published public var connectedPeer: Peer?
   @Published var connectingPeer: Peer?
-  @Published var statusMessage: String?
+  @Published public var statusMessage: String?
 
   private var discoveredPeers: [Peer] = []
   private var isDiscovering = false
@@ -76,13 +73,13 @@ class PeerTransport: ObservableObject {
 
   private let sink = AudioStreamSink()
 
-  var onAudioData: (@Sendable (Data) -> Void)?
-  var onCallStarted: (() -> Void)?
-  var onCallEnded: (() -> Void)?
+  public var onAudioData: (@Sendable (Data) -> Void)?
+  public var onCallStarted: (() -> Void)?
+  public var onCallEnded: (() -> Void)?
 
-  /// The name is overridable so two processes on one machine can call each
-  /// other without both claiming the same host name.
-  init(name: String = deviceName) {
+  /// The name is what a peer sees, and what the bluetooth side matches a
+  /// call against, so it is supplied rather than read from the device here.
+  public init(name: String) {
     localName = name
     publishedName = name
   }
@@ -115,7 +112,7 @@ class PeerTransport: ObservableObject {
   /// Radios should not keep advertising or browsing while backgrounded. A
   /// call that is being answered from the lock screen is setting up in the
   /// background on purpose, and an active call's connection is left alone.
-  func handleDidEnterBackground() {
+  public func handleDidEnterBackground() {
     guard autoConnectPeerName == nil, connectedPeer == nil else { return }
     stopDiscovery()
   }
@@ -123,7 +120,7 @@ class PeerTransport: ObservableObject {
   /// Drives discovery for a call that CallKit is already ringing for: the
   /// named peer is dialled or auto accepted without any prompt. Only the
   /// caller dials, so the two sides cannot dial each other at once.
-  func beginAutoConnect(to name: String, invites: Bool) {
+  public func beginAutoConnect(to name: String, invites: Bool) {
     log("peer transport auto connect", name, "invites", invites)
     autoConnectPeerName = name
     autoConnectInvites = invites
@@ -133,7 +130,7 @@ class PeerTransport: ObservableObject {
     }
   }
 
-  func cancelAutoConnect() {
+  public func cancelAutoConnect() {
     guard autoConnectPeerName != nil else { return }
     autoConnectPeerName = nil
     autoConnectInvites = false
@@ -158,7 +155,7 @@ class PeerTransport: ObservableObject {
     connection.start()
   }
 
-  func disconnect(statusMessage message: String? = nil) {
+  public func disconnect(statusMessage message: String? = nil) {
     log("peer transport disconnect requested", callStateSummary())
     sink.set(nil)
     connection?.cancel()
@@ -169,7 +166,7 @@ class PeerTransport: ObservableObject {
     statusMessage = message
   }
 
-  func makeSender() -> @Sendable (Data) -> Void {
+  public func makeSender() -> @Sendable (Data) -> Void {
     let sink = sink
     return { data in
       sink.send(data)
@@ -178,7 +175,7 @@ class PeerTransport: ObservableObject {
 
   /// A one line snapshot of the transport, logged around every event that
   /// could explain a dropped call.
-  func callStateSummary() -> String {
+  public func callStateSummary() -> String {
     let stats = connection?.stats()
     let now = Date()
     let uptime = connectedAt.map { String(format: "%.0fs", now.timeIntervalSince($0)) } ?? "-"

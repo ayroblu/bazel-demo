@@ -1,11 +1,14 @@
 import AVFoundation
 import Log
+import UIKit
+import audio
 import connect
+import transport
 
 class CallViewModel: ObservableObject {
   static let shared = CallViewModel()
 
-  let transport = PeerTransport()
+  let transport = PeerTransport(name: UIDevice.current.name)
   let routes = AudioRouteController()
   private let audio = CallAudioEngine()
 

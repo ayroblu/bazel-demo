@@ -2,7 +2,7 @@ import Foundation
 import Network
 import XCTest
 
-@testable import content
+@testable import transport
 
 final class PeerConnectionTests: XCTestCase {
   /// Two connections over the loopback interface, using the same parameters
