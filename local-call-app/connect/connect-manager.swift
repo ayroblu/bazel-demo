@@ -60,6 +60,11 @@ public class ConnectManager: ObservableObject {
   @Published public private(set) var pairedPeers: [PairedPeer] = []
   @Published public private(set) var nearby: [NearbyPeer] = []
   @Published public private(set) var state: ConnectCallState = .idle
+  /// This device's stable identity, which the transport advertises so that a
+  /// call reaches the device it was agreed with rather than one that happens
+  /// to share its name.
+  public var localId: UUID { store.localId }
+
   @Published public var pendingPairRequest: PairRequest?
   @Published public var statusMessage: String?
   /// Set on the caller when the other device could not ring because a Focus
@@ -68,7 +73,9 @@ public class ConnectManager: ObservableObject {
 
   /// Asks the app to bring the audio transport up against `peerName`. Only
   /// the caller invites, so the two sides cannot invite each other at once.
-  public var onStartTransport: ((String, Bool) -> Void)?
+  /// Reports the peer's stable identity as well as its name: the transport
+  /// matches on the identity, and shows the name.
+  public var onStartTransport: ((UUID, String, Bool) -> Void)?
   public var onStopTransport: (() -> Void)?
   public var onAudioActivated: (() -> Void)?
   public var onAudioDeactivated: (() -> Void)?
@@ -289,7 +296,7 @@ public class ConnectManager: ObservableObject {
       // Bringing the transport up while it rings means the audio is usually
       // ready by the time the call is answered. It stays silent until CallKit
       // activates the audio session.
-      self.onStartTransport?(peer.name, false)
+      self.onStartTransport?(peer.id, peer.name, false)
       self.startRingTimeout(callId: callId, seconds: 35)
     }
   }
@@ -313,7 +320,7 @@ public class ConnectManager: ObservableObject {
       let peer = store.peer(id: peerId)
     else { return }
     link.send(.invite(callId: callId, name: link.localName), to: peerId)
-    onStartTransport?(peer.name, true)
+    onStartTransport?(peer.id, peer.name, true)
     startTimeout(callId: callId, seconds: 25, reason: .unanswered) { manager in
       if case .outgoing = manager.state { return true }
       return false
@@ -332,7 +339,7 @@ public class ConnectManager: ObservableObject {
       let peer = store.peer(id: peerId)
     else { return }
     link.send(.accept(callId: callId), to: peerId)
-    onStartTransport?(peer.name, false)
+    onStartTransport?(peer.id, peer.name, false)
     state = .active(peerId: peerId, callId: callId)
     startTransportTimeout(callId: callId, seconds: 20)
   }

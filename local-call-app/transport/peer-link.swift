@@ -14,6 +14,9 @@ public nonisolated final class SendableBox<T>: @unchecked Sendable {
 
 /// A device offering the call service, as published over Bonjour.
 public nonisolated struct Peer: Hashable {
+  /// The peer's stable identity, which is also the name it publishes its
+  /// bonjour service under. Device names are neither unique nor stable, so
+  /// they are shown but never matched on.
   let id: String
   public let name: String
   let endpoint: NWEndpoint
@@ -25,14 +28,15 @@ public nonisolated struct Peer: Hashable {
   }
 
   init?(result: NWBrowser.Result) {
-    guard case .service(let name, _, _, _) = result.endpoint else { return nil }
-    self.id = name
-    self.name = name
+    guard case .service(let identity, _, _, _) = result.endpoint else { return nil }
+    self.id = identity
+    self.name = identity
     self.endpoint = result.endpoint
   }
 
   /// A peer reached through an accepted connection carries that connection's
-  /// endpoint rather than the browsed service, so identity is the name.
+  /// endpoint rather than the browsed service, so identity is all that is
+  /// comparable.
   public static func == (lhs: Peer, rhs: Peer) -> Bool {
     lhs.id == rhs.id
   }
@@ -51,7 +55,7 @@ public nonisolated struct Peer: Hashable {
 /// only while a call is being set up, and a connection from anything other
 /// than that call's peer is refused.
 public class PeerTransport: ObservableObject {
-  let localName: String
+  let localIdentity: String
 
   @Published public var connectedPeer: Peer?
   @Published var connectingPeer: Peer?
@@ -63,11 +67,8 @@ public class PeerTransport: ObservableObject {
   private var listener: NWListener?
   private var browser: NWBrowser?
   private var connection: PeerConnection?
-  /// Bonjour appends a suffix when two devices publish the same name, so the
-  /// name actually registered is the only reliable way to spot ourselves in
-  /// our own browse results.
-  private var publishedName: String?
-  private var autoConnectPeerName: String?
+  private var autoConnectIdentity: String?
+  private var autoConnectName: String?
   private var autoConnectInvites = false
   private var connectedAt: Date?
 
@@ -77,15 +78,15 @@ public class PeerTransport: ObservableObject {
   public var onCallStarted: (() -> Void)?
   public var onCallEnded: (() -> Void)?
 
-  /// The name is what a peer sees, and what the bluetooth side matches a
-  /// call against, so it is supplied rather than read from the device here.
-  public init(name: String) {
-    localName = name
-    publishedName = name
+  /// The identity is this device's stable id from pairing. It is what the
+  /// bonjour service is published under, so that a peer can find exactly the
+  /// device it agreed the call with.
+  public init(identity: String) {
+    localIdentity = identity
   }
 
   func startDiscovery() {
-    log("peer transport start discovery", localName, callServiceType)
+    log("peer transport start discovery", localIdentity, callServiceType)
     startListener()
     startBrowser()
     isDiscovering = true
@@ -113,16 +114,18 @@ public class PeerTransport: ObservableObject {
   /// call that is being answered from the lock screen is setting up in the
   /// background on purpose, and an active call's connection is left alone.
   public func handleDidEnterBackground() {
-    guard autoConnectPeerName == nil, connectedPeer == nil else { return }
+    guard autoConnectIdentity == nil, connectedPeer == nil else { return }
     stopDiscovery()
   }
 
   /// Drives discovery for a call that CallKit is already ringing for: the
-  /// named peer is dialled or auto accepted without any prompt. Only the
-  /// caller dials, so the two sides cannot dial each other at once.
-  public func beginAutoConnect(to name: String, invites: Bool) {
-    log("peer transport auto connect", name, "invites", invites)
-    autoConnectPeerName = name
+  /// peer with this identity is dialled or auto accepted without any prompt.
+  /// Only the caller dials, so the two sides cannot dial each other at once.
+  /// The name is carried only so the call can be labelled.
+  public func beginAutoConnect(to identity: String, name: String, invites: Bool) {
+    log("peer transport auto connect", name, identity, "invites", invites)
+    autoConnectIdentity = identity
+    autoConnectName = name
     autoConnectInvites = invites
     startDiscovery()
     if invites, let peer = discoveredPeers.first(where: isAutoConnectPeer) {
@@ -131,25 +134,31 @@ public class PeerTransport: ObservableObject {
   }
 
   public func cancelAutoConnect() {
-    guard autoConnectPeerName != nil else { return }
-    autoConnectPeerName = nil
+    guard autoConnectIdentity != nil else { return }
+    autoConnectIdentity = nil
+    autoConnectName = nil
     autoConnectInvites = false
     stopDiscovery()
   }
 
-  /// The bluetooth side truncates names to fit a notification, so the peer we
-  /// are looking for may carry a longer version of the same name.
   private func isAutoConnectPeer(_ peer: Peer) -> Bool {
-    guard let name = autoConnectPeerName else { return false }
-    return peer.name.hasPrefix(name)
+    guard let identity = autoConnectIdentity else { return false }
+    return peer.id == identity
+  }
+
+  /// The peer as it should be shown: the identity is what was matched, the
+  /// name is what the bluetooth side stored for it at pairing.
+  private func labelled(_ peer: Peer) -> Peer {
+    Peer(id: peer.id, name: autoConnectName ?? peer.name, endpoint: peer.endpoint)
   }
 
   private func dial(peer: Peer) {
     guard connectingPeer == nil, connectedPeer == nil else { return }
-    log("peer transport dial", peer.name)
+    let peer = labelled(peer)
+    log("peer transport dial", peer.name, peer.id)
     connectingPeer = peer
     statusMessage = "Calling \(peer.name)…"
-    let connection = PeerConnection(endpoint: peer.endpoint, localName: localName)
+    let connection = PeerConnection(endpoint: peer.endpoint, localIdentity: localIdentity)
     attach(connection)
     self.connection = connection
     connection.start()
@@ -197,19 +206,10 @@ public class PeerTransport: ObservableObject {
     guard listener == nil else { return }
     do {
       let listener = try NWListener(using: PeerConnection.parameters())
-      listener.service = NWListener.Service(name: localName, type: callServiceType)
+      listener.service = NWListener.Service(name: localIdentity, type: callServiceType)
       listener.stateUpdateHandler = { state in
         guard case .failed(let error) = state else { return }
         log("peer transport failed to advertise", error)
-      }
-      listener.serviceRegistrationUpdateHandler = { [weak self] change in
-        guard case .add(let endpoint) = change,
-          case .service(let name, _, _, _) = endpoint
-        else { return }
-        let box = SendableBox(name)
-        Task { @MainActor [weak self] in
-          self?.publishedName = box.value
-        }
       }
       listener.newConnectionHandler = { [weak self] connection in
         let box = SendableBox(connection)
@@ -244,9 +244,11 @@ public class PeerTransport: ObservableObject {
   }
 
   private func handleBrowseResults(_ peers: [Peer]) {
-    let others = peers.filter { $0.name != publishedName }
+    // Identities are unique, so this device is the only service that can
+    // carry ours.
+    let others = peers.filter { $0.id != localIdentity }
     for peer in others where !discoveredPeers.contains(peer) {
-      log("peer transport found peer", peer.name)
+      log("peer transport found peer", peer.id)
     }
     discoveredPeers = others
     guard autoConnectInvites, connection == nil, connectedPeer == nil,
@@ -265,7 +267,7 @@ public class PeerTransport: ObservableObject {
       return
     }
     let connection = PeerConnection(
-      connection: incoming, localName: localName, greetsOnReady: false)
+      connection: incoming, localIdentity: localIdentity, greetsOnReady: false)
     attach(connection)
     connection.start()
   }
@@ -273,9 +275,9 @@ public class PeerTransport: ObservableObject {
   private func attach(_ connection: PeerConnection) {
     let box = SendableBox(connection)
     connection.setHandlers(
-      onReady: { name in
+      onReady: { identity in
         Task { @MainActor [weak self] in
-          self?.handleHello(name: name, connection: box.value)
+          self?.handleHello(identity: identity, connection: box.value)
         }
       },
       onData: nil,
@@ -286,19 +288,26 @@ public class PeerTransport: ObservableObject {
       })
   }
 
-  private func handleHello(name: String, connection: PeerConnection) {
-    let peer = Peer(id: name, name: name, endpoint: connection.endpoint)
-    // Our own dial: the hello is the answer, so the call is up.
+  private func handleHello(identity: String, connection: PeerConnection) {
+    let peer = labelled(Peer(id: identity, name: identity, endpoint: connection.endpoint))
+    // Our own dial: the hello is the answer, so the call is up. The identity
+    // is checked even here, because the service could have been republished
+    // by another device between browsing and connecting.
     if self.connection === connection {
-      activate(connection, peer: connectingPeer ?? peer)
+      guard connectingPeer?.id == identity else {
+        log("peer transport dialled", connectingPeer?.id ?? "-", "but reached", identity)
+        connection.cancel()
+        return
+      }
+      activate(connection, peer: peer)
       return
     }
-    guard connectedPeer == nil, isAutoConnectPeer(peer) || connectingPeer?.name == peer.name else {
-      log("peer transport refusing connection from", peer.name)
+    guard connectedPeer == nil, isAutoConnectPeer(peer) else {
+      log("peer transport refusing connection from", identity)
       connection.cancel()
       return
     }
-    log("peer transport accepting", peer.name)
+    log("peer transport accepting", peer.name, identity)
     activate(connection, peer: peer)
     // Tells the caller its call was answered.
     connection.greet()

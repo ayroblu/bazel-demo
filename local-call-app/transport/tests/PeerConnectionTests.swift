@@ -21,7 +21,7 @@ final class PeerConnectionTests: XCTestCase {
     }
     listener.newConnectionHandler = { incoming in
       let connection = PeerConnection(
-        connection: incoming, localName: "answerer", greetsOnReady: false)
+        connection: incoming, localIdentity: "answerer-id", greetsOnReady: false)
       connection.setHandlers(
         onReady: { _ in connection.greet() },
         onData: onAnsweredData,
@@ -36,7 +36,7 @@ final class PeerConnectionTests: XCTestCase {
       throw XCTSkip("listener has no port")
     }
     let dialled = PeerConnection(
-      endpoint: .hostPort(host: "127.0.0.1", port: port), localName: "dialler")
+      endpoint: .hostPort(host: "127.0.0.1", port: port), localIdentity: "dialler-id")
     let greeted = expectation(description: "greeted")
     dialled.setHandlers(
       onReady: { _ in greeted.fulfill() },
@@ -78,8 +78,8 @@ final class PeerConnectionTests: XCTestCase {
     XCTAssertTrue(received.chunks().allSatisfy { $0.count % 2 == 0 })
   }
 
-  func testNamesTheCallerInItsHello() throws {
-    let name = Holder<String>()
+  func testIdentifiesTheCallerInItsHello() throws {
+    let identity = Holder<String>()
     let listener = try NWListener(using: PeerConnection.parameters())
     let greeted = expectation(description: "greeted")
     let accepted = Holder<PeerConnection>()
@@ -90,10 +90,10 @@ final class PeerConnectionTests: XCTestCase {
     }
     listener.newConnectionHandler = { incoming in
       let connection = PeerConnection(
-        connection: incoming, localName: "answerer", greetsOnReady: false)
+        connection: incoming, localIdentity: "answerer-id", greetsOnReady: false)
       connection.setHandlers(
-        onReady: { peerName in
-          name.set(peerName)
+        onReady: { peerIdentity in
+          identity.set(peerIdentity)
           greeted.fulfill()
         }, onData: nil, onClosed: nil)
       accepted.set(connection)
@@ -104,7 +104,7 @@ final class PeerConnectionTests: XCTestCase {
 
     let port = try XCTUnwrap(listener.port)
     let dialled = PeerConnection(
-      endpoint: .hostPort(host: "127.0.0.1", port: port), localName: "dialler")
+      endpoint: .hostPort(host: "127.0.0.1", port: port), localIdentity: "dialler-id")
     dialled.start()
     defer {
       dialled.cancel()
@@ -113,14 +113,14 @@ final class PeerConnectionTests: XCTestCase {
     }
 
     wait(for: [greeted], timeout: 10)
-    XCTAssertEqual(name.value(), "dialler")
+    XCTAssertEqual(identity.value(), "dialler-id")
   }
 
   func testDropsBacklogWhileNotConnected() {
     // Nothing is connected, so the queue can only grow: it has to shed the
     // oldest audio rather than buffer a call's worth of it.
     let connection = PeerConnection(
-      endpoint: .hostPort(host: "127.0.0.1", port: 9), localName: "dialler")
+      endpoint: .hostPort(host: "127.0.0.1", port: 9), localIdentity: "dialler-id")
     let chunk = Data(repeating: 7, count: 3200)
     for _ in 0..<20 {
       connection.send(chunk)

@@ -1,6 +1,5 @@
 import AVFoundation
 import Log
-import UIKit
 import audio
 import connect
 import transport
@@ -8,7 +7,7 @@ import transport
 class CallViewModel: ObservableObject {
   static let shared = CallViewModel()
 
-  let transport = PeerTransport(name: UIDevice.current.name)
+  let transport = PeerTransport(identity: ConnectManager.shared.localId.uuidString)
   let routes = AudioRouteController()
   private let audio = CallAudioEngine()
 
@@ -49,11 +48,12 @@ class CallViewModel: ObservableObject {
     routes.onInterruption = { [weak self] began in
       self?.handleInterruption(began: began)
     }
-    connect.onStartTransport = { [weak self] peerName, invites in
+    connect.onStartTransport = { [weak self] peerId, peerName, invites in
       guard let self else { return }
       self.isSystemCall = true
       try? self.routes.adopt()
-      self.transport.beginAutoConnect(to: peerName, invites: invites)
+      self.transport.beginAutoConnect(
+        to: peerId.uuidString, name: peerName, invites: invites)
     }
     connect.onStopTransport = { [weak self] in
       guard let self else { return }

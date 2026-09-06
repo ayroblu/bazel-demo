@@ -21,9 +21,13 @@ wifi is what carries the audio between devices that share no network.
   CallKit owns the audio session for these calls, so the engine starts when it
   hands the session over and stops when it takes it back.
 * Discovery: the `p2p-audio-call` bonjour service is advertised and browsed
-  only while a call is being set up, and a connection is accepted only from
-  the peer the bluetooth side named. There is no manual device list: a device
-  has to be paired before it can be called.
+  only while a call is being set up. It is published under the device's stable
+  identity from pairing rather than its name, and both the dialled service and
+  the hello frame on an accepted connection are matched against the identity
+  the bluetooth side agreed the call with, so a device that happens to share a
+  name cannot be reached by mistake. Device names are shown, never matched.
+  There is no manual device list: a device has to be paired before it can be
+  called.
 * Audio: an `AVAudioEngine` mic tap with voice processing on, for the system's
   echo cancellation and automatic gain control, is resampled to 16kHz mono
   Int16 PCM and written to an `NWConnection` carrying both directions. It is

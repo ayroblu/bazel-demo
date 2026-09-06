@@ -12,19 +12,19 @@ private nonisolated let presharedKeyIdentity = "local-call-app"
 
 /// One peer-to-peer connection carrying a call's audio in both directions.
 ///
-/// The connection opens with a hello frame naming the sender, because an
-/// endpoint accepted by a listener carries no service name and the callee
-/// would otherwise not know who is calling. Everything after the hello is a
-/// raw 16kHz mono Int16 sample run with no framing, so a read is handed on
-/// as-is except for a trailing odd byte, which is held back until its pair
-/// arrives.
+/// The connection opens with a hello frame carrying the sender's stable
+/// identity, because an endpoint accepted by a listener carries no service
+/// name and the callee would otherwise not know which device reached it.
+/// Everything after the hello is a raw 16kHz mono Int16 sample run with no
+/// framing, so a read is handed on as-is except for a trailing odd byte,
+/// which is held back until its pair arrives.
 ///
 /// ```
-/// [uint16 big-endian name length][name utf8][samples ...]
+/// [uint16 big-endian identity length][identity utf8][samples ...]
 /// ```
 nonisolated final class PeerConnection: @unchecked Sendable {
   private let connection: NWConnection
-  private let localName: String
+  private let localIdentity: String
   /// The side that dialled greets as soon as the connection is ready. The
   /// side that answered greets only once the user has accepted, so the hello
   /// doubles as the acceptance the caller waits for.
@@ -45,7 +45,7 @@ nonisolated final class PeerConnection: @unchecked Sendable {
   private var lastReceiveAt: Date?
   private var loggedDropAt: Date?
   private var helloBytes: [UInt8] = []
-  private var peerName: String?
+  private var peerIdentity: String?
   private var leftover: UInt8?
 
   private var onReady: (@Sendable (String) -> Void)?
@@ -55,20 +55,20 @@ nonisolated final class PeerConnection: @unchecked Sendable {
   /// 200ms of 16kHz mono Int16 audio. Anything older than that is stale by
   /// the time it would reach the wire.
   private let maxPendingBytes = 6400
-  private let maxNameBytes = 255
+  private let maxIdentityBytes = 255
 
   var endpoint: NWEndpoint { connection.endpoint }
 
-  init(connection: NWConnection, localName: String, greetsOnReady: Bool) {
+  init(connection: NWConnection, localIdentity: String, greetsOnReady: Bool) {
     self.connection = connection
-    self.localName = localName
+    self.localIdentity = localIdentity
     self.greetsOnReady = greetsOnReady
   }
 
-  convenience init(endpoint: NWEndpoint, localName: String) {
+  convenience init(endpoint: NWEndpoint, localIdentity: String) {
     self.init(
       connection: NWConnection(to: endpoint, using: PeerConnection.parameters()),
-      localName: localName, greetsOnReady: true)
+      localIdentity: localIdentity, greetsOnReady: true)
   }
 
   /// Peer-to-peer includes AWDL, which is the only path between two devices
@@ -203,9 +203,9 @@ nonisolated final class PeerConnection: @unchecked Sendable {
     }
     didGreet = true
     lock.unlock()
-    let name = Array(localName.utf8.prefix(maxNameBytes))
-    var frame = Data([UInt8((name.count >> 8) & 0xff), UInt8(name.count & 0xff)])
-    frame.append(contentsOf: name)
+    let identity = Array(localIdentity.utf8.prefix(maxIdentityBytes))
+    var frame = Data([UInt8((identity.count >> 8) & 0xff), UInt8(identity.count & 0xff)])
+    frame.append(contentsOf: identity)
     connection.send(
       content: frame,
       completion: .contentProcessed { error in
@@ -274,7 +274,7 @@ nonisolated final class PeerConnection: @unchecked Sendable {
 
     var audio = [UInt8](data)
     var greeting: String?
-    if peerName == nil {
+    if peerIdentity == nil {
       helloBytes.append(contentsOf: audio)
       guard helloBytes.count >= 2 else {
         lock.unlock()
@@ -285,9 +285,9 @@ nonisolated final class PeerConnection: @unchecked Sendable {
         lock.unlock()
         return
       }
-      let name = String(decoding: helloBytes[2..<(2 + length)], as: UTF8.self)
-      peerName = name
-      greeting = name
+      let identity = String(decoding: helloBytes[2..<(2 + length)], as: UTF8.self)
+      peerIdentity = identity
+      greeting = identity
       audio = Array(helloBytes[(2 + length)...])
       helloBytes = []
     }
