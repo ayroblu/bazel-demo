@@ -640,6 +640,88 @@ private let middayToday = SchedulerCalendar().startOfDay(for: Date()).addingTime
 }
 
 @MainActor
+@Test func pastCardSelectionsDrawFromStudiedCardsOnly() throws {
+  let deck = try numberedDeck(5)
+  let defaults = try #require(UserDefaults(suiteName: "practice-\(UUID().uuidString)"))
+  let store = StudyStore(deck: deck, defaults: defaults)
+  store.newCardsPerDay = 3
+
+  #expect(store.studiedCards.isEmpty)
+  #expect(store.recentStudiedCards(count: 3).isEmpty)
+  #expect(store.randomStudiedCards(count: 3).isEmpty)
+
+  store.grade(.easy, now: middayToday)
+  store.grade(.easy, now: middayToday)
+  store.grade(.easy, now: middayToday)
+  let states = store.reviewStates
+
+  // Latest first, so a short pass takes the cards furthest down the deck.
+  let studied = store.studiedCards
+  #expect(store.recentStudiedCards(count: 2) == [studied[2], studied[1]])
+  #expect(store.recentStudiedCards(count: 99) == studied.reversed())
+  #expect(store.recentStudiedCards(count: 0).isEmpty)
+
+  #expect(store.randomStudiedCards(count: 2).count == 2)
+  #expect(Set(store.randomStudiedCards(count: 99).map(\.id)) == Set(states.keys))
+  #expect(store.reviewStates == states)
+}
+
+@MainActor
+@Test func practiceSessionSchedulesEveryCardAfresh() throws {
+  let deck = try numberedDeck(2)
+  let session = PracticeSession(cards: deck.cards, now: middayToday)
+
+  #expect(session.remaining == 2)
+  #expect(session.currentCard == deck.cards[0])
+
+  // Cards are treated as unseen, so the buttons offer a new card's steps.
+  #expect(session.previewInterval(for: .again) < session.previewInterval(for: .hard))
+  #expect(session.previewInterval(for: .hard) < session.previewInterval(for: .good))
+  #expect(session.previewInterval(for: .good) < session.previewInterval(for: .easy))
+  #expect(session.previewInterval(for: .again) < 3_600)
+  #expect(session.previewInterval(for: .easy) >= 86_400)
+
+  session.revealAnswer()
+  session.grade(.again, now: middayToday)
+  #expect(!session.showingAnswer)
+  // A card still on a learning step comes back later in the pass.
+  #expect(session.currentCard == deck.cards[1])
+  #expect(session.remaining == 2)
+
+  session.grade(.easy, now: middayToday)
+  #expect(session.currentCard == deck.cards[0])
+  #expect(session.remaining == 1)
+
+  session.grade(.easy, now: middayToday)
+  #expect(session.currentCard == nil)
+  #expect(session.isComplete)
+}
+
+@MainActor
+@Test func practiceUndoPutsTheGradedCardBackOnItsAnswer() throws {
+  let deck = try numberedDeck(2)
+  let session = PracticeSession(cards: deck.cards, now: middayToday)
+  #expect(!session.canUndo)
+
+  session.revealAnswer()
+  session.grade(.good, now: middayToday)
+  #expect(session.currentCard == deck.cards[1])
+  #expect(session.canUndo)
+
+  session.undo()
+  #expect(session.currentCard == deck.cards[0])
+  #expect(session.showingAnswer)
+  #expect(session.remaining == 2)
+  #expect(!session.canUndo)
+
+  // The card's state is restored too, so regrading offers the same intervals.
+  let good = session.previewInterval(for: .good)
+  session.grade(.good, now: middayToday)
+  session.undo()
+  #expect(session.previewInterval(for: .good) == good)
+}
+
+@MainActor
 @Test func extraCardsApplyToTodayOnly() throws {
   let deck = try numberedDeck(6)
   let defaults = try #require(UserDefaults(suiteName: "extra-\(UUID().uuidString)"))

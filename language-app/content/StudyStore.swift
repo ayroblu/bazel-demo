@@ -363,6 +363,19 @@ public final class StudyStore {
     saveDaily()
   }
 
+  public var studiedCards: [DeckCard] {
+    deck?.cards.filter { reviewStates[$0.id] != nil } ?? []
+  }
+
+  /// Cards already seen, latest in the deck first.
+  public func recentStudiedCards(count: Int) -> [DeckCard] {
+    Array(studiedCards.reversed().prefix(max(0, count)))
+  }
+
+  public func randomStudiedCards(count: Int) -> [DeckCard] {
+    Array(studiedCards.shuffled().prefix(max(0, count)))
+  }
+
   public func isStudied(_ card: DeckCard) -> Bool {
     reviewStates[card.id] != nil
   }

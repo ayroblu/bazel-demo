@@ -12,9 +12,9 @@ struct StudyDeckView: View {
       if let card = store.currentCard {
         StudyCardView(card: card, store: store, speech: speech)
       } else if store.isDayComplete {
-        DayCompleteView(store: store)
+        DayCompleteView(store: store, speech: speech)
       } else {
-        CompleteView(nextDueDate: store.nextDueDate)
+        CompleteView(store: store, speech: speech, nextDueDate: store.nextDueDate)
       }
     }
     .onAppear {
@@ -71,7 +71,10 @@ private struct StudyCardView: View {
         }
 
         if store.showingAnswer {
-          RatingButtons(store: store)
+          RatingButtons(
+            interval: { store.previewInterval(for: $0) },
+            grade: { store.grade($0) }
+          )
         } else {
           Button { store.revealAnswer() } label: {
             Text("Show answer")
@@ -94,6 +97,7 @@ private struct StudyCardView: View {
 
 private struct DayCompleteView: View {
   let store: StudyStore
+  let speech: SpeechPlayer
   @State private var extraCards = 10
 
   var body: some View {
@@ -126,13 +130,164 @@ private struct DayCompleteView: View {
       Text("Extra cards apply to today only.")
         .font(.caption)
         .foregroundStyle(.secondary)
+
+      Divider()
+
+      PracticeControls(store: store, speech: speech, order: .latestFirst)
     }
     .padding()
     .frame(maxWidth: 420)
   }
 }
 
+/// Starts an extra pass over cards already studied.
+private struct PracticeControls: View {
+  enum Order {
+    case latestFirst
+    case random
+  }
+
+  let store: StudyStore
+  let speech: SpeechPlayer
+  let order: Order
+  @State private var count = 0
+  @State private var practice: PracticeSet?
+
+  var body: some View {
+    VStack(spacing: 8) {
+      HStack(spacing: 8) {
+        TextField("", value: $count, format: .number)
+          .textFieldStyle(.roundedBorder)
+          .frame(width: 72)
+          .multilineTextAlignment(.trailing)
+          .accessibilityLabel("Cards to review")
+          #if os(iOS)
+            .keyboardType(.numberPad)
+          #endif
+        Button("Review past cards") { practice = PracticeSet(cards: selection) }
+          .buttonStyle(.bordered)
+          .disabled(count < 1 || studiedCount == 0)
+      }
+      Text(caption)
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .multilineTextAlignment(.center)
+    }
+    .onAppear { count = studiedCount }
+    .sheet(item: $practice) { set in
+      PracticeView(cards: set.cards, speech: speech, speechRate: store.speechRate)
+    }
+  }
+
+  private var caption: String {
+    switch order {
+    case .latestFirst:
+      "The cards you have seen, latest first. Answers here do not change their scheduling."
+    case .random:
+      "A random pass over cards you have seen. Answers here do not change their scheduling."
+    }
+  }
+
+  private var selection: [DeckCard] {
+    switch order {
+    case .latestFirst: store.recentStudiedCards(count: count)
+    case .random: store.randomStudiedCards(count: count)
+    }
+  }
+
+  private var studiedCount: Int { store.studiedCards.count }
+}
+
+private struct PracticeSet: Identifiable {
+  let id = UUID()
+  let cards: [DeckCard]
+}
+
+private struct PracticeView: View {
+  let speech: SpeechPlayer
+  let speechRate: Double
+  @Environment(\.dismiss) private var dismiss
+  @State private var session: PracticeSession
+
+  init(cards: [DeckCard], speech: SpeechPlayer, speechRate: Double) {
+    self.speech = speech
+    self.speechRate = speechRate
+    _session = State(initialValue: PracticeSession(cards: cards))
+  }
+
+  var body: some View {
+    NavigationStack {
+      Group {
+        if let card = session.currentCard {
+          VStack(spacing: 24) {
+            CardFaceView(card: card, showingAnswer: session.showingAnswer) {
+              HStack {
+                Text("\(session.remaining) left")
+                  .font(.subheadline)
+                  .monospacedDigit()
+                  .foregroundStyle(.secondary)
+                Spacer()
+              }
+            }
+
+            VStack(spacing: 16) {
+              HStack {
+                SpeechToggleButton(card: card, speech: speech, rate: speechRate)
+                Spacer()
+              }
+
+              if session.showingAnswer {
+                RatingButtons(
+                  interval: { session.previewInterval(for: $0) },
+                  grade: { session.grade($0) }
+                )
+              } else {
+                Button { session.revealAnswer() } label: {
+                  Text("Show answer")
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .keyboardShortcut(.space, modifiers: [])
+              }
+            }
+          }
+          .padding()
+          .frame(maxWidth: 720)
+          .onChange(of: card.id) { _, _ in
+            guard speech.isPlaying else { return }
+            speech.start(card.prompt, languageCode: card.languageCode, rate: speechRate)
+          }
+        } else {
+          ContentUnavailableView(
+            "Review finished",
+            systemImage: "checkmark.circle.fill",
+            description: Text("Nothing left in this pass.")
+          )
+        }
+      }
+      .navigationTitle("Review past cards")
+      .toolbar {
+        ToolbarItem(placement: .primaryAction) {
+          Button("Undo", systemImage: "arrow.uturn.backward") { session.undo() }
+            .disabled(!session.canUndo)
+            .keyboardShortcut("z", modifiers: .command)
+        }
+        ToolbarItem(placement: .confirmationAction) {
+          Button("Done") { dismiss() }
+        }
+      }
+    }
+    .onDisappear { speech.stop() }
+    #if os(macOS)
+      .frame(minWidth: 480, minHeight: 520)
+    #endif
+  }
+}
+
 private struct CompleteView: View {
+  let store: StudyStore
+  let speech: SpeechPlayer
   let nextDueDate: Date?
 
   var body: some View {
@@ -144,12 +299,15 @@ private struct CompleteView: View {
       } else {
         Text("There are no cards to study.")
       }
+    } actions: {
+      PracticeControls(store: store, speech: speech, order: .random)
     }
   }
 }
 
 private struct RatingButtons: View {
-  let store: StudyStore
+  let interval: (CardRating) -> TimeInterval
+  let grade: (CardRating) -> Void
 
   var body: some View {
     HStack(spacing: 8) { buttons }
@@ -159,11 +317,11 @@ private struct RatingButtons: View {
   private var buttons: some View {
     ForEach(CardRating.allCases, id: \.rawValue) { rating in
       Button {
-        store.grade(rating)
+        grade(rating)
       } label: {
         VStack(spacing: 2) {
           Text(title(for: rating))
-          Text(intervalLabel(store.previewInterval(for: rating)))
+          Text(intervalLabel(interval(rating)))
             .font(.caption)
             .foregroundStyle(.secondary)
         }
