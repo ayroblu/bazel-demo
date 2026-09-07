@@ -59,13 +59,14 @@ struct SpeechToggleButton: View {
   let card: DeckCard
   let speech: SpeechPlayer
   let rate: Double
+  var times: Int = 1
 
   var body: some View {
     Button {
-      speech.toggle(card.prompt, languageCode: card.languageCode, rate: rate)
+      speech.toggle(card.prompt, languageCode: card.languageCode, rate: rate, times: times)
     } label: {
       Label(
-        speech.isPlaying ? "Stop" : "Play",
+        speech.isPlaying ? "Stop" : "Speak",
         systemImage: speech.isPlaying ? "stop.fill" : "play.fill"
       )
     }

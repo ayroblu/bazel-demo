@@ -42,6 +42,7 @@ public final class StudyStore {
     "language-app.speech-rate.v1.",
     "language-app.browse-repeats.v1.",
     "language-app.reviews-per-day.v1.",
+    "language-app.auto-speak.v1.",
   ]
 
   private var deckId: String { deck?.id ?? "unknown" }
@@ -51,6 +52,15 @@ public final class StudyStore {
   private var rateKey: String { Self.keyPrefixes[3] + deckId }
   private var browseRepeatsKey: String { Self.keyPrefixes[4] + deckId }
   private var reviewLimitKey: String { Self.keyPrefixes[5] + deckId }
+  private var autoSpeakKey: String { Self.keyPrefixes[6] + deckId }
+
+  /// How many times a card's question is read in one go.
+  public static let autoSpeakRepeats = 3
+
+  /// Reads each new card's question without being asked.
+  public var autoSpeak: Bool {
+    didSet { defaults.set(autoSpeak, forKey: autoSpeakKey) }
+  }
 
   /// How many unseen cards enter the queue each day, Anki's new-card limit.
   public var newCardsPerDay: Int {
@@ -88,7 +98,7 @@ public final class StudyStore {
     }
   }
 
-  /// How many times browse auto play reads the question before revealing the answer.
+  /// How many times browse reads the question before revealing the answer.
   public var browseQuestionRepeats: Int {
     didSet {
       let clamped = min(
@@ -122,6 +132,7 @@ public final class StudyStore {
       max(storedRepeats ?? AutoBrowse.defaultQuestionRepeats, AutoBrowse.questionRepeatsRange.lowerBound),
       AutoBrowse.questionRepeatsRange.upperBound
     )
+    autoSpeak = defaults.object(forKey: Self.keyPrefixes[6] + deck.id) as? Bool ?? false
     daily = DailyProgress(day: calendar.startOfDay(for: Date()))
     self.defaults = defaults
     self.calendar = calendar

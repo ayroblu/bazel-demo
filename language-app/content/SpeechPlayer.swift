@@ -17,24 +17,32 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
   public var onRemotePlay: (() -> Void)?
   public var onRemotePause: (() -> Void)?
 
+  /// One phrase being read, however many times.
+  private struct Run {
+    let phrase: String
+    let languageCode: String
+    let rate: Float
+    /// Readings still to be heard, or nil while the phrase repeats until stopped.
+    var remaining: Int?
+    let completion: (() -> Void)?
+  }
+
   /// Shared and never released: TextToSpeech crashes if a synthesizer is deallocated
   /// while it still has speech in flight.
   private nonisolated(unsafe) static let synthesizer = AVSpeechSynthesizer()
   private var synthesizer: AVSpeechSynthesizer { Self.synthesizer }
-  private var phrase: String?
-  private var languageCode: String?
-  private var rate = AVSpeechUtteranceDefaultSpeechRate
-  private var repeats = true
-  private var completion: (() -> Void)?
+  private var run: Run?
   /// True between the first utterance of a run and the run being stopped, so the pause
   /// only applies between phrases and never before the first one.
   private var continuing = false
   private var remoteCommandsConfigured = false
 
+  /// The synthesizer is shared, so its delegate is claimed when speaking rather than here:
+  /// a player built while another one is mid phrase must not take its callbacks. SwiftUI
+  /// builds a player every time it re-creates a view that holds one.
   public init(voices: VoicePreferences = VoicePreferences()) {
     self.voices = voices
     super.init()
-    synthesizer.delegate = self
   }
 
   deinit {
@@ -44,18 +52,24 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
     synthesizer.stopSpeaking(at: .immediate)
   }
 
-  /// Speaks the phrase from the beginning and keeps repeating it until stopped.
-  /// The rate is a multiple of the system's default speaking rate.
-  public func start(_ annotatedText: String, languageCode: String, rate multiplier: Double = 1) {
+  /// Speaks the phrase from the beginning, `times` in a row, or until stopped when `times`
+  /// is nil. The rate is a multiple of the system's default speaking rate.
+  public func start(
+    _ annotatedText: String,
+    languageCode: String,
+    rate multiplier: Double = 1,
+    times: Int? = nil
+  ) {
     halt()
-    activateAudioSession()
-    phrase = annotatedText
-    self.languageCode = languageCode
-    rate = Self.utteranceRate(multiplier: multiplier)
-    repeats = true
     continuing = false
-    isPlaying = true
-    speak()
+    begin(
+      Run(
+        phrase: annotatedText,
+        languageCode: languageCode,
+        rate: Self.utteranceRate(multiplier: multiplier),
+        remaining: times.map { max(1, $0) },
+        completion: nil
+      ))
   }
 
   /// Speaks the phrase once and calls back after the same pause a repeat would take.
@@ -66,14 +80,34 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
     completion: @escaping () -> Void
   ) {
     halt()
-    activateAudioSession()
-    phrase = annotatedText
-    self.languageCode = languageCode
-    rate = Self.utteranceRate(multiplier: multiplier)
-    repeats = false
-    self.completion = completion
-    isPlaying = true
-    speak()
+    begin(
+      Run(
+        phrase: annotatedText,
+        languageCode: languageCode,
+        rate: Self.utteranceRate(multiplier: multiplier),
+        remaining: 1,
+        completion: completion
+      ))
+  }
+
+  public func toggle(
+    _ annotatedText: String,
+    languageCode: String,
+    rate multiplier: Double = 1,
+    times: Int? = nil
+  ) {
+    if isPlaying {
+      stop()
+    } else {
+      start(annotatedText, languageCode: languageCode, rate: multiplier, times: times)
+    }
+  }
+
+  public func stop() {
+    halt()
+    continuing = false
+    clearNowPlaying()
+    deactivateAudioSession()
   }
 
   /// Maps a multiplier onto the range AVSpeechUtterance accepts.
@@ -85,29 +119,73 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
     )
   }
 
-  public func stop() {
-    halt()
-    continuing = false
-    clearNowPlaying()
-    deactivateAudioSession()
+  // MARK: - Running a phrase
+
+  private func begin(_ run: Run) {
+    activateAudioSession()
+    self.run = run
+    isPlaying = true
+    speak(run.remaining ?? 1)
   }
 
-  /// Stops the current phrase but keeps the audio session, so a run of phrases holds
-  /// onto background audio instead of handing it back between each one.
+  /// Drops the current run but keeps the audio session, so a run of phrases holds onto
+  /// background audio instead of handing it back between each one.
   private func halt() {
-    repeats = true
-    completion = nil
+    run = nil
     isPlaying = false
     synthesizer.stopSpeaking(at: .immediate)
   }
 
-  public func toggle(_ annotatedText: String, languageCode: String, rate multiplier: Double = 1) {
-    if isPlaying {
-      stop()
-    } else {
-      start(annotatedText, languageCode: languageCode, rate: multiplier)
+  /// Hands the readings to the synthesizer in one go, each one waiting out the pause before
+  /// it speaks. The synthesizer plays them back to back, so nothing has to be scheduled while
+  /// the phrase is being read.
+  private func speak(_ count: Int) {
+    guard let run else { return }
+    synthesizer.delegate = self
+    updateNowPlaying(FuriganaParser.displayText(run.phrase))
+    for _ in 0..<count {
+      let utterance = AVSpeechUtterance(string: FuriganaParser.speechText(run.phrase))
+      utterance.voice = utteranceVoice(for: run)
+      utterance.rate = run.rate
+      utterance.volume = 1
+      // The synthesizer owns the pause. A timer gap would leave the app playing nothing,
+      // which iOS treats as finished audio and suspends once the screen locks.
+      utterance.preUtteranceDelay = continuing ? Self.repeatPause : 0
+      continuing = true
+      synthesizer.speak(utterance)
     }
   }
+
+  private func utteranceVoice(for run: Run) -> AVSpeechSynthesisVoice? {
+    voices.voice(for: run.languageCode) ?? AVSpeechSynthesisVoice(language: run.languageCode)
+  }
+
+  /// Counts off a reading as it ends and closes the run after the last one. A run that was
+  /// stopped left no run behind, so its late callbacks do nothing.
+  private func readingFinished() {
+    guard var run else { return }
+    // An endless run is the one case that still has to queue as it goes.
+    guard let left = run.remaining else { return speak(1) }
+    guard left > 1 else { return finish() }
+    run.remaining = left - 1
+    self.run = run
+  }
+
+  private func finish() {
+    let completion = run?.completion
+    run = nil
+    isPlaying = false
+    // A run that nothing is waiting on has finished with the audio, unlike one whose
+    // completion goes straight on to the next phrase.
+    if completion == nil {
+      continuing = false
+      clearNowPlaying()
+      deactivateAudioSession()
+    }
+    completion?()
+  }
+
+  // MARK: - Audio session and remote controls
 
   /// Without an explicit playback category iOS uses the ambient category, which the
   /// Ring/Silent switch mutes. The simulator has no such switch, so this only shows on device.
@@ -125,35 +203,6 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
       try? AVAudioSession.sharedInstance().setActive(
         false, options: .notifyOthersOnDeactivation)
     #endif
-  }
-
-  private func speak() {
-    guard let phrase, let languageCode else { return }
-    let utterance = AVSpeechUtterance(string: FuriganaParser.speechText(phrase))
-    utterance.voice = voices.voice(for: languageCode) ?? AVSpeechSynthesisVoice(language: languageCode)
-    utterance.rate = rate
-    utterance.volume = 1
-    // The synthesizer owns the pause. A timer gap would leave the app playing nothing,
-    // which iOS treats as finished audio and suspends once the screen locks.
-    utterance.preUtteranceDelay = continuing ? Self.repeatPause : 0
-    continuing = true
-    synthesizer.delegate = self
-    updateNowPlaying(FuriganaParser.displayText(phrase))
-    synthesizer.speak(utterance)
-  }
-
-  /// Continuations run on the main run loop rather than in a Task, so speech
-  /// synthesis is never started from a Swift concurrency thread.
-  private func scheduleNext() {
-    guard isPlaying else { return }
-    if repeats {
-      speak()
-    } else {
-      let completion = self.completion
-      self.completion = nil
-      isPlaying = false
-      completion?()
-    }
   }
 
   private func updateNowPlaying(_ title: String) {
@@ -200,14 +249,12 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
   }
 
   private nonisolated func handleRemote(_ command: RemoteCommand) {
-    DispatchQueue.main.async { [weak self] in
-      MainActor.assumeIsolated {
-        guard let self else { return }
-        switch command {
-        case .play: self.onRemotePlay?()
-        case .pause: self.remotePause()
-        case .toggle: self.isPlaying ? self.remotePause() : self.onRemotePlay?()
-        }
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      switch command {
+      case .play: onRemotePlay?()
+      case .pause: remotePause()
+      case .toggle: isPlaying ? remotePause() : onRemotePlay?()
       }
     }
   }
@@ -220,14 +267,14 @@ public final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
     }
   }
 
+  // MARK: - AVSpeechSynthesizerDelegate
+
   public nonisolated func speechSynthesizer(
     _ synthesizer: AVSpeechSynthesizer,
     didFinish utterance: AVSpeechUtterance
   ) {
-    DispatchQueue.main.async { [weak self] in
-      MainActor.assumeIsolated {
-        self?.scheduleNext()
-      }
+    Task { @MainActor [weak self] in
+      self?.readingFinished()
     }
   }
 }

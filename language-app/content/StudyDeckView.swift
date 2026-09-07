@@ -66,7 +66,12 @@ private struct StudyCardView: View {
 
       VStack(spacing: 16) {
         HStack {
-          SpeechToggleButton(card: card, speech: speech, rate: store.speechRate)
+          SpeechToggleButton(
+            card: card,
+            speech: speech,
+            rate: store.speechRate,
+            times: store.showingAnswer ? 1 : StudyStore.autoSpeakRepeats
+          )
           Spacer()
         }
 
@@ -88,10 +93,22 @@ private struct StudyCardView: View {
     }
     .padding()
     .frame(maxWidth: 720)
-    .onChange(of: card.id) { _, _ in
-      guard speech.isPlaying else { return }
-      speech.start(card.prompt, languageCode: card.languageCode, rate: store.speechRate)
+    .onAppear { autoSpeak(card, times: StudyStore.autoSpeakRepeats) }
+    .onChange(of: card.id) { _, _ in autoSpeak(card, times: StudyStore.autoSpeakRepeats) }
+    .onChange(of: store.showingAnswer) { _, showing in
+      guard showing else { return }
+      autoSpeak(card, times: 1)
     }
+  }
+
+  private func autoSpeak(_ card: DeckCard, times: Int) {
+    guard store.autoSpeak else { return }
+    speech.start(
+      card.prompt,
+      languageCode: card.languageCode,
+      rate: store.speechRate,
+      times: times
+    )
   }
 }
 
@@ -175,7 +192,12 @@ private struct PracticeControls: View {
     }
     .onAppear { count = studiedCount }
     .sheet(item: $practice) { set in
-      PracticeView(cards: set.cards, speech: speech, speechRate: store.speechRate)
+      PracticeView(
+        cards: set.cards,
+        speech: speech,
+        speechRate: store.speechRate,
+        autoSpeak: store.autoSpeak
+      )
     }
   }
 
@@ -206,12 +228,14 @@ private struct PracticeSet: Identifiable {
 private struct PracticeView: View {
   let speech: SpeechPlayer
   let speechRate: Double
+  let autoSpeak: Bool
   @Environment(\.dismiss) private var dismiss
   @State private var session: PracticeSession
 
-  init(cards: [DeckCard], speech: SpeechPlayer, speechRate: Double) {
+  init(cards: [DeckCard], speech: SpeechPlayer, speechRate: Double, autoSpeak: Bool) {
     self.speech = speech
     self.speechRate = speechRate
+    self.autoSpeak = autoSpeak
     _session = State(initialValue: PracticeSession(cards: cards))
   }
 
@@ -232,7 +256,12 @@ private struct PracticeView: View {
 
             VStack(spacing: 16) {
               HStack {
-                SpeechToggleButton(card: card, speech: speech, rate: speechRate)
+                SpeechToggleButton(
+                  card: card,
+                  speech: speech,
+                  rate: speechRate,
+                  times: session.showingAnswer ? 1 : StudyStore.autoSpeakRepeats
+                )
                 Spacer()
               }
 
@@ -254,9 +283,11 @@ private struct PracticeView: View {
           }
           .padding()
           .frame(maxWidth: 720)
-          .onChange(of: card.id) { _, _ in
-            guard speech.isPlaying else { return }
-            speech.start(card.prompt, languageCode: card.languageCode, rate: speechRate)
+          .onAppear { speak(card, times: StudyStore.autoSpeakRepeats) }
+          .onChange(of: card.id) { _, _ in speak(card, times: StudyStore.autoSpeakRepeats) }
+          .onChange(of: session.showingAnswer) { _, showing in
+            guard showing else { return }
+            speak(card, times: 1)
           }
         } else {
           ContentUnavailableView(
@@ -282,6 +313,11 @@ private struct PracticeView: View {
     #if os(macOS)
       .frame(minWidth: 480, minHeight: 520)
     #endif
+  }
+
+  private func speak(_ card: DeckCard, times: Int) {
+    guard autoSpeak else { return }
+    speech.start(card.prompt, languageCode: card.languageCode, rate: speechRate, times: times)
   }
 }
 

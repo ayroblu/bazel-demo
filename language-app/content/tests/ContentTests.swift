@@ -236,6 +236,22 @@ private func emptyDeckStore() throws -> (store: DeckStore, directory: URL, defau
 }
 
 @MainActor
+@Test func autoSpeakIsOffByDefaultAndPersistedPerDeck() throws {
+  let japanese = try CSVDeckLoader.load(name: "Japanese", data: Data("ja,en\n犬,dog\n".utf8))
+  let spanish = try CSVDeckLoader.load(name: "Spanish", data: Data("es,en\ngato,cat\n".utf8))
+  let suite = "auto-speak-\(UUID().uuidString)"
+  let defaults = try #require(UserDefaults(suiteName: suite))
+  defer { defaults.removePersistentDomain(forName: suite) }
+
+  let store = StudyStore(deck: japanese, defaults: defaults)
+  #expect(!store.autoSpeak)
+
+  store.autoSpeak = true
+  #expect(StudyStore(deck: japanese, defaults: defaults).autoSpeak)
+  #expect(!StudyStore(deck: spanish, defaults: defaults).autoSpeak)
+}
+
+@MainActor
 @Test func speechRateMultiplierStaysInsideTheSupportedRange() {
   #expect(SpeechPlayer.utteranceRate(multiplier: 1) == AVSpeechUtteranceDefaultSpeechRate)
   #expect(

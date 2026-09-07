@@ -63,7 +63,7 @@ struct SettingsView: View {
         } header: {
           Text("Browse")
         } footer: {
-          Text("Auto play reads the question this many times before the first answer.")
+          Text("Auto mode reads the question this many times before the first answer.")
         }
 
         Section {
@@ -85,12 +85,14 @@ struct SettingsView: View {
                 .keyboardType(.numberPad)
               #endif
           }
+          Toggle("Auto speak", isOn: $store.autoSpeak)
         } header: {
           Text("Study")
         } footer: {
           Text(
             "Unseen cards enter the queue up to this many per day, and every card the day "
-              + "serves counts against the review limit.")
+              + "serves counts against the review limit. Auto speak reads each new question "
+              + "\(StudyStore.autoSpeakRepeats) times.")
         }
 
         Section("Progress") {
@@ -111,7 +113,9 @@ struct SettingsView: View {
         }
 
         Section("Deck format") {
-          Text("The first CSV column name is the speech language code, such as ja. Add readings after Japanese words with brackets: 日本語[にほんご].")
+          Text(
+            "The first CSV column name is the speech language code, such as ja. Add readings after Japanese words with brackets: 日本語[にほんご]."
+          )
         }
       }
       .navigationTitle("Settings")
@@ -180,6 +184,7 @@ private struct VoicePicker: View {
           Text(VoiceCatalog.describe(voice)).tag(voice.identifier)
         }
       }
+      .pickerStyle(.menu)
     }
   }
 }

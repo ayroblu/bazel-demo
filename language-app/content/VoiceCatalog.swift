@@ -23,9 +23,9 @@ public enum VoiceCatalog {
     voiceChangeObserver = NotificationCenter.default.addObserver(
       forName: AVSpeechSynthesizer.availableVoicesDidChangeNotification,
       object: nil,
-      queue: .main
+      queue: nil
     ) { _ in
-      MainActor.assumeIsolated { cachedVoices = nil }
+      Task { @MainActor in cachedVoices = nil }
     }
   }
 
