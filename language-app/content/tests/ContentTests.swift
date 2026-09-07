@@ -622,6 +622,24 @@ private let middayToday = SchedulerCalendar().startOfDay(for: Date()).addingTime
 }
 
 @MainActor
+@Test func currentQueueFollowsTheCardOnScreen() throws {
+  let deck = try numberedDeck(2)
+  let defaults = try #require(UserDefaults(suiteName: "queue-kind-\(UUID().uuidString)"))
+  let store = StudyStore(deck: deck, defaults: defaults)
+
+  #expect(store.currentQueue == .new)
+
+  store.grade(.again, now: middayToday)
+  store.advanceToNextCard(now: middayToday.addingTimeInterval(20 * 60))
+  #expect(store.currentQueue == .learning)
+
+  store.grade(.easy, now: middayToday.addingTimeInterval(20 * 60))
+  let graduated = try #require(store.reviewStates.values.first { $0.phase == .review })
+  store.advanceToNextCard(now: graduated.due)
+  #expect(store.currentQueue == .review)
+}
+
+@MainActor
 @Test func extraCardsApplyToTodayOnly() throws {
   let deck = try numberedDeck(6)
   let defaults = try #require(UserDefaults(suiteName: "extra-\(UUID().uuidString)"))

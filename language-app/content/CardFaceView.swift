@@ -75,26 +75,38 @@ struct SpeechToggleButton: View {
 
 struct QueueCountsView: View {
   let counts: QueueCounts
+  var highlighted: QueueKind?
 
   var body: some View {
     HStack(spacing: 8) {
-      value(counts.new, tint: .blue, name: "new")
-      value(counts.learning, tint: .red, name: "again")
-      value(counts.review, tint: .green, name: "review")
+      value(counts.new, tint: .blue, name: "new", queue: .new)
+      value(counts.learning, tint: .red, name: "again", queue: .learning)
+      value(counts.review, tint: .green, name: "review", queue: .review)
     }
     .monospacedDigit()
     .lineLimit(1)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel(
-      "\(counts.new) new, \(counts.learning) again today, \(counts.review) to review")
+    .accessibilityLabel(accessibilityLabel)
   }
 
-  private func value(_ count: Int, tint: Color, name: String) -> some View {
+  private var accessibilityLabel: String {
+    let counted =
+      "\(counts.new) new, \(counts.learning) again today, \(counts.review) to review"
+    switch highlighted {
+    case .new: return counted + ", showing a new card"
+    case .learning: return counted + ", showing an again card"
+    case .review: return counted + ", showing a review card"
+    case nil: return counted
+    }
+  }
+
+  private func value(_ count: Int, tint: Color, name: String, queue: QueueKind) -> some View {
     HStack(spacing: 3) {
       Text("\(count)")
         .fontWeight(.semibold)
       Text(name)
     }
     .foregroundStyle(count > 0 ? tint : Color.secondary)
+    .underline(highlighted == queue)
   }
 }

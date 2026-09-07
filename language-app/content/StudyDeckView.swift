@@ -58,7 +58,7 @@ private struct StudyCardView: View {
   var body: some View {
     VStack(spacing: 24) {
       HStack {
-        QueueCountsView(counts: store.counts)
+        QueueCountsView(counts: store.counts, highlighted: store.currentQueue)
         Spacer()
       }
 

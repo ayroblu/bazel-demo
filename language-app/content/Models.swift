@@ -39,6 +39,13 @@ public struct QueueCounts: Equatable, Sendable {
   }
 }
 
+/// Which of the three queues a card is being shown from.
+public enum QueueKind: Sendable {
+  case new
+  case learning
+  case review
+}
+
 /// Per-day card budget, reset when the calendar day rolls over.
 public struct DailyProgress: Codable, Equatable, Sendable {
   public var day: Date

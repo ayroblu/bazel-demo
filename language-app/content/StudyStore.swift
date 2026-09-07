@@ -207,6 +207,12 @@ public final class StudyStore {
     return deck?.cards.first { $0.id == currentCardId }
   }
 
+  public var currentQueue: QueueKind? {
+    guard let card = currentCard else { return nil }
+    guard let state = reviewStates[card.id] else { return .new }
+    return state.phase == .review ? .review : .learning
+  }
+
   /// Anki's learn-ahead limit: with nothing else waiting, a learning step due this soon is
   /// shown early rather than making the reader wait for it.
   public static let learnAheadLimit: TimeInterval = 20 * 60
