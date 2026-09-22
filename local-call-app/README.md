@@ -57,7 +57,9 @@ wifi is what carries the audio between devices that share no network.
   `AVAudioSession.availableInputs` and the output picker offers
   automatic/speaker. The engine restarts itself on
   `AVAudioEngineConfigurationChange` so switching devices mid-call keeps the
-  audio flowing.
+  audio flowing. While the call is on the built-in speaker the proximity
+  sensor runs, and raising the device to your ear moves it to the receiver
+  until you lower it again.
 
 ## Modules
 

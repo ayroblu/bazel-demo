@@ -17,6 +17,7 @@ public nonisolated let isRunningInPreview =
 
 import AVFoundation
 import Log
+import UIKit
 
 /// Follows the system default route until the user selects a specific input.
 /// Each picker action pins that exact port so repeated switching is explicit
@@ -38,6 +39,9 @@ import Log
   // the override temporarily routes to the speaker.
   private var automaticOutputName: String?
   private var automaticIsSpeaker = true
+  private var followsProximity = false
+  private var isOnSpeaker = false
+  private var isNearEar = false
 
   /// Called with true when another app takes the audio session, false when it
   /// hands it back.
@@ -70,19 +74,32 @@ import Log
         self?.onInterruption?(type == .began)
       }
     }
+    NotificationCenter.default.addObserver(
+      forName: UIDevice.proximityStateDidChangeNotification, object: nil, queue: .main
+    ) { [weak self] _ in
+      Task { @MainActor in
+        self?.applyProximityRoute()
+      }
+    }
   }
 
   /// .defaultToSpeaker only applies when the receiver would otherwise be
   /// chosen; connected AirPods or headphones still win, and we no longer
   /// force an override to the speaker on call start.
-  func configure() throws {
-    try session.setCategory(
-      .playAndRecord, mode: .voiceChat, options: [.allowBluetoothHFP, .defaultToSpeaker])
+  func configure(defaultToSpeaker: Bool = true) throws {
+    var options: AVAudioSession.CategoryOptions = [.allowBluetoothHFP]
+    if defaultToSpeaker {
+      options.insert(.defaultToSpeaker)
+    }
+    try session.setCategory(.playAndRecord, mode: .voiceChat, options: options)
   }
 
-  public func activate() throws {
+  /// A mic test has no reason to blank the screen or move to the receiver,
+  /// so only calls follow proximity.
+  public func activate(proximityRouting: Bool = true) throws {
     try configure()
     try session.setActive(true)
+    followsProximity = proximityRouting
     refresh()
   }
 
@@ -90,12 +107,59 @@ import Log
   /// deactivates it when the call ends, so we only configure and read it.
   public func adopt() throws {
     try configure()
+    followsProximity = true
     refresh()
   }
 
   public func deactivate() {
+    stopProximityRouting()
     try? session.setActive(false, options: .notifyOthersOnDeactivation)
     currentOutputID = Self.automaticOutputID
+  }
+
+  /// CallKit deactivates its own session, so ending such a call has to stop
+  /// the sensor through here rather than through `deactivate()`.
+  public func stopProximityRouting() {
+    followsProximity = false
+    if isNearEar {
+      isNearEar = false
+      try? configure()
+    }
+    updateProximityMonitoring()
+  }
+
+  /// The sensor also blanks the screen, so it runs only while the call's
+  /// audio is on the built-in speaker, and stays on while near the ear so the
+  /// move back away is still reported.
+  private func updateProximityMonitoring() {
+    let device = UIDevice.current
+    let wanted = followsProximity && (isOnSpeaker || isNearEar)
+    guard wanted != device.isProximityMonitoringEnabled else { return }
+    device.isProximityMonitoringEnabled = wanted
+    log("proximity monitoring", device.isProximityMonitoringEnabled)
+  }
+
+  /// `.defaultToSpeaker` outranks a `.none` port override and only a category
+  /// change clears it, so reaching the receiver means reconfiguring.
+  private func applyProximityRoute() {
+    let nearEar = UIDevice.current.proximityState
+    guard followsProximity, nearEar != isNearEar else { return }
+    isNearEar = nearEar
+    do {
+      if nearEar {
+        try configure(defaultToSpeaker: false)
+        try session.overrideOutputAudioPort(.none)
+      } else {
+        try configure()
+        if currentOutputID == Self.speakerOutputID {
+          try session.overrideOutputAudioPort(.speaker)
+        }
+      }
+      log("proximity route", nearEar ? "receiver" : "speaker")
+    } catch {
+      log("failed to follow proximity", error)
+      isNearEar = false
+    }
   }
 
   public func refresh() {
@@ -106,27 +170,33 @@ import Log
     // The system silently clears a speaker override when the route changes
     // (e.g. AirPods connect); snap the published choice back to reality.
     let onSpeaker = session.currentRoute.outputs.contains { $0.portType == .builtInSpeaker }
-    if currentOutputID == Self.speakerOutputID && !onSpeaker {
-      currentOutputID = Self.automaticOutputID
-    }
-    // The automatic option is named after the device it routes to, e.g.
-    // "AirPods Pro". When automatic routing already goes to the built-in
-    // speaker the override option would be a duplicate, so offer only one.
     let outputNames = session.currentRoute.outputs.map { $0.portName }.joined(separator: ", ")
-    if currentOutputID == Self.automaticOutputID, !outputNames.isEmpty {
-      automaticOutputName = outputNames
-      automaticIsSpeaker = onSpeaker
+    // The receiver is a temporary proximity route rather than a choice, so
+    // the published output stays on the one to come back to.
+    if !isNearEar {
+      if currentOutputID == Self.speakerOutputID && !onSpeaker {
+        currentOutputID = Self.automaticOutputID
+      }
+      // The automatic option is named after the device it routes to, e.g.
+      // "AirPods Pro". When automatic routing already goes to the built-in
+      // speaker the override option would be a duplicate, so offer only one.
+      if currentOutputID == Self.automaticOutputID, !outputNames.isEmpty {
+        automaticOutputName = outputNames
+        automaticIsSpeaker = onSpeaker
+      }
+      if automaticIsSpeaker {
+        outputOptions = [
+          AudioOption(id: Self.automaticOutputID, name: automaticOutputName ?? "Speaker")
+        ]
+      } else {
+        outputOptions = [
+          AudioOption(id: Self.automaticOutputID, name: automaticOutputName ?? "Default"),
+          AudioOption(id: Self.speakerOutputID, name: "Speaker"),
+        ]
+      }
+      isOnSpeaker = onSpeaker
     }
-    if automaticIsSpeaker {
-      outputOptions = [
-        AudioOption(id: Self.automaticOutputID, name: automaticOutputName ?? "Speaker")
-      ]
-    } else {
-      outputOptions = [
-        AudioOption(id: Self.automaticOutputID, name: automaticOutputName ?? "Default"),
-        AudioOption(id: Self.speakerOutputID, name: "Speaker"),
-      ]
-    }
+    updateProximityMonitoring()
     // A pinned input that disappeared falls back to following the default.
     if let pinned = pinnedInputUid, !inputs.contains(where: { $0.uid == pinned }) {
       log("pinned input disappeared, following default")

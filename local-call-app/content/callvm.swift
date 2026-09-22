@@ -1,3 +1,4 @@
+import Foundation
 import Log
 import Observation
 import audio
@@ -13,6 +14,9 @@ import transport
 
   var isInCall = false
   var isTestingMic = false
+  var isTestingSpeaker = false
+  private var isTesting: Bool { isTestingMic || isTestingSpeaker }
+  private var speakerToneTask: Task<Void, Never>?
   var micPermissionDenied = false
   var inputLevel: Float = 0
   var outputLevel: Float = 0
@@ -116,12 +120,15 @@ import transport
     if isSystemCall {
       try routes.adopt()
     } else {
-      try routes.activate()
+      try routes.activate(proximityRouting: !isTestingMic)
     }
   }
 
   private func deactivateRoute() {
-    guard !isSystemCall else { return }
+    guard !isSystemCall else {
+      routes.stopProximityRouting()
+      return
+    }
     routes.deactivate()
   }
 
@@ -130,12 +137,12 @@ import transport
   /// the engine's own restart attempts, which cannot succeed while the session
   /// belongs to somebody else.
   private func handleInterruption(began: Bool) {
-    guard isInCall || isTestingMic else { return }
+    guard isInCall || isTesting else { return }
     if began {
       // The session is already gone by the time this arrives, so stopping is
       // bookkeeping, not a choice. A call should not lose to another app's
       // audio though, so ask for the session straight back, which stops
-      // whatever took it. A mic test is not worth fighting for.
+      // whatever took it. A test is not worth fighting for.
       log("call audio interrupted, stopping engine")
       audio.stop()
       guard isInCall else { return }
@@ -146,7 +153,7 @@ import transport
   }
 
   private func resumeAudio(attempt: Int) {
-    guard isInCall || isTestingMic, !audio.isActive else { return }
+    guard isInCall || isTesting, !audio.isActive else { return }
     do {
       try activateRoute()
       try audio.start()
@@ -165,7 +172,7 @@ import transport
   /// The interruption ended notification does not always arrive, so returning
   /// to the app is a second chance to notice the audio is dead.
   func resumeAudioIfStopped() {
-    guard isInCall || isTestingMic, !audio.isActive else { return }
+    guard isInCall || isTesting, !audio.isActive else { return }
     log("call audio stopped on foreground, resuming")
     resumeAudio(attempt: 1)
   }
@@ -180,10 +187,11 @@ import transport
   /// check their mic and input picker without being in a call. Nothing is
   /// sent: the outgoing sender no-ops with no connected peers.
   func startMicTest() {
-    guard !isInCall, !isTestingMic else { return }
+    guard !isInCall else { return }
+    stopTests()
     log("mic test starting")
     do {
-      try routes.activate()
+      try routes.activate(proximityRouting: false)
       try audio.start()
       isMuted = false
       isTestingMic = true
@@ -204,10 +212,70 @@ import transport
     stopLevelPolling()
   }
 
+  /// Plays a repeating chime through the engine the same way a call plays a
+  /// peer: the output picker, the jitter queue and proximity routing all run
+  /// as they do in a call. The engine taps the mic either way, so this needs
+  /// recording permission too.
+  func startSpeakerTest() {
+    guard !isInCall else { return }
+    stopTests()
+    log("speaker test starting")
+    do {
+      try routes.activate()
+      try audio.start()
+      isMuted = false
+      isTestingSpeaker = true
+      startLevelPolling()
+      startSpeakerTone()
+    } catch {
+      log("failed to start speaker test", error)
+      audio.stop()
+      routes.deactivate()
+    }
+  }
+
+  func stopSpeakerTest() {
+    guard isTestingSpeaker else { return }
+    log("speaker test stopped", playbackSummary())
+    isTestingSpeaker = false
+    speakerToneTask?.cancel()
+    speakerToneTask = nil
+    audio.stop()
+    routes.deactivate()
+    stopLevelPolling()
+  }
+
+  private func stopTests() {
+    stopMicTest()
+    stopSpeakerTest()
+  }
+
+  private func startSpeakerTone() {
+    let packets = SpeakerTestTone.packets()
+    guard !packets.isEmpty else { return }
+    speakerToneTask?.cancel()
+    speakerToneTask = Task { [weak self] in
+      let startedAt = Date()
+      var sent = 0
+      while !Task.isCancelled {
+        guard let self, self.isTestingSpeaker else { return }
+        // Packets are due on the wall clock, kept the same fraction of a
+        // second ahead a call runs at. Sending one per fixed sleep drifts
+        // late and starves the player instead.
+        let due = Int((Date().timeIntervalSince(startedAt) + 0.1) / SpeakerTestTone.packetSeconds)
+        while sent < due {
+          self.audio.playIncoming(packets[sent % packets.count])
+          sent += 1
+        }
+        try? await Task.sleep(for: .milliseconds(20))
+      }
+    }
+  }
+
   private func startAudio() {
     log("call audio starting")
     // An incoming call can connect mid-test; hand the engine over cleanly.
-    stopMicTest()
+    stopTests()
     do {
       try activateRoute()
       log("call audio route activated")
@@ -251,9 +319,9 @@ import transport
   private func finishStopAudio() {
     guard isPlayingDisconnectChime else { return }
     isPlayingDisconnectChime = false
-    // A mic test or a new call started while the chime was playing owns the
+    // A test or a new call started while the chime was playing owns the
     // engine now.
-    guard !isInCall, !isTestingMic else { return }
+    guard !isInCall, !isTesting else { return }
     audio.stop()
     deactivateRoute()
   }

@@ -115,12 +115,31 @@ struct LobbyView: View {
             vm.stopMicTest()
           }
         }
+      } else if vm.isTestingSpeaker {
+        Section("Speaker test") {
+          AudioDevicePicker(
+            title: "Output", systemImage: "speaker.wave.2.fill",
+            options: routes.outputOptions,
+            selection: Binding(
+              get: { routes.currentOutputID },
+              set: { routes.selectOutput(id: $0) }))
+          OutputLevelBar(vm: vm)
+          Button("End test", role: .cancel) {
+            vm.stopSpeakerTest()
+          }
+        }
       } else {
         Section {
           Button {
             vm.startMicTest()
           } label: {
             Label("Test microphone", systemImage: "mic.badge.plus")
+          }
+          .disabled(vm.micPermissionDenied)
+          Button {
+            vm.startSpeakerTest()
+          } label: {
+            Label("Test speaker", systemImage: "speaker.wave.2.fill")
           }
           .disabled(vm.micPermissionDenied)
         }
