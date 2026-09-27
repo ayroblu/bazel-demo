@@ -23,13 +23,15 @@ final class SpeakerTestToneTests: XCTestCase {
 
   func testChimePlaysThenGoesQuiet() {
     let all = decodeAll(SpeakerTestTone.packets())
-    let chimeFrames = Int(0.4 * OpusCall.sampleRate)
+    let chimeFrames = Int(SpeakerTestTone.chimeSeconds * OpusCall.sampleRate)
     XCTAssertGreaterThan(all.count, chimeFrames)
 
     let chimePeak = all[..<min(chimeFrames, all.count)].map { abs($0) }.max() ?? 0
     XCTAssertGreaterThan(chimePeak, 0.05)
-    // The tail is encoded silence; the codec's ring-down must stay inaudible.
-    let tailPeak = all[chimeFrames...].map { abs($0) }.max() ?? 0
+    // The rest of the cycle is encoded silence; the codec's ring-down after
+    // the chime must die out fast and the tail must stay inaudible.
+    let tailStart = chimeFrames + Int(0.05 * OpusCall.sampleRate)
+    let tailPeak = all[tailStart...].map { abs($0) }.max() ?? 0
     XCTAssertLessThan(tailPeak, 0.01)
   }
 

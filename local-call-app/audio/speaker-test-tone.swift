@@ -1,12 +1,15 @@
 import AVFoundation
 
-/// The disconnect chime and a gap after it, encoded as the frames a peer
-/// sends: 20ms opus packets. A speaker test feeds these to the call's own
-/// playback queue rather than playing through a path of its own.
+/// The disconnect chime every 1.5s, encoded as the frames a peer sends: 20ms
+/// opus packets. A speaker test feeds these to the call's own playback queue
+/// rather than playing through a path of its own, and the output level bar
+/// meters packets as they enter that queue, so the gap between the bar
+/// pulsing and the chime being heard is the playback delay, once a cycle.
 public nonisolated enum SpeakerTestTone {
   public static let packetFrames = OpusCall.frameSamples
   public static let packetSeconds = OpusCall.frameSeconds
-  private static let cycleSeconds = 1.5
+  public static let cycleSeconds = 1.5
+  public static let chimeSeconds = 0.4
 
   public static func packets() -> [Data] {
     guard let format = AVAudioFormat(standardFormatWithSampleRate: OpusCall.sampleRate, channels: 1),

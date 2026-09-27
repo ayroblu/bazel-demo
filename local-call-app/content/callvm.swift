@@ -215,9 +215,10 @@ import transport
   }
 
   /// Plays a repeating chime through the engine the same way a call plays a
-  /// peer: the output picker, the jitter queue and proximity routing all run
-  /// as they do in a call. The engine taps the mic either way, so this needs
-  /// recording permission too.
+  /// peer: sequenced opus packets through the jitter queue, the output picker
+  /// and catch up all running as they do in a call, so the lag between the
+  /// level bar pulsing and the chime being heard is the playback delay. The
+  /// engine taps the mic either way, so this needs recording permission too.
   func startSpeakerTest() {
     guard !isInCall else { return }
     stopTests()

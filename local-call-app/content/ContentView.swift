@@ -124,6 +124,13 @@ struct LobbyView: View {
               get: { routes.currentOutputID },
               set: { routes.selectOutput(id: $0) }))
           OutputLevelBar(vm: vm)
+          HStack {
+            Label("Latency", systemImage: "clock")
+            Spacer()
+            Text("\(vm.outputLatencyMs) ms")
+              .foregroundStyle(.secondary)
+              .monospacedDigit()
+          }
           Button("End test", role: .cancel) {
             vm.stopSpeakerTest()
           }
