@@ -17,7 +17,7 @@ public nonisolated enum TransportMode: Sendable {
   case awdl
   case l2cap
 
-  func makeLinkSetup(identity: String, link: NearbyLink) -> any LinkSetup {
+  @MainActor func makeLinkSetup(identity: String, link: NearbyLink) -> any LinkSetup {
     switch self {
     case .awdl: AwdlLinkSetup(identity: identity)
     case .l2cap: L2capLinkSetup(link: link)

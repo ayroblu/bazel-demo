@@ -1,3 +1,8 @@
+_DEFINES = select({
+    "//conditions:default": ["-DDEBUG"],
+    "//:release_build": ["-DRELEASE"],
+})
+
 COMMON_FEATURES_COPTS = [
     "-enable-upcoming-feature",
     "NonisolatedNonsendingByDefault",
@@ -12,18 +17,32 @@ COMMON_FEATURES_COPTS = [
     "-enable-upcoming-feature",
     "StrictConcurrency",
 ]
-STRICT_NONISOLATED_COPTS = select({
-    "//conditions:default": ["-DDEBUG"],
-    "//:release_build": ["-DRELEASE"],
-}) + COMMON_FEATURES_COPTS + [
+
+SWIFT6_FEATURES_COPTS = [
+    "-swift-version",
+    "6",
+    "-enable-upcoming-feature",
+    "NonisolatedNonsendingByDefault",
+    "-enable-upcoming-feature",
+    "InferIsolatedConformances",
+]
+
+STRICT_NONISOLATED_COPTS = _DEFINES + COMMON_FEATURES_COPTS + [
     "-default-isolation",
     "nonisolated",
 ]
 
-STRICT_MAINACTOR_COPTS = select({
-    "//conditions:default": ["-DDEBUG"],
-    "//:release_build": ["-DRELEASE"],
-}) + COMMON_FEATURES_COPTS + [
+STRICT_MAINACTOR_COPTS = _DEFINES + COMMON_FEATURES_COPTS + [
+    "-default-isolation",
+    "MainActor",
+]
+
+SWIFT6_NONISOLATED_COPTS = _DEFINES + SWIFT6_FEATURES_COPTS + [
+    "-default-isolation",
+    "nonisolated",
+]
+
+SWIFT6_MAINACTOR_COPTS = _DEFINES + SWIFT6_FEATURES_COPTS + [
     "-default-isolation",
     "MainActor",
 ]
