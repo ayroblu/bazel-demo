@@ -39,6 +39,7 @@ private func makeInCallWithDevicesVM() -> CallViewModel {
   vm.inputLevel = 0.6
   vm.outputLevel = 0.3
   vm.networkRttMs = 12
+  vm.endToEndMs = 214
   vm.downKbps = 46
   vm.upKbps = 45
   return vm

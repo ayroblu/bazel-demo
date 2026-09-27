@@ -21,6 +21,7 @@ import transport
   var inputLevel: Float = 0
   var outputLevel: Float = 0
   var networkRttMs: Int?
+  var endToEndMs: Int?
   var downKbps: Int?
   var upKbps: Int?
   private var lastBytesSample: (at: Date, sent: Int, received: Int)?
@@ -44,6 +45,9 @@ import transport
   init() {
     audio.onOutgoingAudio = transport.makeSender()
     let audioBox = SendableBox(audio)
+    transport.setCaptureDelayProvider {
+      audioBox.value.captureDelayMs()
+    }
     transport.onAudioData = { seq, data in
       audioBox.value.playIncoming(seq: seq, data: data)
     }
@@ -365,6 +369,7 @@ import transport
     inputLevel = 0
     outputLevel = 0
     networkRttMs = nil
+    endToEndMs = nil
     downKbps = nil
     upKbps = nil
     lastBytesSample = nil
@@ -392,6 +397,7 @@ import transport
   private func updateNetworkStats() {
     guard let stats = transport.networkStats() else {
       networkRttMs = nil
+      endToEndMs = nil
       downKbps = nil
       upKbps = nil
       lastBytesSample = nil
@@ -405,6 +411,13 @@ import transport
     }
     let elapsed = now.timeIntervalSince(last.at)
     guard elapsed >= 1 else { return }
+    // What the peer's voice costs to reach this ear: its capture pipeline,
+    // the 20ms packetization (10ms on average), half the measured round
+    // trip, and this device's playback queue and output route. An estimate -
+    // it assumes the network path is symmetric - but every term is measured.
+    endToEndMs = stats.rttMs.map { rtt in
+      stats.peerCaptureMs + 10 + rtt / 2 + audio.playoutDelayMs()
+    }
     upKbps = Int(Double((stats.sentBytes - last.sent) * 8) / elapsed / 1000)
     downKbps = Int(Double((stats.receivedBytes - last.received) * 8) / elapsed / 1000)
     lastBytesSample = (now, stats.sentBytes, stats.receivedBytes)

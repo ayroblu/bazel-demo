@@ -206,6 +206,13 @@ struct InCallView: View {
             get: { routes.currentOutputID },
             set: { routes.selectOutput(id: $0) }))
         OutputLevelBar(vm: vm)
+        HStack {
+          Label("Latency", systemImage: "clock")
+          Spacer()
+          Text(vm.endToEndMs.map { "~\($0) ms end to end" } ?? "measuring…")
+            .foregroundStyle(.secondary)
+            .monospacedDigit()
+        }
         NetworkRow(vm: vm)
       }
       Section {

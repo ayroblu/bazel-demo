@@ -5,13 +5,17 @@ import Foundation
 /// ```
 /// hello: [0x01][uint16 identity length][identity utf8]
 /// audio: [0x02][uint32 seq][opus payload]
-/// ping:  [0x03][uint32 sender ms]
+/// ping:  [0x03][uint32 sender ms][uint16 sender capture delay ms]
 /// pong:  [0x04][uint32 echoed sender ms]
 /// ```
+///
+/// The ping carries the sender's mic-to-tap capture delay because the
+/// receiver's end-to-end estimate needs it and nothing local can measure
+/// the other device's capture pipeline.
 nonisolated enum Packet: Equatable {
   case hello(identity: String)
   case audio(seq: UInt32, payload: Data)
-  case ping(sentMs: UInt32)
+  case ping(sentMs: UInt32, captureMs: UInt16)
   case pong(echoedMs: UInt32)
 
   func encoded() -> Data {
@@ -26,8 +30,9 @@ nonisolated enum Packet: Equatable {
       data.append(contentsOf: Self.u32(seq))
       data.append(payload)
       return data
-    case .ping(let sentMs):
-      return Data([3] + Self.u32(sentMs))
+    case .ping(let sentMs, let captureMs):
+      return Data(
+        [3] + Self.u32(sentMs) + [UInt8((captureMs >> 8) & 0xff), UInt8(captureMs & 0xff)])
     case .pong(let echoedMs):
       return Data([4] + Self.u32(echoedMs))
     }
@@ -46,8 +51,9 @@ nonisolated enum Packet: Equatable {
       guard bytes.count >= 5 else { return nil }
       return .audio(seq: u32(bytes, at: 1), payload: Data(bytes[5...]))
     case 3:
-      guard bytes.count >= 5 else { return nil }
-      return .ping(sentMs: u32(bytes, at: 1))
+      guard bytes.count >= 7 else { return nil }
+      return .ping(
+        sentMs: u32(bytes, at: 1), captureMs: UInt16(bytes[5]) << 8 | UInt16(bytes[6]))
     case 4:
       guard bytes.count >= 5 else { return nil }
       return .pong(echoedMs: u32(bytes, at: 1))

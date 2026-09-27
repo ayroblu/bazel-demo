@@ -59,6 +59,7 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
   private var windowMinBacklogMs = Int.max
   private var windowMaxBacklogMs = 0
   private var windowMaxCaptureDelayMs = 0
+  private var lastCaptureDelayMs = 0
   private var lastStoppedLogAt: Date?
   private var lastRateLogAt: Date?
   private var lastNoiseLogAt: Date?
@@ -104,6 +105,24 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
       rendered = Int(Double(rendered) * OpusCall.sampleRate / playerTime.sampleRate)
     }
     return queue.backlog(renderedFrames: rendered)
+  }
+
+  /// This device's mic-to-tap capture delay, sent to the peer for its
+  /// end-to-end estimate.
+  public func captureDelayMs() -> Int {
+    playbackLock.lock()
+    defer { playbackLock.unlock() }
+    return lastCaptureDelayMs
+  }
+
+  /// This device's half of the end-to-end path: the playback queue, the
+  /// rate converter, and the output route.
+  public func playoutDelayMs() -> Int {
+    let session = AVAudioSession.sharedInstance()
+    let queueSeconds = Double(backlogFrames()) / OpusCall.sampleRate
+    let seconds =
+      queueSeconds + Double(varispeed.latency) + session.outputLatency + session.ioBufferDuration
+    return Int(seconds * 1000)
   }
 
   /// Arrival pattern since the last read (reading resets it), for the call
@@ -345,6 +364,7 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
       if delayMs >= 0, delayMs < 5000 {
         playbackLock.lock()
         windowMaxCaptureDelayMs = max(windowMaxCaptureDelayMs, delayMs)
+        lastCaptureDelayMs = delayMs
         playbackLock.unlock()
       }
     }

@@ -73,6 +73,7 @@ public nonisolated struct Peer: Hashable {
   private var connectedAt: Date?
 
   private let sink = AudioStreamSink()
+  private var captureDelayProvider: (@Sendable () -> Int)?
 
   public var onAudioData: (@Sendable (UInt32, Data) -> Void)?
   public var onCallStarted: (() -> Void)?
@@ -182,9 +183,16 @@ public nonisolated struct Peer: Hashable {
     }
   }
 
-  public func networkStats() -> (rttMs: Int?, sentBytes: Int, receivedBytes: Int)? {
+  public func networkStats() -> (
+    rttMs: Int?, sentBytes: Int, receivedBytes: Int, peerCaptureMs: Int
+  )? {
     guard let stats = connection?.stats() else { return nil }
-    return (stats.rttMs.map { Int($0.rounded()) }, stats.sent, stats.received)
+    return (stats.rttMs.map { Int($0.rounded()) }, stats.sent, stats.received, stats.peerCaptureMs)
+  }
+
+  public func setCaptureDelayProvider(_ provider: @escaping @Sendable () -> Int) {
+    captureDelayProvider = provider
+    connection?.setCaptureDelayProvider(provider)
   }
 
   /// A one line snapshot of the transport, logged around every event that
@@ -279,6 +287,7 @@ public nonisolated struct Peer: Hashable {
   }
 
   private func attach(_ connection: PeerConnection) {
+    connection.setCaptureDelayProvider(captureDelayProvider)
     let box = SendableBox(connection)
     connection.setHandlers(
       onReady: { identity in

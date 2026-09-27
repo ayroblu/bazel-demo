@@ -10,7 +10,8 @@ final class PacketTests: XCTestCase {
       .hello(identity: "device-id"),
       .audio(seq: 0, payload: Data([9])),
       .audio(seq: 0xfeed_beef, payload: Data(repeating: 7, count: 91)),
-      .ping(sentMs: 12345),
+      .ping(sentMs: 12345, captureMs: 0),
+      .ping(sentMs: 0xffff_ffff, captureMs: 105),
       .pong(echoedMs: 0xffff_ffff),
     ]
     for packet in packets {
@@ -199,7 +200,7 @@ final class PeerConnectionTests: XCTestCase {
           switch packet {
           case .hello:
             helloTimes.append(Date())
-          case .ping(let sentMs):
+          case .ping(let sentMs, _):
             sendable.value.send(
               content: Packet.pong(echoedMs: sentMs).encoded(), completion: .idempotent)
             if pongedAt.value() == nil {

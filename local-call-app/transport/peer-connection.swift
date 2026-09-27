@@ -48,6 +48,10 @@ nonisolated final class PeerConnection: @unchecked Sendable {
   /// arrived - so it must not stop the hello retransmitting.
   private var peerEstablished = false
   private var smoothedRttMs: Double?
+  private var peerCaptureMs = 0
+  /// Read when each ping is built: the audio engine's latest mic-to-tap
+  /// capture delay, which the peer folds into its end-to-end estimate.
+  private var captureDelayProvider: (@Sendable () -> Int)?
 
   private var helloTimer: DispatchSourceTimer?
   private var pingTimer: DispatchSourceTimer?
@@ -115,6 +119,12 @@ nonisolated final class PeerConnection: @unchecked Sendable {
     lock.unlock()
   }
 
+  func setCaptureDelayProvider(_ provider: (@Sendable () -> Int)?) {
+    lock.lock()
+    captureDelayProvider = provider
+    lock.unlock()
+  }
+
   func start() {
     connection.stateUpdateHandler = { [weak self] state in
       self?.handleState(state)
@@ -147,13 +157,13 @@ nonisolated final class PeerConnection: @unchecked Sendable {
 
   func stats() -> (
     sent: Int, dropped: Int, received: Int, receiveEvents: Int, lastSendAt: Date?,
-    lastReceiveAt: Date?, isOpen: Bool, rttMs: Double?
+    lastReceiveAt: Date?, isOpen: Bool, rttMs: Double?, peerCaptureMs: Int
   ) {
     lock.lock()
     defer { lock.unlock() }
     return (
       bytesSent, bytesDropped, bytesReceived, receiveEvents, lastSendAt, lastReceiveAt, isOpen,
-      smoothedRttMs
+      smoothedRttMs, peerCaptureMs
     )
   }
 
@@ -283,7 +293,11 @@ nonisolated final class PeerConnection: @unchecked Sendable {
         self.notifyClosed("receive timeout")
         return
       }
-      self.sendPacket(.ping(sentMs: self.nowMs()))
+      self.lock.lock()
+      let provider = self.captureDelayProvider
+      self.lock.unlock()
+      let capture = UInt16(clamping: provider?() ?? 0)
+      self.sendPacket(.ping(sentMs: self.nowMs(), captureMs: capture))
     }
     timer.activate()
   }
@@ -339,9 +353,10 @@ nonisolated final class PeerConnection: @unchecked Sendable {
       let handler = onData
       lock.unlock()
       handler?(seq, payload)
-    case .ping(let sentMs):
+    case .ping(let sentMs, let captureMs):
       lock.lock()
       peerEstablished = true
+      peerCaptureMs = Int(captureMs)
       lock.unlock()
       sendPacket(.pong(echoedMs: sentMs))
     case .pong(let echoedMs):
