@@ -10,8 +10,10 @@ swift_library(
     module_name = "content",
     deps = [
         "//local-call-app/audio",
-        "//local-call-app/connect",
+        "//local-call-app/bluetooth",
+        "//local-call-app/call",
         "//local-call-app/transport",
+        "//local-call-app/transport-protocol",
         "//swift-shared/Log",
         "//swift-shared/LogDb",
         "//swift-shared/LogUi",

@@ -3,7 +3,8 @@ import LogDb
 import LogUi
 import SwiftUI
 import audio
-import connect
+import bluetooth
+import call
 import transport
 
 private var didStartConnectServices = false

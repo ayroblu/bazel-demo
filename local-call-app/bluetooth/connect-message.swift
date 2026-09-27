@@ -3,7 +3,7 @@ import Foundation
 
 /// The signalling messages exchanged over bluetooth. Everything a call needs
 /// before the audio transport exists: pairing, ringing, and the answers to it.
-nonisolated enum ConnectMessage: Equatable {
+public nonisolated enum ConnectMessage: Equatable {
   case pairRequest(name: String, secret: Data)
   case pairAccept(name: String)
   case pairDecline
@@ -51,12 +51,12 @@ nonisolated enum ConnectFrameError: Error, Equatable {
 
 /// A framed message with the sender's app identity in the clear, so the
 /// receiver can pick the right secret before verifying anything.
-nonisolated struct ConnectFrame: Equatable {
-  let senderId: UUID
-  let message: ConnectMessage
+public nonisolated struct ConnectFrame: Equatable {
+  public let senderId: UUID
+  public let message: ConnectMessage
 }
 
-nonisolated enum ConnectCodec {
+public nonisolated enum ConnectCodec {
   static let version: UInt8 = 1
   static let maxSkew: TimeInterval = 60
   static let maxNameBytes = 24
@@ -119,7 +119,7 @@ nonisolated enum ConnectCodec {
     return trimmed
   }
 
-  static func newSecret() -> Data {
+  public static func newSecret() -> Data {
     Data(SymmetricKey(size: .bits256).withUnsafeBytes { Array($0) })
   }
 

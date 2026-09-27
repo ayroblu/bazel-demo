@@ -2,7 +2,23 @@ import Foundation
 import Network
 import XCTest
 
+import awdl
+
 @testable import transport
+
+extension PeerConnection {
+  fileprivate convenience init(connection: NWConnection, localIdentity: String, greetsOnReady: Bool) {
+    self.init(
+      carrier: NWDatagramCarrier(connection: connection), localIdentity: localIdentity,
+      greetsOnReady: greetsOnReady)
+  }
+
+  fileprivate convenience init(endpoint: NWEndpoint, localIdentity: String) {
+    self.init(
+      connection: NWConnection(to: endpoint, using: awdlParameters()),
+      localIdentity: localIdentity, greetsOnReady: true)
+  }
+}
 
 final class PacketTests: XCTestCase {
   func testRoundTripsEveryPacketType() {
@@ -40,7 +56,7 @@ final class PeerConnectionTests: XCTestCase {
     onDialledData: @escaping @Sendable (UInt32, Data) -> Void,
     onAnsweredData: @escaping @Sendable (UInt32, Data) -> Void
   ) throws -> (dialled: PeerConnection, answered: PeerConnection, listener: NWListener) {
-    let listener = try NWListener(using: PeerConnection.parameters())
+    let listener = try NWListener(using: awdlParameters())
     let answered = Holder<PeerConnection>()
     let listening = expectation(description: "listening")
     listener.stateUpdateHandler = { state in
@@ -111,7 +127,7 @@ final class PeerConnectionTests: XCTestCase {
 
   func testIdentifiesTheCallerInItsHello() throws {
     let identity = Holder<String>()
-    let listener = try NWListener(using: PeerConnection.parameters())
+    let listener = try NWListener(using: awdlParameters())
     let greeted = expectation(description: "greeted")
     let accepted = Holder<PeerConnection>()
     let listening = expectation(description: "listening")
@@ -170,7 +186,7 @@ final class PeerConnectionTests: XCTestCase {
   /// the answerer treated the pong as proof and stopped retransmitting. A
   /// peer that pongs but never acknowledges the hello must keep receiving it.
   func testKeepsRetransmittingHelloWhenOnlyPongsComeBack() throws {
-    let listener = try NWListener(using: PeerConnection.parameters())
+    let listener = try NWListener(using: awdlParameters())
     let answered = Holder<PeerConnection>()
     let listening = expectation(description: "listening")
     listener.stateUpdateHandler = { state in
@@ -192,7 +208,7 @@ final class PeerConnectionTests: XCTestCase {
     let helloTimes = Times()
     let pongedAt = Holder<Date>()
     let caller = NWConnection(
-      to: .hostPort(host: "127.0.0.1", port: port), using: PeerConnection.parameters())
+      to: .hostPort(host: "127.0.0.1", port: port), using: awdlParameters())
     let sendable = SendableBox(caller)
     @Sendable func receiveLoop() {
       sendable.value.receiveMessage { data, _, _, error in

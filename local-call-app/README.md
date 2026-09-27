@@ -8,7 +8,7 @@ wifi is what carries the audio between devices that share no network.
 
 ## How it works
 
-* Paired calling (iOS): the `connect` module keeps a small bluetooth LE
+* Paired calling (iOS): the `bluetooth` module keeps a small bluetooth LE
   service advertised at all times, which iOS keeps doing in the background and
   restores after termination, so a write from a paired device relaunches the
   app and rings it through CallKit with no button pressed on either side.
@@ -38,8 +38,8 @@ wifi is what carries the audio between devices that share no network.
   connection the signalling already holds: the callee publishes it, signals
   its PSM over bluetooth, the caller opens it, and the bytes are sealed with
   a key derived from the pairing secret since there is no DTLS on that path.
-  Every mode speaks the same datagram packet protocol; only the carrier
-  underneath changes.
+  Every mode speaks the same datagram packet protocol; a mode only produces
+  carriers for it.
 * Audio: an `AVAudioEngine` mic tap with voice processing on, for the system's
   echo cancellation and automatic gain control, is resampled to 16kHz mono,
   cut into 20ms frames and opus encoded (~25kbps against 256 for raw PCM).
@@ -85,20 +85,25 @@ wifi is what carries the audio between devices that share no network.
 
 | Module | Holds |
 |---|---|
-| `connect` | Bluetooth LE signalling, pairing and CallKit |
-| `transport` | The peer-to-peer wifi connection carrying call audio |
+| `bluetooth` | Bluetooth LE signalling, pairing, and the L2CAP channel API |
+| `call` | The call state machine and CallKit, over `bluetooth` |
+| `transport-protocol` | `DatagramCarrier` and `LinkSetup`, what a link technology provides |
+| `awdl` | Bonjour discovery and DTLS datagrams over peer-to-peer wifi |
+| `l2cap` | The L2CAP channel setup and its sealed stream carrier, over `bluetooth` |
+| `transport` | The call protocol (hello, keepalive, RTT) over whichever link the mode picks |
 | `audio` | The engine, routing and the disconnect chime |
-| `content` | SwiftUI views and `CallViewModel`, which wires the other three |
+| `content` | SwiftUI views and `CallViewModel`, which wires `call`, `transport` and `audio` |
 
-`connect` depends on neither `transport` nor `audio`: it reports what a call
-needs through callbacks that `CallViewModel` connects up, so the three can be
-built and tested on their own.
+`call` depends on neither `transport` nor `audio`: it reports what a call
+needs through callbacks that `CallViewModel` connects up. `awdl` and `l2cap`
+only know `transport-protocol`, so a link technology is added without
+touching the call protocol above it.
 
 ## Building
 
 ```sh
 bazel build //local-call-app
-bazel test //local-call-app/connect/tests //local-call-app/transport/tests \
+bazel test //local-call-app/bluetooth/tests //local-call-app/transport/tests \
   //local-call-app/audio/tests --ios_multi_cpus=sim_arm64
 bazel run //local-call-app:xcodeproj && xed local-call-app.xcodeproj
 ```

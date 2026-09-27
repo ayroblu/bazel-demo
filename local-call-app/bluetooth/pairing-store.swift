@@ -12,11 +12,19 @@ public nonisolated struct PairedPeer: Codable, Equatable, Identifiable {
   /// The name the user gave this device here, which wins when it is set.
   public var nickname: String?
   var secret: Data
-  var peripheralId: UUID?
+  public var peripheralId: UUID?
 
   public var displayName: String {
     guard let nickname, !nickname.isEmpty else { return name }
     return nickname
+  }
+
+  public init(id: UUID, name: String, nickname: String? = nil, secret: Data, peripheralId: UUID? = nil) {
+    self.id = id
+    self.name = name
+    self.nickname = nickname
+    self.secret = secret
+    self.peripheralId = peripheralId
   }
 }
 
@@ -55,7 +63,7 @@ nonisolated final class MemoryPairingStorage: PairingStorage {
   }
 }
 
-nonisolated final class PairingStore {
+public nonisolated final class PairingStore {
   private let storage: PairingStorage
   private static let localIdKey = "connect.localId"
   private static let peersKey = "connect.pairedPeers"
@@ -63,10 +71,14 @@ nonisolated final class PairingStore {
   /// This device's stable identity in the signalling protocol. Bluetooth
   /// addresses rotate and peripheral handles differ per observer, so identity
   /// is carried in the messages instead.
-  let localId: UUID
-  private(set) var peers: [PairedPeer]
+  public let localId: UUID
+  public private(set) var peers: [PairedPeer]
 
-  init(storage: PairingStorage = UserDefaultsPairingStorage()) {
+  public convenience init() {
+    self.init(storage: UserDefaultsPairingStorage())
+  }
+
+  init(storage: PairingStorage) {
     self.storage = storage
     if let data = storage.pairingData(for: Self.localIdKey), let existing = UUID(
       uuidString: String(decoding: data, as: UTF8.self))
@@ -82,7 +94,7 @@ nonisolated final class PairingStore {
       .flatMap { try? JSONDecoder().decode([PairedPeer].self, from: $0) } ?? []
   }
 
-  func peer(id: UUID) -> PairedPeer? {
+  public func peer(id: UUID) -> PairedPeer? {
     peers.first { $0.id == id }
   }
 
@@ -90,11 +102,11 @@ nonisolated final class PairingStore {
     peers.first { $0.peripheralId == peripheralId }
   }
 
-  func secret(for id: UUID) -> Data? {
+  public func secret(for id: UUID) -> Data? {
     peer(id: id)?.secret
   }
 
-  func save(_ peer: PairedPeer) {
+  public func save(_ peer: PairedPeer) {
     if let index = peers.firstIndex(where: { $0.id == peer.id }) {
       peers[index] = peer
     } else {
@@ -111,7 +123,7 @@ nonisolated final class PairingStore {
     persist()
   }
 
-  func remove(id: UUID) {
+  public func remove(id: UUID) {
     peers.removeAll { $0.id == id }
     persist()
   }

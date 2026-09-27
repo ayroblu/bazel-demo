@@ -1,7 +1,7 @@
 import Foundation
 import XCTest
 
-@testable import connect
+@testable import bluetooth
 
 final class PairingStoreTests: XCTestCase {
   func testLocalIdIsStable() {

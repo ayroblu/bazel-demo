@@ -1,4 +1,8 @@
 import Foundation
+import awdl
+import bluetooth
+import l2cap
+import transport_protocol
 
 /// Compile-time switch between link technologies, for comparing them on real
 /// devices. Both devices must run the same mode.
@@ -13,7 +17,18 @@ public nonisolated enum TransportMode: Sendable {
   case awdl
   case l2cap
 
-  public var usesL2cap: Bool { self == .l2cap }
+  func makeLinkSetup(identity: String, link: NearbyLink) -> any LinkSetup {
+    switch self {
+    case .awdl: AwdlLinkSetup(identity: identity)
+    case .l2cap: L2capLinkSetup(link: link)
+    }
+  }
 }
 
 public nonisolated let transportMode: TransportMode = .l2cap
+
+extension PeerTransport {
+  public convenience init(identity: String, link: NearbyLink) {
+    self.init(identity: identity, setup: transportMode.makeLinkSetup(identity: identity, link: link))
+  }
+}

@@ -1,14 +1,6 @@
-import CryptoKit
 import Foundation
 import Log
-import Network
-import Security
-
-/// Both ends of a call are copies of this app, so the key that encrypts the
-/// audio is baked into it. That hides the call from anything else on the
-/// link, but it authenticates nobody: any copy of the app holds the same key.
-private nonisolated let presharedKeySeed = "local-call-app.peer-audio.v1"
-private nonisolated let presharedKeyIdentity = "local-call-app"
+import transport_protocol
 
 /// One link carrying a call's audio in both directions as datagrams: audio is
 /// late-is-worthless, so a lost packet is never retransmitted and can never
@@ -66,47 +58,11 @@ nonisolated final class PeerConnection: @unchecked Sendable {
   private let receiveTimeout: TimeInterval = 15
 
   var linkDescription: String { carrier.carrierDescription }
-  var remoteEndpoint: NWEndpoint? { carrier.remoteEndpoint }
 
   init(carrier: any DatagramCarrier, localIdentity: String, greetsOnReady: Bool) {
     self.carrier = carrier
     self.localIdentity = localIdentity
     self.greetsOnReady = greetsOnReady
-  }
-
-  convenience init(connection: NWConnection, localIdentity: String, greetsOnReady: Bool) {
-    self.init(
-      carrier: NWDatagramCarrier(connection: connection), localIdentity: localIdentity,
-      greetsOnReady: greetsOnReady)
-  }
-
-  convenience init(endpoint: NWEndpoint, localIdentity: String) {
-    self.init(
-      connection: NWConnection(to: endpoint, using: PeerConnection.parameters()),
-      localIdentity: localIdentity, greetsOnReady: true)
-  }
-
-  /// Peer-to-peer includes AWDL, which is the only path between two devices
-  /// that share no network.
-  static func parameters() -> NWParameters {
-    let parameters = NWParameters(dtls: tlsOptions(), udp: NWProtocolUDP.Options())
-    parameters.includePeerToPeer = true
-    return parameters
-  }
-
-  private static func tlsOptions() -> NWProtocolTLS.Options {
-    let options = NWProtocolTLS.Options()
-    let key = Data(SHA256.hash(data: Data(presharedKeySeed.utf8)))
-      .withUnsafeBytes { DispatchData(bytes: $0) }
-    let identity = Data(presharedKeyIdentity.utf8)
-      .withUnsafeBytes { DispatchData(bytes: $0) }
-    sec_protocol_options_add_pre_shared_key(
-      options.securityProtocolOptions, key as __DispatchData, identity as __DispatchData)
-    // A pre-shared key needs a ciphersuite that can be negotiated without a
-    // certificate.
-    sec_protocol_options_append_tls_ciphersuite(
-      options.securityProtocolOptions, tls_ciphersuite_t.AES_128_GCM_SHA256)
-    return options
   }
 
   func setHandlers(

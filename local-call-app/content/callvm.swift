@@ -1,15 +1,16 @@
-import CoreBluetooth
 import Foundation
 import Log
 import Observation
 import audio
-import connect
+import call
 import transport
+import transport_protocol
 
 @Observable class CallViewModel {
   static let shared = CallViewModel()
 
-  let transport = PeerTransport(identity: ConnectManager.shared.localId.uuidString)
+  let transport = PeerTransport(
+    identity: ConnectManager.shared.localId.uuidString, link: ConnectManager.shared.link)
   let routes = AudioRouteController()
   private let audio = CallAudioEngine()
 
@@ -35,10 +36,6 @@ import transport
   private var isSystemCall = false
   private var isSystemAudioActive = false
   private var isApplyingSystemMute = false
-  /// L2CAP call channel state, used by the l2cap transport mode. The channel
-  /// object must stay referenced or its streams die under the call.
-  private var isCallInviter = false
-  private var callChannel: CBL2CAPChannel?
   var isMuted = false {
     didSet {
       audio.isMuted = isMuted
@@ -65,29 +62,22 @@ import transport
     routes.onInterruption = { [weak self] began in
       self?.handleInterruption(began: began)
     }
-    connect.onStartTransport = { [weak self] peerId, peerName, invites in
+    connect.onStartTransport = { [weak self] peerId, callId, peerName, invites in
       guard let self else { return }
       self.isSystemCall = true
-      self.isCallInviter = invites
       try? self.routes.adopt()
       self.transport.beginAutoConnect(
-        to: peerId.uuidString, name: peerName, invites: invites)
-      self.setUpCallChannelIfNeeded()
+        LinkCall(
+          peerId: peerId, peerIdentity: peerId.uuidString, peerName: peerName, callId: callId,
+          invites: invites))
     }
     connect.onStopTransport = { [weak self] in
       guard let self else { return }
-      self.transport.cancelAutoConnect()
       self.transport.disconnect()
+      self.transport.cancelAutoConnect()
       self.isSystemCall = false
       self.isSystemAudioActive = false
-      self.tearDownCallChannel()
       self.stopAudio()
-    }
-    connect.onCallPsm = { [weak self] psm in
-      self?.handleCallPsm(psm)
-    }
-    connect.onCallChannel = { [weak self] channel in
-      self?.handleCallChannel(channel)
     }
     connect.onAudioActivated = { [weak self] in
       self?.startSystemAudio()
@@ -106,39 +96,6 @@ import transport
   func startConnectServices() {
     log("transport mode", String(describing: transportMode))
     connect.start()
-  }
-
-  // MARK: L2CAP call channel
-
-  /// The callee publishes a channel; the caller opens it as soon as the PSM
-  /// arrives over signalling.
-  private func setUpCallChannelIfNeeded() {
-    guard transportMode.usesL2cap else { return }
-    log("call transport l2cap setup, inviter", isCallInviter)
-    guard !isCallInviter else { return }
-    connect.publishCallChannel()
-  }
-
-  private func handleCallPsm(_ psm: UInt16) {
-    guard isCallInviter, transportMode.usesL2cap, transport.connectedPeer == nil else { return }
-    connect.openCallChannel(psm: psm)
-  }
-
-  private func handleCallChannel(_ channel: CBL2CAPChannel) {
-    guard transportMode.usesL2cap, let input = channel.inputStream,
-      let output = channel.outputStream, let secret = connect.callSecret()
-    else {
-      log("call transport l2cap channel unusable")
-      return
-    }
-    callChannel = channel
-    transport.adoptCallStreams(
-      input: input, output: output, secret: secret, isCaller: isCallInviter)
-  }
-
-  private func tearDownCallChannel() {
-    callChannel = nil
-    isCallInviter = false
   }
 
   func setConnectScanning(_ scanning: Bool) {

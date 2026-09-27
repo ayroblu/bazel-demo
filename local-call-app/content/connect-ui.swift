@@ -1,5 +1,6 @@
 import SwiftUI
-import connect
+import bluetooth
+import call
 
 /// The lobby half that needs no button: paired devices are callable whenever
 /// they are in range, and the other side rings through CallKit even with the

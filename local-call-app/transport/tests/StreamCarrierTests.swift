@@ -1,6 +1,8 @@
 import Foundation
 import XCTest
 
+import l2cap
+
 @testable import transport
 
 /// The L2CAP path without bluetooth: crossed pairs of bound Foundation

@@ -1,0 +1,16 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
+
+package(default_visibility = ["//local-call-app:__subpackages__"])
+
+swift_library(
+    name = "l2cap",
+    srcs = glob(["*.swift"]),
+    copts = STRICT_MAINACTOR_COPTS,
+    module_name = "l2cap",
+    deps = [
+        "//local-call-app/bluetooth",
+        "//local-call-app/transport-protocol",
+        "//swift-shared/Log",
+    ],
+)

@@ -1,7 +1,7 @@
 import CryptoKit
 import Foundation
 import Log
-import Network
+import transport_protocol
 
 /// Makes a pair of Foundation streams (an L2CAP channel's) look like a
 /// datagram carrier: each datagram travels as `[u16 length][sealed bytes]`.
@@ -17,7 +17,7 @@ import Network
 /// stop being accepted. Audio must not queue behind that, so the write buffer
 /// is capped at a few frames and newer datagrams are dropped while it is
 /// full - the same late-is-worthless policy the datagram links get for free.
-nonisolated final class StreamDatagramCarrier: NSObject, DatagramCarrier, StreamDelegate,
+public nonisolated final class StreamDatagramCarrier: NSObject, DatagramCarrier, StreamDelegate,
   @unchecked Sendable
 {
   private let input: InputStream
@@ -42,7 +42,7 @@ nonisolated final class StreamDatagramCarrier: NSObject, DatagramCarrier, Stream
   private let maxFrameBytes = 4096
   private let maxWriteBufferBytes = 2048
 
-  init(input: InputStream, output: OutputStream, secret: Data, label: String) {
+  public init(input: InputStream, output: OutputStream, secret: Data, label: String) {
     self.input = input
     self.output = output
     self.label = label
@@ -52,10 +52,9 @@ nonisolated final class StreamDatagramCarrier: NSObject, DatagramCarrier, Stream
       outputByteCount: 32)
   }
 
-  var carrierDescription: String { label }
-  var remoteEndpoint: NWEndpoint? { nil }
+  public var carrierDescription: String { label }
 
-  func setHandlers(
+  public func setHandlers(
     onOpen: @escaping @Sendable () -> Void,
     onDatagram: @escaping @Sendable (Data) -> Void,
     onFailed: @escaping @Sendable (String) -> Void
@@ -69,7 +68,7 @@ nonisolated final class StreamDatagramCarrier: NSObject, DatagramCarrier, Stream
 
   /// Streams need a run loop; the main one is the only one guaranteed to keep
   /// running, and the traffic is 20ms opus frames, not bulk data.
-  func start(queue: DispatchQueue) {
+  public func start(queue: DispatchQueue) {
     DispatchQueue.main.async { [self] in
       input.delegate = self
       output.delegate = self
@@ -80,7 +79,7 @@ nonisolated final class StreamDatagramCarrier: NSObject, DatagramCarrier, Stream
     }
   }
 
-  func cancel() {
+  public func cancel() {
     lock.lock()
     cancelled = true
     onOpen = nil
@@ -97,7 +96,7 @@ nonisolated final class StreamDatagramCarrier: NSObject, DatagramCarrier, Stream
     }
   }
 
-  func send(_ datagram: Data, completion: @escaping @Sendable (Error?) -> Void) {
+  public func send(_ datagram: Data, completion: @escaping @Sendable (Error?) -> Void) {
     guard let sealed = try? ChaChaPoly.seal(datagram, using: key).combined else {
       completion(CarrierError.sealFailed)
       return
@@ -124,7 +123,7 @@ nonisolated final class StreamDatagramCarrier: NSObject, DatagramCarrier, Stream
     }
   }
 
-  func stream(_ stream: Stream, handle event: Stream.Event) {
+  public func stream(_ stream: Stream, handle event: Stream.Event) {
     switch event {
     case .openCompleted:
       lock.lock()

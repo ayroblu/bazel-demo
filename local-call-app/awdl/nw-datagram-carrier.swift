@@ -1,44 +1,24 @@
 import Foundation
 import Log
 import Network
-
-/// What a link technology must provide: datagrams in, datagrams out, and
-/// open/failed events. `PeerConnection` runs the call protocol on top, so a
-/// new carrier gets hello, keepalive, RTT and stats without reimplementing
-/// any of it.
-nonisolated protocol DatagramCarrier: AnyObject, Sendable {
-  var carrierDescription: String { get }
-  /// The dialled or accepted network endpoint, for carriers that have one.
-  var remoteEndpoint: NWEndpoint? { get }
-
-  /// Must be called before `start`.
-  func setHandlers(
-    onOpen: @escaping @Sendable () -> Void,
-    onDatagram: @escaping @Sendable (Data) -> Void,
-    onFailed: @escaping @Sendable (String) -> Void
-  )
-  func start(queue: DispatchQueue)
-  func cancel()
-  func send(_ datagram: Data, completion: @escaping @Sendable (Error?) -> Void)
-}
+import transport_protocol
 
 /// DTLS datagrams over an `NWConnection`: the AWDL path, and any other
 /// interface Network.framework routes to the peer.
-nonisolated final class NWDatagramCarrier: DatagramCarrier, @unchecked Sendable {
+public nonisolated final class NWDatagramCarrier: DatagramCarrier, @unchecked Sendable {
   private let connection: NWConnection
   private let lock = NSLock()
   private var onOpen: (@Sendable () -> Void)?
   private var onDatagram: (@Sendable (Data) -> Void)?
   private var onFailed: (@Sendable (String) -> Void)?
 
-  init(connection: NWConnection) {
+  public init(connection: NWConnection) {
     self.connection = connection
   }
 
-  var carrierDescription: String { String(describing: connection.endpoint) }
-  var remoteEndpoint: NWEndpoint? { connection.endpoint }
+  public var carrierDescription: String { String(describing: connection.endpoint) }
 
-  func setHandlers(
+  public func setHandlers(
     onOpen: @escaping @Sendable () -> Void,
     onDatagram: @escaping @Sendable (Data) -> Void,
     onFailed: @escaping @Sendable (String) -> Void
@@ -50,7 +30,7 @@ nonisolated final class NWDatagramCarrier: DatagramCarrier, @unchecked Sendable 
     lock.unlock()
   }
 
-  func start(queue: DispatchQueue) {
+  public func start(queue: DispatchQueue) {
     connection.stateUpdateHandler = { [weak self] state in
       guard let self else { return }
       switch state {
@@ -73,7 +53,7 @@ nonisolated final class NWDatagramCarrier: DatagramCarrier, @unchecked Sendable 
     connection.start(queue: queue)
   }
 
-  func cancel() {
+  public func cancel() {
     lock.lock()
     onOpen = nil
     onDatagram = nil
@@ -82,7 +62,7 @@ nonisolated final class NWDatagramCarrier: DatagramCarrier, @unchecked Sendable 
     connection.cancel()
   }
 
-  func send(_ datagram: Data, completion: @escaping @Sendable (Error?) -> Void) {
+  public func send(_ datagram: Data, completion: @escaping @Sendable (Error?) -> Void) {
     connection.send(
       content: datagram,
       completion: .contentProcessed { error in

@@ -9,6 +9,10 @@ swift_library(
     copts = STRICT_MAINACTOR_COPTS,
     module_name = "transport",
     deps = [
+        "//local-call-app/awdl",
+        "//local-call-app/bluetooth",
+        "//local-call-app/l2cap",
+        "//local-call-app/transport-protocol",
         "//swift-shared/Log",
     ],
 )

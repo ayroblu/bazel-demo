@@ -24,7 +24,7 @@ public nonisolated struct NearbyPeer: Identifiable, Equatable {
 /// its signal characteristic relaunches the app to ring. Scanning is the
 /// expensive half and only runs in the foreground, which is where a caller is
 /// by definition.
-class NearbyLink {
+public class NearbyLink {
   private let store: PairingStore
   private let delegate = NearbyDelegate()
   private var central: CBCentralManager?
@@ -45,23 +45,25 @@ class NearbyLink {
   private var resolveAttempts: [UUID: Date] = [:]
   private var pruneTask: Task<Void, Never>?
 
-  private(set) var nearby: [NearbyPeer] = []
-  private(set) var isScanning = false
-  private(set) var isPoweredOn = false
+  public private(set) var nearby: [NearbyPeer] = []
+  public private(set) var isScanning = false
+  public private(set) var isPoweredOn = false
 
-  var onMessage: ((ConnectFrame) -> Void)?
-  var onNearbyChanged: (([NearbyPeer]) -> Void)?
+  public var onMessage: ((ConnectFrame) -> Void)?
+  public var onNearbyChanged: (([NearbyPeer]) -> Void)?
   /// Fired on the callee when its published call channel gets a PSM, and
   /// again if a publish is requested while one is already up.
-  var onPublishedPsm: ((CBL2CAPPSM) -> Void)?
+  public var onPublishedPsm: ((CBL2CAPPSM) -> Void)?
+  /// The peer's published PSM for a call, as signalled to the caller.
+  public var onCallPsm: ((_ callId: UUID, _ psm: CBL2CAPPSM) -> Void)?
   /// Fired on both sides when the L2CAP channel for a call opens.
-  var onCallChannel: ((CBL2CAPChannel) -> Void)?
-  var localName: String
+  public var onCallChannel: ((CBL2CAPChannel) -> Void)?
+  public var localName: String
 
   private var publishedPsm: CBL2CAPPSM?
   private var wantsPublishedChannel = false
 
-  init(store: PairingStore, localName: String) {
+  public init(store: PairingStore, localName: String) {
     self.store = store
     self.localName = ConnectCodec.trimmed(name: localName)
     delegate.link = self
@@ -70,7 +72,7 @@ class NearbyLink {
   /// Both managers are created with restore identifiers, which is what lets
   /// the system relaunch a terminated app into the background when a paired
   /// device writes to us.
-  func start() {
+  public func start() {
     guard central == nil else { return }
     log("connect nearby start", store.localId.uuidString)
     server = CBPeripheralManager(
@@ -81,7 +83,7 @@ class NearbyLink {
       options: [CBCentralManagerOptionRestoreIdentifierKey: "connect.central"])
   }
 
-  func setScanning(_ scanning: Bool) {
+  public func setScanning(_ scanning: Bool) {
     guard scanning != isScanning else { return }
     isScanning = scanning
     if scanning {
@@ -100,17 +102,17 @@ class NearbyLink {
 
   /// Keeps the bluetooth connection to a peer alive for the length of a call,
   /// so its answer, decline and hangup can come back as notifications.
-  func hold(peerId: UUID) {
+  public func hold(peerId: UUID) {
     heldPeers.insert(peerId)
     connectIfNeeded(peerId: peerId)
   }
 
-  func release(peerId: UUID) {
+  public func release(peerId: UUID) {
     heldPeers.remove(peerId)
     disconnectIdle()
   }
 
-  func send(_ message: ConnectMessage, to peerId: UUID) {
+  public func send(_ message: ConnectMessage, to peerId: UUID) {
     let secret = message.isPairing ? nil : store.secret(for: peerId)
     if !message.isPairing && secret == nil {
       log("connect send to unpaired peer ignored", peerId.uuidString)
@@ -135,7 +137,7 @@ class NearbyLink {
   /// would demand an OS-level bond the app never makes: the channel's
   /// payload is sealed at the application layer with the pairing secret
   /// instead, which also authenticates the peer.
-  func publishCallChannel() {
+  public func publishCallChannel() {
     wantsPublishedChannel = true
     if let publishedPsm {
       onPublishedPsm?(publishedPsm)
@@ -148,7 +150,7 @@ class NearbyLink {
     server.publishL2CAPChannel(withEncryption: false)
   }
 
-  func unpublishCallChannel() {
+  public func unpublishCallChannel() {
     wantsPublishedChannel = false
     guard let publishedPsm else { return }
     server?.unpublishL2CAPChannel(publishedPsm)
@@ -157,7 +159,7 @@ class NearbyLink {
 
   /// The caller opens the channel the callee published, over the bluetooth
   /// connection the call is already holding.
-  func openCallChannel(peerId: UUID, psm: CBL2CAPPSM) {
+  public func openCallChannel(peerId: UUID, psm: CBL2CAPPSM) {
     guard let peripheralId = peripheralId(for: peerId),
       let peripheral = peripherals[peripheralId], peripheral.state == .connected
     else {
@@ -192,7 +194,13 @@ class NearbyLink {
     onCallChannel?(channel)
   }
 
-  func peripheralId(for peerId: UUID) -> UUID? {
+  /// The pairing secret shared with a peer, for sealing what signalling
+  /// itself does not carry.
+  public func secret(for peerId: UUID) -> Data? {
+    store.secret(for: peerId)
+  }
+
+  public func peripheralId(for peerId: UUID) -> UUID? {
     store.peer(id: peerId)?.peripheralId
       ?? identities.first { $0.value.id == peerId }?.key
   }
@@ -498,7 +506,11 @@ class NearbyLink {
         self?.store.secret(for: senderId)
       }
       log("connect received", String(describing: frame.message), frame.senderId.uuidString)
-      onMessage?(frame)
+      if case .transportPsm(let callId, let psm) = frame.message {
+        onCallPsm?(callId, CBL2CAPPSM(psm))
+      } else {
+        onMessage?(frame)
+      }
       return frame
     } catch {
       log("connect rejected frame", data.count, String(describing: error))
