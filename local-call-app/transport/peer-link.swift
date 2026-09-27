@@ -19,9 +19,11 @@ public nonisolated struct Peer: Hashable {
   /// they are shown but never matched on.
   let id: String
   public let name: String
-  let endpoint: NWEndpoint
+  /// Present for browsed peers; a peer reached over an adopted stream has no
+  /// network endpoint.
+  let endpoint: NWEndpoint?
 
-  init(id: String, name: String, endpoint: NWEndpoint) {
+  init(id: String, name: String, endpoint: NWEndpoint?) {
     self.id = id
     self.name = name
     self.endpoint = endpoint
@@ -86,11 +88,18 @@ public nonisolated struct Peer: Hashable {
     localIdentity = identity
   }
 
+  /// Only the network-discovered modes browse and listen. L2CAP calls are
+  /// wired up by the bluetooth side handing streams to `adoptCallStreams`.
   func startDiscovery() {
-    log("peer transport start discovery", localIdentity, callServiceType)
-    startListener()
-    startBrowser()
-    isDiscovering = true
+    switch transportMode {
+    case .awdl:
+      log("peer transport start discovery", localIdentity, callServiceType)
+      startListener()
+      startBrowser()
+      isDiscovering = true
+    case .l2cap:
+      break
+    }
     statusMessage = nil
   }
 
@@ -134,6 +143,32 @@ public nonisolated struct Peer: Hashable {
     }
   }
 
+  /// A bluetooth L2CAP channel opened for the call: wrap it in the same
+  /// packet protocol every other link speaks. The caller opened the channel,
+  /// so it plays the dialler and greets; the callee accepted it. The identity
+  /// in the hello is still verified against the call being set up.
+  public func adoptCallStreams(
+    input: InputStream, output: OutputStream, secret: Data, isCaller: Bool
+  ) {
+    guard connectedPeer == nil else {
+      log("peer transport ignoring l2cap channel, already connected")
+      return
+    }
+    log("peer transport adopting l2cap channel, caller", isCaller)
+    let carrier = StreamDatagramCarrier(
+      input: input, output: output, secret: secret, label: "l2cap")
+    let link = PeerConnection(
+      carrier: carrier, localIdentity: localIdentity, greetsOnReady: isCaller)
+    attach(link)
+    if isCaller {
+      connection?.cancel()
+      connectingPeer = Peer(
+        id: autoConnectIdentity ?? "", name: autoConnectName ?? "peer", endpoint: nil)
+      connection = link
+    }
+    link.start()
+  }
+
   public func cancelAutoConnect() {
     guard autoConnectIdentity != nil else { return }
     autoConnectIdentity = nil
@@ -154,12 +189,12 @@ public nonisolated struct Peer: Hashable {
   }
 
   private func dial(peer: Peer) {
-    guard connectingPeer == nil, connectedPeer == nil else { return }
+    guard connectingPeer == nil, connectedPeer == nil, let endpoint = peer.endpoint else { return }
     let peer = labelled(peer)
     log("peer transport dial", peer.name, peer.id)
     connectingPeer = peer
     statusMessage = "Calling \(peer.name)…"
-    let connection = PeerConnection(endpoint: peer.endpoint, localIdentity: localIdentity)
+    let connection = PeerConnection(endpoint: endpoint, localIdentity: localIdentity)
     attach(connection)
     self.connection = connection
     connection.start()
@@ -304,7 +339,7 @@ public nonisolated struct Peer: Hashable {
   }
 
   private func handleHello(identity: String, connection: PeerConnection) {
-    let peer = labelled(Peer(id: identity, name: identity, endpoint: connection.endpoint))
+    let peer = labelled(Peer(id: identity, name: identity, endpoint: connection.remoteEndpoint))
     // Our own dial: the hello is the answer, so the call is up. The identity
     // is checked even here, because the service could have been republished
     // by another device between browsing and connecting.

@@ -1,4 +1,5 @@
 import CallKit
+import CoreBluetooth
 import Foundation
 import Observation
 import Log
@@ -88,6 +89,12 @@ public nonisolated enum ConnectCallState: Equatable {
   public var onAudioActivated: (() -> Void)?
   public var onAudioDeactivated: (() -> Void)?
   public var onMute: ((Bool) -> Void)?
+  /// The current call's peer published an L2CAP channel and this is its PSM;
+  /// the caller side opens it. Only fires in transport modes that asked for
+  /// a channel.
+  public var onCallPsm: ((UInt16) -> Void)?
+  /// An L2CAP channel for the current call opened, on either side.
+  public var onCallChannel: ((CBL2CAPChannel) -> Void)?
 
   init(store: PairingStore = PairingStore(), localName: String = UIDevice.current.name) {
     self.store = store
@@ -119,6 +126,13 @@ public nonisolated enum ConnectCallState: Equatable {
     }
     link.onNearbyChanged = { [weak self] peers in
       self?.nearby = peers
+    }
+    link.onPublishedPsm = { [weak self] psm in
+      self?.handlePublishedPsm(psm)
+    }
+    link.onCallChannel = { [weak self] channel in
+      guard let self, self.state.callId != nil else { return }
+      self.onCallChannel?(channel)
     }
   }
 
@@ -230,6 +244,30 @@ public nonisolated enum ConnectCallState: Equatable {
     callKit.requestMute(callId: callId, muted: muted)
   }
 
+  // MARK: L2CAP call channel
+
+  /// The callee publishes; the PSM is signalled to the caller once assigned.
+  public func publishCallChannel() {
+    guard state.callId != nil else { return }
+    link.publishCallChannel()
+  }
+
+  public func openCallChannel(psm: UInt16) {
+    guard let peerId = state.peerId else { return }
+    link.openCallChannel(peerId: peerId, psm: CBL2CAPPSM(psm))
+  }
+
+  /// The secret this call's L2CAP audio is sealed with: the pairing secret,
+  /// which both sides hold and nobody else does.
+  public func callSecret() -> Data? {
+    state.peerId.flatMap { store.secret(for: $0) }
+  }
+
+  private func handlePublishedPsm(_ psm: CBL2CAPPSM) {
+    guard let callId = state.callId, let peerId = state.peerId else { return }
+    link.send(.transportPsm(callId: callId, psm: UInt16(psm)), to: peerId)
+  }
+
   public func transportDidConnect() {
     guard state.callId != nil else { return }
     transportConnected = true
@@ -289,6 +327,9 @@ public nonisolated enum ConnectCallState: Equatable {
       log("connect peer answered", callId.uuidString)
       peerAccepted = true
       reportConnectedIfReady()
+    case .transportPsm(let callId, let psm):
+      guard state.callId == callId else { return }
+      onCallPsm?(psm)
     }
   }
 
@@ -441,6 +482,7 @@ public nonisolated enum ConnectCallState: Equatable {
     timeoutTask = nil
     transportConnected = false
     peerAccepted = false
+    link.unpublishCallChannel()
     if let peerId = state.peerId {
       link.release(peerId: peerId)
     }

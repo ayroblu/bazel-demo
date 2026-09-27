@@ -10,17 +10,18 @@ import Security
 private nonisolated let presharedKeySeed = "local-call-app.peer-audio.v1"
 private nonisolated let presharedKeyIdentity = "local-call-app"
 
-/// One peer-to-peer connection carrying a call's audio in both directions,
-/// as DTLS datagrams: audio is late-is-worthless, so a lost packet is never
-/// retransmitted and can never stall the packets behind it. Each datagram is
-/// one `Packet`; audio carries a sequence number so the receiver can tell a
-/// lost packet from a quiet peer.
+/// One link carrying a call's audio in both directions as datagrams: audio is
+/// late-is-worthless, so a lost packet is never retransmitted and can never
+/// stall the packets behind it. Each datagram is one `Packet`; audio carries
+/// a sequence number so the receiver can tell a lost packet from a quiet
+/// peer. The datagrams travel over whatever `DatagramCarrier` the transport
+/// mode picked; this class is the protocol on top and does not care which.
 ///
 /// Datagrams also mean the hello can be lost, so it repeats until the peer is
 /// heard from, and a closed peer is only detectable by silence: pings run for
 /// the whole call as keepalive and measure round trip time as a side effect.
 nonisolated final class PeerConnection: @unchecked Sendable {
-  private let connection: NWConnection
+  private let carrier: any DatagramCarrier
   private let localIdentity: String
   /// The side that dialled greets as soon as the connection is ready. The
   /// side that answered greets only once the user has accepted, so the hello
@@ -64,12 +65,19 @@ nonisolated final class PeerConnection: @unchecked Sendable {
   /// is a dead peer, not a quiet one.
   private let receiveTimeout: TimeInterval = 15
 
-  var endpoint: NWEndpoint { connection.endpoint }
+  var linkDescription: String { carrier.carrierDescription }
+  var remoteEndpoint: NWEndpoint? { carrier.remoteEndpoint }
 
-  init(connection: NWConnection, localIdentity: String, greetsOnReady: Bool) {
-    self.connection = connection
+  init(carrier: any DatagramCarrier, localIdentity: String, greetsOnReady: Bool) {
+    self.carrier = carrier
     self.localIdentity = localIdentity
     self.greetsOnReady = greetsOnReady
+  }
+
+  convenience init(connection: NWConnection, localIdentity: String, greetsOnReady: Bool) {
+    self.init(
+      carrier: NWDatagramCarrier(connection: connection), localIdentity: localIdentity,
+      greetsOnReady: greetsOnReady)
   }
 
   convenience init(endpoint: NWEndpoint, localIdentity: String) {
@@ -126,13 +134,20 @@ nonisolated final class PeerConnection: @unchecked Sendable {
   }
 
   func start() {
-    connection.stateUpdateHandler = { [weak self] state in
-      self?.handleState(state)
-    }
-    connection.start(queue: queue)
+    carrier.setHandlers(
+      onOpen: { [weak self] in
+        self?.handleOpen()
+      },
+      onDatagram: { [weak self] data in
+        self?.handleReceived(data)
+      },
+      onFailed: { [weak self] reason in
+        self?.notifyClosed(reason)
+      })
+    carrier.start(queue: queue)
   }
 
-  /// Handlers are cleared as well as the connection: they capture this object
+  /// Handlers are cleared as well as the carrier: they capture this object
   /// to keep it alive while it is only referenced by the connection it was
   /// accepted from, so holding them would leak it.
   func cancel() {
@@ -147,7 +162,7 @@ nonisolated final class PeerConnection: @unchecked Sendable {
     pingTimer = nil
     lock.unlock()
     timers.forEach { $0?.cancel() }
-    connection.cancel()
+    carrier.cancel()
   }
 
   /// Answering side only: tells the caller the call was accepted.
@@ -195,43 +210,26 @@ nonisolated final class PeerConnection: @unchecked Sendable {
 
   private func sendPacket(_ packet: Packet) {
     let data = packet.encoded()
-    connection.send(
-      content: data,
-      completion: .contentProcessed { [weak self] error in
-        guard let self else { return }
-        if let error {
-          log("peer connection send failed", error)
-          self.notifyClosed("send \(error)")
-          return
-        }
-        self.lock.lock()
-        self.bytesSent += data.count
-        self.lastSendAt = Date()
-        self.lock.unlock()
-      })
+    carrier.send(data) { [weak self] error in
+      guard let self else { return }
+      if let error {
+        log("peer connection send failed", error)
+        self.notifyClosed("send \(error)")
+        return
+      }
+      self.lock.lock()
+      self.bytesSent += data.count
+      self.lastSendAt = Date()
+      self.lock.unlock()
+    }
   }
 
-  private func handleState(_ state: NWConnection.State) {
-    switch state {
-    case .ready:
-      lock.lock()
-      isOpen = true
-      lock.unlock()
-      log("peer connection ready", String(describing: connection.endpoint))
-      if greetsOnReady {
-        startHello()
-      }
-      receiveNext()
-    case .waiting(let error):
-      // Says why the path is not usable yet, which is the only warning
-      // before a call fails to come up at all.
-      log("peer connection waiting", String(describing: connection.endpoint), error)
-    case .failed(let error):
-      notifyClosed("failed \(error)")
-    case .cancelled:
-      notifyClosed("cancelled")
-    default:
-      break
+  private func handleOpen() {
+    lock.lock()
+    isOpen = true
+    lock.unlock()
+    if greetsOnReady {
+      startHello()
     }
   }
 
@@ -306,20 +304,6 @@ nonisolated final class PeerConnection: @unchecked Sendable {
     UInt32(truncatingIfNeeded: Int(Date().timeIntervalSince(epoch) * 1000))
   }
 
-  private func receiveNext() {
-    connection.receiveMessage { [weak self] data, _, _, error in
-      guard let self else { return }
-      if let data, !data.isEmpty {
-        self.handleReceived(data)
-      }
-      if let error {
-        self.notifyClosed("receive \(error)")
-        return
-      }
-      self.receiveNext()
-    }
-  }
-
   private func handleReceived(_ data: Data) {
     lock.lock()
     let isFirst = bytesReceived == 0
@@ -384,8 +368,8 @@ nonisolated final class PeerConnection: @unchecked Sendable {
     pingTimer = nil
     lock.unlock()
     timers.forEach { $0?.cancel() }
-    log("peer connection closed", String(describing: connection.endpoint), reason)
-    connection.cancel()
+    log("peer connection closed", carrier.carrierDescription, reason)
+    carrier.cancel()
     handler?(reason)
   }
 

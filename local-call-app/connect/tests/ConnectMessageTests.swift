@@ -20,6 +20,8 @@ final class ConnectCodecTests: XCTestCase {
       .decline(callId: callId),
       .busy(callId: callId),
       .silenced(callId: callId),
+      .transportPsm(callId: callId, psm: 0x0081),
+      .transportPsm(callId: callId, psm: 0xffff),
     ]
     for message in messages {
       let data = ConnectCodec.seal(message, senderId: sender, secret: secret)

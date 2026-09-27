@@ -15,6 +15,10 @@ nonisolated enum ConnectMessage: Equatable {
   /// The system refused to ring because a Focus is on, which the caller shows
   /// differently to a decline: calling again shortly often gets through.
   case silenced(callId: UUID)
+  /// The callee published a bluetooth L2CAP channel for the call's audio and
+  /// this is its PSM, the port the caller opens. Only sent in the transport
+  /// modes that use L2CAP.
+  case transportPsm(callId: UUID, psm: UInt16)
 
   /// Pairing runs before there is a shared secret, so those two messages are
   /// the only ones accepted unauthenticated.
@@ -28,7 +32,7 @@ nonisolated enum ConnectMessage: Equatable {
   var callId: UUID? {
     switch self {
     case .invite(let id, _), .cancel(let id), .accept(let id), .decline(let id), .busy(let id),
-      .silenced(let id):
+      .silenced(let id), .transportPsm(let id, _):
       id
     case .pairRequest, .pairAccept, .pairDecline: nil
     }
@@ -129,6 +133,7 @@ nonisolated enum ConnectCodec {
     case decline = 7
     case busy = 8
     case silenced = 9
+    case transportPsm = 10
   }
 
   private static func encode(_ message: ConnectMessage) -> Data {
@@ -162,6 +167,10 @@ nonisolated enum ConnectCodec {
     case .silenced(let callId):
       body.append(Kind.silenced.rawValue)
       body.append(contentsOf: bytes(of: callId))
+    case .transportPsm(let callId, let psm):
+      body.append(Kind.transportPsm.rawValue)
+      body.append(contentsOf: bytes(of: callId))
+      body.append(contentsOf: bigEndian(psm))
     }
     return body
   }
@@ -193,6 +202,9 @@ nonisolated enum ConnectCodec {
       return reader.uuid().map { .busy(callId: $0) }
     case .silenced:
       return reader.uuid().map { .silenced(callId: $0) }
+    case .transportPsm:
+      guard let callId = reader.uuid(), let psm = reader.take(2) else { return nil }
+      return .transportPsm(callId: callId, psm: integer(UInt16.self, psm))
     }
   }
 

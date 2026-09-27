@@ -51,7 +51,15 @@ class NearbyLink {
 
   var onMessage: ((ConnectFrame) -> Void)?
   var onNearbyChanged: (([NearbyPeer]) -> Void)?
+  /// Fired on the callee when its published call channel gets a PSM, and
+  /// again if a publish is requested while one is already up.
+  var onPublishedPsm: ((CBL2CAPPSM) -> Void)?
+  /// Fired on both sides when the L2CAP channel for a call opens.
+  var onCallChannel: ((CBL2CAPChannel) -> Void)?
   var localName: String
+
+  private var publishedPsm: CBL2CAPPSM?
+  private var wantsPublishedChannel = false
 
   init(store: PairingStore, localName: String) {
     self.store = store
@@ -118,6 +126,70 @@ class NearbyLink {
     log("connect queued frame", peerId.uuidString)
     pendingWrites[peerId, default: []].append(data)
     connectIfNeeded(peerId: peerId)
+  }
+
+  // MARK: L2CAP call channel
+
+  /// The callee publishes the channel; the PSM it gets assigned travels to
+  /// the caller as signalling. `withEncryption: false` because encryption
+  /// would demand an OS-level bond the app never makes: the channel's
+  /// payload is sealed at the application layer with the pairing secret
+  /// instead, which also authenticates the peer.
+  func publishCallChannel() {
+    wantsPublishedChannel = true
+    if let publishedPsm {
+      onPublishedPsm?(publishedPsm)
+      return
+    }
+    guard let server, server.state == .poweredOn else {
+      log("connect l2cap publish deferred, server not ready")
+      return
+    }
+    server.publishL2CAPChannel(withEncryption: false)
+  }
+
+  func unpublishCallChannel() {
+    wantsPublishedChannel = false
+    guard let publishedPsm else { return }
+    server?.unpublishL2CAPChannel(publishedPsm)
+    self.publishedPsm = nil
+  }
+
+  /// The caller opens the channel the callee published, over the bluetooth
+  /// connection the call is already holding.
+  func openCallChannel(peerId: UUID, psm: CBL2CAPPSM) {
+    guard let peripheralId = peripheralId(for: peerId),
+      let peripheral = peripherals[peripheralId], peripheral.state == .connected
+    else {
+      log("connect l2cap open failed, peer not connected", peerId.uuidString)
+      return
+    }
+    log("connect l2cap opening psm", psm, peerId.uuidString)
+    peripheral.openL2CAPChannel(psm)
+  }
+
+  func handlePublishedChannel(psm: CBL2CAPPSM, error: Error?) {
+    if let error {
+      log("connect l2cap publish failed", error)
+      return
+    }
+    log("connect l2cap published psm", psm)
+    publishedPsm = psm
+    guard wantsPublishedChannel else {
+      server?.unpublishL2CAPChannel(psm)
+      publishedPsm = nil
+      return
+    }
+    onPublishedPsm?(psm)
+  }
+
+  func handleOpenedChannel(_ channel: CBL2CAPChannel?, error: Error?) {
+    guard let channel, error == nil else {
+      log("connect l2cap open failed", String(describing: error))
+      return
+    }
+    log("connect l2cap channel open psm", channel.psm)
+    onCallChannel?(channel)
   }
 
   func peripheralId(for peerId: UUID) -> UUID? {
@@ -275,6 +347,9 @@ class NearbyLink {
   func handleServerState(_ state: CBManagerState) {
     log("connect server state", state.rawValue)
     guard state == .poweredOn, let server else { return }
+    if wantsPublishedChannel, publishedPsm == nil {
+      server.publishL2CAPChannel(withEncryption: false)
+    }
     guard !didAddService else {
       startAdvertising()
       return
@@ -611,5 +686,26 @@ nonisolated final class NearbyDelegate: NSObject, CBCentralManagerDelegate,
   ) {
     let box = Box(central)
     onMain { $0.handleUnsubscribe(box.value) }
+  }
+
+  func peripheralManager(
+    _ peripheral: CBPeripheralManager, didPublishL2CAPChannel PSM: CBL2CAPPSM, error: Error?
+  ) {
+    let box = Box(error)
+    onMain { $0.handlePublishedChannel(psm: PSM, error: box.value) }
+  }
+
+  func peripheralManager(
+    _ peripheral: CBPeripheralManager, didOpen channel: CBL2CAPChannel?, error: Error?
+  ) {
+    let channelBox = Box(channel)
+    let errorBox = Box(error)
+    onMain { $0.handleOpenedChannel(channelBox.value, error: errorBox.value) }
+  }
+
+  func peripheral(_ peripheral: CBPeripheral, didOpen channel: CBL2CAPChannel?, error: Error?) {
+    let channelBox = Box(channel)
+    let errorBox = Box(error)
+    onMain { $0.handleOpenedChannel(channelBox.value, error: errorBox.value) }
   }
 }

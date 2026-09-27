@@ -31,6 +31,15 @@ wifi is what carries the audio between devices that share no network.
   name cannot be reached by mistake. Device names are shown, never matched.
   There is no manual device list: a device has to be paired before it can be
   called.
+* Transport modes: `transportMode` in `transport/transport-mode.swift` is a
+  compile-time switch for comparing link technologies; both devices must run
+  the same mode. `awdl` is peer-to-peer wifi via Bonjour. `l2cap`
+  (default) runs the audio over a bluetooth L2CAP channel on the
+  connection the signalling already holds: the callee publishes it, signals
+  its PSM over bluetooth, the caller opens it, and the bytes are sealed with
+  a key derived from the pairing secret since there is no DTLS on that path.
+  Every mode speaks the same datagram packet protocol; only the carrier
+  underneath changes.
 * Audio: an `AVAudioEngine` mic tap with voice processing on, for the system's
   echo cancellation and automatic gain control, is resampled to 16kHz mono,
   cut into 20ms frames and opus encoded (~25kbps against 256 for raw PCM).
