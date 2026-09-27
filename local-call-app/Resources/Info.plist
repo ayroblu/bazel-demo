@@ -8,7 +8,7 @@
 		<string>Local networking is used to connect directly to nearby iPhones for offline calls</string>
 		<key>NSBonjourServices</key>
 		<array>
-			<string>_p2p-audio-call._tcp</string>
+			<string>_p2p-audio-call._udp</string>
 		</array>
 		<key>NSBluetoothAlwaysUsageDescription</key>
 		<string>Bluetooth is used to discover and connect to nearby iPhones for offline calls</string>

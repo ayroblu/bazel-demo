@@ -164,6 +164,82 @@ final class PeerConnectionTests: XCTestCase {
     XCTAssertLessThan(rtt, 5000)
   }
 
+  /// The race that stranded a real call: the answerer's hellos were lost, the
+  /// caller's pongs (which answer pings regardless of the hello) arrived, and
+  /// the answerer treated the pong as proof and stopped retransmitting. A
+  /// peer that pongs but never acknowledges the hello must keep receiving it.
+  func testKeepsRetransmittingHelloWhenOnlyPongsComeBack() throws {
+    let listener = try NWListener(using: PeerConnection.parameters())
+    let answered = Holder<PeerConnection>()
+    let listening = expectation(description: "listening")
+    listener.stateUpdateHandler = { state in
+      guard case .ready = state else { return }
+      listening.fulfill()
+    }
+    listener.newConnectionHandler = { incoming in
+      let connection = PeerConnection(
+        connection: incoming, localIdentity: "answerer-id", greetsOnReady: false)
+      connection.setHandlers(
+        onReady: { _ in connection.greet() }, onData: nil, onClosed: nil)
+      answered.set(connection)
+      connection.start()
+    }
+    listener.start(queue: .global())
+    wait(for: [listening], timeout: 5)
+    let port = try XCTUnwrap(listener.port)
+
+    let helloTimes = Times()
+    let pongedAt = Holder<Date>()
+    let caller = NWConnection(
+      to: .hostPort(host: "127.0.0.1", port: port), using: PeerConnection.parameters())
+    let sendable = SendableBox(caller)
+    @Sendable func receiveLoop() {
+      sendable.value.receiveMessage { data, _, _, error in
+        if let data, let packet = Packet.decode(data) {
+          switch packet {
+          case .hello:
+            helloTimes.append(Date())
+          case .ping(let sentMs):
+            sendable.value.send(
+              content: Packet.pong(echoedMs: sentMs).encoded(), completion: .idempotent)
+            if pongedAt.value() == nil {
+              pongedAt.set(Date())
+            }
+          default:
+            break
+          }
+        }
+        guard error == nil else { return }
+        receiveLoop()
+      }
+    }
+    caller.stateUpdateHandler = { state in
+      guard case .ready = state else { return }
+      sendable.value.send(
+        content: Packet.hello(identity: "caller-id").encoded(), completion: .idempotent)
+      receiveLoop()
+    }
+    caller.start(queue: .global())
+    defer {
+      caller.cancel()
+      answered.value()?.cancel()
+      listener.cancel()
+    }
+
+    // The answerer pings as soon as it has greeted, so the first pong lands
+    // within a couple of seconds; hellos must still be arriving well after.
+    let deadline = Date().addingTimeInterval(10)
+    while pongedAt.value() == nil, Date() < deadline {
+      RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+    }
+    let ponged = try XCTUnwrap(pongedAt.value())
+    RunLoop.current.run(until: Date().addingTimeInterval(1.5))
+    let hellosAfterPong = helloTimes.all().filter {
+      $0.timeIntervalSince(ponged) > 0.3
+    }
+    XCTAssertGreaterThanOrEqual(hellosAfterPong.count, 3)
+  }
+
   func testDropsAudioWhileNotConnected() {
     // Nothing is connected: audio is stale the moment a connection would come
     // up, so it must be dropped on the spot rather than queued.
@@ -190,6 +266,23 @@ private final class Holder<T>: @unchecked Sendable {
   }
 
   func value() -> T? {
+    lock.lock()
+    defer { lock.unlock() }
+    return stored
+  }
+}
+
+private final class Times: @unchecked Sendable {
+  private let lock = NSLock()
+  private var stored: [Date] = []
+
+  func append(_ date: Date) {
+    lock.lock()
+    stored.append(date)
+    lock.unlock()
+  }
+
+  func all() -> [Date] {
     lock.lock()
     defer { lock.unlock() }
     return stored

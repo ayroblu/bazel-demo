@@ -42,7 +42,10 @@ nonisolated final class PeerConnection: @unchecked Sendable {
   private var lastReceiveAt: Date?
   private var loggedDropAt: Date?
   private var peerIdentity: String?
-  /// A ping, pong or audio packet proves the peer got our hello.
+  /// A ping or audio packet proves the peer got our hello, because both are
+  /// only sent by a peer that already knows who we are. A pong proves
+  /// reachability only - it answers our ping whether or not our hello ever
+  /// arrived - so it must not stop the hello retransmitting.
   private var peerEstablished = false
   private var smoothedRttMs: Double?
 
@@ -344,7 +347,6 @@ nonisolated final class PeerConnection: @unchecked Sendable {
     case .pong(let echoedMs):
       let rtt = Double(nowMs() &- echoedMs)
       lock.lock()
-      peerEstablished = true
       smoothedRttMs = smoothedRttMs.map { $0 * 0.7 + rtt * 0.3 } ?? rtt
       lock.unlock()
     }
