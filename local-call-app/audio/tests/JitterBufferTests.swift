@@ -68,10 +68,6 @@ final class PlaybackQueueTests: XCTestCase {
   func testStarvationDoesNotCountAsPlayedAudio() {
     let queue = PlaybackQueue()
     queue.noteScheduled(frames: 3200)
-    // The player starved for 9600 frames of rendered silence, then a burst
-    // parks 9600 frames of real audio in the queue. Without re-basing on the
-    // starved stretch this would read as zero and the delay would sit there
-    // uncorrected forever.
     XCTAssertEqual(queue.backlog(renderedFrames: 12800), 0)
     queue.noteScheduled(frames: 9600)
     XCTAssertEqual(queue.backlog(renderedFrames: 12800), 9600)
@@ -104,8 +100,6 @@ final class CatchUpControllerTests: XCTestCase {
   func testJitterPeaksAboveASmallFloorAreLeftAlone() {
     let control = CatchUpController()
     var maxRate: Float = 1
-    // Bursty queue swinging 0..2400 frames: the minimum stays under target,
-    // so none of it is standing delay worth chasing.
     for tick in 0..<300 {
       let backlog = tick % 5 == 0 ? 0 : 2400
       maxRate = max(maxRate, control.record(backlogFrames: backlog, at: at(Double(tick) * 0.02)))

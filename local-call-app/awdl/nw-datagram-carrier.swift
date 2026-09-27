@@ -3,8 +3,6 @@ import Log
 import Network
 import transport_protocol
 
-/// DTLS datagrams over an `NWConnection`: the AWDL path, and any other
-/// interface Network.framework routes to the peer.
 public nonisolated final class NWDatagramCarrier: DatagramCarrier, @unchecked Sendable {
   private let connection: NWConnection
   private let lock = NSLock()
@@ -39,8 +37,6 @@ public nonisolated final class NWDatagramCarrier: DatagramCarrier, @unchecked Se
         self.handler(\.onOpen)?()
         self.receiveNext()
       case .waiting(let error):
-        // Says why the path is not usable yet, which is the only warning
-        // before a call fails to come up at all.
         log("peer connection waiting", self.carrierDescription, error)
       case .failed(let error):
         self.handler(\.onFailed)?("failed \(error)")

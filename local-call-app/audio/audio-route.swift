@@ -1,7 +1,6 @@
 import Foundation
 import Observation
 
-/// A platform-neutral device choice rendered by the in-call pickers.
 public struct AudioOption: Identifiable, Hashable {
   public let id: String
   public let name: String
@@ -19,9 +18,6 @@ import AVFoundation
 import Log
 import UIKit
 
-/// Follows the system default route until the user selects a specific input.
-/// Each picker action pins that exact port so repeated switching is explicit
-/// and does not pass through an intermediate automatic route.
 @Observable public class AudioRouteController {
   private let session = AVAudioSession.sharedInstance()
 
@@ -32,19 +28,13 @@ import UIKit
   public var outputOptions: [AudioOption] = []
   public var currentInputID: String?
   public var currentOutputID: String? = automaticOutputID
-  // nil = follow the system default input.
   private var pinnedInputUid: String?
-  // Where automatic routing last pointed while no speaker override was
-  // active, so the option keeps its device name (e.g. "AirPods Pro") while
-  // the override temporarily routes to the speaker.
   private var automaticOutputName: String?
   private var automaticIsSpeaker = true
   private var followsProximity = false
   private var isOnSpeaker = false
   private var isNearEar = false
 
-  /// Called with true when another app takes the audio session, false when it
-  /// hands it back.
   public var onInterruption: ((Bool) -> Void)?
 
   public init() {
@@ -97,8 +87,6 @@ import UIKit
     try? session.setPreferredIOBufferDuration(0.01)
   }
 
-  /// A mic test has no reason to blank the screen or move to the receiver,
-  /// so only calls follow proximity.
   public func activate(proximityRouting: Bool = true) throws {
     try configure()
     try session.setActive(true)
@@ -106,8 +94,6 @@ import UIKit
     refresh()
   }
 
-  /// CallKit owns the session for a CallKit call: it activates it for us and
-  /// deactivates it when the call ends, so we only configure and read it.
   public func adopt() throws {
     try configure()
     followsProximity = true
@@ -120,8 +106,6 @@ import UIKit
     currentOutputID = Self.automaticOutputID
   }
 
-  /// CallKit deactivates its own session, so ending such a call has to stop
-  /// the sensor through here rather than through `deactivate()`.
   public func stopProximityRouting() {
     followsProximity = false
     if isNearEar {
@@ -131,9 +115,6 @@ import UIKit
     updateProximityMonitoring()
   }
 
-  /// The sensor also blanks the screen, so it runs only while the call's
-  /// audio is on the built-in speaker, and stays on while near the ear so the
-  /// move back away is still reported.
   private func updateProximityMonitoring() {
     let device = UIDevice.current
     let wanted = followsProximity && (isOnSpeaker || isNearEar)
@@ -174,15 +155,10 @@ import UIKit
     // (e.g. AirPods connect); snap the published choice back to reality.
     let onSpeaker = session.currentRoute.outputs.contains { $0.portType == .builtInSpeaker }
     let outputNames = session.currentRoute.outputs.map { $0.portName }.joined(separator: ", ")
-    // The receiver is a temporary proximity route rather than a choice, so
-    // the published output stays on the one to come back to.
     if !isNearEar {
       if currentOutputID == Self.speakerOutputID && !onSpeaker {
         currentOutputID = Self.automaticOutputID
       }
-      // The automatic option is named after the device it routes to, e.g.
-      // "AirPods Pro". When automatic routing already goes to the built-in
-      // speaker the override option would be a duplicate, so offer only one.
       if currentOutputID == Self.automaticOutputID, !outputNames.isEmpty {
         automaticOutputName = outputNames
         automaticIsSpeaker = onSpeaker
@@ -200,7 +176,6 @@ import UIKit
       isOnSpeaker = onSpeaker
     }
     updateProximityMonitoring()
-    // A pinned input that disappeared falls back to following the default.
     if let pinned = pinnedInputUid, !inputs.contains(where: { $0.uid == pinned }) {
       log("pinned input disappeared, following default")
       pinnedInputUid = nil

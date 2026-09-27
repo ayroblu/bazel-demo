@@ -9,8 +9,6 @@ import transport
 
 private var didStartConnectServices = false
 
-/// Called from the app delegate, including a launch into the background
-/// triggered by a paired device ringing us over bluetooth.
 public func startConnectServices() {
   guard !isRunningInPreview, !didStartConnectServices else { return }
   didStartConnectServices = true
@@ -73,10 +71,8 @@ public struct ContentView: View {
     .callSilencedAlert(connect)
   }
 
-  /// Discovery scanning burns 2.4GHz airtime the wifi radio shares, and the
-  /// audio of an active call arrives in bursts shaped by exactly that radio
-  /// contention, so the scan pauses for the call. Signalling is unaffected:
-  /// the call's own bluetooth connection stays up without scanning.
+  /// Scanning shares 2.4GHz airtime with the call's radio, so it pauses for the call; the call's
+  /// own bluetooth connection stays up without it.
   private func updateScanning() {
     vm.setConnectScanning(scenePhase == .active && !connect.state.isActive)
   }
@@ -287,8 +283,6 @@ struct AudioLevelBar: View {
   }
 }
 
-/// A menu picker over the available devices, or a plain read-only row when
-/// there is nothing to choose between.
 struct AudioDevicePicker: View {
   let title: String
   let systemImage: String

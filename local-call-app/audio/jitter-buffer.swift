@@ -1,10 +1,5 @@
 import Foundation
 
-/// Orders a call's incoming frames by sequence number. A short gap is filled
-/// with silence so lost packets cost their own 20ms and nothing more; a long
-/// gap is a stall that playback has already absorbed as silence, so it is
-/// noted and skipped rather than replayed. Late and duplicate frames are
-/// dropped: their moment has passed.
 public nonisolated final class JitterBuffer: @unchecked Sendable {
   public struct Placement: Equatable {
     public let fillFrames: Int

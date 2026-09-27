@@ -1,9 +1,5 @@
 import Foundation
 
-/// What a link technology must provide: datagrams in, datagrams out, and
-/// open/failed events. `PeerConnection` runs the call protocol on top, so a
-/// new carrier gets hello, keepalive, RTT and stats without reimplementing
-/// any of it.
 public nonisolated protocol DatagramCarrier: AnyObject, Sendable {
   var carrierDescription: String { get }
 

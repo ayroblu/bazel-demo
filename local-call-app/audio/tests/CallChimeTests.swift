@@ -17,8 +17,6 @@ final class CallChimeTests: XCTestCase {
     XCTAssertGreaterThan(peak, 0.1)
     XCTAssertLessThanOrEqual(peak, 0.3)
 
-    // Both tones fade in and out, so the edges and the seam between them must
-    // be silent or the chime clicks.
     XCTAssertEqual(samples[0], 0, accuracy: 0.001)
     XCTAssertEqual(samples[samples.count - 1], 0, accuracy: 0.001)
     let seam = Int(0.14 * 16000)

@@ -2,9 +2,6 @@ import SwiftUI
 import bluetooth
 import call
 
-/// The lobby half that needs no button: paired devices are callable whenever
-/// they are in range, and the other side rings through CallKit even with the
-/// app closed.
 struct ConnectSections: View {
   let connect: ConnectManager
   /// Owned by the view that holds the list: a presentation attached to a
@@ -54,8 +51,6 @@ struct ConnectSections: View {
   }
 }
 
-/// The name and call state are the tap target for renaming; calling is its
-/// own button so a mis-tap cannot ring someone.
 private struct PairedPeerRow: View {
   let connect: ConnectManager
   let peer: PairedPeer
@@ -123,7 +118,6 @@ private struct PairedPeerRow: View {
   }
 }
 
-/// Renaming, plus the details that are only worth showing when asked for.
 struct PairedPeerSheet: View {
   let connect: ConnectManager
   let peer: PairedPeer

@@ -31,8 +31,6 @@ public nonisolated enum ConnectCallState: Equatable {
     }
   }
 
-  /// Ringing, at either end. The audio transport is brought up during this,
-  /// so audio being live does not mean the call is up.
   public var isRinging: Bool {
     switch self {
     case .outgoing, .incoming: true
@@ -48,10 +46,6 @@ public nonisolated enum ConnectCallState: Equatable {
   }
 }
 
-/// Owns everything that happens before and around a call: who we are paired
-/// with, who is in range, the bluetooth signalling, and the CallKit call. The
-/// audio transport stays in the app: this asks for it to be started and is
-/// told when it came up.
 @Observable public class ConnectManager {
   public static let shared = ConnectManager()
 
@@ -61,7 +55,6 @@ public nonisolated enum ConnectCallState: Equatable {
   private var started = false
   private var timeoutTask: Task<Void, Never>?
   private var pairingTask: Task<Void, Never>?
-  /// The secret we offered, kept until the other side accepts the pairing.
   private var offeredPairings: [UUID: Data] = [:]
   private var transportConnected = false
   private var peerAccepted = false
@@ -69,21 +62,12 @@ public nonisolated enum ConnectCallState: Equatable {
   public private(set) var pairedPeers: [PairedPeer] = []
   public private(set) var nearby: [NearbyPeer] = []
   public private(set) var state: ConnectCallState = .idle
-  /// This device's stable identity, which the transport advertises so that a
-  /// call reaches the device it was agreed with rather than one that happens
-  /// to share its name.
   public var localId: UUID { store.localId }
 
   public var pendingPairRequest: PairRequest?
   public var statusMessage: String?
-  /// Set on the caller when the other device could not ring because a Focus
-  /// is on. Calling again within a few minutes often gets through.
   public var silencedPeerName: String?
 
-  /// Asks the app to bring the audio transport up against `peerName`. Only
-  /// the caller invites, so the two sides cannot invite each other at once.
-  /// Reports the peer's stable identity as well as its name: the transport
-  /// matches on the identity, and shows the name.
   public var onStartTransport: ((_ peerId: UUID, _ callId: UUID, _ name: String, _ invites: Bool) -> Void)?
   public var onStopTransport: (() -> Void)?
   public var onAudioActivated: (() -> Void)?
@@ -123,15 +107,12 @@ public nonisolated enum ConnectCallState: Equatable {
     }
   }
 
-  /// Called at launch, including a launch into the background triggered by a
-  /// paired device writing to us.
   public func start() {
     guard !started else { return }
     started = true
     link.start()
   }
 
-  /// Scanning is the only expensive part, so it follows the foreground.
   public func setScanning(_ scanning: Bool) {
     link.setScanning(scanning)
   }
@@ -144,10 +125,6 @@ public nonisolated enum ConnectCallState: Equatable {
     nearby.filter { store.peer(id: $0.id) == nil }
   }
 
-  // MARK: pairing
-
-  /// The bluetooth connection is held open until the other side answers,
-  /// because its reply comes back over that connection.
   public func pair(with peer: NearbyPeer) {
     let secret = ConnectCodec.newSecret()
     offeredPairings[peer.id] = secret
@@ -185,8 +162,6 @@ public nonisolated enum ConnectCallState: Equatable {
     link.send(.pairAccept(name: link.localName), to: request.id)
   }
 
-  /// An empty name clears the nickname and falls back to what the device
-  /// calls itself.
   public func rename(_ peer: PairedPeer, to nickname: String) {
     guard var stored = store.peer(id: peer.id) else { return }
     let trimmed = nickname.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -203,15 +178,12 @@ public nonisolated enum ConnectCallState: Equatable {
     pairedPeers = store.peers
   }
 
-  // MARK: calling
-
   public func call(_ peer: PairedPeer) {
     guard case .idle = state else { return }
     guard link.peripheralId(for: peer.id) != nil else {
       statusMessage = "\(peer.displayName) is not in range"
       return
     }
-    // Whatever the last call ended with is no longer the current state.
     statusMessage = nil
     let callId = UUID()
     state = .outgoing(peerId: peer.id, callId: callId)
@@ -250,15 +222,11 @@ public nonisolated enum ConnectCallState: Equatable {
     state = .active(peerId: peerId, callId: callId)
   }
 
-  /// The transport dropped on its own, which ends the call even though
-  /// bluetooth may still be fine.
   public func transportDidEnd() {
     guard let callId = state.callId else { return }
     log("connect transport ended")
     finish(callId: callId, reason: .remoteEnded)
   }
-
-  // MARK: signalling
 
   private func handle(_ frame: ConnectFrame) {
     switch frame.message {
@@ -350,7 +318,6 @@ public nonisolated enum ConnectCallState: Equatable {
     }
   }
 
-  /// CallKit refused the call, so there is no call to report as ended.
   private func handleStartFailed(callId: UUID) {
     guard state.callId == callId else { return }
     statusMessage = "Could not start the call"
@@ -367,8 +334,6 @@ public nonisolated enum ConnectCallState: Equatable {
     startTransportTimeout(callId: callId, seconds: 20)
   }
 
-  /// The user ended it from the CallKit UI or ours. Before an answer this is
-  /// a decline on the callee side and a cancel on the caller side.
   private func handleLocalEnd(callId: UUID) {
     guard state.callId == callId, let peerId = state.peerId else { return }
     switch state {
@@ -382,7 +347,6 @@ public nonisolated enum ConnectCallState: Equatable {
     teardown()
   }
 
-  /// Nobody picked up.
   private func startRingTimeout(callId: UUID, seconds: Int) {
     startTimeout(callId: callId, seconds: seconds, reason: .unanswered) { manager in
       if case .incoming = manager.state { return true }
@@ -390,8 +354,6 @@ public nonisolated enum ConnectCallState: Equatable {
     }
   }
 
-  /// The call was answered but the audio transport never came up, which is
-  /// the one failure CallKit cannot see for itself.
   private func startTransportTimeout(callId: UUID, seconds: Int) {
     startTimeout(callId: callId, seconds: seconds, reason: .failed) { manager in
       !manager.transportConnected
@@ -416,7 +378,6 @@ public nonisolated enum ConnectCallState: Equatable {
     }
   }
 
-  /// Ends a call the user did not end, so CallKit has to be told.
   private func finish(callId: UUID, reason: CXCallEndedReason) {
     guard state.callId == callId else { return }
     statusMessage = endedMessage(reason: reason)
@@ -424,8 +385,6 @@ public nonisolated enum ConnectCallState: Equatable {
     teardown()
   }
 
-  /// The system call UI disappears on its own, so the lobby is the only place
-  /// left to say why a call stopped.
   private func endedMessage(reason: CXCallEndedReason) -> String? {
     let name = state.peerId.flatMap { store.peer(id: $0)?.displayName } ?? "The other device"
     switch (reason, state) {

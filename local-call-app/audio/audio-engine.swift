@@ -4,10 +4,8 @@ import Log
 public nonisolated final class CallAudioEngine: @unchecked Sendable {
   private let engine = AVAudioEngine()
   private let playerNode = AVAudioPlayerNode()
-  /// Plays the queue slightly fast to catch up without dropping anything.
-  /// Varispeed is a plain rate converter, so unlike a time pitch unit it adds
-  /// no processing latency of its own; the cost is that catching up raises
-  /// the pitch by up to 8%, briefly, which is less noticeable than the delay.
+  /// Varispeed is a plain rate converter and adds no processing latency, unlike a time pitch unit;
+  /// the cost is pitch rising up to 8% while catching up.
   private let varispeed = AVAudioUnitVarispeed()
   private let playbackFormat = AVAudioFormat(
     standardFormatWithSampleRate: OpusCall.sampleRate, channels: 1)!
@@ -23,15 +21,10 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
   private var routeChangeObserver: NSObjectProtocol?
   private var pendingRouteRestart: DispatchWorkItem?
 
-  /// A second without incoming audio switches playback to quiet white noise
-  /// until audio arrives again, so a silent peer still sounds like a live
-  /// line. It only runs once a call has produced audio: a mic test receives
-  /// nothing and should stay silent.
   private let comfortNoiseDelay: TimeInterval = 1
   private let noiseQueue = DispatchQueue(label: "call-audio-noise", qos: .userInitiated)
   private var noiseTimer: DispatchSourceTimer?
 
-  /// Called with one encoded 20ms opus frame at a time.
   public var onOutgoingAudio: (@Sendable (Data) -> Void)?
   public var isMuted = false
 
@@ -42,11 +35,8 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
   private let micLock = NSLock()
   private var micPending: [Float] = []
 
-  // An AVAudioPlayerNode plays its queue in order and never catches up, so a
-  // network stall or a clock difference is added to the mouth-to-ear delay
-  // and stays there. Rather than shedding audio continuously, playback runs
-  // untouched until the delay passes this much, then skips straight to the
-  // newest audio: one discontinuity instead of permanent chop.
+  // An AVAudioPlayerNode plays its queue in order and never catches up, so a stall's delay stays
+  // for the rest of the call unless the queue is skipped.
   private let maxBacklogFrames = 16000  // 1s at 16kHz
   private let playbackLock = NSLock()
   private var receivedFrames = 0
@@ -64,9 +54,6 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
   private var lastRateLogAt: Date?
   private var lastNoiseLogAt: Date?
 
-  /// Snapshot of the playback queue for the periodic call log. `arrivalRate`
-  /// is incoming audio seconds per elapsed second: above 1.0 the peer is
-  /// producing faster than real time, which no amount of buffering can fix.
   public func playbackStats() -> (
     backlogMs: Int, receivedMs: Int, skippedMs: Int, resyncs: Int, arrivalRate: Double,
     lostMs: Int, lateFrames: Int, noiseMs: Int
@@ -107,16 +94,12 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     return queue.backlog(renderedFrames: rendered)
   }
 
-  /// This device's mic-to-tap capture delay, sent to the peer for its
-  /// end-to-end estimate.
   public func captureDelayMs() -> Int {
     playbackLock.lock()
     defer { playbackLock.unlock() }
     return lastCaptureDelayMs
   }
 
-  /// This device's half of the end-to-end path: the playback queue, the
-  /// rate converter, and the output route.
   public func playoutDelayMs() -> Int {
     let session = AVAudioSession.sharedInstance()
     let queueSeconds = Double(backlogFrames()) / OpusCall.sampleRate
@@ -125,13 +108,6 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     return Int(seconds * 1000)
   }
 
-  /// Arrival pattern since the last read (reading resets it), for the call
-  /// heartbeat. The radio's true character lives in the extremes, which the
-  /// instantaneous backlog number never shows: a large `maxGapMs` with a low
-  /// `minBacklogMs` means the link delivers in bursts and the queue depth is
-  /// forced by the burst period, not by anything this side can drain.
-  /// `captureMaxMs` is the other end of the pipe: hardware capture time to
-  /// the mic tap, which is where the voice processing unit's delay hides.
   public func takeArrivalStats() -> (
     maxGapMs: Int, minBacklogMs: Int, maxBacklogMs: Int, captureMaxMs: Int
   ) {
@@ -148,8 +124,6 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     return stats
   }
 
-  /// Peak levels (0...1) accumulated since the last call; reading resets
-  /// them, so a silent or stopped stream naturally reads as zero.
   public func takeLevels() -> (input: Float, output: Float) {
     levelLock.lock()
     defer { levelLock.unlock() }
@@ -215,9 +189,6 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     tearDownEngine()
   }
 
-  /// Coalesces the configuration and route notifications emitted while a
-  /// Bluetooth input negotiates HFP, then rebuilds the tap after the route's
-  /// hardware format has settled.
   private func scheduleRouteRestart() {
     pendingRouteRestart?.cancel()
     let work = DispatchWorkItem { [weak self] in
@@ -257,8 +228,7 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     micLock.lock()
     micPending = []
     micLock.unlock()
-    // A small tap so capture adds ~10ms of batching rather than the ~43ms a
-    // 2048 frame tap did; frames are cut to 20ms packets downstream anyway.
+    // ~10ms of batching; a 2048 frame tap added ~43ms.
     input.installTap(onBus: 0, bufferSize: 512, format: inputFormat) {
       [weak self] buffer, when in
       self?.handleMicBuffer(buffer, at: when)
@@ -297,9 +267,6 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     noiseTimer = nil
   }
 
-  /// Feeds the player 20ms of noise at a time, and only while it is nearly
-  /// starved, so resuming audio finds at most ~60ms of noise queued ahead of
-  /// it rather than a backlog of it.
   private func scheduleComfortNoiseIfStarved() {
     guard isRunning else { return }
     playbackLock.lock()
@@ -317,11 +284,8 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     }
   }
 
-  /// Voice processing is the only way to get the system's echo cancellation
-  /// and automatic gain control, and it can only be switched while the engine
-  /// is stopped. Enabling it on the input node enables it on the output too.
-  /// A call without it is quiet and echoes, but still works, so a failure
-  /// here is not fatal.
+  /// Voice processing gives the system's echo cancellation and AGC, can only be switched while the
+  /// engine is stopped, and enabling it on the input node enables it on the output too.
   private func enableVoiceProcessing(on input: AVAudioInputNode) {
     guard !input.isVoiceProcessingEnabled else { return }
     do {
@@ -337,8 +301,6 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     playerNode.stop()
     engine.inputNode.removeTap(onBus: 0)
     engine.stop()
-    // Discard the graph's cached input format before rebuilding it for a new
-    // AVAudioSession route.
     engine.reset()
   }
 
@@ -392,8 +354,6 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     inputPeak = max(inputPeak, peak)
     levelLock.unlock()
 
-    // The tap hands over whatever the hardware granularity is; the wire
-    // carries exact 20ms frames, so the remainder waits for the next buffer.
     micLock.lock()
     micPending.append(contentsOf: samples)
     var frames: [[Float]] = []
@@ -411,8 +371,6 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
 
   public func playIncoming(seq: UInt32, data: Data) {
     guard isRunning else {
-      // Audio arriving while the engine is down is silent by definition, and
-      // has to be visible or it looks the same as a peer sending nothing.
       playbackLock.lock()
       let shouldLog = shouldLogLocked(&lastStoppedLogAt)
       playbackLock.unlock()
@@ -515,15 +473,11 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
       "resyncs", count)
   }
 
-  /// Plays the disconnect chime through the call's own route, ahead of
-  /// whatever incoming audio is still queued, and reports back when it has
-  /// finished so the caller can tear the engine down afterwards.
   public func playChime(completion: @escaping @Sendable () -> Void) {
     guard isRunning, let buffer = makeChimeBuffer(format: playbackFormat) else {
       completion()
       return
     }
-    // The chime must not have noise appended behind it while it plays out.
     stopComfortNoise()
     resetPlayback()
     playerNode.stop()
@@ -533,8 +487,6 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     }
   }
 
-  /// Buffers already scheduled are flushed when the node stops, and the
-  /// render clock restarts, so the queue accounting starts over with it.
   private func resetPlayback() {
     varispeed.rate = 1
     catchUp.reset()

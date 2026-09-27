@@ -10,13 +10,8 @@ private nonisolated final class Box<T>: @unchecked Sendable {
   }
 }
 
-/// Peer-to-peer wifi via Bonjour. Every device advertises the call service
-/// under its identity and browses for the peer's; the caller dials the
-/// service named with the peer's identity, the callee accepts whatever
-/// connects and leaves the hello check to the call protocol. The listener is
-/// left up through a call so that cancelling it cannot disturb the
-/// connection it accepted; browsing is the expensive half and stops as soon
-/// as the call connects.
+/// The listener stays up through a call so cancelling it cannot disturb the connection it accepted;
+/// browsing stops once the call connects.
 public final class AwdlLinkSetup: LinkSetup {
   public var onCarrier: ((any DatagramCarrier, Bool) -> Void)?
 

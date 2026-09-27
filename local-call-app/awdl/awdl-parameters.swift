@@ -3,16 +3,12 @@ import Foundation
 import Network
 import Security
 
-/// Both ends of a call are copies of this app, so the key that encrypts the
-/// audio is baked into it. That hides the call from anything else on the
-/// link, but it authenticates nobody: any copy of the app holds the same key.
+/// Baked-in key: hides the call from the link but authenticates nobody.
 private nonisolated let presharedKeySeed = "local-call-app.peer-audio.v1"
 private nonisolated let presharedKeyIdentity = "local-call-app"
 
 public nonisolated let awdlServiceType = "_p2p-audio-call._udp"
 
-/// Peer-to-peer includes AWDL, which is the only path between two devices
-/// that share no network.
 public nonisolated func awdlParameters() -> NWParameters {
   let parameters = NWParameters(dtls: tlsOptions(), udp: NWProtocolUDP.Options())
   parameters.includePeerToPeer = true

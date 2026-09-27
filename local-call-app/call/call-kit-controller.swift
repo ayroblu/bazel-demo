@@ -3,9 +3,6 @@ import CallKit
 import Foundation
 import Log
 
-/// Wraps CallKit so the rest of the module talks in call ids and intents. The
-/// system owns the audio session for these calls: the engine may only start
-/// once `onAudioActivated` fires.
 class CallKitController {
   private let provider: CXProvider
   private let controller = CXCallController()
@@ -32,7 +29,6 @@ class CallKitController {
 
   enum IncomingResult {
     case reported
-    /// A Focus filtered the call, so nothing rang and nothing was shown.
     case silenced
     case failed
   }
@@ -74,15 +70,11 @@ class CallKitController {
     provider.reportOutgoingCall(with: callId, connectedAt: nil)
   }
 
-  /// Ends a call the user did not end themselves, e.g. the other side hung up
-  /// or the audio transport never came up.
   func reportEnded(callId: UUID, reason: CXCallEndedReason) {
     log("callkit report ended", callId.uuidString, reason.rawValue)
     provider.reportCall(with: callId, endedAt: nil, reason: reason)
   }
 
-  /// Ends a call from our own UI, which has to go through a transaction so
-  /// the system call log and UI agree with us.
   func requestEnd(callId: UUID) {
     request(CXEndCallAction(call: callId))
   }

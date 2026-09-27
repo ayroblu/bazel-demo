@@ -2,16 +2,6 @@ import Foundation
 import Log
 import transport_protocol
 
-/// One link carrying a call's audio in both directions as datagrams: audio is
-/// late-is-worthless, so a lost packet is never retransmitted and can never
-/// stall the packets behind it. Each datagram is one `Packet`; audio carries
-/// a sequence number so the receiver can tell a lost packet from a quiet
-/// peer. The datagrams travel over whatever `DatagramCarrier` the transport
-/// mode picked; this class is the protocol on top and does not care which.
-///
-/// Datagrams also mean the hello can be lost, so it repeats until the peer is
-/// heard from, and a closed peer is only detectable by silence: pings run for
-/// the whole call as keepalive and measure round trip time as a side effect.
 nonisolated final class PeerConnection: @unchecked Sendable {
   private let carrier: any DatagramCarrier
   private let localIdentity: String
@@ -42,8 +32,6 @@ nonisolated final class PeerConnection: @unchecked Sendable {
   private var peerEstablished = false
   private var smoothedRttMs: Double?
   private var peerCaptureMs = 0
-  /// Read when each ping is built: the audio engine's latest mic-to-tap
-  /// capture delay, which the peer folds into its end-to-end estimate.
   private var captureDelayProvider: (@Sendable () -> Int)?
 
   private var helloTimer: DispatchSourceTimer?
@@ -121,7 +109,6 @@ nonisolated final class PeerConnection: @unchecked Sendable {
     carrier.cancel()
   }
 
-  /// Answering side only: tells the caller the call was accepted.
   func greet() {
     startHello()
   }
@@ -144,9 +131,6 @@ nonisolated final class PeerConnection: @unchecked Sendable {
     return smoothedRttMs
   }
 
-  /// One encoded audio frame; sequenced and sent as a single datagram, or
-  /// dropped on the spot while the connection is not ready: stale audio is
-  /// worth less than nothing.
   func send(_ payload: Data) {
     lock.lock()
     guard isOpen else {
@@ -189,8 +173,6 @@ nonisolated final class PeerConnection: @unchecked Sendable {
     }
   }
 
-  /// The hello repeats until the peer is heard from, because any one
-  /// datagram can be lost and nothing is retransmitted.
   private func startHello() {
     lock.lock()
     guard !didGreet else {
@@ -225,9 +207,6 @@ nonisolated final class PeerConnection: @unchecked Sendable {
     timer?.cancel()
   }
 
-  /// Pings run from both hellos being exchanged until the call ends: the
-  /// reply measures round trip time, and going quiet is the only way a dead
-  /// peer shows over datagrams, so a silent stretch closes the connection.
   private func startPingIfEstablished() {
     lock.lock()
     guard didGreet, peerIdentity != nil, pingTimer == nil, !didNotifyClosed else {
@@ -339,8 +318,6 @@ nonisolated final class PeerConnection: @unchecked Sendable {
   }
 }
 
-/// The capture thread writes here; the connection behind it is swapped on the
-/// main actor as calls come and go.
 nonisolated final class AudioStreamSink: @unchecked Sendable {
   private let lock = NSLock()
   private var connection: PeerConnection?

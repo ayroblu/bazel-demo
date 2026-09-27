@@ -1,8 +1,5 @@
 import AVFoundation
 
-/// A descending two tone chime, synthesised rather than shipped as an asset
-/// so it follows whatever format the call is already playing at. Each tone
-/// fades in and out, otherwise the abrupt edges click.
 nonisolated func makeChimeBuffer(format: AVAudioFormat) -> AVAudioPCMBuffer? {
   let tones: [(frequency: Double, seconds: Double)] = [(784, 0.14), (587, 0.26)]
   let sampleRate = format.sampleRate

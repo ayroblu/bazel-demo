@@ -8,10 +8,6 @@ import Foundation
 /// ping:  [0x03][uint32 sender ms][uint16 sender capture delay ms]
 /// pong:  [0x04][uint32 echoed sender ms]
 /// ```
-///
-/// The ping carries the sender's mic-to-tap capture delay because the
-/// receiver's end-to-end estimate needs it and nothing local can measure
-/// the other device's capture pipeline.
 nonisolated enum Packet: Equatable {
   case hello(identity: String)
   case audio(seq: UInt32, payload: Data)

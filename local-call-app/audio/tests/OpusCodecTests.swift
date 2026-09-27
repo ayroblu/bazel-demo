@@ -29,12 +29,10 @@ final class OpusCodecTests: XCTestCase {
       let packet = try XCTUnwrap(encoder.encode(sineFrame(index: index)))
       decoded.append(contentsOf: try XCTUnwrap(decoder.decode(packet)))
     }
-    // The decoder's priming skip may eat a few ms at the start, never more.
     let expected = frameCount * OpusCall.frameSamples
     XCTAssertGreaterThan(decoded.count, expected - OpusCall.frameSamples)
     XCTAssertLessThanOrEqual(decoded.count, expected)
 
-    // Codec delay means the start is quiet, so judge the settled second half.
     let half = Array(decoded[(decoded.count / 2)...])
     let peak = half.map { abs($0) }.max() ?? 0
     XCTAssertEqual(peak, 0.5, accuracy: 0.15)

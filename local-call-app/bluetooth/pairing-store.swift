@@ -1,15 +1,10 @@
 import Foundation
 
-/// A device this one has agreed to accept calls from. `peripheralId` is the
-/// bluetooth handle for that device as seen by this device, cached so a paired
-/// peer shows up as in range from a scan alone, without connecting to read its
-/// identity again.
+/// `peripheralId` is cached so a paired peer shows as in range from a scan alone, without
+/// connecting to read its identity.
 public nonisolated struct PairedPeer: Codable, Equatable, Identifiable {
   public let id: UUID
-  /// What the device calls itself. It is refreshed from every call it places,
-  /// so it cannot double as a name the user chose.
   public var name: String
-  /// The name the user gave this device here, which wins when it is set.
   public var nickname: String?
   var secret: Data
   public var peripheralId: UUID?

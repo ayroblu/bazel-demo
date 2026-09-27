@@ -5,9 +5,6 @@ import l2cap
 
 @testable import transport
 
-/// The L2CAP path without bluetooth: crossed pairs of bound Foundation
-/// streams stand in for the channel, so framing, sealing and the call
-/// protocol on top all run exactly as they do on a real channel.
 final class StreamCarrierTests: XCTestCase {
   private let secret = Data(repeating: 7, count: 32)
 
@@ -107,8 +104,6 @@ final class StreamCarrierTests: XCTestCase {
     XCTAssertLessThan(rtt, 5000)
   }
 
-  /// A peer with a different pairing secret cannot produce datagrams we can
-  /// open, and the connection must die rather than carry on around it.
   func testWrongSecretClosesTheLink() {
     let carriers = linkedCarriers(
       callerSecret: secret, answererSecret: Data(repeating: 8, count: 32))

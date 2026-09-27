@@ -19,11 +19,6 @@ public nonisolated struct NearbyPeer: Identifiable, Equatable {
   var peripheralId: UUID
 }
 
-/// The always-on half of the app. Every device publishes a small GATT service
-/// and advertises it, which iOS keeps doing in the background, and a write to
-/// its signal characteristic relaunches the app to ring. Scanning is the
-/// expensive half and only runs in the foreground, which is where a caller is
-/// by definition.
 public class NearbyLink {
   private let store: PairingStore
   private let delegate = NearbyDelegate()
@@ -51,12 +46,8 @@ public class NearbyLink {
 
   public var onMessage: ((ConnectFrame) -> Void)?
   public var onNearbyChanged: (([NearbyPeer]) -> Void)?
-  /// Fired on the callee when its published call channel gets a PSM, and
-  /// again if a publish is requested while one is already up.
   public var onPublishedPsm: ((CBL2CAPPSM) -> Void)?
-  /// The peer's published PSM for a call, as signalled to the caller.
   public var onCallPsm: ((_ callId: UUID, _ psm: CBL2CAPPSM) -> Void)?
-  /// Fired on both sides when the L2CAP channel for a call opens.
   public var onCallChannel: ((CBL2CAPChannel) -> Void)?
   public var localName: String
 
@@ -100,8 +91,6 @@ public class NearbyLink {
     log("connect scanning", scanning)
   }
 
-  /// Keeps the bluetooth connection to a peer alive for the length of a call,
-  /// so its answer, decline and hangup can come back as notifications.
   public func hold(peerId: UUID) {
     heldPeers.insert(peerId)
     connectIfNeeded(peerId: peerId)
@@ -130,13 +119,8 @@ public class NearbyLink {
     connectIfNeeded(peerId: peerId)
   }
 
-  // MARK: L2CAP call channel
-
-  /// The callee publishes the channel; the PSM it gets assigned travels to
-  /// the caller as signalling. `withEncryption: false` because encryption
-  /// would demand an OS-level bond the app never makes: the channel's
-  /// payload is sealed at the application layer with the pairing secret
-  /// instead, which also authenticates the peer.
+  /// `withEncryption: false`: encryption would demand an OS-level bond the app never makes; the
+  /// payload is sealed at the application layer with the pairing secret instead.
   public func publishCallChannel() {
     wantsPublishedChannel = true
     if let publishedPsm {
@@ -157,8 +141,6 @@ public class NearbyLink {
     self.publishedPsm = nil
   }
 
-  /// The caller opens the channel the callee published, over the bluetooth
-  /// connection the call is already holding.
   public func openCallChannel(peerId: UUID, psm: CBL2CAPPSM) {
     guard let peripheralId = peripheralId(for: peerId),
       let peripheral = peripherals[peripheralId], peripheral.state == .connected
@@ -194,8 +176,6 @@ public class NearbyLink {
     onCallChannel?(channel)
   }
 
-  /// The pairing secret shared with a peer, for sealing what signalling
-  /// itself does not carry.
   public func secret(for peerId: UUID) -> Data? {
     store.secret(for: peerId)
   }
@@ -205,8 +185,6 @@ public class NearbyLink {
       ?? identities.first { $0.value.id == peerId }?.key
   }
 
-  /// Identities resolved by reading a peripheral only live for the session,
-  /// so a paired peer is looked up in the store as well.
   private func peerId(forPeripheral peripheralId: UUID) -> UUID? {
     identities[peripheralId]?.id ?? store.peer(peripheralId: peripheralId)?.id
   }
@@ -294,8 +272,6 @@ public class NearbyLink {
     onNearbyChanged?(updated)
   }
 
-  /// Nothing stays connected for longer than it needs to: identity is read
-  /// once, and only a call or a pairing in flight keeps a link open.
   private func disconnectIdle() {
     guard let central else { return }
     for (peripheralId, peripheral) in peripherals {

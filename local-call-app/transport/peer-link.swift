@@ -10,9 +10,6 @@ public nonisolated final class SendableBox<T>: @unchecked Sendable {
   }
 }
 
-/// The device at the other end of a call. Identity is the stable id from
-/// pairing and is all that is matched on; device names are neither unique
-/// nor stable, so they are shown but never compared.
 public nonisolated struct Peer: Hashable {
   let id: String
   public let name: String
@@ -26,11 +23,6 @@ public nonisolated struct Peer: Hashable {
   }
 }
 
-/// Carries a paired call's audio, for the peer the bluetooth side has already
-/// agreed the call with. The link technology only produces carriers; this
-/// runs the call protocol on each candidate and keeps the one whose hello
-/// names the expected peer. It runs only while a call is being set up, and a
-/// connection from anything other than that call's peer is refused.
 @Observable public class PeerTransport {
   private let localIdentity: String
   private let setup: any LinkSetup
@@ -66,9 +58,6 @@ public nonisolated struct Peer: Hashable {
     setup.cancel()
   }
 
-  /// Drives link setup for a call that CallKit is already ringing for: the
-  /// peer with this identity is dialled or auto accepted without any prompt.
-  /// Only the caller dials, so the two sides cannot dial each other at once.
   public func beginAutoConnect(_ call: LinkCall) {
     log("peer transport auto connect", call.peerName, call.peerIdentity, "invites", call.invites)
     self.call = call
@@ -112,8 +101,6 @@ public nonisolated struct Peer: Hashable {
     connection?.setCaptureDelayProvider(provider)
   }
 
-  /// A one line snapshot of the transport, logged around every event that
-  /// could explain a dropped call.
   public func callStateSummary() -> String {
     let stats = connection?.stats()
     let now = Date()
@@ -133,9 +120,6 @@ public nonisolated struct Peer: Hashable {
     ].joined(separator: " ")
   }
 
-  /// The side that dialled greets as soon as the carrier opens and its hello
-  /// answer is the call being up; an accepted carrier is started only to read
-  /// its hello, and matched against the call afterwards.
   private func handleCarrier(_ carrier: any DatagramCarrier, dials: Bool) {
     guard connectedPeer == nil else {
       log("peer transport rejecting carrier, already in a call", carrier.carrierDescription)
@@ -198,7 +182,6 @@ public nonisolated struct Peer: Hashable {
     }
     log("peer transport accepting", peer.name, identity)
     activate(connection, peer: peer)
-    // Tells the caller its call was answered.
     connection.greet()
   }
 

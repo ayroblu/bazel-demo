@@ -29,7 +29,6 @@ final class PairingStoreTests: XCTestCase {
     peer.nickname = "Kitchen"
     XCTAssertEqual(peer.displayName, "Kitchen")
 
-    // The device renaming itself must not take the user's name away.
     peer.name = "iPhone (2)"
     XCTAssertEqual(peer.displayName, "Kitchen")
 

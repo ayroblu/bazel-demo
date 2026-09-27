@@ -28,8 +28,6 @@ final class SpeakerTestToneTests: XCTestCase {
 
     let chimePeak = all[..<min(chimeFrames, all.count)].map { abs($0) }.max() ?? 0
     XCTAssertGreaterThan(chimePeak, 0.05)
-    // The rest of the cycle is encoded silence; the codec's ring-down after
-    // the chime must die out fast and the tail must stay inaudible.
     let tailStart = chimeFrames + Int(0.05 * OpusCall.sampleRate)
     let tailPeak = all[tailStart...].map { abs($0) }.max() ?? 0
     XCTAssertLessThan(tailPeak, 0.01)
@@ -37,8 +35,6 @@ final class SpeakerTestToneTests: XCTestCase {
 
   func testChimeToneSurvivesTheCodec() {
     let all = decodeAll(SpeakerTestTone.packets())
-    // The first chime tone is 784Hz for 0.14s; count zero crossings over its
-    // settled middle to confirm the codec kept the pitch.
     let from = Int(0.03 * OpusCall.sampleRate)
     let to = Int(0.12 * OpusCall.sampleRate)
     var crossings = 0

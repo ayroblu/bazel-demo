@@ -49,9 +49,6 @@ final class PacketTests: XCTestCase {
 }
 
 final class PeerConnectionTests: XCTestCase {
-  /// Two connections over the loopback interface, using the same parameters
-  /// as a real call, so the DTLS handshake and the hello exchange are covered
-  /// along with the audio datagrams.
   private func connectedPair(
     onDialledData: @escaping @Sendable (UInt32, Data) -> Void,
     onAnsweredData: @escaping @Sendable (UInt32, Data) -> Void
@@ -116,9 +113,6 @@ final class PeerConnectionTests: XCTestCase {
     pair.dialled.send(Data([5, 6]))
 
     wait(for: [gotAll], timeout: 10)
-    // Datagrams can reorder even on loopback, so match by sequence number:
-    // each payload must arrive whole, exactly as sent, under the seq it was
-    // sent with.
     let bySeq = Dictionary(received.packets()) { first, _ in first }
     XCTAssertEqual(bySeq[0], Data([1, 2, 3]))
     XCTAssertEqual(bySeq[1], Data([4]))
@@ -171,7 +165,6 @@ final class PeerConnectionTests: XCTestCase {
       pair.listener.cancel()
     }
 
-    // Pings repeat every second from both sides once the hellos have crossed.
     let deadline = Date().addingTimeInterval(10)
     while pair.dialled.rttMs() == nil, Date() < deadline {
       RunLoop.current.run(until: Date().addingTimeInterval(0.1))
@@ -243,8 +236,6 @@ final class PeerConnectionTests: XCTestCase {
       listener.cancel()
     }
 
-    // The answerer pings as soon as it has greeted, so the first pong lands
-    // within a couple of seconds; hellos must still be arriving well after.
     let deadline = Date().addingTimeInterval(10)
     while pongedAt.value() == nil, Date() < deadline {
       RunLoop.current.run(until: Date().addingTimeInterval(0.1))
@@ -258,8 +249,6 @@ final class PeerConnectionTests: XCTestCase {
   }
 
   func testDropsAudioWhileNotConnected() {
-    // Nothing is connected: audio is stale the moment a connection would come
-    // up, so it must be dropped on the spot rather than queued.
     let connection = PeerConnection(
       endpoint: .hostPort(host: "127.0.0.1", port: 9), localIdentity: "dialler-id")
     let payload = Data(repeating: 7, count: 90)

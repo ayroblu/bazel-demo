@@ -1,103 +1,24 @@
 Local Call App
 ===============
 
-An offline audio call app for nearby iPhones and iPads. Signalling runs over
-bluetooth LE and audio over peer-to-peer wifi, so no internet or shared
-network is required. The wifi radio does have to be on, because peer-to-peer
-wifi is what carries the audio between devices that share no network.
-
-## How it works
-
-* Paired calling (iOS): the `bluetooth` module keeps a small bluetooth LE
-  service advertised at all times, which iOS keeps doing in the background and
-  restores after termination, so a write from a paired device relaunches the
-  app and rings it through CallKit with no button pressed on either side.
-  Pair once from the lobby while both apps are open; after that a paired
-  device shows as in range and is called with the button on its row. Tapping
-  the rest of the row renames it: since iOS 16 a device only reports its
-  model as its name, so the name it gives itself is a fallback for the one
-  chosen here. Scanning is the
-  expensive half of bluetooth and only runs in the foreground, which is where
-  a caller always is. Once the call is answered the audio runs over the wifi
-  transport: the bluetooth link only carries invite, cancel, answer, decline,
-  busy and silenced, each signed with the secret exchanged at pairing.
-  CallKit owns the audio session for these calls, so the engine starts when it
-  hands the session over and stops when it takes it back.
-* Discovery: the `p2p-audio-call` bonjour service is advertised and browsed
-  only while a call is being set up. It is published under the device's stable
-  identity from pairing rather than its name, and both the dialled service and
-  the hello frame on an accepted connection are matched against the identity
-  the bluetooth side agreed the call with, so a device that happens to share a
-  name cannot be reached by mistake. Device names are shown, never matched.
-  There is no manual device list: a device has to be paired before it can be
-  called.
-* Transport modes: `transportMode` in `transport/transport-mode.swift` is a
-  compile-time switch for comparing link technologies; both devices must run
-  the same mode. `awdl` is peer-to-peer wifi via Bonjour. `l2cap`
-  (default) runs the audio over a bluetooth L2CAP channel on the
-  connection the signalling already holds: the callee publishes it, signals
-  its PSM over bluetooth, the caller opens it, and the bytes are sealed with
-  a key derived from the pairing secret since there is no DTLS on that path.
-  Every mode speaks the same datagram packet protocol; a mode only produces
-  carriers for it.
-* Audio: an `AVAudioEngine` mic tap with voice processing on, for the system's
-  echo cancellation and automatic gain control, is resampled to 16kHz mono,
-  cut into 20ms frames and opus encoded (~25kbps against 256 for raw PCM).
-  Each frame travels as one sequenced datagram over a DTLS `NWConnection`
-  keyed by a pre-shared key built into the app, which encrypts the call
-  without authenticating the peer. Datagrams were chosen over the previous
-  TCP stream for the same reason WebRTC runs on UDP: late audio is worthless,
-  so a lost packet costs its own 20ms of silence instead of stalling every
-  packet behind it while TCP retransmits. Sequence numbers order the frames,
-  drop late duplicates, and tell a lost packet from a quiet peer; pings run
-  through the call as keepalive and measure the round trip time shown in the
-  in-call UI. Decoded frames are scheduled onto an `AVAudioPlayerNode`, which
-  plays its queue in order and never catches up on its own, so a stall or a
-  clock difference would be added to the delay permanently. Playback rate is
-  set the way WebRTC's NetEQ does it: the queue is sampled on every arrival
-  and only the *minimum* over a sliding 3s window - standing delay that
-  jitter never eats into - is drained, at up to 1.08x through an
-  `AVAudioUnitVarispeed` once it passes 60ms. Past a second behind it skips
-  to the newest audio instead, because playing 8% faster would take a minute
-  to absorb a five second stall. A second without incoming audio switches
-  playback to quiet white noise until audio returns, so an outage sounds like
-  a live line rather than a dropped call, and the connection itself rides out
-  up to 15s without a single packet before it is declared dead.
-* Ending: a call that ends for any reason plays a short descending two tone
-  chime through the call's own route before the engine is torn down, so a
-  drop is noticed without looking at the screen.
-* Diagnostics: the Logs screen is backed by a sqlite table that survives
-  relaunch (7 day retention). While connected, a heartbeat logs bytes sent and
-  received, time since the last packet each way, playback backlog and drops,
-  so a call that dies can be read back afterwards.
-* Routing: calls follow the system default input and output until you pin a
-  device in the in-call menu pickers; picking the device that currently is
-  the default clears the pin, so the call follows future default changes
-  (e.g. AirPods auto-switching) again. Inputs come from
-  `AVAudioSession.availableInputs` and the output picker offers
-  automatic/speaker. The engine restarts itself on
-  `AVAudioEngineConfigurationChange` so switching devices mid-call keeps the
-  audio flowing. While the call is on the built-in speaker the proximity
-  sensor runs, and raising the device to your ear moves it to the receiver
-  until you lower it again.
+Offline audio calls between nearby iPhones and iPads. Signalling over
+bluetooth LE, audio over a bluetooth L2CAP channel or peer-to-peer wifi.
 
 ## Modules
 
 | Module | Holds |
 |---|---|
-| `bluetooth` | Bluetooth LE signalling, pairing, and the L2CAP channel API |
-| `call` | The call state machine and CallKit, over `bluetooth` |
-| `transport-protocol` | `DatagramCarrier` and `LinkSetup`, what a link technology provides |
-| `awdl` | Bonjour discovery and DTLS datagrams over peer-to-peer wifi |
-| `l2cap` | The L2CAP channel setup and its sealed stream carrier, over `bluetooth` |
-| `transport` | The call protocol (hello, keepalive, RTT) over whichever link the mode picks |
-| `audio` | The engine, routing and the disconnect chime |
-| `content` | SwiftUI views and `CallViewModel`, which wires `call`, `transport` and `audio` |
+| `bluetooth` | BLE signalling, pairing, L2CAP channel API |
+| `call` | Call state machine and CallKit |
+| `transport-protocol` | `DatagramCarrier`, `LinkSetup` |
+| `awdl` | Bonjour discovery, DTLS datagrams |
+| `l2cap` | L2CAP channel setup, sealed stream carrier |
+| `transport` | Call protocol (hello, keepalive, RTT) over the mode's link |
+| `audio` | Engine, routing, chime |
+| `content` | SwiftUI, `CallViewModel` |
 
-`call` depends on neither `transport` nor `audio`: it reports what a call
-needs through callbacks that `CallViewModel` connects up. `awdl` and `l2cap`
-only know `transport-protocol`, so a link technology is added without
-touching the call protocol above it.
+`transportMode` in `transport/transport-mode.swift` selects `awdl` or `l2cap`
+at compile time; both devices must run the same mode.
 
 ## Building
 
@@ -108,41 +29,24 @@ bazel test //local-call-app/bluetooth/tests //local-call-app/transport/tests \
 bazel run //local-call-app:xcodeproj && xed local-call-app.xcodeproj
 ```
 
-The app is iOS and iPadOS only: CallKit does not exist on macOS. Most modules
-only build in an iOS configuration, so name test targets explicitly rather
-than using `//local-call-app/...`. Tests run on a simulator rather than the
-host, which is what `--ios_multi_cpus=sim_arm64` selects: without it they
-build for macOS and fail on `UIKit`, and `--config=ios` builds for a device
-whose bundle the simulator then refuses to load.
+iOS only. Name test targets explicitly: `//local-call-app/...` builds for
+macOS and fails on `UIKit`; `--config=ios` builds a device bundle the
+simulator refuses.
 
-After updating Xcode, Bazel's cached toolchain config can point at SDKs that no
-longer exist (errors like "SDK ... cannot be located" or "'<build>' is not an
-available Xcode version"). Reset the caches and re-detect Xcode with:
+After an Xcode update, if Bazel reports a missing SDK or Xcode version:
 
 ```sh
 bazel shutdown
 bazel fetch --configure --force
-# rules_xcodeproj uses a separate output base with its own server:
 bazel --output_base=/private/var/tmp/_bazel_$USER/<workspace-hash>/rules_xcodeproj.noindex/build_output_base shutdown
-bazel run //local-call-app:xcodeproj
 ```
 
-The `<workspace-hash>` directory is visible in any failing build's error output,
-or via `bazel info output_base` (it's the sibling `rules_xcodeproj.noindex`
-directory).
-
-Peer-to-peer wifi, bluetooth and the microphone don't work in the
-simulator, so run the app on physical devices. To install on a device, add a
-`provisioning_profile` for the `com.ayroblu.local-call-app` bundle id to the
-`ios_application` target, same as g1-app:
+Radios and the microphone need physical devices. Provisioning profile for
+`com.ayroblu.local-call-app`:
 
 ```
-# cp ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/<uuid>.mobileprovision .
+cp ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/<uuid>.mobileprovision .
 ```
 
-Both devices need wifi and bluetooth enabled (airplane mode with them toggled
-back on is fine), and the app must be granted microphone and local network
-permissions on first launch. Local network permission cannot be granted from
-the background, so the app has to be opened once before paired calling works.
-Force quitting the app also stops it being relaunched for a call, which is a
-system rule no background mode gets around.
+The app must be opened once to grant microphone and local network permission
+before background calling works. A force-quit app is not relaunched for calls.

@@ -3,20 +3,10 @@ import Foundation
 import Log
 import transport_protocol
 
-/// Makes a pair of Foundation streams (an L2CAP channel's) look like a
-/// datagram carrier: each datagram travels as `[u16 length][sealed bytes]`.
-///
-/// The DTLS carriers get their encryption from the network stack; a stream
-/// has none, and bluetooth link encryption would require an OS-level bond the
-/// app never makes. So every datagram is sealed with ChaChaPoly under a key
-/// derived from the two devices' pairing secret - which, unlike the wifi
-/// path's baked-in key, actually authenticates the peer. The nonce is random
-/// per datagram and travels in the sealed box.
-///
-/// An L2CAP channel is credit-based: when the peer stops draining, writes
-/// stop being accepted. Audio must not queue behind that, so the write buffer
-/// is capped at a few frames and newer datagrams are dropped while it is
-/// full - the same late-is-worthless policy the datagram links get for free.
+/// Each datagram travels as `[u16 length][ChaChaPoly box]` keyed from the pairing secret; there is
+/// no DTLS on this path and link encryption would need an OS-level bond. An L2CAP channel is
+/// credit-based, so writes are capped at a few frames and newer datagrams dropped rather than
+/// queued behind a peer that stopped draining.
 public nonisolated final class StreamDatagramCarrier: NSObject, DatagramCarrier, StreamDelegate,
   @unchecked Sendable
 {

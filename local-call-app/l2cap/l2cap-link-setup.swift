@@ -4,11 +4,7 @@ import Log
 import bluetooth
 import transport_protocol
 
-/// A bluetooth L2CAP channel on the connection the signalling already holds.
-/// The callee publishes a channel and signals its PSM to the caller, who
-/// opens it; both sides then wrap the channel's streams as a carrier, sealed
-/// with the pairing secret since there is no DTLS on this path. The channel
-/// object must stay referenced or its streams die under the call.
+/// The channel object must stay referenced or its streams die under the call.
 public final class L2capLinkSetup: LinkSetup {
   public var onCarrier: ((any DatagramCarrier, Bool) -> Void)?
 

@@ -31,8 +31,6 @@ import transport_protocol
   private var statsTask: Task<Void, Never>?
   private var isPlayingDisconnectChime = false
   let connect = ConnectManager.shared
-  /// A call CallKit owns: it rings, it owns the audio session, and it decides
-  /// when the engine may start.
   private var isSystemCall = false
   private var isSystemAudioActive = false
   private var isApplyingSystemMute = false
@@ -105,8 +103,6 @@ import transport_protocol
   private func handleTransportConnected() {
     if isSystemCall {
       connect.transportDidConnect()
-      // The transport can come up while the call is still ringing, so the
-      // engine waits for CallKit to hand over the audio session.
       if isSystemAudioActive, !audio.isActive {
         startAudio()
       }
@@ -196,9 +192,6 @@ import transport_protocol
     log("call mic permission", granted)
   }
 
-  /// Runs the capture side of the audio engine locally so the user can
-  /// check their mic and input picker without being in a call. Nothing is
-  /// sent: the outgoing sender no-ops with no connected peers.
   func startMicTest() {
     guard !isInCall else { return }
     stopTests()
@@ -225,11 +218,6 @@ import transport_protocol
     stopLevelPolling()
   }
 
-  /// Plays a repeating chime through the engine the same way a call plays a
-  /// peer: sequenced opus packets through the jitter queue, the output picker
-  /// and catch up all running as they do in a call, so the lag between the
-  /// level bar pulsing and the chime being heard is the playback delay. The
-  /// engine taps the mic either way, so this needs recording permission too.
   func startSpeakerTest() {
     guard !isInCall else { return }
     stopTests()
@@ -288,7 +276,6 @@ import transport_protocol
 
   private func startAudio() {
     log("call audio starting")
-    // An incoming call can connect mid-test; hand the engine over cleanly.
     stopTests()
     do {
       try activateRoute()
@@ -333,8 +320,6 @@ import transport_protocol
   private func finishStopAudio() {
     guard isPlayingDisconnectChime else { return }
     isPlayingDisconnectChime = false
-    // A test or a new call started while the chime was playing owns the
-    // engine now.
     guard !isInCall, !isTesting else { return }
     audio.stop()
     deactivateRoute()
@@ -349,8 +334,6 @@ import transport_protocol
       stats.lostMs, stats.lateFrames, stats.noiseMs)
   }
 
-  /// A heartbeat while in a call: without it a drop leaves no trace of which
-  /// side stopped sending, or whether audio was still flowing beforehand.
   private func startStatsLogging() {
     statsTask?.cancel()
     statsTask = Task { [weak self] in
@@ -380,8 +363,6 @@ import transport_protocol
     lastBytesSample = nil
   }
 
-  /// The engine accumulates peak levels off the audio threads; poll them at
-  /// 10Hz with a fast attack and slow release so the meters read smoothly.
   private func startLevelPolling() {
     levelTask?.cancel()
     levelTask = Task { [weak self] in
@@ -389,7 +370,6 @@ import transport_protocol
         try? await Task.sleep(for: .milliseconds(100))
         guard let self else { return }
         let taken = self.audio.takeLevels()
-        // sqrt maps linear peaks onto a more perceptual bar scale
         self.inputLevel = max(min(1, taken.input.squareRoot()), self.inputLevel * 0.7)
         self.outputLevel = max(min(1, taken.output.squareRoot()), self.outputLevel * 0.7)
         self.updateNetworkStats()
@@ -397,8 +377,6 @@ import transport_protocol
     }
   }
 
-  /// Bitrates are measured over at least a second of the transport's byte
-  /// counters; the 10Hz poll is too short a window to be readable.
   private func updateNetworkStats() {
     guard let stats = transport.networkStats() else {
       networkRttMs = nil
@@ -416,10 +394,8 @@ import transport_protocol
     }
     let elapsed = now.timeIntervalSince(last.at)
     guard elapsed >= 1 else { return }
-    // What the peer's voice costs to reach this ear: its capture pipeline,
-    // the 20ms packetization (10ms on average), half the measured round
-    // trip, and this device's playback queue and output route. An estimate -
-    // it assumes the network path is symmetric - but every term is measured.
+    // Peer capture + half a 20ms packet + half the round trip + local playout. Assumes a symmetric
+    // path.
     endToEndMs = stats.rttMs.map { rtt in
       stats.peerCaptureMs + 10 + rtt / 2 + audio.playoutDelayMs()
     }

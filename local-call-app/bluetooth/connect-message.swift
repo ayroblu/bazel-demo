@@ -1,8 +1,6 @@
 import CryptoKit
 import Foundation
 
-/// The signalling messages exchanged over bluetooth. Everything a call needs
-/// before the audio transport exists: pairing, ringing, and the answers to it.
 public nonisolated enum ConnectMessage: Equatable {
   case pairRequest(name: String, secret: Data)
   case pairAccept(name: String)
@@ -12,12 +10,7 @@ public nonisolated enum ConnectMessage: Equatable {
   case accept(callId: UUID)
   case decline(callId: UUID)
   case busy(callId: UUID)
-  /// The system refused to ring because a Focus is on, which the caller shows
-  /// differently to a decline: calling again shortly often gets through.
   case silenced(callId: UUID)
-  /// The callee published a bluetooth L2CAP channel for the call's audio and
-  /// this is its PSM, the port the caller opens. Only sent in the transport
-  /// modes that use L2CAP.
   case transportPsm(callId: UUID, psm: UInt16)
 
   /// Pairing runs before there is a shared secret, so those two messages are
@@ -49,8 +42,6 @@ nonisolated enum ConnectFrameError: Error, Equatable {
   case missingSignature
 }
 
-/// A framed message with the sender's app identity in the clear, so the
-/// receiver can pick the right secret before verifying anything.
 public nonisolated struct ConnectFrame: Equatable {
   public let senderId: UUID
   public let message: ConnectMessage

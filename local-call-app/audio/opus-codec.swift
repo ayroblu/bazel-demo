@@ -1,8 +1,6 @@
 import AVFoundation
 
-/// Opus over the system codec: 20ms frames of 16kHz mono, ~60-90 bytes each
-/// against 640 raw. One encoder and one decoder live for a whole call; both
-/// are stateful across frames, so neither can be shared between streams.
+/// Encoder and decoder are stateful across frames, so neither can be shared between streams.
 public nonisolated enum OpusCall {
   public static let sampleRate = 16000.0
   public static let frameSamples = 320
@@ -120,7 +118,6 @@ public nonisolated final class OpusDecoder: @unchecked Sendable {
   }
 }
 
-/// Hands the converter its one input buffer, then reports the input dry.
 private nonisolated final class FeedOnce: @unchecked Sendable {
   private let lock = NSLock()
   private var buffer: AVAudioBuffer?

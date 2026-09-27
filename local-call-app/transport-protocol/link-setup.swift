@@ -1,7 +1,5 @@
 import Foundation
 
-/// The call a link is being set up for, as the bluetooth signalling agreed
-/// it. `invites` is true on the side that placed the call.
 public nonisolated struct LinkCall: Sendable, Equatable {
   public let peerId: UUID
   public let peerIdentity: String
@@ -18,17 +16,12 @@ public nonisolated struct LinkCall: Sendable, Equatable {
   }
 }
 
-/// How a link technology produces carriers for a call. It may hand over
-/// several candidates - a browsed peer being dialled, connections accepted
-/// before their hello arrives - and the call protocol keeps the one whose
-/// hello matches the call. `dials` is true when this side opened the carrier
-/// and should greet first.
+/// May hand over several candidates (a dialled peer, connections accepted before their hello); the
+/// call protocol keeps the one whose hello matches. `dials` means this side greets first.
 public protocol LinkSetup: AnyObject {
   var onCarrier: ((_ carrier: any DatagramCarrier, _ dials: Bool) -> Void)? { get set }
   func begin(_ call: LinkCall)
-  /// The call is connected; searching for more candidates can stop.
   func didConnect()
-  /// A carrier this side dialled closed before the call came up.
   func dialFailed()
   func cancel()
 }
