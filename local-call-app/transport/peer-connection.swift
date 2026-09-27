@@ -10,18 +10,15 @@ import Security
 private nonisolated let presharedKeySeed = "local-call-app.peer-audio.v1"
 private nonisolated let presharedKeyIdentity = "local-call-app"
 
-/// One peer-to-peer connection carrying a call's audio in both directions.
+/// One peer-to-peer connection carrying a call's audio in both directions,
+/// as DTLS datagrams: audio is late-is-worthless, so a lost packet is never
+/// retransmitted and can never stall the packets behind it. Each datagram is
+/// one `Packet`; audio carries a sequence number so the receiver can tell a
+/// lost packet from a quiet peer.
 ///
-/// The connection opens with a hello frame carrying the sender's stable
-/// identity, because an endpoint accepted by a listener carries no service
-/// name and the callee would otherwise not know which device reached it.
-/// Everything after the hello is a raw 16kHz mono Int16 sample run with no
-/// framing, so a read is handed on as-is except for a trailing odd byte,
-/// which is held back until its pair arrives.
-///
-/// ```
-/// [uint16 big-endian identity length][identity utf8][samples ...]
-/// ```
+/// Datagrams also mean the hello can be lost, so it repeats until the peer is
+/// heard from, and a closed peer is only detectable by silence: pings run for
+/// the whole call as keepalive and measure round trip time as a side effect.
 nonisolated final class PeerConnection: @unchecked Sendable {
   private let connection: NWConnection
   private let localIdentity: String
@@ -31,12 +28,12 @@ nonisolated final class PeerConnection: @unchecked Sendable {
   private let greetsOnReady: Bool
   private let queue = DispatchQueue(label: "call-audio-link", qos: .userInitiated)
   private let lock = NSLock()
+  private let epoch = Date()
 
-  private var pending = Data()
-  private var isSending = false
   private var isOpen = false
   private var didGreet = false
   private var didNotifyClosed = false
+  private var sendSeq: UInt32 = 0
   private var bytesSent = 0
   private var bytesDropped = 0
   private var bytesReceived = 0
@@ -44,18 +41,19 @@ nonisolated final class PeerConnection: @unchecked Sendable {
   private var lastSendAt: Date?
   private var lastReceiveAt: Date?
   private var loggedDropAt: Date?
-  private var helloBytes: [UInt8] = []
   private var peerIdentity: String?
-  private var leftover: UInt8?
+  /// A ping, pong or audio packet proves the peer got our hello.
+  private var peerEstablished = false
+  private var smoothedRttMs: Double?
+
+  private var helloTimer: DispatchSourceTimer?
+  private var pingTimer: DispatchSourceTimer?
 
   private var onReady: (@Sendable (String) -> Void)?
   private var onClosed: (@Sendable (String) -> Void)?
-  private var onData: (@Sendable (Data) -> Void)?
+  private var onData: (@Sendable (UInt32, Data) -> Void)?
 
-  /// 200ms of 16kHz mono Int16 audio. Anything older than that is stale by
-  /// the time it would reach the wire.
-  private let maxPendingBytes = 6400
-  private let maxIdentityBytes = 255
+  private let receiveTimeout: TimeInterval = 10
 
   var endpoint: NWEndpoint { connection.endpoint }
 
@@ -72,11 +70,9 @@ nonisolated final class PeerConnection: @unchecked Sendable {
   }
 
   /// Peer-to-peer includes AWDL, which is the only path between two devices
-  /// that share no network. Audio is late-is-worthless, so Nagle is off.
+  /// that share no network.
   static func parameters() -> NWParameters {
-    let tcp = NWProtocolTCP.Options()
-    tcp.noDelay = true
-    let parameters = NWParameters(tls: tlsOptions(), tcp: tcp)
+    let parameters = NWParameters(dtls: tlsOptions(), udp: NWProtocolUDP.Options())
     parameters.includePeerToPeer = true
     return parameters
   }
@@ -98,7 +94,7 @@ nonisolated final class PeerConnection: @unchecked Sendable {
 
   func setHandlers(
     onReady: (@Sendable (String) -> Void)?,
-    onData: (@Sendable (Data) -> Void)?,
+    onData: (@Sendable (UInt32, Data) -> Void)?,
     onClosed: (@Sendable (String) -> Void)?
   ) {
     lock.lock()
@@ -108,7 +104,7 @@ nonisolated final class PeerConnection: @unchecked Sendable {
     lock.unlock()
   }
 
-  func setDataHandler(_ handler: (@Sendable (Data) -> Void)?) {
+  func setDataHandler(_ handler: (@Sendable (UInt32, Data) -> Void)?) {
     lock.lock()
     onData = handler
     lock.unlock()
@@ -131,43 +127,73 @@ nonisolated final class PeerConnection: @unchecked Sendable {
     onReady = nil
     onClosed = nil
     onData = nil
+    let timers = [helloTimer, pingTimer]
+    helloTimer = nil
+    pingTimer = nil
     lock.unlock()
+    timers.forEach { $0?.cancel() }
     connection.cancel()
   }
 
   /// Answering side only: tells the caller the call was accepted.
   func greet() {
-    queue.async { [weak self] in
-      self?.sendHello()
-    }
+    startHello()
   }
 
   func stats() -> (
     sent: Int, dropped: Int, received: Int, receiveEvents: Int, lastSendAt: Date?,
-    lastReceiveAt: Date?, isOpen: Bool
+    lastReceiveAt: Date?, isOpen: Bool, rttMs: Double?
   ) {
     lock.lock()
     defer { lock.unlock() }
-    return (bytesSent, bytesDropped, bytesReceived, receiveEvents, lastSendAt, lastReceiveAt, isOpen)
+    return (
+      bytesSent, bytesDropped, bytesReceived, receiveEvents, lastSendAt, lastReceiveAt, isOpen,
+      smoothedRttMs
+    )
   }
 
-  func send(_ data: Data) {
+  func rttMs() -> Double? {
     lock.lock()
-    pending.append(data)
-    var dropped = 0
-    if pending.count > maxPendingBytes {
-      dropped = pending.count - maxPendingBytes
-      pending.removeFirst(dropped)
-      bytesDropped += dropped
+    defer { lock.unlock() }
+    return smoothedRttMs
+  }
+
+  /// One encoded audio frame; sequenced and sent as a single datagram, or
+  /// dropped on the spot while the connection is not ready: stale audio is
+  /// worth less than nothing.
+  func send(_ payload: Data) {
+    lock.lock()
+    guard isOpen else {
+      bytesDropped += payload.count
+      let shouldLog = shouldLogDropLocked()
+      lock.unlock()
+      if shouldLog {
+        log("peer connection not open, dropping audio")
+      }
+      return
     }
-    let shouldLogDrop = dropped > 0 && shouldLogDropLocked()
+    let seq = sendSeq
+    sendSeq &+= 1
     lock.unlock()
-    if shouldLogDrop {
-      log("peer connection send queue full, dropping", dropped, "bytes")
-    }
-    queue.async { [weak self] in
-      self?.drain()
-    }
+    sendPacket(.audio(seq: seq, payload: payload))
+  }
+
+  private func sendPacket(_ packet: Packet) {
+    let data = packet.encoded()
+    connection.send(
+      content: data,
+      completion: .contentProcessed { [weak self] error in
+        guard let self else { return }
+        if let error {
+          log("peer connection send failed", error)
+          self.notifyClosed("send \(error)")
+          return
+        }
+        self.lock.lock()
+        self.bytesSent += data.count
+        self.lastSendAt = Date()
+        self.lock.unlock()
+      })
   }
 
   private func handleState(_ state: NWConnection.State) {
@@ -178,10 +204,9 @@ nonisolated final class PeerConnection: @unchecked Sendable {
       lock.unlock()
       log("peer connection ready", String(describing: connection.endpoint))
       if greetsOnReady {
-        sendHello()
+        startHello()
       }
       receiveNext()
-      drain()
     case .waiting(let error):
       // Says why the path is not usable yet, which is the only warning
       // before a call fails to come up at all.
@@ -195,70 +220,81 @@ nonisolated final class PeerConnection: @unchecked Sendable {
     }
   }
 
-  private func sendHello() {
+  /// The hello repeats until the peer is heard from, because any one
+  /// datagram can be lost and nothing is retransmitted.
+  private func startHello() {
     lock.lock()
     guard !didGreet else {
       lock.unlock()
       return
     }
     didGreet = true
+    let timer = DispatchSource.makeTimerSource(queue: queue)
+    helloTimer = timer
     lock.unlock()
-    let identity = Array(localIdentity.utf8.prefix(maxIdentityBytes))
-    var frame = Data([UInt8((identity.count >> 8) & 0xff), UInt8(identity.count & 0xff)])
-    frame.append(contentsOf: identity)
-    connection.send(
-      content: frame,
-      completion: .contentProcessed { error in
-        guard let error else { return }
-        log("peer connection hello failed", error)
-      })
+    timer.schedule(deadline: .now(), repeating: .milliseconds(250))
+    timer.setEventHandler { [weak self] in
+      guard let self else { return }
+      self.lock.lock()
+      let done = self.peerIdentity != nil && self.peerEstablished
+      self.lock.unlock()
+      if done {
+        self.stopHello()
+        return
+      }
+      self.sendPacket(.hello(identity: self.localIdentity))
+    }
+    timer.activate()
+    startPingIfEstablished()
   }
 
-  private func drain() {
+  private func stopHello() {
     lock.lock()
-    guard isOpen, !isSending, !pending.isEmpty else {
+    let timer = helloTimer
+    helloTimer = nil
+    lock.unlock()
+    timer?.cancel()
+  }
+
+  /// Pings run from both hellos being exchanged until the call ends: the
+  /// reply measures round trip time, and going quiet is the only way a dead
+  /// peer shows over datagrams, so a silent stretch closes the connection.
+  private func startPingIfEstablished() {
+    lock.lock()
+    guard didGreet, peerIdentity != nil, pingTimer == nil, !didNotifyClosed else {
       lock.unlock()
       return
     }
-    let chunk = pending
-    pending = Data()
-    isSending = true
-    let isFirst = bytesSent == 0
+    let timer = DispatchSource.makeTimerSource(queue: queue)
+    pingTimer = timer
     lock.unlock()
-    connection.send(
-      content: chunk,
-      completion: .contentProcessed { [weak self] error in
-        guard let self else { return }
-        if let error {
-          log("peer connection send failed", error)
-          self.notifyClosed("send \(error)")
-          return
-        }
-        self.lock.lock()
-        self.bytesSent += chunk.count
-        self.lastSendAt = Date()
-        self.isSending = false
-        self.lock.unlock()
-        if isFirst {
-          log("peer connection first bytes written", chunk.count)
-        }
-        self.drain()
-      })
+    timer.schedule(deadline: .now(), repeating: .seconds(1))
+    timer.setEventHandler { [weak self] in
+      guard let self else { return }
+      self.lock.lock()
+      let last = self.lastReceiveAt
+      self.lock.unlock()
+      if let last, Date().timeIntervalSince(last) > self.receiveTimeout {
+        self.notifyClosed("receive timeout")
+        return
+      }
+      self.sendPacket(.ping(sentMs: self.nowMs()))
+    }
+    timer.activate()
+  }
+
+  private func nowMs() -> UInt32 {
+    UInt32(truncatingIfNeeded: Int(Date().timeIntervalSince(epoch) * 1000))
   }
 
   private func receiveNext() {
-    connection.receive(minimumIncompleteLength: 1, maximumLength: 8192) {
-      [weak self] data, _, isComplete, error in
+    connection.receiveMessage { [weak self] data, _, _, error in
       guard let self else { return }
       if let data, !data.isEmpty {
         self.handleReceived(data)
       }
       if let error {
         self.notifyClosed("receive \(error)")
-        return
-      }
-      if isComplete {
-        self.notifyClosed("ended")
         return
       }
       self.receiveNext()
@@ -271,49 +307,44 @@ nonisolated final class PeerConnection: @unchecked Sendable {
     bytesReceived += data.count
     receiveEvents += 1
     lastReceiveAt = Date()
-
-    var audio = [UInt8](data)
-    var greeting: String?
-    if peerIdentity == nil {
-      helloBytes.append(contentsOf: audio)
-      guard helloBytes.count >= 2 else {
-        lock.unlock()
-        return
-      }
-      let length = Int(helloBytes[0]) << 8 | Int(helloBytes[1])
-      guard helloBytes.count >= 2 + length else {
-        lock.unlock()
-        return
-      }
-      let identity = String(decoding: helloBytes[2..<(2 + length)], as: UTF8.self)
-      peerIdentity = identity
-      greeting = identity
-      audio = Array(helloBytes[(2 + length)...])
-      helloBytes = []
-    }
-
-    var payload: [UInt8] = []
-    if let leftover {
-      payload.append(leftover)
-      self.leftover = nil
-    }
-    payload.append(contentsOf: audio)
-    if payload.count % 2 == 1 {
-      leftover = payload.removeLast()
-    }
-    let ready = onReady
-    let dataHandler = onData
     lock.unlock()
-
     if isFirst {
       log("peer connection first bytes read", data.count)
     }
-    if let greeting {
-      log("peer connection hello", greeting)
-      ready?(greeting)
+    guard let packet = Packet.decode(data) else {
+      log("peer connection unreadable datagram", data.count)
+      return
     }
-    if !payload.isEmpty {
-      dataHandler?(Data(payload))
+    switch packet {
+    case .hello(let identity):
+      lock.lock()
+      let isNew = peerIdentity == nil
+      if isNew {
+        peerIdentity = identity
+      }
+      let ready = onReady
+      lock.unlock()
+      guard isNew else { return }
+      log("peer connection hello", identity)
+      startPingIfEstablished()
+      ready?(identity)
+    case .audio(let seq, let payload):
+      lock.lock()
+      peerEstablished = true
+      let handler = onData
+      lock.unlock()
+      handler?(seq, payload)
+    case .ping(let sentMs):
+      lock.lock()
+      peerEstablished = true
+      lock.unlock()
+      sendPacket(.pong(echoedMs: sentMs))
+    case .pong(let echoedMs):
+      let rtt = Double(nowMs() &- echoedMs)
+      lock.lock()
+      peerEstablished = true
+      smoothedRttMs = smoothedRttMs.map { $0 * 0.7 + rtt * 0.3 } ?? rtt
+      lock.unlock()
     }
   }
 
@@ -329,7 +360,11 @@ nonisolated final class PeerConnection: @unchecked Sendable {
     onReady = nil
     onClosed = nil
     onData = nil
+    let timers = [helloTimer, pingTimer]
+    helloTimer = nil
+    pingTimer = nil
     lock.unlock()
+    timers.forEach { $0?.cancel() }
     log("peer connection closed", String(describing: connection.endpoint), reason)
     connection.cancel()
     handler?(reason)

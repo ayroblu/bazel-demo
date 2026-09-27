@@ -20,6 +20,8 @@ import transport
   var micPermissionDenied = false
   var inputLevel: Float = 0
   var outputLevel: Float = 0
+  var outputLatencyMs = 0
+  var networkRttMs: Int?
   private var levelTask: Task<Void, Never>?
   private var statsTask: Task<Void, Never>?
   private var isPlayingDisconnectChime = false
@@ -40,8 +42,8 @@ import transport
   init() {
     audio.onOutgoingAudio = transport.makeSender()
     let audioBox = SendableBox(audio)
-    transport.onAudioData = { data in
-      audioBox.value.playIncoming(data)
+    transport.onAudioData = { seq, data in
+      audioBox.value.playIncoming(seq: seq, data: data)
     }
     transport.onCallStarted = { [weak self] in
       self?.handleTransportConnected()
@@ -264,7 +266,7 @@ import transport
         // late and starves the player instead.
         let due = Int((Date().timeIntervalSince(startedAt) + 0.1) / SpeakerTestTone.packetSeconds)
         while sent < due {
-          self.audio.playIncoming(packets[sent % packets.count])
+          self.audio.playIncoming(seq: UInt32(sent), data: packets[sent % packets.count])
           sent += 1
         }
         try? await Task.sleep(for: .milliseconds(20))
@@ -329,8 +331,10 @@ import transport
   private func playbackSummary() -> String {
     let stats = audio.playbackStats()
     return String(
-      format: "playback backlog=%dms received=%dms skipped=%dms resyncs=%d arrivalRate=%.2f",
-      stats.backlogMs, stats.receivedMs, stats.skippedMs, stats.resyncs, stats.arrivalRate)
+      format:
+        "playback backlog=%dms received=%dms skipped=%dms resyncs=%d arrivalRate=%.2f lost=%dms late=%d",
+      stats.backlogMs, stats.receivedMs, stats.skippedMs, stats.resyncs, stats.arrivalRate,
+      stats.lostMs, stats.lateFrames)
   }
 
   /// A heartbeat while in a call: without it a drop leaves no trace of which
@@ -351,6 +355,8 @@ import transport
     levelTask = nil
     inputLevel = 0
     outputLevel = 0
+    outputLatencyMs = 0
+    networkRttMs = nil
   }
 
   /// The engine accumulates peak levels off the audio threads; poll them at
@@ -365,6 +371,8 @@ import transport
         // sqrt maps linear peaks onto a more perceptual bar scale
         self.inputLevel = max(min(1, taken.input.squareRoot()), self.inputLevel * 0.7)
         self.outputLevel = max(min(1, taken.output.squareRoot()), self.outputLevel * 0.7)
+        self.outputLatencyMs = self.audio.outputLatencyMs()
+        self.networkRttMs = self.transport.networkRttMs()
       }
     }
   }

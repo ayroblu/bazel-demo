@@ -5,11 +5,16 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
   private let engine = AVAudioEngine()
   private let playerNode = AVAudioPlayerNode()
   /// Plays the queue slightly fast to catch up without dropping anything.
-  /// Rate here is tempo only, the unit keeps the pitch, so a caught-up voice
-  /// sounds hurried rather than squeaky.
-  private let timePitch = AVAudioUnitTimePitch()
-  private let transportSampleRate = 16000.0
-  private let playbackFormat = AVAudioFormat(standardFormatWithSampleRate: 16000, channels: 1)!
+  /// Varispeed is a plain rate converter, so unlike a time pitch unit it adds
+  /// no processing latency of its own; the cost is that catching up raises
+  /// the pitch by up to 8%, briefly, which is less noticeable than the delay.
+  private let varispeed = AVAudioUnitVarispeed()
+  private let playbackFormat = AVAudioFormat(
+    standardFormatWithSampleRate: OpusCall.sampleRate, channels: 1)!
+  private let encoder = OpusEncoder()
+  private let decoder = OpusDecoder()
+  private let jitter = JitterBuffer()
+  private let catchUp = CatchUpController()
   private var isRunning = false
   public var isActive: Bool { isRunning }
   private var configChangeObserver: NSObjectProtocol?
@@ -17,6 +22,7 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
   private var routeChangeObserver: NSObjectProtocol?
   private var pendingRouteRestart: DispatchWorkItem?
 
+  /// Called with one encoded 20ms opus frame at a time.
   public var onOutgoingAudio: (@Sendable (Data) -> Void)?
   public var isMuted = false
 
@@ -24,15 +30,15 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
   private var inputPeak: Float = 0
   private var outputPeak: Float = 0
 
+  private let micLock = NSLock()
+  private var micPending: [Float] = []
+
   // An AVAudioPlayerNode plays its queue in order and never catches up, so a
   // network stall or a clock difference is added to the mouth-to-ear delay
   // and stays there. Rather than shedding audio continuously, playback runs
   // untouched until the delay passes this much, then skips straight to the
   // newest audio: one discontinuity instead of permanent chop.
   private let maxBacklogFrames = 16000  // 1s at 16kHz
-  /// Below this the queue is normal jitter and is left alone.
-  private let catchUpFromFrames = 3200  // 200ms at 16kHz
-  private let maxCatchUpRate: Float = 1.08
   private let playbackLock = NSLock()
   private var scheduledFrames = 0
   private var receivedFrames = 0
@@ -46,12 +52,14 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
   /// is incoming audio seconds per elapsed second: above 1.0 the peer is
   /// producing faster than real time, which no amount of buffering can fix.
   public func playbackStats() -> (
-    backlogMs: Int, receivedMs: Int, skippedMs: Int, resyncs: Int, arrivalRate: Double
+    backlogMs: Int, receivedMs: Int, skippedMs: Int, resyncs: Int, arrivalRate: Double,
+    lostMs: Int, lateFrames: Int
   ) {
     let backlog = backlogFrames()
+    let jitterStats = jitter.stats()
     playbackLock.lock()
     defer { playbackLock.unlock() }
-    let msPerFrame = 1000.0 / transportSampleRate
+    let msPerFrame = 1000.0 / OpusCall.sampleRate
     let receivedMs = Double(receivedFrames) * msPerFrame
     let elapsedMs = firstIncomingAt.map { Date().timeIntervalSince($0) * 1000 } ?? 0
     return (
@@ -59,8 +67,18 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
       Int(receivedMs),
       Int(Double(skippedFrames) * msPerFrame),
       resyncCount,
-      elapsedMs > 1000 ? receivedMs / elapsedMs : 0
+      elapsedMs > 1000 ? receivedMs / elapsedMs : 0,
+      Int(Double(jitterStats.lost * OpusCall.frameSamples) * msPerFrame),
+      jitterStats.late
     )
+  }
+
+  public func outputLatencyMs() -> Int {
+    let session = AVAudioSession.sharedInstance()
+    let queueSeconds = Double(backlogFrames()) / OpusCall.sampleRate
+    let seconds =
+      queueSeconds + Double(varispeed.latency) + session.outputLatency + session.ioBufferDuration
+    return Int(seconds * 1000)
   }
 
   /// Frames scheduled but not yet rendered. Taken from the render clock
@@ -88,7 +106,10 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
 
   public init() {
     engine.attach(playerNode)
-    engine.attach(timePitch)
+    engine.attach(varispeed)
+    if encoder == nil || decoder == nil {
+      log("audio opus codec unavailable")
+    }
     // AVFoundation stops the engine and posts this when the active device's
     // hardware format changes or the device goes away entirely (e.g. AirPods
     // connect or disconnect mid-call). Without a restart the call goes
@@ -160,8 +181,8 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
   private func startEngine() throws {
     let input = engine.inputNode
     enableVoiceProcessing(on: input)
-    engine.connect(playerNode, to: timePitch, format: playbackFormat)
-    engine.connect(timePitch, to: engine.mainMixerNode, format: playbackFormat)
+    engine.connect(playerNode, to: varispeed, format: playbackFormat)
+    engine.connect(varispeed, to: engine.mainMixerNode, format: playbackFormat)
     // The input format must be re-read on every (re)start: it changes when
     // the route changes (e.g. built-in mic at 48kHz vs AirPods HFP), and with
     // voice processing it belongs to the processing unit rather than the
@@ -174,9 +195,15 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     log(
       "audio engine input format", inputFormat.sampleRate, inputFormat.channelCount,
       "session", session.sampleRate, session.inputNumberOfChannels,
+      "io buffer", session.ioBufferDuration,
       "voice processing", input.isVoiceProcessingEnabled,
       "agc", input.isVoiceProcessingAGCEnabled)
-    input.installTap(onBus: 0, bufferSize: 2048, format: inputFormat) {
+    micLock.lock()
+    micPending = []
+    micLock.unlock()
+    // A small tap so capture adds ~10ms of batching rather than the ~43ms a
+    // 2048 frame tap did; frames are cut to 20ms packets downstream anyway.
+    input.installTap(onBus: 0, bufferSize: 512, format: inputFormat) {
       [weak self] buffer, _ in
       self?.handleMicBuffer(buffer)
     }
@@ -189,11 +216,9 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
       throw error
     }
     playerNode.play()
-    // The time pitch unit buys catch up at the cost of its own latency, so
-    // it is worth seeing what that costs on real hardware.
     log(
       "audio engine running", engine.isRunning, "player", playerNode.isPlaying,
-      "time pitch latency", timePitch.latency)
+      "varispeed latency", varispeed.latency)
   }
 
   /// Voice processing is the only way to get the system's echo cancellation
@@ -232,32 +257,48 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
   }
 
   private func handleMicBuffer(_ buffer: AVAudioPCMBuffer) {
-    guard !isMuted, let onOutgoingAudio else { return }
+    guard !isMuted, let onOutgoingAudio, let encoder else { return }
     guard let floatChannel = buffer.floatChannelData, buffer.frameLength > 0 else { return }
 
     let inputFrames = Int(buffer.frameLength)
-    let outputFrames = max(1, Int(Double(inputFrames) * transportSampleRate / buffer.format.sampleRate))
-    var samples = [Int16](repeating: 0, count: outputFrames)
+    let outputFrames = max(
+      1, Int(Double(inputFrames) * OpusCall.sampleRate / buffer.format.sampleRate))
+    var samples = [Float](repeating: 0, count: outputFrames)
     var peak: Float = 0
     // Voice processing adds channels carrying its own echo cancellation data.
     // Channel 0 is the audio; mixing the others in would corrupt it.
     let source = floatChannel[0]
 
     for outputIndex in 0..<outputFrames {
-      let inputIndex = min(inputFrames - 1, Int(Double(outputIndex) * buffer.format.sampleRate / transportSampleRate))
+      let inputIndex = min(
+        inputFrames - 1, Int(Double(outputIndex) * buffer.format.sampleRate / OpusCall.sampleRate))
       let clamped = max(-1, min(1, source[inputIndex]))
       peak = max(peak, abs(clamped))
-      samples[outputIndex] = Int16(clamped * Float(Int16.max))
+      samples[outputIndex] = clamped
     }
 
     levelLock.lock()
     inputPeak = max(inputPeak, peak)
     levelLock.unlock()
 
-    onOutgoingAudio(samples.withUnsafeBytes { Data($0) })
+    // The tap hands over whatever the hardware granularity is; the wire
+    // carries exact 20ms frames, so the remainder waits for the next buffer.
+    micLock.lock()
+    micPending.append(contentsOf: samples)
+    var frames: [[Float]] = []
+    while micPending.count >= OpusCall.frameSamples {
+      frames.append(Array(micPending.prefix(OpusCall.frameSamples)))
+      micPending.removeFirst(OpusCall.frameSamples)
+    }
+    micLock.unlock()
+
+    for frame in frames {
+      guard let payload = encoder.encode(frame) else { continue }
+      onOutgoingAudio(payload)
+    }
   }
 
-  public func playIncoming(_ data: Data) {
+  public func playIncoming(seq: UInt32, data: Data) {
     guard isRunning else {
       // Audio arriving while the engine is down is silent by definition, and
       // has to be visible or it looks the same as a peer sending nothing.
@@ -269,30 +310,38 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
       }
       return
     }
-    let frameCount = AVAudioFrameCount(data.count / MemoryLayout<Int16>.size)
-    guard frameCount > 0 else { return }
-    noteIncoming(frames: Int(frameCount))
+    guard let decoder, let samples = decoder.decode(data), !samples.isEmpty else { return }
+    noteIncoming(frames: samples.count)
     skipAheadIfBehind()
-    adjustCatchUpRate()
-    guard let outBuffer = AVAudioPCMBuffer(pcmFormat: playbackFormat, frameCapacity: frameCount)
-    else { return }
-    outBuffer.frameLength = frameCount
-    guard let floatChannel = outBuffer.floatChannelData else { return }
-    var peak: Float = 0
-    data.withUnsafeBytes { (raw: UnsafeRawBufferPointer) in
-      let samples = raw.bindMemory(to: Int16.self)
-      for i in 0..<Int(frameCount) {
-        let sample = Float(samples[i]) / Float(Int16.max)
-        peak = max(peak, abs(sample))
-        floatChannel.pointee[i] = sample
-      }
+    let placement = jitter.push(seq: seq)
+    if placement.fillFrames > 0 {
+      schedule(
+        samples: [Float](repeating: 0, count: placement.fillFrames * OpusCall.frameSamples),
+        metersLevel: false)
     }
-    levelLock.lock()
-    outputPeak = max(outputPeak, peak)
-    levelLock.unlock()
-    playerNode.scheduleBuffer(outBuffer)
+    guard placement.play else { return }
+    schedule(samples: samples, metersLevel: true)
+    adjustCatchUpRate()
+  }
+
+  private func schedule(samples: [Float], metersLevel: Bool) {
+    guard
+      let buffer = AVAudioPCMBuffer(
+        pcmFormat: playbackFormat, frameCapacity: AVAudioFrameCount(samples.count))
+    else { return }
+    buffer.frameLength = AVAudioFrameCount(samples.count)
+    samples.withUnsafeBufferPointer { source in
+      buffer.floatChannelData!.pointee.update(from: source.baseAddress!, count: samples.count)
+    }
+    if metersLevel {
+      let peak = samples.reduce(Float(0)) { max($0, abs($1)) }
+      levelLock.lock()
+      outputPeak = max(outputPeak, peak)
+      levelLock.unlock()
+    }
+    playerNode.scheduleBuffer(buffer)
     playbackLock.lock()
-    scheduledFrames += Int(frameCount)
+    scheduledFrames += samples.count
     playbackLock.unlock()
   }
 
@@ -305,36 +354,33 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     playbackLock.unlock()
   }
 
-  /// Stopping the player flushes everything still queued and resets its
-  /// render clock, so playback carries on from the audio that arrives next:
-  /// the delay collapses back to nothing in one step.
-  /// Catching up by playing faster keeps every word, but only works on a
-  /// backlog worth seconds at most: at 1.08x a five second stall would take
-  /// a minute to absorb, so anything past a second is skipped instead.
   private func adjustCatchUpRate() {
     let backlog = backlogFrames()
-    let excess = Float(backlog - catchUpFromFrames)
-    let span = Float(maxBacklogFrames - catchUpFromFrames)
-    let rate =
-      excess <= 0 ? 1 : 1 + min(maxCatchUpRate - 1, (excess / span) * (maxCatchUpRate - 1))
-    guard abs(rate - timePitch.rate) > 0.005 else { return }
-    timePitch.rate = rate
+    let rate = catchUp.record(backlogFrames: backlog)
+    guard abs(rate - varispeed.rate) > 0.005 else { return }
+    varispeed.rate = rate
     playbackLock.lock()
     let shouldLog = shouldLogLocked(&lastRateLogAt)
     playbackLock.unlock()
     if shouldLog {
       log(
         "playback catch up rate", rate, "backlog",
-        Int(Double(backlog) * 1000 / transportSampleRate), "ms")
+        Int(Double(backlog) * 1000 / OpusCall.sampleRate), "ms")
     }
   }
 
+  /// Stopping the player flushes everything still queued and resets its
+  /// render clock, so playback carries on from the audio that arrives next:
+  /// the delay collapses back to nothing in one step. Catching up by playing
+  /// faster only works on a backlog worth a few hundred ms, so anything past
+  /// a second is skipped instead.
   private func skipAheadIfBehind() {
     let backlog = backlogFrames()
     guard backlog > maxBacklogFrames else { return }
     playerNode.stop()
     playerNode.play()
-    timePitch.rate = 1
+    varispeed.rate = 1
+    catchUp.reset()
     playbackLock.lock()
     scheduledFrames = 0
     skippedFrames += backlog
@@ -342,7 +388,7 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     let count = resyncCount
     playbackLock.unlock()
     log(
-      "playback skipped ahead", Int(Double(backlog) * 1000 / transportSampleRate), "ms behind",
+      "playback skipped ahead", Int(Double(backlog) * 1000 / OpusCall.sampleRate), "ms behind",
       "resyncs", count)
   }
 
@@ -365,7 +411,9 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
   /// Buffers already scheduled are flushed when the node stops, and the
   /// render clock restarts, so the queue accounting starts over with it.
   private func resetPlayback() {
-    timePitch.rate = 1
+    varispeed.rate = 1
+    catchUp.reset()
+    jitter.reset()
     playbackLock.lock()
     scheduledFrames = 0
     playbackLock.unlock()

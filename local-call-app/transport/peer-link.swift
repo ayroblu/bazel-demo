@@ -3,7 +3,7 @@ import Log
 import Network
 import Observation
 
-nonisolated let callServiceType = "_p2p-audio-call._tcp"
+nonisolated let callServiceType = "_p2p-audio-call._udp"
 
 public nonisolated final class SendableBox<T>: @unchecked Sendable {
   public let value: T
@@ -74,7 +74,7 @@ public nonisolated struct Peer: Hashable {
 
   private let sink = AudioStreamSink()
 
-  public var onAudioData: (@Sendable (Data) -> Void)?
+  public var onAudioData: (@Sendable (UInt32, Data) -> Void)?
   public var onCallStarted: (() -> Void)?
   public var onCallEnded: (() -> Void)?
 
@@ -182,6 +182,10 @@ public nonisolated struct Peer: Hashable {
     }
   }
 
+  public func networkRttMs() -> Int? {
+    connection?.rttMs().map { Int($0.rounded()) }
+  }
+
   /// A one line snapshot of the transport, logged around every event that
   /// could explain a dropped call.
   public func callStateSummary() -> String {
@@ -199,6 +203,7 @@ public nonisolated struct Peer: Hashable {
       "inEvents=\(stats?.receiveEvents ?? 0)",
       "sinceSend=\(sinceSend)",
       "sinceReceive=\(sinceReceive)",
+      "rtt=\(stats?.rttMs.map { String(format: "%.0fms", $0) } ?? "-")",
     ].joined(separator: " ")
   }
 
@@ -324,8 +329,8 @@ public nonisolated struct Peer: Hashable {
     connectedAt = Date()
     statusMessage = "Connected to \(peer.name)"
     let onAudioData = onAudioData
-    connection.setDataHandler { data in
-      onAudioData?(data)
+    connection.setDataHandler { seq, data in
+      onAudioData?(seq, data)
     }
     sink.set(connection)
     // No point browsing while in a call; search is started manually again

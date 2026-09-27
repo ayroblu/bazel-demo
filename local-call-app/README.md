@@ -32,17 +32,25 @@ wifi is what carries the audio between devices that share no network.
   There is no manual device list: a device has to be paired before it can be
   called.
 * Audio: an `AVAudioEngine` mic tap with voice processing on, for the system's
-  echo cancellation and automatic gain control, is resampled to 16kHz mono
-  Int16 PCM and written to an `NWConnection` carrying both directions. It is
-  a TLS connection keyed by a pre-shared key built into the app, which
-  encrypts the call without authenticating the peer. Received samples are
-  scheduled onto an `AVAudioPlayerNode`,
-  which plays its queue in order and never catches up on its own, so a stall
-  or a clock difference would be added to the delay permanently. Past 200ms
-  behind, playback speeds up smoothly to at most 1.08x through an
-  `AVAudioUnitTimePitch`, which keeps the pitch and loses no words. Past a
-  second behind it skips to the newest audio instead, because playing 8%
-  faster would take a minute to absorb a five second stall.
+  echo cancellation and automatic gain control, is resampled to 16kHz mono,
+  cut into 20ms frames and opus encoded (~25kbps against 256 for raw PCM).
+  Each frame travels as one sequenced datagram over a DTLS `NWConnection`
+  keyed by a pre-shared key built into the app, which encrypts the call
+  without authenticating the peer. Datagrams were chosen over the previous
+  TCP stream for the same reason WebRTC runs on UDP: late audio is worthless,
+  so a lost packet costs its own 20ms of silence instead of stalling every
+  packet behind it while TCP retransmits. Sequence numbers order the frames,
+  drop late duplicates, and tell a lost packet from a quiet peer; pings run
+  through the call as keepalive and measure the round trip time shown in the
+  in-call UI. Decoded frames are scheduled onto an `AVAudioPlayerNode`, which
+  plays its queue in order and never catches up on its own, so a stall or a
+  clock difference would be added to the delay permanently. Playback rate is
+  set the way WebRTC's NetEQ does it: the queue is sampled on every arrival
+  and only the *minimum* over a sliding 3s window - standing delay that
+  jitter never eats into - is drained, at up to 1.08x through an
+  `AVAudioUnitVarispeed` once it passes 60ms. Past a second behind it skips
+  to the newest audio instead, because playing 8% faster would take a minute
+  to absorb a five second stall.
 * Ending: a call that ends for any reason plays a short descending two tone
   chime through the call's own route before the engine is torn down, so a
   drop is noticed without looking at the screen.

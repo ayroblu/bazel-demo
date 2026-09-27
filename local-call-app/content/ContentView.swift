@@ -195,6 +195,20 @@ struct InCallView: View {
             get: { routes.currentOutputID },
             set: { routes.selectOutput(id: $0) }))
         OutputLevelBar(vm: vm)
+        HStack {
+          Label("Latency", systemImage: "clock")
+          Spacer()
+          Text("\(vm.outputLatencyMs) ms")
+            .foregroundStyle(.secondary)
+            .monospacedDigit()
+        }
+        HStack {
+          Label("Network", systemImage: "network")
+          Spacer()
+          Text(vm.networkRttMs.map { "\($0) ms round trip" } ?? "measuring…")
+            .foregroundStyle(.secondary)
+            .monospacedDigit()
+        }
       }
       Section {
         Button(role: .destructive) {

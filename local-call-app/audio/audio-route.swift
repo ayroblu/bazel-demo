@@ -92,6 +92,9 @@ import UIKit
       options.insert(.defaultToSpeaker)
     }
     try session.setCategory(.playAndRecord, mode: .voiceChat, options: options)
+    // The default ~23ms IO buffer is capture-to-render latency on both ends;
+    // 10ms is the shortest that stays reliable on Bluetooth routes.
+    try? session.setPreferredIOBufferDuration(0.01)
   }
 
   /// A mic test has no reason to blank the screen or move to the receiver,

@@ -4,13 +4,40 @@ import XCTest
 
 @testable import transport
 
+final class PacketTests: XCTestCase {
+  func testRoundTripsEveryPacketType() {
+    let packets: [Packet] = [
+      .hello(identity: "device-id"),
+      .audio(seq: 0, payload: Data([9])),
+      .audio(seq: 0xfeed_beef, payload: Data(repeating: 7, count: 91)),
+      .ping(sentMs: 12345),
+      .pong(echoedMs: 0xffff_ffff),
+    ]
+    for packet in packets {
+      XCTAssertEqual(Packet.decode(packet.encoded()), packet)
+    }
+  }
+
+  func testRejectsTruncatedAndUnknownPackets() {
+    XCTAssertNil(Packet.decode(Data()))
+    XCTAssertNil(Packet.decode(Data([9, 1, 2, 3, 4])))
+    XCTAssertNil(Packet.decode(Data([2, 0, 0])))
+    XCTAssertNil(Packet.decode(Data([1, 0, 5, 65])))
+  }
+
+  func testAudioHeaderIsFiveBytes() {
+    let payload = Data(repeating: 1, count: 90)
+    XCTAssertEqual(Packet.audio(seq: 7, payload: payload).encoded().count, payload.count + 5)
+  }
+}
+
 final class PeerConnectionTests: XCTestCase {
   /// Two connections over the loopback interface, using the same parameters
-  /// as a real call, so the TLS handshake and the hello exchange are covered
-  /// along with the audio.
+  /// as a real call, so the DTLS handshake and the hello exchange are covered
+  /// along with the audio datagrams.
   private func connectedPair(
-    onDialledData: @escaping @Sendable (Data) -> Void,
-    onAnsweredData: @escaping @Sendable (Data) -> Void
+    onDialledData: @escaping @Sendable (UInt32, Data) -> Void,
+    onAnsweredData: @escaping @Sendable (UInt32, Data) -> Void
   ) throws -> (dialled: PeerConnection, answered: PeerConnection, listener: NWListener) {
     let listener = try NWListener(using: PeerConnection.parameters())
     let answered = Holder<PeerConnection>()
@@ -51,13 +78,13 @@ final class PeerConnectionTests: XCTestCase {
     return (dialled, peer, listener)
   }
 
-  func testCarriesSamplesBetweenPeers() throws {
+  func testCarriesSequencedAudioBetweenPeers() throws {
     let received = Received()
-    let gotAll = expectation(description: "received all samples")
+    let gotAll = expectation(description: "received all packets")
     let pair = try connectedPair(
-      onDialledData: { _ in },
-      onAnsweredData: { data in
-        if received.append(data) >= 6 {
+      onDialledData: { _, _ in },
+      onAnsweredData: { seq, data in
+        if received.append(seq: seq, data: data) >= 3 {
           gotAll.fulfill()
         }
       })
@@ -67,15 +94,18 @@ final class PeerConnectionTests: XCTestCase {
       pair.listener.cancel()
     }
 
-    // A trailing odd byte must be held back until its pair arrives, so three
-    // bytes then one byte has to arrive as two whole Int16 samples.
     pair.dialled.send(Data([1, 2, 3]))
     pair.dialled.send(Data([4]))
     pair.dialled.send(Data([5, 6]))
 
     wait(for: [gotAll], timeout: 10)
-    XCTAssertEqual(received.bytes(), Data([1, 2, 3, 4, 5, 6]))
-    XCTAssertTrue(received.chunks().allSatisfy { $0.count % 2 == 0 })
+    // Datagrams can reorder even on loopback, so match by sequence number:
+    // each payload must arrive whole, exactly as sent, under the seq it was
+    // sent with.
+    let bySeq = Dictionary(received.packets()) { first, _ in first }
+    XCTAssertEqual(bySeq[0], Data([1, 2, 3]))
+    XCTAssertEqual(bySeq[1], Data([4]))
+    XCTAssertEqual(bySeq[2], Data([5, 6]))
   }
 
   func testIdentifiesTheCallerInItsHello() throws {
@@ -116,18 +146,35 @@ final class PeerConnectionTests: XCTestCase {
     XCTAssertEqual(identity.value(), "dialler-id")
   }
 
-  func testDropsBacklogWhileNotConnected() {
-    // Nothing is connected, so the queue can only grow: it has to shed the
-    // oldest audio rather than buffer a call's worth of it.
+  func testMeasuresRoundTripTimeOverPings() throws {
+    let pair = try connectedPair(onDialledData: { _, _ in }, onAnsweredData: { _, _ in })
+    defer {
+      pair.dialled.cancel()
+      pair.answered.cancel()
+      pair.listener.cancel()
+    }
+
+    // Pings repeat every second from both sides once the hellos have crossed.
+    let deadline = Date().addingTimeInterval(10)
+    while pair.dialled.rttMs() == nil, Date() < deadline {
+      RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+    }
+    let rtt = try XCTUnwrap(pair.dialled.rttMs())
+    XCTAssertGreaterThanOrEqual(rtt, 0)
+    XCTAssertLessThan(rtt, 5000)
+  }
+
+  func testDropsAudioWhileNotConnected() {
+    // Nothing is connected: audio is stale the moment a connection would come
+    // up, so it must be dropped on the spot rather than queued.
     let connection = PeerConnection(
       endpoint: .hostPort(host: "127.0.0.1", port: 9), localIdentity: "dialler-id")
-    let chunk = Data(repeating: 7, count: 3200)
+    let payload = Data(repeating: 7, count: 90)
     for _ in 0..<20 {
-      connection.send(chunk)
+      connection.send(payload)
     }
-    // 200ms of 16kHz mono Int16 audio is the cap, so almost all of the 64000
-    // bytes written must have been dropped rather than queued.
-    XCTAssertGreaterThan(connection.stats().dropped, 64000 - 6400 - 3200)
+    XCTAssertEqual(connection.stats().dropped, 20 * payload.count)
+    XCTAssertEqual(connection.stats().sent, 0)
     connection.cancel()
   }
 }
@@ -151,26 +198,18 @@ private final class Holder<T>: @unchecked Sendable {
 
 private final class Received: @unchecked Sendable {
   private let lock = NSLock()
-  private var data = Data()
-  private var received: [Data] = []
+  private var stored: [(UInt32, Data)] = []
 
-  func append(_ chunk: Data) -> Int {
+  func append(seq: UInt32, data: Data) -> Int {
     lock.lock()
     defer { lock.unlock() }
-    data.append(chunk)
-    received.append(chunk)
-    return data.count
+    stored.append((seq, data))
+    return stored.count
   }
 
-  func bytes() -> Data {
+  func packets() -> [(UInt32, Data)] {
     lock.lock()
     defer { lock.unlock() }
-    return data
-  }
-
-  func chunks() -> [Data] {
-    lock.lock()
-    defer { lock.unlock() }
-    return received
+    return stored
   }
 }
