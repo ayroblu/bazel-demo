@@ -50,7 +50,7 @@ public struct ContentView: View {
         return
       }
       startConnectServices()
-      vm.setConnectScanning(true)
+      updateScanning()
       await vm.requestMicPermission()
     }
     .onChange(of: scenePhase) { _, phase in
@@ -60,13 +60,24 @@ public struct ContentView: View {
         vm.transport.handleDidEnterBackground()
         vm.setConnectScanning(false)
       case .active:
-        vm.setConnectScanning(true)
+        updateScanning()
         vm.resumeAudioIfStopped()
       default:
         break
       }
     }
+    .onChange(of: connect.state.isActive) { _, _ in
+      updateScanning()
+    }
     .callSilencedAlert(connect)
+  }
+
+  /// Discovery scanning burns 2.4GHz airtime the wifi radio shares, and the
+  /// audio of an active call arrives in bursts shaped by exactly that radio
+  /// contention, so the scan pauses for the call. Signalling is unaffected:
+  /// the call's own bluetooth connection stays up without scanning.
+  private func updateScanning() {
+    vm.setConnectScanning(scenePhase == .active && !connect.state.isActive)
   }
 }
 
@@ -124,13 +135,6 @@ struct LobbyView: View {
               get: { routes.currentOutputID },
               set: { routes.selectOutput(id: $0) }))
           OutputLevelBar(vm: vm)
-          HStack {
-            Label("Latency", systemImage: "clock")
-            Spacer()
-            Text("\(vm.outputLatencyMs) ms")
-              .foregroundStyle(.secondary)
-              .monospacedDigit()
-          }
           Button("End test", role: .cancel) {
             vm.stopSpeakerTest()
           }
@@ -202,20 +206,7 @@ struct InCallView: View {
             get: { routes.currentOutputID },
             set: { routes.selectOutput(id: $0) }))
         OutputLevelBar(vm: vm)
-        HStack {
-          Label("Latency", systemImage: "clock")
-          Spacer()
-          Text("\(vm.outputLatencyMs) ms")
-            .foregroundStyle(.secondary)
-            .monospacedDigit()
-        }
-        HStack {
-          Label("Network", systemImage: "network")
-          Spacer()
-          Text(vm.networkRttMs.map { "\($0) ms round trip" } ?? "measuring…")
-            .foregroundStyle(.secondary)
-            .monospacedDigit()
-        }
+        NetworkRow(vm: vm)
       }
       Section {
         Button(role: .destructive) {
@@ -228,6 +219,28 @@ struct InCallView: View {
     }
     .onAppear {
       routes.refresh()
+    }
+  }
+}
+
+struct NetworkRow: View {
+  let vm: CallViewModel
+
+  private var text: String {
+    var parts = [vm.networkRttMs.map { "\($0) ms round trip" } ?? "measuring…"]
+    if let down = vm.downKbps, let up = vm.upKbps {
+      parts.append("↓\(down) ↑\(up) kbps")
+    }
+    return parts.joined(separator: " · ")
+  }
+
+  var body: some View {
+    HStack {
+      Label("Network", systemImage: "network")
+      Spacer()
+      Text(text)
+        .foregroundStyle(.secondary)
+        .monospacedDigit()
     }
   }
 }

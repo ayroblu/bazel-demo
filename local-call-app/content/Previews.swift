@@ -38,8 +38,9 @@ private func makeInCallWithDevicesVM() -> CallViewModel {
   vm.routes.currentOutputID = "automatic"
   vm.inputLevel = 0.6
   vm.outputLevel = 0.3
-  vm.outputLatencyMs = 46
   vm.networkRttMs = 12
+  vm.downKbps = 46
+  vm.upKbps = 45
   return vm
 }
 

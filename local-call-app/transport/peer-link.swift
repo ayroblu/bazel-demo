@@ -182,8 +182,9 @@ public nonisolated struct Peer: Hashable {
     }
   }
 
-  public func networkRttMs() -> Int? {
-    connection?.rttMs().map { Int($0.rounded()) }
+  public func networkStats() -> (rttMs: Int?, sentBytes: Int, receivedBytes: Int)? {
+    guard let stats = connection?.stats() else { return nil }
+    return (stats.rttMs.map { Int($0.rounded()) }, stats.sent, stats.received)
   }
 
   /// A one line snapshot of the transport, logged around every event that

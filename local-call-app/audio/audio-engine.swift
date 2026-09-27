@@ -15,6 +15,7 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
   private let decoder = OpusDecoder()
   private let jitter = JitterBuffer()
   private let catchUp = CatchUpController()
+  private let queue = PlaybackQueue()
   private var isRunning = false
   public var isActive: Bool { isRunning }
   private var configChangeObserver: NSObjectProtocol?
@@ -48,13 +49,16 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
   // newest audio: one discontinuity instead of permanent chop.
   private let maxBacklogFrames = 16000  // 1s at 16kHz
   private let playbackLock = NSLock()
-  private var scheduledFrames = 0
   private var receivedFrames = 0
   private var skippedFrames = 0
   private var resyncCount = 0
   private var firstIncomingAt: Date?
   private var lastIncomingAt: Date?
   private var noiseFrames = 0
+  private var windowMaxGapMs = 0
+  private var windowMinBacklogMs = Int.max
+  private var windowMaxBacklogMs = 0
+  private var windowMaxCaptureDelayMs = 0
   private var lastStoppedLogAt: Date?
   private var lastRateLogAt: Date?
   private var lastNoiseLogAt: Date?
@@ -85,14 +89,6 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     )
   }
 
-  public func outputLatencyMs() -> Int {
-    let session = AVAudioSession.sharedInstance()
-    let queueSeconds = Double(backlogFrames()) / OpusCall.sampleRate
-    let seconds =
-      queueSeconds + Double(varispeed.latency) + session.outputLatency + session.ioBufferDuration
-    return Int(seconds * 1000)
-  }
-
   /// Frames scheduled but not yet rendered. Taken from the render clock
   /// rather than scheduleBuffer completions, which report back a whole output
   /// latency late and made the queue look permanently overfull on Bluetooth.
@@ -100,9 +96,37 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     guard let nodeTime = playerNode.lastRenderTime, nodeTime.isSampleTimeValid,
       let playerTime = playerNode.playerTime(forNodeTime: nodeTime)
     else { return 0 }
+    // The player timeline should already run at the transport rate, but a
+    // clock in hardware-rate units would silently zero the backlog reading
+    // (constant re-basing), hiding standing delay from catch up entirely.
+    var rendered = Int(playerTime.sampleTime)
+    if playerTime.sampleRate > 0, playerTime.sampleRate != OpusCall.sampleRate {
+      rendered = Int(Double(rendered) * OpusCall.sampleRate / playerTime.sampleRate)
+    }
+    return queue.backlog(renderedFrames: rendered)
+  }
+
+  /// Arrival pattern since the last read (reading resets it), for the call
+  /// heartbeat. The radio's true character lives in the extremes, which the
+  /// instantaneous backlog number never shows: a large `maxGapMs` with a low
+  /// `minBacklogMs` means the link delivers in bursts and the queue depth is
+  /// forced by the burst period, not by anything this side can drain.
+  /// `captureMaxMs` is the other end of the pipe: hardware capture time to
+  /// the mic tap, which is where the voice processing unit's delay hides.
+  public func takeArrivalStats() -> (
+    maxGapMs: Int, minBacklogMs: Int, maxBacklogMs: Int, captureMaxMs: Int
+  ) {
     playbackLock.lock()
     defer { playbackLock.unlock() }
-    return max(0, scheduledFrames - Int(playerTime.sampleTime))
+    let stats = (
+      windowMaxGapMs, windowMinBacklogMs == .max ? 0 : windowMinBacklogMs, windowMaxBacklogMs,
+      windowMaxCaptureDelayMs
+    )
+    windowMaxGapMs = 0
+    windowMinBacklogMs = .max
+    windowMaxBacklogMs = 0
+    windowMaxCaptureDelayMs = 0
+    return stats
   }
 
   /// Peak levels (0...1) accumulated since the last call; reading resets
@@ -208,6 +232,7 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
       "audio engine input format", inputFormat.sampleRate, inputFormat.channelCount,
       "session", session.sampleRate, session.inputNumberOfChannels,
       "io buffer", session.ioBufferDuration,
+      "hw latency in", session.inputLatency, "out", session.outputLatency,
       "voice processing", input.isVoiceProcessingEnabled,
       "agc", input.isVoiceProcessingAGCEnabled)
     micLock.lock()
@@ -216,8 +241,8 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     // A small tap so capture adds ~10ms of batching rather than the ~43ms a
     // 2048 frame tap did; frames are cut to 20ms packets downstream anyway.
     input.installTap(onBus: 0, bufferSize: 512, format: inputFormat) {
-      [weak self] buffer, _ in
-      self?.handleMicBuffer(buffer)
+      [weak self] buffer, when in
+      self?.handleMicBuffer(buffer, at: when)
     }
     engine.prepare()
     do {
@@ -309,7 +334,20 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     }
   }
 
-  private func handleMicBuffer(_ buffer: AVAudioPCMBuffer) {
+  private func handleMicBuffer(_ buffer: AVAudioPCMBuffer, at when: AVAudioTime) {
+    // The tap timestamp is when the first sample left the hardware, so the
+    // difference to now is the whole capture pipeline, voice processing
+    // included - the one mouth-to-ear segment no session property reports.
+    if when.isHostTimeValid {
+      let capturedAt = AVAudioTime.seconds(forHostTime: when.hostTime)
+      let now = AVAudioTime.seconds(forHostTime: mach_absolute_time())
+      let delayMs = Int((now - capturedAt) * 1000)
+      if delayMs >= 0, delayMs < 5000 {
+        playbackLock.lock()
+        windowMaxCaptureDelayMs = max(windowMaxCaptureDelayMs, delayMs)
+        playbackLock.unlock()
+      }
+    }
     guard !isMuted, let onOutgoingAudio, let encoder else { return }
     guard let floatChannel = buffer.floatChannelData, buffer.frameLength > 0 else { return }
 
@@ -375,6 +413,7 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     guard placement.play else { return }
     schedule(samples: samples, metersLevel: true)
     adjustCatchUpRate()
+    noteBacklogExtremes()
   }
 
   private func schedule(samples: [Float], metersLevel: Bool) {
@@ -393,18 +432,28 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
       levelLock.unlock()
     }
     playerNode.scheduleBuffer(buffer)
-    playbackLock.lock()
-    scheduledFrames += samples.count
-    playbackLock.unlock()
+    queue.noteScheduled(frames: samples.count)
   }
 
   private func noteIncoming(frames: Int) {
+    let now = Date()
     playbackLock.lock()
     receivedFrames += frames
-    lastIncomingAt = Date()
-    if firstIncomingAt == nil {
-      firstIncomingAt = Date()
+    if let lastIncomingAt {
+      windowMaxGapMs = max(windowMaxGapMs, Int(now.timeIntervalSince(lastIncomingAt) * 1000))
     }
+    lastIncomingAt = now
+    if firstIncomingAt == nil {
+      firstIncomingAt = now
+    }
+    playbackLock.unlock()
+  }
+
+  private func noteBacklogExtremes() {
+    let backlogMs = Int(Double(backlogFrames()) * 1000 / OpusCall.sampleRate)
+    playbackLock.lock()
+    windowMinBacklogMs = min(windowMinBacklogMs, backlogMs)
+    windowMaxBacklogMs = max(windowMaxBacklogMs, backlogMs)
     playbackLock.unlock()
   }
 
@@ -435,8 +484,8 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     playerNode.play()
     varispeed.rate = 1
     catchUp.reset()
+    queue.reset()
     playbackLock.lock()
-    scheduledFrames = 0
     skippedFrames += backlog
     resyncCount += 1
     let count = resyncCount
@@ -470,9 +519,7 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
     varispeed.rate = 1
     catchUp.reset()
     jitter.reset()
-    playbackLock.lock()
-    scheduledFrames = 0
-    playbackLock.unlock()
+    queue.reset()
   }
 
   private func shouldLogLocked(_ lastLoggedAt: inout Date?) -> Bool {

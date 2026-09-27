@@ -20,8 +20,10 @@ import transport
   var micPermissionDenied = false
   var inputLevel: Float = 0
   var outputLevel: Float = 0
-  var outputLatencyMs = 0
   var networkRttMs: Int?
+  var downKbps: Int?
+  var upKbps: Int?
+  private var lastBytesSample: (at: Date, sent: Int, received: Int)?
   private var levelTask: Task<Void, Never>?
   private var statsTask: Task<Void, Never>?
   private var isPlayingDisconnectChime = false
@@ -346,7 +348,13 @@ import transport
       while !Task.isCancelled {
         try? await Task.sleep(for: .seconds(10))
         guard let self, self.isInCall else { return }
-        log("call stats", self.transport.callStateSummary(), self.playbackSummary())
+        let arrivals = self.audio.takeArrivalStats()
+        log(
+          "call stats", self.transport.callStateSummary(), self.playbackSummary(),
+          String(
+            format: "arrivalGapMax=%dms backlogMin=%dms backlogMax=%dms captureMax=%dms",
+            arrivals.maxGapMs, arrivals.minBacklogMs, arrivals.maxBacklogMs,
+            arrivals.captureMaxMs))
       }
     }
   }
@@ -356,8 +364,10 @@ import transport
     levelTask = nil
     inputLevel = 0
     outputLevel = 0
-    outputLatencyMs = 0
     networkRttMs = nil
+    downKbps = nil
+    upKbps = nil
+    lastBytesSample = nil
   }
 
   /// The engine accumulates peak levels off the audio threads; poll them at
@@ -372,10 +382,32 @@ import transport
         // sqrt maps linear peaks onto a more perceptual bar scale
         self.inputLevel = max(min(1, taken.input.squareRoot()), self.inputLevel * 0.7)
         self.outputLevel = max(min(1, taken.output.squareRoot()), self.outputLevel * 0.7)
-        self.outputLatencyMs = self.audio.outputLatencyMs()
-        self.networkRttMs = self.transport.networkRttMs()
+        self.updateNetworkStats()
       }
     }
+  }
+
+  /// Bitrates are measured over at least a second of the transport's byte
+  /// counters; the 10Hz poll is too short a window to be readable.
+  private func updateNetworkStats() {
+    guard let stats = transport.networkStats() else {
+      networkRttMs = nil
+      downKbps = nil
+      upKbps = nil
+      lastBytesSample = nil
+      return
+    }
+    networkRttMs = stats.rttMs
+    let now = Date()
+    guard let last = lastBytesSample else {
+      lastBytesSample = (now, stats.sentBytes, stats.receivedBytes)
+      return
+    }
+    let elapsed = now.timeIntervalSince(last.at)
+    guard elapsed >= 1 else { return }
+    upKbps = Int(Double((stats.sentBytes - last.sent) * 8) / elapsed / 1000)
+    downKbps = Int(Double((stats.receivedBytes - last.received) * 8) / elapsed / 1000)
+    lastBytesSample = (now, stats.sentBytes, stats.receivedBytes)
   }
 
   func endCall() {

@@ -61,6 +61,44 @@ public nonisolated final class JitterBuffer: @unchecked Sendable {
   }
 }
 
+/// Frames scheduled but not yet rendered, measured against the player's
+/// render clock. A starved player keeps rendering silence and its clock keeps
+/// counting, so a stall would otherwise be booked as played audio and every
+/// later reading would under-count the real queue by the length of the stall
+/// - delay that parks there invisibly and is never caught up. The clock is
+/// re-based whenever it overtakes what was scheduled.
+public nonisolated final class PlaybackQueue: @unchecked Sendable {
+  private let lock = NSLock()
+  private var scheduledFrames = 0
+  private var renderBaseFrames = 0
+
+  public init() {}
+
+  public func noteScheduled(frames: Int) {
+    lock.lock()
+    scheduledFrames += frames
+    lock.unlock()
+  }
+
+  public func backlog(renderedFrames: Int) -> Int {
+    lock.lock()
+    defer { lock.unlock() }
+    let rendered = renderedFrames - renderBaseFrames
+    if rendered >= scheduledFrames {
+      renderBaseFrames = renderedFrames - scheduledFrames
+      return 0
+    }
+    return scheduledFrames - rendered
+  }
+
+  public func reset() {
+    lock.lock()
+    scheduledFrames = 0
+    renderBaseFrames = 0
+    lock.unlock()
+  }
+}
+
 /// Decides how fast playback should run, WebRTC-style: the queue is sampled
 /// on every arrival and only its *minimum* over a sliding window is ever
 /// removed. The minimum is standing delay that jitter never eats into, so

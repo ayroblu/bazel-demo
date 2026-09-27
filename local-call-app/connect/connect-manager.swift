@@ -38,6 +38,13 @@ public nonisolated enum ConnectCallState: Equatable {
     case .idle, .active: false
     }
   }
+
+  public var isActive: Bool {
+    switch self {
+    case .active: true
+    case .idle, .outgoing, .incoming: false
+    }
+  }
 }
 
 /// Owns everything that happens before and around a call: who we are paired

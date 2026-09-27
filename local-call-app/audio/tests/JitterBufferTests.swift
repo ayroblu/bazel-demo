@@ -56,6 +56,38 @@ final class JitterBufferTests: XCTestCase {
   }
 }
 
+final class PlaybackQueueTests: XCTestCase {
+  func testBacklogIsScheduledMinusRendered() {
+    let queue = PlaybackQueue()
+    queue.noteScheduled(frames: 3200)
+    XCTAssertEqual(queue.backlog(renderedFrames: 0), 3200)
+    XCTAssertEqual(queue.backlog(renderedFrames: 1600), 1600)
+    XCTAssertEqual(queue.backlog(renderedFrames: 3200), 0)
+  }
+
+  func testStarvationDoesNotCountAsPlayedAudio() {
+    let queue = PlaybackQueue()
+    queue.noteScheduled(frames: 3200)
+    // The player starved for 9600 frames of rendered silence, then a burst
+    // parks 9600 frames of real audio in the queue. Without re-basing on the
+    // starved stretch this would read as zero and the delay would sit there
+    // uncorrected forever.
+    XCTAssertEqual(queue.backlog(renderedFrames: 12800), 0)
+    queue.noteScheduled(frames: 9600)
+    XCTAssertEqual(queue.backlog(renderedFrames: 12800), 9600)
+    XCTAssertEqual(queue.backlog(renderedFrames: 16000), 6400)
+  }
+
+  func testResetStartsTheClockOver() {
+    let queue = PlaybackQueue()
+    queue.noteScheduled(frames: 3200)
+    _ = queue.backlog(renderedFrames: 6400)
+    queue.reset()
+    queue.noteScheduled(frames: 320)
+    XCTAssertEqual(queue.backlog(renderedFrames: 0), 320)
+  }
+}
+
 final class CatchUpControllerTests: XCTestCase {
   private func at(_ seconds: Double) -> Date {
     Date(timeIntervalSinceReferenceDate: seconds)
