@@ -332,9 +332,9 @@ import transport
     let stats = audio.playbackStats()
     return String(
       format:
-        "playback backlog=%dms received=%dms skipped=%dms resyncs=%d arrivalRate=%.2f lost=%dms late=%d",
+        "playback backlog=%dms received=%dms skipped=%dms resyncs=%d arrivalRate=%.2f lost=%dms late=%d noise=%dms",
       stats.backlogMs, stats.receivedMs, stats.skippedMs, stats.resyncs, stats.arrivalRate,
-      stats.lostMs, stats.lateFrames)
+      stats.lostMs, stats.lateFrames, stats.noiseMs)
   }
 
   /// A heartbeat while in a call: without it a drop leaves no trace of which

@@ -53,7 +53,9 @@ nonisolated final class PeerConnection: @unchecked Sendable {
   private var onClosed: (@Sendable (String) -> Void)?
   private var onData: (@Sendable (UInt32, Data) -> Void)?
 
-  private let receiveTimeout: TimeInterval = 10
+  /// Pings arrive every second when the link is healthy, so 15s of nothing
+  /// is a dead peer, not a quiet one.
+  private let receiveTimeout: TimeInterval = 15
 
   var endpoint: NWEndpoint { connection.endpoint }
 

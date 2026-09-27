@@ -22,6 +22,14 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
   private var routeChangeObserver: NSObjectProtocol?
   private var pendingRouteRestart: DispatchWorkItem?
 
+  /// A second without incoming audio switches playback to quiet white noise
+  /// until audio arrives again, so a silent peer still sounds like a live
+  /// line. It only runs once a call has produced audio: a mic test receives
+  /// nothing and should stay silent.
+  private let comfortNoiseDelay: TimeInterval = 1
+  private let noiseQueue = DispatchQueue(label: "call-audio-noise", qos: .userInitiated)
+  private var noiseTimer: DispatchSourceTimer?
+
   /// Called with one encoded 20ms opus frame at a time.
   public var onOutgoingAudio: (@Sendable (Data) -> Void)?
   public var isMuted = false
@@ -45,15 +53,18 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
   private var skippedFrames = 0
   private var resyncCount = 0
   private var firstIncomingAt: Date?
+  private var lastIncomingAt: Date?
+  private var noiseFrames = 0
   private var lastStoppedLogAt: Date?
   private var lastRateLogAt: Date?
+  private var lastNoiseLogAt: Date?
 
   /// Snapshot of the playback queue for the periodic call log. `arrivalRate`
   /// is incoming audio seconds per elapsed second: above 1.0 the peer is
   /// producing faster than real time, which no amount of buffering can fix.
   public func playbackStats() -> (
     backlogMs: Int, receivedMs: Int, skippedMs: Int, resyncs: Int, arrivalRate: Double,
-    lostMs: Int, lateFrames: Int
+    lostMs: Int, lateFrames: Int, noiseMs: Int
   ) {
     let backlog = backlogFrames()
     let jitterStats = jitter.stats()
@@ -69,7 +80,8 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
       resyncCount,
       elapsedMs > 1000 ? receivedMs / elapsedMs : 0,
       Int(Double(jitterStats.lost * OpusCall.frameSamples) * msPerFrame),
-      jitterStats.late
+      jitterStats.late,
+      Int(Double(noiseFrames) * msPerFrame)
     )
   }
 
@@ -216,9 +228,49 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
       throw error
     }
     playerNode.play()
+    playbackLock.lock()
+    lastIncomingAt = nil
+    playbackLock.unlock()
+    startComfortNoise()
     log(
       "audio engine running", engine.isRunning, "player", playerNode.isPlaying,
       "varispeed latency", varispeed.latency)
+  }
+
+  private func startComfortNoise() {
+    stopComfortNoise()
+    let timer = DispatchSource.makeTimerSource(queue: noiseQueue)
+    timer.schedule(deadline: .now() + comfortNoiseDelay, repeating: .milliseconds(20))
+    timer.setEventHandler { [weak self] in
+      self?.scheduleComfortNoiseIfStarved()
+    }
+    timer.activate()
+    noiseTimer = timer
+  }
+
+  private func stopComfortNoise() {
+    noiseTimer?.cancel()
+    noiseTimer = nil
+  }
+
+  /// Feeds the player 20ms of noise at a time, and only while it is nearly
+  /// starved, so resuming audio finds at most ~60ms of noise queued ahead of
+  /// it rather than a backlog of it.
+  private func scheduleComfortNoiseIfStarved() {
+    guard isRunning else { return }
+    playbackLock.lock()
+    let last = lastIncomingAt
+    playbackLock.unlock()
+    guard let last, Date().timeIntervalSince(last) > comfortNoiseDelay else { return }
+    guard backlogFrames() < OpusCall.frameSamples * 3 else { return }
+    schedule(samples: ComfortNoise.frame(samples: OpusCall.frameSamples), metersLevel: false)
+    playbackLock.lock()
+    noiseFrames += OpusCall.frameSamples
+    let shouldLog = shouldLogLocked(&lastNoiseLogAt)
+    playbackLock.unlock()
+    if shouldLog {
+      log("playing comfort noise, no incoming audio", Date().timeIntervalSince(last))
+    }
   }
 
   /// Voice processing is the only way to get the system's echo cancellation
@@ -236,6 +288,7 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
   }
 
   private func tearDownEngine() {
+    stopComfortNoise()
     resetPlayback()
     playerNode.stop()
     engine.inputNode.removeTap(onBus: 0)
@@ -348,6 +401,7 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
   private func noteIncoming(frames: Int) {
     playbackLock.lock()
     receivedFrames += frames
+    lastIncomingAt = Date()
     if firstIncomingAt == nil {
       firstIncomingAt = Date()
     }
@@ -400,6 +454,8 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
       completion()
       return
     }
+    // The chime must not have noise appended behind it while it plays out.
+    stopComfortNoise()
     resetPlayback()
     playerNode.stop()
     playerNode.play()

@@ -50,7 +50,10 @@ wifi is what carries the audio between devices that share no network.
   jitter never eats into - is drained, at up to 1.08x through an
   `AVAudioUnitVarispeed` once it passes 60ms. Past a second behind it skips
   to the newest audio instead, because playing 8% faster would take a minute
-  to absorb a five second stall.
+  to absorb a five second stall. A second without incoming audio switches
+  playback to quiet white noise until audio returns, so an outage sounds like
+  a live line rather than a dropped call, and the connection itself rides out
+  up to 15s without a single packet before it is declared dead.
 * Ending: a call that ends for any reason plays a short descending two tone
   chime through the call's own route before the engine is torn down, so a
   drop is noticed without looking at the screen.
