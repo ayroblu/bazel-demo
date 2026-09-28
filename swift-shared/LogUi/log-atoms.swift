@@ -12,6 +12,13 @@ func deleteAllLogsAndInvalidate() throws {
   defaultStore.invalidate(atom: selectLogsAtom)
 }
 @MainActor
+func deleteLogsAndInvalidate(ids: [Int64]) throws {
+  for id in ids {
+    try deleteLogById(id)
+  }
+  defaultStore.invalidate(atom: selectLogsAtom)
+}
+@MainActor
 func deleteOldLogsAndInvalidate() throws {
   try dropOldLog()
   defaultStore.invalidate(atom: selectLogsAtom)
