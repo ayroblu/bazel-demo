@@ -65,14 +65,15 @@ public struct ContentView: View {
         break
       }
     }
-    .onChange(of: connect.state.isActive) { _, _ in
+    .onChange(of: connect.state.isActive) { _, isActive in
       updateScanning()
+      vm.setConnectAdvertising(!isActive)
     }
     .callSilencedAlert(connect)
   }
 
-  /// Scanning shares 2.4GHz airtime with the call's radio, so it pauses for the call; the call's
-  /// own bluetooth connection stays up without it.
+  /// Scanning and advertising share 2.4GHz airtime with the call's radio, so both pause for the
+  /// call; the call's own bluetooth connection stays up without them.
   private func updateScanning() {
     vm.setConnectScanning(scenePhase == .active && !connect.state.isActive)
   }

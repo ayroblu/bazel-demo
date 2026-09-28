@@ -42,6 +42,7 @@ public class NearbyLink {
 
   public private(set) var nearby: [NearbyPeer] = []
   public private(set) var isScanning = false
+  private var wantsAdvertising = true
   public private(set) var isPoweredOn = false
 
   public var onMessage: ((ConnectFrame) -> Void)?
@@ -89,6 +90,17 @@ public class NearbyLink {
       disconnectIdle()
     }
     log("connect scanning", scanning)
+  }
+
+  public func setAdvertising(_ advertising: Bool) {
+    guard advertising != wantsAdvertising else { return }
+    wantsAdvertising = advertising
+    if advertising {
+      startAdvertising()
+    } else {
+      server?.stopAdvertising()
+    }
+    log("connect advertising", advertising)
   }
 
   public func hold(peerId: UUID) {
@@ -361,7 +373,7 @@ public class NearbyLink {
   }
 
   private func startAdvertising() {
-    guard let server, !server.isAdvertising else { return }
+    guard wantsAdvertising, let server, !server.isAdvertising else { return }
     server.startAdvertising([
       CBAdvertisementDataServiceUUIDsKey: [connectServiceUuid],
       CBAdvertisementDataLocalNameKey: localName,
@@ -430,6 +442,8 @@ public class NearbyLink {
       heldPeers.contains(peerId) || pendingWrites[peerId]?.isEmpty == false
     else { return }
     central?.connect(peripheral)
+    // The peer's central reconnects to us the same way, and only sees us while we advertise.
+    setAdvertising(true)
   }
 
   func handleDiscoveredCharacteristics(_ peripheral: CBPeripheral, _ service: CBService) {

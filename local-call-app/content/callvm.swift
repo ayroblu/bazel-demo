@@ -100,6 +100,10 @@ import transport_protocol
     connect.setScanning(scanning)
   }
 
+  func setConnectAdvertising(_ advertising: Bool) {
+    connect.setAdvertising(advertising)
+  }
+
   private func handleTransportConnected() {
     if isSystemCall {
       connect.transportDidConnect()

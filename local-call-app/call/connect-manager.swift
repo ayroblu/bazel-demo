@@ -117,6 +117,10 @@ public nonisolated enum ConnectCallState: Equatable {
     link.setScanning(scanning)
   }
 
+  public func setAdvertising(_ advertising: Bool) {
+    link.setAdvertising(advertising)
+  }
+
   public func isNearby(_ peer: PairedPeer) -> Bool {
     nearby.contains { $0.id == peer.id }
   }
