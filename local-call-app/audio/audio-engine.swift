@@ -101,11 +101,16 @@ public nonisolated final class CallAudioEngine: @unchecked Sendable {
   }
 
   public func playoutDelayMs() -> Int {
+    let parts = playoutDelayParts()
+    return parts.queueMs + parts.speakerMs
+  }
+
+  public func playoutDelayParts() -> (queueMs: Int, speakerMs: Int) {
     let session = AVAudioSession.sharedInstance()
     let queueSeconds = Double(backlogFrames()) / OpusCall.sampleRate
-    let seconds =
-      queueSeconds + Double(varispeed.latency) + session.outputLatency + session.ioBufferDuration
-    return Int(seconds * 1000)
+    let speakerSeconds =
+      Double(varispeed.latency) + session.outputLatency + session.ioBufferDuration
+    return (Int(queueSeconds * 1000), Int(speakerSeconds * 1000))
   }
 
   public func takeArrivalStats() -> (

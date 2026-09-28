@@ -238,7 +238,7 @@ import transport_protocol
 
   func stopSpeakerTest() {
     guard isTestingSpeaker else { return }
-    log("speaker test stopped", playbackSummary())
+    log("speaker test stopped", statsSummary())
     isTestingSpeaker = false
     speakerToneTask?.cancel()
     speakerToneTask = nil
@@ -299,7 +299,7 @@ import transport_protocol
   /// only torn down once it has finished. The timeout covers a chime that
   /// never reports back, e.g. when the route dies with the call.
   private func stopAudio() {
-    log("call audio stopping", transport.callStateSummary(), playbackSummary())
+    log("call audio stopping", statsSummary())
     isInCall = false
     stopLevelPolling()
     statsTask?.cancel()
@@ -325,30 +325,42 @@ import transport_protocol
     deactivateRoute()
   }
 
-  private func playbackSummary() -> String {
-    let stats = audio.playbackStats()
-    return String(
-      format:
-        "playback backlog=%dms received=%dms skipped=%dms resyncs=%d arrivalRate=%.2f lost=%dms late=%d noise=%dms",
-      stats.backlogMs, stats.receivedMs, stats.skippedMs, stats.resyncs, stats.arrivalRate,
-      stats.lostMs, stats.lateFrames, stats.noiseMs)
-  }
-
   private func startStatsLogging() {
     statsTask?.cancel()
     statsTask = Task { [weak self] in
       while !Task.isCancelled {
         try? await Task.sleep(for: .seconds(10))
         guard let self, self.isInCall else { return }
-        let arrivals = self.audio.takeArrivalStats()
-        log(
-          "call stats", self.transport.callStateSummary(), self.playbackSummary(),
-          String(
-            format: "arrivalGapMax=%dms backlogMin=%dms backlogMax=%dms captureMax=%dms",
-            arrivals.maxGapMs, arrivals.minBacklogMs, arrivals.maxBacklogMs,
-            arrivals.captureMaxMs))
+        log("call stats", self.statsSummary())
       }
     }
+  }
+
+  private func statsSummary() -> String {
+    let network = transport.networkStats()
+    let playback = audio.playbackStats()
+    let arrivals = audio.takeArrivalStats()
+    let rtt = network?.rttMs
+    let peerCapture = network?.peerCaptureMs ?? 0
+    let endToEnd = rtt.map { estimateEndToEndMs(rttMs: $0, peerCaptureMs: peerCapture) }
+    let playout = audio.playoutDelayParts()
+    let ms = { (value: Int?) in value.map { "\($0)ms" } ?? "-" }
+    return [
+      "e2e=\(ms(endToEnd))",
+      "[mic capture=\(peerCapture)ms frame=10ms]",
+      "[\(transportMode) oneWay=\(ms(rtt.map { $0 / 2 }))]",
+      "[queue=\(playout.queueMs)ms(\(arrivals.minBacklogMs)-\(arrivals.maxBacklogMs)) speaker=\(playout.speakerMs)ms]",
+      "gapMax=\(arrivals.maxGapMs)ms",
+      "localCapture=\(arrivals.captureMaxMs)ms",
+      "lost=\(playback.lostMs)ms",
+      "late=\(playback.lateFrames)",
+      "skipped=\(playback.skippedMs)ms",
+      "noise=\(playback.noiseMs)ms",
+    ].joined(separator: " ")
+  }
+
+  private func estimateEndToEndMs(rttMs: Int, peerCaptureMs: Int) -> Int {
+    peerCaptureMs + 10 + rttMs / 2 + audio.playoutDelayMs()
   }
 
   private func stopLevelPolling() {
@@ -396,9 +408,7 @@ import transport_protocol
     guard elapsed >= 1 else { return }
     // Peer capture + half a 20ms packet + half the round trip + local playout. Assumes a symmetric
     // path.
-    endToEndMs = stats.rttMs.map { rtt in
-      stats.peerCaptureMs + 10 + rtt / 2 + audio.playoutDelayMs()
-    }
+    endToEndMs = stats.rttMs.map { estimateEndToEndMs(rttMs: $0, peerCaptureMs: stats.peerCaptureMs) }
     upKbps = Int(Double((stats.sentBytes - last.sent) * 8) / elapsed / 1000)
     downKbps = Int(Double((stats.receivedBytes - last.received) * 8) / elapsed / 1000)
     lastBytesSample = (now, stats.sentBytes, stats.receivedBytes)
