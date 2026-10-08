@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        font: 13px system-ui, sans-serif;
+        box-sizing: border-box;
+        width: 800px;
+        margin: 0;
+        padding: 10px;
+      }
+      body:has(dialog[open]) {
+        min-height: 360px;
+      }
+      .bar {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      #edit-domains {
+        margin-left: auto;
+      }
+      #domains-dialog {
+        width: 440px;
+        max-width: calc(100vw - 60px);
+        max-height: calc(100vh - 60px);
+        padding: 16px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+      }
+      #domains-dialog::backdrop {
+        background: #0005;
+      }
+      #domains-dialog h2 {
+        margin: 0;
+        font-size: 16px;
+      }
+      #domains-dialog p {
+        margin: 8px 0 12px;
+      }
+      .domain-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 6px;
+      }
+      .domain-row label {
+        display: flex;
+        flex: 1;
+        gap: 8px;
+        align-items: center;
+        overflow-wrap: anywhere;
+      }
+      #domain-name {
+        flex: 1;
+        min-width: 0;
+      }
+      #domain-error {
+        color: #b00020;
+      }
+      .row {
+        display: flex;
+        gap: 6px;
+        align-items: flex-start;
+        margin-bottom: 4px;
+      }
+      .row > .drag-handle,
+      .row > button {
+        opacity: 0;
+      }
+      .row:hover > .drag-handle,
+      .row:hover > button {
+        opacity: 1;
+      }
+      .row > button {
+        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        cursor: pointer;
+      }
+      .row > button:hover {
+        background: #eee;
+      }
+      .drag-handle {
+        flex-shrink: 0;
+        cursor: grab;
+        user-select: none;
+        padding: 3px 0;
+        color: #777;
+      }
+      .dragging {
+        opacity: 0.5;
+      }
+      .drop-before {
+        box-shadow: 0 -2px #1d9bf0;
+      }
+      .drop-after {
+        box-shadow: 0 2px #1d9bf0;
+      }
+      .section {
+        align-items: center;
+        min-height: 24px;
+      }
+      .section hr {
+        flex: 1;
+        min-width: 0;
+        margin: 0;
+        border: 0;
+        border-top: 1px solid #ccc;
+      }
+      .section-title {
+        width: 240px;
+        min-width: 0;
+        background: transparent;
+        border: 0;
+        text-align: center;
+      }
+      .section-title:focus-visible {
+        outline: 1px solid #1d9bf0;
+      }
+      input[type="text"],
+      textarea {
+        font: 12px ui-monospace, monospace;
+        padding: 3px;
+      }
+      textarea {
+        box-sizing: border-box;
+        resize: none;
+        overflow: hidden;
+        word-break: break-all;
+      }
+      .name {
+        width: 110px;
+      }
+      .value {
+        flex: 1;
+        min-width: 0;
+      }
+      .delimiter {
+        width: 24px;
+        text-align: center;
+      }
+      pre {
+        background: #f3f3f3;
+        padding: 6px;
+        white-space: pre-wrap;
+        word-break: break-all;
+        margin: 8px 0 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="rows"></div>
+    <div class="bar">
+      <button id="add">Add row</button>
+      <button id="add-section">Add section row</button>
+      <button id="edit-domains">Domains</button>
+    </div>
+    <pre id="preview"></pre>
+    <dialog id="domains-dialog" aria-labelledby="domains-title">
+      <div class="bar">
+        <h2 id="domains-title">Supported domains</h2>
+        <button id="close-domains" style="margin-left: auto">Done</button>
+      </div>
+      <p>* applies headers to every website. Disable it to use specific domains and their subdomains. Changes save automatically.</p>
+      <div id="domain-rows"></div>
+      <form id="add-domain" class="bar">
+        <input id="domain-name" type="text" placeholder="example.com" aria-label="Domain name" required />
+        <button type="submit">Add domain</button>
+      </form>
+      <p id="domain-error" role="alert" hidden></p>
+    </dialog>
+    <script src="headers.js"></script>
+    <script src="domains.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

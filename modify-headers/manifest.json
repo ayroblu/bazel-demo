@@ -1,0 +1,16 @@
+{
+  "name": "modify-headers",
+  "version": "1.0.0",
+  "manifest_version": 3,
+  "description": "Set, add, or remove request headers, joining values with a configurable delimiter.",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "modify-headers",
+    "default_popup": "popup.html"
+  },
+  "incognito": "spanning",
+  "permissions": ["storage", "declarativeNetRequest"],
+  "host_permissions": ["*://*/*"]
+}
