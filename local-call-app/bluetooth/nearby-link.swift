@@ -122,10 +122,7 @@ public class NearbyLink {
     let data = ConnectCodec.seal(message, senderId: store.localId, secret: secret)
     log("connect send", String(describing: message), "to", peerId.uuidString, data.count)
     if writeToPeripheral(data, peerId: peerId) { return }
-    // A notification is unacknowledged and is silently dropped once the
-    // central has gone, so it is only used for a peer this device cannot
-    // reach as a central itself.
-    if peripheralId(for: peerId) == nil, notifyCentral(data, peerId: peerId) { return }
+    if notifyCentral(data, peerId: peerId) { return }
     log("connect queued frame", peerId.uuidString)
     pendingWrites[peerId, default: []].append(data)
     connectIfNeeded(peerId: peerId)

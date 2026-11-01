@@ -274,6 +274,7 @@ public nonisolated enum ConnectCallState: Equatable {
       store.save(peer)
       pairedPeers = store.peers
     }
+    guard state.callId != callId else { return }
     guard case .idle = state else {
       link.send(.busy(callId: callId), to: peerId)
       return
