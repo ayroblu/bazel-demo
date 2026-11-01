@@ -3,4 +3,5 @@
 # cargo generate-lockfile
 # Updates the definitions for rust analyzer
 TARGET="${1:-//rust-code/...}"
-bazel run @rules_rust//tools/rust_analyzer:gen_rust_project -- "$TARGET"
+RUST_TARGETS=(${(f)"$(bazel query "kind('rust_.*', $TARGET)" 2>/dev/null)"})
+bazel run @rules_rust//tools/rust_analyzer:gen_rust_project -- "${RUST_TARGETS[@]}"
