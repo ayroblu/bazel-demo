@@ -50,3 +50,11 @@ cp ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/<uuid>.mobileprovis
 
 The app must be opened once to grant microphone and local network permission
 before background calling works. A force-quit app is not relaunched for calls.
+
+## Release
+
+```sh
+bazel build:release local-call-app
+xcrun altool --upload-app -t ios -f .bazel/bin/local-call-app/local-call-app.ipa \
+  --api-key KPYMMWTY9J --api-issuer ef034221-c8c3-40ae-8796-137fa43bcc81
+```
