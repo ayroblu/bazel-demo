@@ -19,8 +19,12 @@
         align-items: center;
         margin-bottom: 8px;
       }
-      #edit-domains {
+      #status {
         margin-left: auto;
+        text-align: right;
+      }
+      #status.error {
+        color: #b00020;
       }
       #domains-dialog {
         width: 440px;
@@ -160,6 +164,9 @@
     <div class="bar">
       <button id="add">Add row</button>
       <button id="add-section">Add section row</button>
+      <span id="status" role="status"></span>
+      <button id="import" title="Add rows and domains from JSON in the clipboard">Import</button>
+      <button id="export" title="Copy rows and domains to the clipboard as JSON">Export</button>
       <button id="edit-domains">Domains</button>
     </div>
     <pre id="preview"></pre>

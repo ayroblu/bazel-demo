@@ -106,6 +106,49 @@ document.getElementById("add-section").onclick = () => {
   rowsEl.lastChild.querySelector(".section-title").focus();
 };
 
+document.getElementById("export").onclick = async () => {
+  try {
+    await navigator.clipboard.writeText(JSON.stringify({ headers, domains }, null, 2));
+    showStatus(`Copied ${count(headers.length, "row")} and ${count(domains.length, "domain")}.`);
+  } catch (error) {
+    showStatus(`Could not copy: ${error.message}`, true);
+  }
+};
+
+document.getElementById("import").onclick = async () => {
+  let imported;
+  try {
+    imported = parseState(await navigator.clipboard.readText());
+  } catch (error) {
+    showStatus(`Could not import: ${error.message}`, true);
+    return;
+  }
+  const rowKeys = new Set(headers.map(rowKey));
+  const newRows = imported.headers.filter((row) => addKey(rowKeys, rowKey(row)));
+  const domainNames = new Set(domains.map((domain) => domain.name));
+  const newDomains = imported.domains.filter((domain) => addKey(domainNames, domain.name));
+  const origins = newDomains.filter((domain) => domain.enabled).map((domain) => domainPermission(domain.name));
+  const granted = !origins.length || (await chrome.permissions.request({ origins }).catch(() => false));
+  if (!granted) newDomains.forEach((domain) => (domain.enabled = false));
+  headers.push(...newRows);
+  domains.push(...newDomains);
+  render();
+  renderPreview();
+  chrome.storage.local.set({ headers, rowDefaults, domains });
+  const skipped = imported.headers.length + imported.domains.length - newRows.length - newDomains.length;
+  showStatus(
+    [
+      newRows.length || newDomains.length
+        ? `Imported ${count(newRows.length, "row")} and ${count(newDomains.length, "domain")}.`
+        : "Nothing new to import.",
+      skipped ? `Skipped ${count(skipped, "duplicate")}.` : "",
+      granted ? "" : "Permission was declined, so new domains are disabled.",
+    ]
+      .filter(Boolean)
+      .join(" ")
+  );
+};
+
 document.getElementById("edit-domains").onclick = () => {
   renderDomains();
   domainError.hidden = true;
@@ -119,8 +162,7 @@ document.getElementById("add-domain").onsubmit = async (event) => {
   const input = document.getElementById("domain-name");
   const name = input.value.trim().toLowerCase();
   domainError.hidden = true;
-  if (name !== "*" && (!/^(?=.{1,253}$)[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*$/.test(name) ||
-      name.split(".").some((label) => label.length > 63))) {
+  if (!validDomainName(name)) {
     showDomainError("Enter a domain name such as example.com, or * for all sites.");
     return;
   }
@@ -143,6 +185,83 @@ chrome.storage.local.get(["headers", "rowDefaults", "domains"]).then((stored) =>
   render();
   renderPreview();
 });
+
+function showStatus(message, error = false) {
+  const status = document.getElementById("status");
+  status.textContent = message;
+  status.classList.toggle("error", error);
+}
+
+function count(n, noun) {
+  return `${n} ${noun}${n === 1 ? "" : "s"}`;
+}
+
+function parseState(text) {
+  let state;
+  try {
+    state = JSON.parse(text);
+  } catch {
+    throw new Error("the clipboard does not contain JSON.");
+  }
+  const { headers: rows = [], domains: entries = [] } = state ?? {};
+  if (state?.constructor !== Object || !("headers" in state || "domains" in state) ||
+      !Array.isArray(rows) || !Array.isArray(entries)) {
+    throw new Error('expected an object with "headers" and "domains" arrays.');
+  }
+  const badRow = rows.findIndex((row) => !validRow(row));
+  if (badRow >= 0) throw new Error(`headers[${badRow}] is not a valid header or section row.`);
+  const badDomain = entries.findIndex(
+    (domain) =>
+      typeof domain?.name !== "string" ||
+      typeof domain.enabled !== "boolean" ||
+      !validDomainName(domain.name.trim().toLowerCase())
+  );
+  if (badDomain >= 0) throw new Error(`domains[${badDomain}] is not a valid domain.`);
+  return {
+    headers: rows.map((row) =>
+      row.type === "section"
+        ? { type: "section", title: row.title }
+        : { enabled: row.enabled, operation: row.operation, delimiter: row.delimiter, name: row.name, value: row.value }
+    ),
+    domains: entries.map((domain) => ({ name: domain.name.trim().toLowerCase(), enabled: domain.enabled })),
+  };
+}
+
+function validRow(row) {
+  const singleLine = (key) => typeof row[key] === "string" && !/[\r\n]/.test(row[key]);
+  if (row?.type === "section") return singleLine("title");
+  return (
+    row?.constructor === Object &&
+    row.type === undefined &&
+    typeof row.enabled === "boolean" &&
+    ["set", "add", "remove"].includes(row.operation) &&
+    ["name", "value", "delimiter"].every(singleLine)
+  );
+}
+
+function validDomainName(name) {
+  return (
+    name === "*" ||
+    (/^(?=.{1,253}$)[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*$/.test(name) &&
+      name.split(".").every((label) => label.length <= 63))
+  );
+}
+
+function rowKey(row) {
+  if (row.type === "section") return JSON.stringify(["section", row.title]);
+  return JSON.stringify([
+    row.operation,
+    row.name.trim().toLowerCase(),
+    row.operation === "remove" ? "" : row.value.trim(),
+    row.operation === "add" ? row.delimiter : "",
+  ]);
+}
+
+function addKey(keys, key) {
+  if (keys.has(key)) return false;
+  keys.add(key);
+  return true;
+}
 
 function renderDomains() {
   document.getElementById("domain-rows").replaceChildren(
