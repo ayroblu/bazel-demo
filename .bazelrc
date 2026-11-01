@@ -8,6 +8,7 @@ build:profile --generate_json_trace_profile --profile profile.gz
 
 build:explain --explain=/tmp/explanation.txt --verbose_explanations
 
+run --run_env=IDE_DISABLED_OS_ACTIVITY_DT_MODE=1
 run:quiet --ui_event_filters=-info,-debug,-warning,-stderr,-stdout  --noshow_progress
 
 # test_output=all to always show test output
