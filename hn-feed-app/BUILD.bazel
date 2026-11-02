@@ -1,0 +1,43 @@
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//swift-shared:concurrency.bzl", "SWIFT6_MAINACTOR_COPTS")
+load("//swift-shared:swift-ide.bzl", "ide")
+
+swift_library(
+    name = "lib",
+    srcs = ["MainApp.swift"],
+    copts = SWIFT6_MAINACTOR_COPTS,
+    deps = [
+        "//hn-feed-app/content",
+    ],
+)
+
+filegroup(
+    name = "AppIcon",
+    srcs = glob(["Assets.xcassets/AppIcon.appiconset/*"]),
+)
+
+ios_application(
+    name = "hn-feed-app",
+    app_icons = [":AppIcon"],
+    bundle_id = "com.ayroblu.hn-feed-app",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = ["Resources/Info.plist"],
+    minimum_os_version = "18.0",
+    provisioning_profile = select({
+        "//conditions:default": "development.mobileprovision",
+        "@bazel-demo//:release_build": "distribution.mobileprovision",
+    }),
+    version = "//swift-shared:version",
+    visibility = ["//visibility:public"],
+    deps = [":lib"],
+)
+
+ide(
+    targets = ["//hn-feed-app"],
+    xcode_project_name = "hn-feed-app",
+    xcode_targets = [":hn-feed-app"],
+)
