@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-let busMarkerStyle = BusMarkerStyle.routemaster
+let busMarkerStyle = BusMarkerStyle.topDownChevron
 
 enum BusMarkerStyle {
   case routemaster
