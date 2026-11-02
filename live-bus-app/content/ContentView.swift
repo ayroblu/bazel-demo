@@ -9,6 +9,7 @@ public struct ContentView: View {
   @State private var sheet: MapSheet?
   @State private var mapController = MapController()
   @State private var arrivalTarget: ArrivalTarget?
+  @State private var originStop: BusStop?
 
   public init() {}
 
@@ -76,7 +77,12 @@ public struct ContentView: View {
     }
     .onChange(of: model.selectedLineId == nil) {
       guard model.selectedLineId == nil else { return }
-      centerOnUser()
+      if let stop = originStop {
+        originStop = nil
+        focus(stop)
+      } else {
+        centerOnUser()
+      }
     }
     .onChange(of: sheet?.id) {
       if case .stop = sheet { return }
@@ -98,9 +104,9 @@ public struct ContentView: View {
       StopArrivalsView(
         stop: stop,
         onSelectArrival: {
-          selectLine($0.lineId, target: ArrivalTarget(vehicleId: $0.vehicleId, stop: stop))
+          selectLine($0.lineId, from: stop, vehicleId: $0.vehicleId)
         },
-        onSelectLine: { selectLine($0) }
+        onSelectLine: { selectLine($0, from: stop) }
       )
       .presentationDetents([.medium, .large])
       .presentationBackgroundInteraction(.enabled(upThrough: .medium))
@@ -122,7 +128,7 @@ public struct ContentView: View {
     if case .stop(let stop) = sheet {
       stop
     } else if model.selectedLineId != nil {
-      arrivalTarget?.stop
+      originStop
     } else {
       nil
     }
@@ -141,18 +147,19 @@ public struct ContentView: View {
     }
     guard let stop = focusedStop, let track = model.stopTracks.first(where: { $0.id == vehicleId })
     else { return }
-    selectLine(track.lineId, target: ArrivalTarget(vehicleId: vehicleId, stop: stop))
+    selectLine(track.lineId, from: stop, vehicleId: vehicleId)
   }
 
-  private func selectLine(_ lineId: String, target: ArrivalTarget? = nil) {
-    arrivalTarget = target
+  private func selectLine(_ lineId: String, from stop: BusStop? = nil, vehicleId: String? = nil) {
+    originStop = stop
+    arrivalTarget = vehicleId.map { ArrivalTarget(vehicleId: $0) }
     sheet = nil
     model.showRoute(lineId: lineId)
   }
 
   private func frameArrivalTarget() {
-    guard let target = arrivalTarget, !target.isFramed, let route = model.route,
-      model.lastUpdate != nil
+    guard let target = arrivalTarget, !target.isFramed, let stop = originStop,
+      let route = model.route, model.lastUpdate != nil
     else { return }
     arrivalTarget?.isFramed = true
     guard let bus = model.tracks.first(where: { $0.id == target.vehicleId }),
@@ -161,12 +168,12 @@ public struct ContentView: View {
       mapController.show(route.mapRect, margin: routeFrameMargin)
       return
     }
-    let points = [position.coordinate, target.stop.coordinate].map { MKMapPoint($0.clCoordinate) }
+    let points = [position.coordinate, stop.coordinate].map { MKMapPoint($0.clCoordinate) }
     let rect = points.reduce(MKMapRect.null) {
       $0.union(MKMapRect(origin: $1, size: MKMapSize()))
     }
     let minSize =
-      MKMapPointsPerMeterAtLatitude(target.stop.coordinate.lat) * minArrivalFrameMeters
+      MKMapPointsPerMeterAtLatitude(stop.coordinate.lat) * minArrivalFrameMeters
     mapController.show(
       rect.insetBy(
         dx: -max(0, minSize - rect.width) / 2, dy: -max(0, minSize - rect.height) / 2),
@@ -191,7 +198,6 @@ public struct ContentView: View {
 
 struct ArrivalTarget {
   let vehicleId: String
-  let stop: BusStop
   var isFramed = false
 }
 

@@ -1,41 +1,5 @@
 import SwiftUI
 
-struct BusMarker: View {
-  let heading: Double
-  let color: Color
-
-  var body: some View {
-    Image(systemName: "arrow.up")
-      .font(.system(size: 11, weight: .black))
-      .foregroundStyle(.white)
-      .rotationEffect(.degrees(heading))
-      .frame(width: 22, height: 22)
-      .background(color, in: Circle())
-      .overlay(Circle().stroke(.black, lineWidth: 1.5))
-  }
-}
-
-struct StopMarker: View {
-  let letter: String?
-
-  var body: some View {
-    Group {
-      if let letter, letter.count <= 2, !letter.contains("->") {
-        Text(letter)
-          .font(.system(size: 11, weight: .bold))
-      } else {
-        Image(systemName: "bus.fill")
-          .font(.system(size: 10))
-      }
-    }
-    .foregroundStyle(.white)
-    .frame(width: 24, height: 24)
-    .background(busRed, in: Circle())
-    .overlay(Circle().stroke(.white, lineWidth: 1.5))
-    .shadow(radius: 1)
-  }
-}
-
 struct RouteBadge: View {
   let name: String
 

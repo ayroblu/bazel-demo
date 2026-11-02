@@ -228,7 +228,6 @@ struct BusMapView: UIViewRepresentable {
         if let annotation = busAnnotations[id] {
           annotation.coordinate = bus.coordinate.clCoordinate
           annotation.heading = bus.heading
-          annotation.direction = bus.direction
           annotation.showsLineName = parent.busesShowLineNames
           (mapView.view(for: annotation) as? BusAnnotationView)?.configure()
         } else {
@@ -302,7 +301,6 @@ final class BusAnnotation: NSObject, MKAnnotation {
   let lineName: String
   @objc dynamic var coordinate: CLLocationCoordinate2D
   var heading: Double
-  var direction: String
   var showsLineName: Bool
 
   init(_ bus: BusPosition, showsLineName: Bool) {
@@ -310,7 +308,6 @@ final class BusAnnotation: NSObject, MKAnnotation {
     lineName = bus.lineName
     coordinate = bus.coordinate.clCoordinate
     heading = bus.heading
-    direction = bus.direction
     self.showsLineName = showsLineName
   }
 
@@ -377,29 +374,18 @@ final class StopAnnotationView: MKAnnotationView {
 
 final class BusAnnotationView: MKAnnotationView {
   static let reuseId = "bus"
-  private let circle = UIView()
-  private let arrow = UIImageView(
-    image: UIImage(
-      systemName: "arrow.up",
-      withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .black)))
+  private let bus = UIImageView(image: busMarkerStyle.image)
   private let badge = UILabel()
 
   override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
     super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
-    circle.layer.cornerRadius = busMarkerSize / 2
-    circle.layer.borderColor = UIColor.black.cgColor
-    circle.layer.borderWidth = 1.5
-    arrow.frame = CGRect(x: 0, y: 0, width: busMarkerSize, height: busMarkerSize)
-    arrow.contentMode = .center
-    arrow.tintColor = .white
-    circle.addSubview(arrow)
     badge.font = .systemFont(ofSize: 10, weight: .bold)
     badge.textColor = .white
     badge.textAlignment = .center
     badge.backgroundColor = UIColor.black.withAlphaComponent(0.75)
     badge.layer.cornerRadius = 4
     badge.clipsToBounds = true
-    addSubview(circle)
+    addSubview(bus)
     addSubview(badge)
     displayPriority = .required
     zPriority = .max
@@ -416,20 +402,21 @@ final class BusAnnotationView: MKAnnotationView {
   }
 
   func configure() {
-    guard let bus = annotation as? BusAnnotation else { return }
-    circle.backgroundColor = UIColor(bus.showsLineName ? busRed : directionColor(bus.direction))
-    arrow.transform = CGAffineTransform(rotationAngle: bus.heading * .pi / 180)
-    badge.isHidden = !bus.showsLineName
-    badge.text = bus.lineName
-    let badgeWidth = bus.showsLineName ? badge.intrinsicContentSize.width + 8 : 0
-    let badgeHeight: CGFloat = bus.showsLineName ? busBadgeHeight : 0
-    let width = max(busMarkerSize, badgeWidth)
-    frame.size = CGSize(width: width, height: busMarkerSize + badgeHeight)
+    guard let annotation = annotation as? BusAnnotation else { return }
+    let busSize = busMarkerStyle.image.size
+    badge.isHidden = !annotation.showsLineName
+    badge.text = annotation.lineName
+    let badgeWidth = annotation.showsLineName ? badge.intrinsicContentSize.width + 8 : 0
+    let badgeHeight: CGFloat = annotation.showsLineName ? busBadgeHeight : 0
+    let side = max(busSize.width, busSize.height)
+    let width = max(side, badgeWidth)
+    frame.size = CGSize(width: width, height: side + badgeHeight)
     badge.frame = CGRect(x: (width - badgeWidth) / 2, y: 0, width: badgeWidth, height: badgeHeight)
-    circle.frame = CGRect(
-      x: (width - busMarkerSize) / 2, y: badgeHeight, width: busMarkerSize, height: busMarkerSize)
+    bus.bounds = CGRect(origin: .zero, size: busSize)
+    bus.center = CGPoint(x: width / 2, y: badgeHeight + side / 2)
+    bus.transform = busMarkerStyle.transform(heading: annotation.heading)
     centerOffset = CGPoint(x: 0, y: -badgeHeight / 2)
-    accessibilityLabel = bus.title
+    accessibilityLabel = annotation.title
   }
 }
 
@@ -518,7 +505,6 @@ private let focusedStopMarkerSize: CGFloat = 36
 private let focusZoomMeters = 800.0
 private let sheetHeightFraction = 0.5
 private let focusedStopRed = Color(red: 0.62, green: 0.04, blue: 0.1)
-private let busMarkerSize: CGFloat = 22
 private let busBadgeHeight: CGFloat = 15
 
 private let londonRegion = MKCoordinateRegion(

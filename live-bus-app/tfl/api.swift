@@ -18,7 +18,8 @@ public func getStopsNear(_ coordinate: Coordinate, radius: Int) async throws -> 
 }
 
 public func getStop(id: String) async throws -> BusStop {
-  BusStop(try await getJson(RawStop.self, urlPath: "\(tflBase)/StopPoint/\(id)"))
+  let raw = try await getJson(RawStop.self, urlPath: "\(tflBase)/StopPoint/\(id)")
+  return BusStop(raw.children?.first { $0.naptanId == id } ?? raw)
 }
 
 public func getStopArrivals(stopId: String) async throws -> [Arrival] {
@@ -87,6 +88,7 @@ private struct RawStop: Decodable {
   let lon: Double
   let lines: [RawIdentifier]?
   let additionalProperties: [RawProperty]?
+  let children: [RawStop]?
 }
 
 private struct RawIdentifier: Decodable {

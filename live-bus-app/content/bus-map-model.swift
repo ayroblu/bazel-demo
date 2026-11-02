@@ -156,6 +156,9 @@ import tfl
   }
 
   func openStop(id: String) async -> BusStop? {
+    if let stop = allStops.first(where: { $0.id == id }) {
+      return stop
+    }
     do {
       return try await getStop(id: id)
     } catch {
