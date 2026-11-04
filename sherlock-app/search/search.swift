@@ -262,17 +262,19 @@ public final class Search {
 
   private func rank(_ items: [Candidate], _ query: SearchQuery) -> [ResultItem] {
     guard !query.isEmpty else { return items.map(\.item) }
-    var hits: [(item: ResultItem, score: Int)] = []
+    var hits: [(item: ResultItem, score: Int, titleLength: Int)] = []
     for candidate in items {
       guard let best = candidate.names.compactMap({ score(query, $0, fuzzy: candidate.fuzzy) }).max()
       else { continue }
-      hits.append((candidate.item, best + knowledge.boost(query: query.text, id: candidate.item.id)))
+      hits.append(
+        (
+          candidate.item, best + knowledge.boost(query: query.text, id: candidate.item.id),
+          candidate.item.title.count
+        ))
     }
     hits.sort {
       if $0.score != $1.score { return $0.score > $1.score }
-      if $0.item.title.count != $1.item.title.count {
-        return $0.item.title.count < $1.item.title.count
-      }
+      if $0.titleLength != $1.titleLength { return $0.titleLength < $1.titleLength }
       return $0.item.title < $1.item.title
     }
     return hits.map(\.item)

@@ -62,7 +62,13 @@ private func chromeProfiles() -> [URL] {
 }
 
 private func chromeBookmarks(_ profile: URL) -> [WebPage] {
-  guard let data = try? Data(contentsOf: profile.appending(path: "Bookmarks")),
+  chromeBookmarkFiles.flatMap { readChromeBookmarks(profile.appending(path: $0)) }
+}
+
+private let chromeBookmarkFiles = ["Bookmarks", "AccountBookmarks"]
+
+private func readChromeBookmarks(_ file: URL) -> [WebPage] {
+  guard let data = try? Data(contentsOf: file),
     let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
     let roots = json["roots"] as? [String: Any]
   else { return [] }
