@@ -1,0 +1,49 @@
+load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//swift-shared:concurrency.bzl", "SWIFT6_MAINACTOR_COPTS")
+load("//swift-shared:swift-ide.bzl", "ide")
+
+swift_library(
+    name = "lib",
+    srcs = ["MainApp.swift"],
+    copts = SWIFT6_MAINACTOR_COPTS,
+    deps = [
+        "//sherlock-app/bar",
+        "//sherlock-app/clipboard",
+        "//sherlock-app/hotkey",
+        "//sherlock-app/preferences",
+        "//sherlock-app/search",
+        "//sherlock-app/settings",
+        "//sherlock-app/snippets",
+    ],
+)
+
+filegroup(
+    name = "AppIcon",
+    srcs = glob(["AppIcon.icon/**"]),
+)
+
+macos_application(
+    name = "sherlock-app",
+    app_icons = [":AppIcon"],
+    bundle_id = "com.ayroblu.sherlock",
+    bundle_name = "Sherlock",
+    infoplists = ["Resources/Info.plist"],
+    minimum_os_version = "26.0",
+    version = "//swift-shared:version",
+    visibility = ["//visibility:public"],
+    deps = [":lib"],
+)
+
+sh_binary(
+    name = "install",
+    srcs = ["tools/install.sh"],
+    data = [":sherlock-app"],
+)
+
+ide(
+    macos_xcode_targets = [":sherlock-app"],
+    targets = ["//sherlock-app"],
+    xcode_project_name = "sherlock-app",
+    xcode_targets = [],
+)

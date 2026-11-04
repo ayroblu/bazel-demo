@@ -9,5 +9,6 @@ let package = Package(
     .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.12.0"),
     .package(url: "https://github.com/apple/swift-collections.git", from: "1.1.0"),
     .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.27.0"),
+    .package(url: "https://github.com/jpsim/Yams.git", from: "6.0.0"),
   ]
 )

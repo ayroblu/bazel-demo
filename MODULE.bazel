@@ -76,6 +76,7 @@ use_repo(
     "swiftpkg_swift_collections",
     "swiftpkg_swift_protobuf",
     "swiftpkg_swift_snapshot_testing",
+    "swiftpkg_yams",
 )
 # To add a package:
 # 1. Update Package.swift
