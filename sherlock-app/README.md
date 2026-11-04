@@ -60,10 +60,16 @@ Snippets (one word, case-insensitive); the clipboard hotkey uses the clipboard
 keyword. Typing `clipboard`, `snippets` or `history` also shows an item that
 fills in the keyword (↩ or ⇥).
 
-**Clipboard history** records text you copy (checked twice a second, plus
-whatever is on the clipboard when Sherlock starts), with the app it came from. It skips copies that password managers mark as concealed or
-transient. History is kept for 7 days by default (1, 7 or 30 in Settings), up to
-500 items, in `~/Library/Application Support/Sherlock/clipboard.json`.
+**Clipboard history** records what you copy (checked twice a second, plus
+whatever is on the clipboard when Sherlock starts), with the app it came from:
+text, rich text (RTF, RTFD and HTML are kept alongside the plain text), images
+(stored as PNG, shown with a thumbnail and size) and copied files. ↩ puts the
+item back with all of its formats, so rich text keeps its formatting. Search by
+text, or `image`, `rich text` or `file`. It skips copies that password managers
+mark as concealed or transient, and formats over 20 MB. History is kept for 7
+days by default (1, 7 or 30 in Settings), up to 500 items and 100 images, in
+`~/Library/Application Support/Sherlock/clipboard.json` with the images and
+other formats in `Clipboard/` next to it.
 
 **Snippets** are stored in `snippets.yaml` in the config folder (see
 [Config](#config)), a list like:
@@ -77,16 +83,13 @@ transient. History is kept for 7 days by default (1, 7 or 30 in Settings), up to
     {clipboard}
 ```
  Settings > Snippets >
-Import Alfred Snippets… reads an `Alfred.alfredpreferences` bundle (or its
-`snippets` folder) and adds each collection's keyword prefix and suffix, so
-`cl` in a `::` collection becomes `::cl`. Snippet text can use `{clipboard}`,
+Edit… opens the file. Snippet text can use `{clipboard}`,
 `{date}`, `{time}`, `{datetime}`, `{date:yyyy-MM-dd}` (any date format),
 `{random:UUID}` and `{snippet:keyword}`. With "Expand snippet keywords as you
 type" on, typing a keyword anywhere replaces it with the snippet.
 
 Turn on Settings > Clipboard > "Paste into the front app" to have ↩ paste
-clipboard items and snippets straight into the app you were using (like
-Alfred's auto-paste). Pasting and expanding snippets need Accessibility access
+clipboard items and snippets straight into the app you were using. Pasting and expanding snippets need Accessibility access
 (Settings > Permissions); without it, Sherlock copies the text instead.
 Safari bookmarks and history need Full Disk Access.
 
@@ -121,7 +124,7 @@ You can:
   shortcut, then press the new keys; ⎋ cancels)
 - turn Spotlight file results on or off
 - turn clipboard history on or off, choose how long it's kept, or clear it
-- import Alfred snippets, edit the snippets file, and turn on expansion as you
+- edit the snippets file and turn on expansion as you
   type
 - grant Accessibility access (for pasting and snippet expansion)
 - choose the config folder
@@ -162,6 +165,56 @@ search, percent-encoded:
 The first time Sherlock runs it writes Google, YouTube, Wikipedia, GitHub and
 Maps quick links. Settings > Quick Links > Edit… opens the file.
 
+### Extensions
+
+An extension is a folder in `extensions/` inside the config folder, with an
+`extension.yaml`:
+
+```yaml
+name: Process Tools                 # optional, defaults to the folder name
+setup: yarn install && yarn build   # optional
+commands:
+  - keyword: kill
+    title: Kill Process
+    script: node dist/filter.js "$1"   # runs as you type
+    action: kill "$1"                  # optional, runs on ↩ with the item's arg
+```
+
+Typing a command's keyword and a space runs its `script` with your search as
+`$1` (and `$SHERLOCK_QUERY`), cancelling any run still in progress. The script
+prints the results as JSON:
+
+```json
+{"items": [
+  {"title": "node", "subtitle": "pid 4321", "arg": "4321"},
+  {"title": "Docs", "url": "https://nodejs.org"},
+  {"title": "Copy pid", "copy": "4321", "icon": "sf:doc.on.doc"}
+]}
+```
+
+↩ on an item opens its `url`, copies its `copy`, or runs the command's
+`action` with its `arg`, in that order. An item with only `autocomplete` fills
+in the search instead. `icon` is a file in the extension or `sf:` plus an SF
+Symbol name; an `icon.png` in the extension folder is the default.
+
+Extensions run in two steps:
+
+1. **Setup.** Sherlock copies the extension (without `.git`, `node_modules`
+   and `data`) to `~/Library/Caches/com.ayroblu.sherlock/Extensions/<folder>`
+   and runs `setup` there, unsandboxed, so it can install dependencies and
+   build. Whenever a file in the extension changes, Sherlock makes a fresh copy
+   and runs setup again. Setup output is saved in `.sherlock-setup.log` in the
+   copy, and failures show in Settings > Extensions and in the bar.
+2. **Running.** Scripts and actions run in that copy under `sandbox-exec`: they
+   can read files and use the network, but can only write to the extension's
+   data folder, `~/Library/Application Support/Sherlock/Extension Data/<folder>`
+   (reachable as `./data` or `$SHERLOCK_EXTENSION_DATA`), and temporary files.
+   Writing anywhere else fails with "Operation not permitted".
+
+Scripts get the `PATH` from your login shell, so tools like `node` and Homebrew
+commands are found. `sandbox-exec` is deprecated by Apple but still works; if
+it is ever removed, scripts run without the write restriction.
+
 ### Config
 
 Your config lives in one folder, by default `~/Library/Application Support/Sherlock`.
@@ -171,6 +224,7 @@ Change it in Settings > Config (for example to keep it in your dotfiles):
   hand-edited file can list only what it changes.
 - `snippets.yaml`: your snippets.
 - `quicklinks.yaml`: your quick links.
+- `extensions/`: your extensions.
 
 Sherlock watches the folder, so edits apply as soon as you save. If a file
 doesn't parse, Sherlock keeps using its last good contents until you fix it.
@@ -181,9 +235,12 @@ own copy of a file, Sherlock uses that one and leaves the old one where it was.
 Other state stays on this Mac:
 
 - clipboard history: `~/Library/Application Support/Sherlock/clipboard.json`
+  and `Clipboard/`
 - learned picks and the config folder location: the `com.ayroblu.sherlock` user
   defaults
 - exchange rates: `~/Library/Caches/com.ayroblu.sherlock/rates.json`
+- extension copies: `~/Library/Caches/com.ayroblu.sherlock/Extensions/`
+- extension data: `~/Library/Application Support/Sherlock/Extension Data/`
 
 ### Using ⌘Space
 
@@ -205,8 +262,9 @@ too. Sherlock's Settings warn you when:
 | `calculator/` | The arithmetic expression parser |
 | `conversion/` | Unit, currency and time zone conversions |
 | `clipboard/` | Clipboard history and pasting into the front app |
-| `snippets/` | Snippet storage, Alfred import, placeholders and expansion as you type |
+| `snippets/` | Snippet storage, placeholders and expansion as you type |
 | `browser/` | Safari and Chrome bookmarks and history |
+| `extensions/` | Extension setup, sandboxed script runs and status |
 | `hotkey/` | Global hotkey registration and the shortcut model |
 | `preferences/` | Saved settings |
 | `settings/` | The Settings window and shortcut recorder |

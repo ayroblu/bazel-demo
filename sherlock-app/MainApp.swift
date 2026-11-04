@@ -2,6 +2,7 @@ import AppKit
 import Observation
 import bar
 import clipboard
+import extensions
 import hotkey
 import preferences
 import search
@@ -23,12 +24,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private let clipboard = ClipboardHistory()
   private lazy var snippets = SnippetStore(folder: preferences.configFolder)
   private lazy var quickLinks = QuickLinkStore(folder: preferences.configFolder)
+  private lazy var extensions = Extensions(configFolder: preferences.configFolder)
   private lazy var configWatcher = FolderWatcher { [weak self] in self?.reloadConfig() }
   private lazy var expander = SnippetExpander(store: snippets)
   private lazy var search = SearchController(
-    preferences: preferences, clipboard: clipboard, snippets: snippets, quickLinks: quickLinks)
+    preferences: preferences, clipboard: clipboard, snippets: snippets, quickLinks: quickLinks,
+    extensions: extensions)
   private lazy var settings = SettingsWindowController(
-    preferences: preferences, clipboard: clipboard, snippets: snippets, quickLinks: quickLinks)
+    preferences: preferences, clipboard: clipboard, snippets: snippets, quickLinks: quickLinks,
+    extensions: extensions)
   private lazy var hotKey = HotKey { [weak self] in self?.search.toggle() }
   private lazy var clipboardHotKey = HotKey { [weak self] in self?.showClipboard() }
   private var statusItem: NSStatusItem?
@@ -120,6 +124,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     preferences.reloadIfChanged()
     snippets.reloadIfChanged()
     quickLinks.reloadIfChanged()
+    extensions.reload()
   }
 
   private func updateSnippetExpansion() {

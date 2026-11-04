@@ -2,6 +2,7 @@ import AppKit
 import browser
 import clipboard
 import conversion
+import extensions
 import preferences
 import snippets
 
@@ -12,6 +13,7 @@ public final class Search {
   private let clipboard: ClipboardHistory
   private let snippets: SnippetStore
   private let quickLinks: QuickLinkStore
+  private let extensions: Extensions
   private let knowledge = Knowledge()
   private let fileSearch = FileSearch()
   private let exchangeRates = ExchangeRates()
@@ -23,6 +25,12 @@ public final class Search {
   private var keywordItems: [Candidate] = []
   private var quickLinkItems: [Candidate] = []
   private var indexedQuickLinkVersion = -1
+  private var extensionCommandItems: [Candidate] = []
+  private var indexedCommands: [ExtensionCommand] = []
+  private var extensionTask: Task<Void, Never>?
+  private var extensionRunKey = ""
+  private var extensionResultsKey = ""
+  private var extensionResults: [ResultItem] = []
   private var scannedAt = Date.distantPast
   private var isScanning = false
   private var text = ""
@@ -31,10 +39,18 @@ public final class Search {
   private var fileResults: [ResultItem] = []
   private var fallbackResults: [ResultItem] = []
 
-  public init(clipboard: ClipboardHistory, snippets: SnippetStore, quickLinks: QuickLinkStore) {
+  public init(
+    clipboard: ClipboardHistory, snippets: SnippetStore, quickLinks: QuickLinkStore,
+    extensions: Extensions
+  ) {
     self.clipboard = clipboard
     self.snippets = snippets
     self.quickLinks = quickLinks
+    self.extensions = extensions
+    extensions.onChange = { [weak self] in
+      self?.refreshLocalResults()
+      self?.onChange()
+    }
     setKeywords(clipboard: "clip", snippets: "snip")
     exchangeRates.onUpdate = { [weak self] in
       self?.refreshLocalResults()
@@ -74,7 +90,8 @@ public final class Search {
   public func update(_ text: String, includeFiles: Bool) {
     self.text = String(text.drop { $0.isWhitespace })
     query = SearchQuery(self.text)
-    let searchesFiles = includeFiles && keywordMode() == nil && query.compact.count >= 2
+    let searchesFiles =
+      includeFiles && keywordMode() == nil && extensionMode() == nil && query.compact.count >= 2
     fileResults =
       searchesFiles ? fileResults.filter { score(query, SearchName($0.title)) != nil } : []
     refreshLocalResults()
@@ -92,6 +109,7 @@ public final class Search {
 
   public func stop() {
     fileSearch.stop()
+    cancelExtensionRun()
   }
 
   public func perform(_ item: ResultItem, reveal: Bool, autoPaste: Bool) {
@@ -107,11 +125,10 @@ public final class Search {
       NSWorkspace.shared.open(url)
     case .copy(let string):
       copy(string)
-    case .paste(let string):
+    case .clipboard(let entry):
+      clipboard.copyToPasteboard(entry)
       if autoPaste {
-        paste(string, restoringClipboard: false)
-      } else {
-        copy(string)
+        pasteClipboard()
       }
     case .snippet(let snippet):
       if autoPaste {
@@ -123,6 +140,12 @@ public final class Search {
       break
     case .command(let command):
       command.run()
+    case .extensionAction(let command, let arg):
+      Task {
+        if let error = await extensions.runAction(command, arg: arg) {
+          showAlert("\(command.title) failed", details: error.message)
+        }
+      }
     }
   }
 
@@ -142,6 +165,13 @@ public final class Search {
       publish()
       return
     }
+    if let (command, argument) = extensionMode() {
+      localResults = extensionResults(for: command)
+      publish()
+      runExtension(command, query: argument)
+      return
+    }
+    cancelExtensionRun()
     guard !query.isEmpty else {
       localResults = []
       publish()
@@ -153,7 +183,15 @@ public final class Search {
     }
     let instant = [quickLinkResult(text, links: quickLinks.links), calculation(text), conversion(text)]
       .compactMap(\.self)
-    localResults = instant + rank(keywordItems + quickLinkItems + candidates, query, limit: nil)
+    if indexedCommands != extensions.commands {
+      indexedCommands = extensions.commands
+      extensionCommandItems = indexedCommands.map {
+        extensionCommandCandidate($0, icon: extensionIcon($0))
+      }
+    }
+    localResults =
+      instant
+      + rank(keywordItems + extensionCommandItems + quickLinkItems + candidates, query, limit: nil)
     fallbackResults = localResults.isEmpty ? quickLinkFallbacks(text, links: quickLinks.links) : []
     publish()
   }
@@ -167,6 +205,65 @@ public final class Search {
       }
     }
     return nil
+  }
+
+  private func extensionMode() -> (ExtensionCommand, String)? {
+    let lowercased = text.lowercased()
+    for command in extensions.commands where lowercased.hasPrefix(command.keyword.lowercased() + " ") {
+      return (command, String(text.dropFirst(command.keyword.count + 1)))
+    }
+    return nil
+  }
+
+  private func extensionResults(for command: ExtensionCommand) -> [ResultItem] {
+    switch extensions.status(of: command) {
+    case .settingUp:
+      return [message("Setting up \(command.title)…", "This runs the extension's setup step")]
+    case .failed(let error):
+      return [message("\(command.title) isn't working", error)]
+    case .ready:
+      return extensionResultsKey == command.folder + command.keyword ? extensionResults : []
+    }
+  }
+
+  private func runExtension(_ command: ExtensionCommand, query: String) {
+    let key = command.folder + command.keyword + "\u{0}" + query
+    guard key != extensionRunKey else { return }
+    extensionRunKey = key
+    extensionTask?.cancel()
+    extensionTask = Task {
+      try? await Task.sleep(for: .milliseconds(30))
+      guard !Task.isCancelled else { return }
+      let result = await extensions.run(command, query: query)
+      guard !Task.isCancelled else { return }
+      let icon = extensionIcon(command)
+      switch result {
+      case .success(let items):
+        extensionResults = items.map {
+          extensionResultItem($0, command: command, folder: extensions.buildFolder(of: command), icon: icon)
+        }
+        if extensionResults.isEmpty {
+          extensionResults = [message("No results", "")]
+        }
+      case .failure(let error):
+        extensionResults = [message("\(command.title) failed", error.message)]
+      }
+      extensionResultsKey = command.folder + command.keyword
+      refreshLocalResults()
+      onChange()
+    }
+  }
+
+  private func cancelExtensionRun() {
+    extensionTask?.cancel()
+    extensionTask = nil
+    extensionRunKey = ""
+  }
+
+  private func extensionIcon(_ command: ExtensionCommand) -> ResultItem.Icon {
+    let icon = extensions.buildFolder(of: command).appending(path: "icon.png")
+    return FileManager.default.fileExists(atPath: icon.path)
+      ? .image(icon.path) : .symbol("puzzlepiece.extension")
   }
 
   private func conversion(_ text: String) -> ResultItem? {
@@ -183,9 +280,9 @@ public final class Search {
   private func clipboardResults(_ query: SearchQuery) -> [ResultItem] {
     let words = query.words.map { String(String.UnicodeScalarView($0)) }
     return clipboard.entries.filter { entry in
-      let folded = fold(String(entry.text.prefix(2000)))
+      let folded = fold(String(entry.text.prefix(2000)) + " " + kindLabel(entry.kind))
       return words.allSatisfy { folded.contains($0) }
-    }.map(clipboardItem)
+    }.map { clipboardItem($0, imagePath: clipboard.imagePath(of: $0)) }
   }
 
   private func rank(_ candidates: [Candidate], _ query: SearchQuery, limit: Int?) -> [ResultItem] {
@@ -228,6 +325,47 @@ private func copy(_ string: String) {
   NSPasteboard.general.setString(string, forType: .string)
 }
 
+private func message(_ title: String, _ subtitle: String) -> ResultItem {
+  ResultItem(
+    id: "message", title: title, subtitle: subtitle, icon: .symbol("info.circle"), action: .none)
+}
+
+private func extensionCommandCandidate(_ command: ExtensionCommand, icon: ResultItem.Icon)
+  -> Candidate
+{
+  let item = ResultItem(
+    id: "extension:\(command.folder):\(command.keyword)", title: command.title,
+    subtitle: "Type ‘\(command.keyword) ’ to search", icon: icon,
+    action: .autocomplete(command.keyword + " "))
+  return Candidate(item: item, names: searchNames(command.title, command.keyword), fuzzy: false)
+}
+
+private func extensionResultItem(
+  _ item: ExtensionItem, command: ExtensionCommand, folder: URL, icon: ResultItem.Icon
+) -> ResultItem {
+  let action: Action =
+    if let url = item.url.flatMap(URL.init(string:)) {
+      .open(url)
+    } else if let copy = item.copy {
+      .copy(copy)
+    } else if let arg = item.arg, command.hasAction {
+      .extensionAction(command, arg)
+    } else if let autocomplete = item.autocomplete {
+      .autocomplete(command.keyword + " " + autocomplete)
+    } else {
+      .none
+    }
+  let itemIcon: ResultItem.Icon =
+    switch item.icon {
+    case .some(let name) where name.hasPrefix("sf:"): .symbol(String(name.dropFirst(3)))
+    case .some(let path): .image(folder.appending(path: path).path)
+    case .none: icon
+    }
+  return ResultItem(
+    id: "extension:\(command.folder):\(item.title)", title: item.title,
+    subtitle: item.subtitle ?? "", icon: itemIcon, action: action)
+}
+
 private func emptyMessage(_ mode: KeywordMode, searching argument: String) -> ResultItem {
   let (title, subtitle) =
     switch (mode, argument.isEmpty) {
@@ -241,8 +379,7 @@ private func emptyMessage(_ mode: KeywordMode, searching argument: String) -> Re
     case (.snippets, false): ("No snippets match ‘\(argument)’", "")
     case (.history, false): ("No pages match ‘\(argument)’", "")
     }
-  return ResultItem(
-    id: "message", title: title, subtitle: subtitle, icon: .symbol("info.circle"), action: .none)
+  return message(title, subtitle)
 }
 
 @concurrent private func loadCandidates() async -> ([Candidate], [Candidate]) {
@@ -289,20 +426,46 @@ private nonisolated func snippetCandidate(_ snippet: Snippet) -> Candidate {
     item: item, names: searchNames(snippet.name, snippet.keyword), fuzzy: false)
 }
 
-private func clipboardItem(_ entry: ClipboardEntry) -> ResultItem {
+private func clipboardItem(_ entry: ClipboardEntry, imagePath: String?) -> ResultItem {
   let lines = entry.text.split(whereSeparator: \.isNewline)
   let firstLine = lines.first { !$0.allSatisfy(\.isWhitespace) } ?? ""
-  let title = firstLine.split(whereSeparator: \.isWhitespace).joined(separator: " ")
   let age = entry.date.formatted(.relative(presentation: .named))
   let source = entry.sourceAppPath.map {
     FileManager.default.displayName(atPath: $0).replacing(/\.app$/, with: "")
   }
-  let details = [age, source, lines.count > 1 ? "\(lines.count) lines" : nil]
+  let title: String
+  let detail: String?
+  let icon: ResultItem.Icon
+  switch entry.kind {
+  case .image:
+    title = "Image"
+    detail = entry.imageWidth.map { "\($0)×\(entry.imageHeight ?? 0)" }
+    icon = imagePath.map { .image($0) } ?? .symbol("photo")
+  case .files:
+    let names = entry.filePaths.map { ($0 as NSString).lastPathComponent }
+    title = names.joined(separator: ", ")
+    detail = names.count > 1 ? "\(names.count) files" : (entry.filePaths.first as NSString?)?.abbreviatingWithTildeInPath
+    icon = .file(entry.filePaths[0])
+  case .text, .richText:
+    title = firstLine.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+    let notes = [entry.kind == .richText ? "Rich text" : nil, lines.count > 1 ? "\(lines.count) lines" : nil]
+      .compactMap(\.self)
+    detail = notes.isEmpty ? nil : notes.joined(separator: ", ")
+    icon = entry.sourceAppPath.map { .file($0) } ?? .symbol("doc.on.clipboard")
+  }
   return ResultItem(
     id: "clipboard", title: String(title.prefix(200)),
-    subtitle: details.compactMap(\.self).joined(separator: " · "),
-    icon: entry.sourceAppPath.map { .file($0) } ?? .symbol("doc.on.clipboard"),
-    action: .paste(entry.text))
+    subtitle: [age, source, detail].compactMap(\.self).joined(separator: " · "), icon: icon,
+    action: .clipboard(entry))
+}
+
+private func kindLabel(_ kind: ClipboardEntry.Kind) -> String {
+  switch kind {
+  case .text: ""
+  case .richText: "rich text"
+  case .image: "image"
+  case .files: "file files"
+  }
 }
 
 private func filePath(of icon: ResultItem.Icon) -> String? {

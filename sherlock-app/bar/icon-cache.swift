@@ -13,6 +13,8 @@ final class IconCache {
       case .symbol(let name):
         NSImage(systemSymbolName: name, accessibilityDescription: nil)!
           .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 22, weight: .medium))!
+      case .image(let path):
+        thumbnail(path)
       }
     icons[icon] = image
     return image
@@ -28,6 +30,18 @@ final class IconCache {
       }
     }
   }
+}
+
+private func thumbnail(_ path: String) -> NSImage {
+  let options = [
+    kCGImageSourceCreateThumbnailFromImageAlways: true,
+    kCGImageSourceThumbnailMaxPixelSize: Int(Layout.iconSize * 2),
+    kCGImageSourceCreateThumbnailWithTransform: true,
+  ] as CFDictionary
+  guard let source = CGImageSourceCreateWithURL(URL(fileURLWithPath: path) as CFURL, nil),
+    let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options)
+  else { return NSImage(systemSymbolName: "photo", accessibilityDescription: nil)! }
+  return NSImage(cgImage: image, size: NSSize(width: Layout.iconSize, height: Layout.iconSize))
 }
 
 @concurrent private func renderIcons(_ paths: [String]) async -> [(String, CGImage)] {

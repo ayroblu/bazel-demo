@@ -2,6 +2,7 @@ import AppKit
 import ServiceManagement
 import SwiftUI
 import clipboard
+import extensions
 import hotkey
 import preferences
 import search
@@ -12,16 +13,18 @@ public final class SettingsWindowController {
   private let clipboard: ClipboardHistory
   private let snippets: SnippetStore
   private let quickLinks: QuickLinkStore
+  private let extensions: Extensions
   private var window: NSWindow?
 
   public init(
     preferences: Preferences, clipboard: ClipboardHistory, snippets: SnippetStore,
-    quickLinks: QuickLinkStore
+    quickLinks: QuickLinkStore, extensions: Extensions
   ) {
     self.preferences = preferences
     self.clipboard = clipboard
     self.snippets = snippets
     self.quickLinks = quickLinks
+    self.extensions = extensions
   }
 
   public var isVisible: Bool { window?.isVisible ?? false }
@@ -39,7 +42,8 @@ public final class SettingsWindowController {
 
   private func makeWindow() -> NSWindow {
     let view = SettingsView(
-      preferences: preferences, clipboard: clipboard, snippets: snippets, quickLinks: quickLinks)
+      preferences: preferences, clipboard: clipboard, snippets: snippets, quickLinks: quickLinks,
+      extensions: extensions)
     let controller = NSHostingController(rootView: view)
     controller.sizingOptions = []
     let window = NSWindow(contentViewController: controller)
@@ -60,13 +64,13 @@ private struct SettingsView: View {
   let clipboard: ClipboardHistory
   let snippets: SnippetStore
   let quickLinks: QuickLinkStore
+  let extensions: Extensions
   @State private var usesSystemShortcut = false
   @State private var runningLaunchers: [String] = []
   @State private var canSearchAllFiles = true
   @State private var canPasteIntoApps = true
   @State private var snippetCount = 0
   @State private var quickLinkCount = 0
-  @State private var snippetMessage: String?
   @State private var configFolderError: String?
   @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
   @State private var launchAtLoginError: String?
@@ -133,13 +137,7 @@ private struct SettingsView: View {
       }
       Section("Snippets") {
         LabeledContent("\(snippetCount) \(snippetCount == 1 ? "snippet" : "snippets")") {
-          HStack {
-            Button("Import Alfred Snippets…", action: importAlfredSnippets)
-            Button("Edit…") { openConfigFile(snippets.fileURL) }
-          }
-        }
-        if let snippetMessage {
-          Text(snippetMessage).foregroundStyle(.secondary)
+          Button("Edit…") { openConfigFile(snippets.fileURL) }
         }
         LabeledContent("Keyword") {
           KeywordField(keyword: $preferences.snippetKeyword)
@@ -152,6 +150,22 @@ private struct SettingsView: View {
         }
         Text(
           "Type a keyword and your search, like ‘npm react’, to open its URL with {query} replaced."
+        )
+        .foregroundStyle(.secondary)
+      }
+      Section("Extensions") {
+        ForEach(extensions.summaries) { summary in
+          LabeledContent(summary.name) {
+            Text(statusText(summary.status)).foregroundStyle(statusColor(summary.status))
+          }
+        }
+        Button("Open Extensions Folder") {
+          try? FileManager.default.createDirectory(
+            at: extensions.folderURL, withIntermediateDirectories: true)
+          NSWorkspace.shared.open(extensions.folderURL)
+        }
+        Text(
+          "Each folder with an extension.yaml is an extension. Its setup runs in a copy that it can write to; its commands then run in a sandbox that can only write to its data folder."
         )
         .foregroundStyle(.secondary)
       }
@@ -179,7 +193,7 @@ private struct SettingsView: View {
           }
         }
         Text(
-          "Holds settings.yaml, snippets.yaml and quicklinks.yaml. Edits apply as soon as you save. Changing the folder moves the files there, unless it already has its own, which Sherlock then uses."
+          "Holds settings.yaml, snippets.yaml, quicklinks.yaml and extensions/. Edits apply as soon as you save. Changing the folder moves the files there, unless it already has its own, which Sherlock then uses."
         )
         .foregroundStyle(.secondary)
         if let configFolderError {
@@ -229,20 +243,20 @@ private struct SettingsView: View {
     }
   }
 
-  private func importAlfredSnippets() {
-    let panel = NSOpenPanel()
-    panel.message = "Choose an Alfred.alfredpreferences bundle or its snippets folder"
-    panel.canChooseDirectories = true
-    panel.canChooseFiles = true
-    panel.treatsFilePackagesAsDirectories = true
-    guard panel.runModal() == .OK, let url = panel.url else { return }
-    do {
-      let added = try snippets.importAlfredSnippets(from: url)
-      snippetMessage = "Imported \(added) new snippets."
-    } catch {
-      snippetMessage = "Couldn't import snippets: \(error.localizedDescription)"
+  private func statusText(_ status: ExtensionStatus) -> String {
+    switch status {
+    case .settingUp: "Setting up…"
+    case .ready: "Ready"
+    case .failed(let error): error
     }
-    refreshStatus()
+  }
+
+  private func statusColor(_ status: ExtensionStatus) -> Color {
+    switch status {
+    case .settingUp: .secondary
+    case .ready: .green
+    case .failed: .red
+    }
   }
 
   private func chooseConfigFolder() {
@@ -260,6 +274,7 @@ private struct SettingsView: View {
     do {
       try snippets.moveFolder(to: folder)
       try quickLinks.moveFolder(to: folder)
+      try extensions.moveFolder(to: folder)
       try preferences.moveConfigFolder(to: folder)
       configFolderError = nil
     } catch {

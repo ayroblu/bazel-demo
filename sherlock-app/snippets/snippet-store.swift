@@ -31,14 +31,6 @@ public final class SnippetStore {
     load()
   }
 
-  public func importAlfredSnippets(from folder: URL) throws -> Int {
-    let imported = try readAlfredSnippets(in: folder)
-    let added = imported.filter { !snippets.contains($0) }
-    try file.save(snippets + added)
-    load()
-    return added.count
-  }
-
   public func render(_ snippet: Snippet) -> String {
     render(snippet.text, depth: 0)
   }
@@ -81,36 +73,3 @@ public final class SnippetStore {
 }
 
 private let placeholderPattern = /\{(clipboard|date|time|datetime|random:UUID|date:[^}]*|snippet:[^}]*)\}/
-
-private func readAlfredSnippets(in folder: URL) throws -> [Snippet] {
-  let files = FileManager.default.enumerator(at: folder, includingPropertiesForKeys: nil)?
-    .compactMap { $0 as? URL }.filter { $0.pathExtension == "json" } ?? []
-  return files.compactMap { file in
-    guard let data = try? Data(contentsOf: file),
-      let wrapper = try? JSONDecoder().decode(AlfredSnippetFile.self, from: data)
-    else { return nil }
-    let collectionFolder = file.deletingLastPathComponent()
-    let info = NSDictionary(contentsOf: collectionFolder.appending(path: "info.plist"))
-    let prefix = info?["snippetkeywordprefix"] as? String ?? ""
-    let suffix = info?["snippetkeywordsuffix"] as? String ?? ""
-    let snippet = wrapper.alfredsnippet
-    let keyword = snippet.keyword ?? ""
-    let fullKeyword =
-      keyword.isEmpty
-      ? "" : (keyword.hasPrefix(prefix) ? "" : prefix) + keyword
-        + (keyword.hasSuffix(suffix) ? "" : suffix)
-    return Snippet(
-      name: snippet.name ?? keyword, keyword: fullKeyword, text: snippet.snippet,
-      collection: collectionFolder.lastPathComponent)
-  }
-}
-
-private struct AlfredSnippetFile: Decodable {
-  struct Body: Decodable {
-    let snippet: String
-    let name: String?
-    let keyword: String?
-  }
-
-  let alfredsnippet: Body
-}

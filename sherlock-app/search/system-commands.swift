@@ -101,7 +101,7 @@ private func ejectAll() {
   }
 }
 
-private func showAlert(_ message: String, details: String) {
+func showAlert(_ message: String, details: String) {
   let alert = NSAlert()
   alert.messageText = message
   alert.informativeText = details

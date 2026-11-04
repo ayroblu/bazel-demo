@@ -10,6 +10,7 @@ swift_library(
     module_name = "settings",
     deps = [
         "//sherlock-app/clipboard",
+        "//sherlock-app/extensions",
         "//sherlock-app/hotkey",
         "//sherlock-app/preferences",
         "//sherlock-app/search",

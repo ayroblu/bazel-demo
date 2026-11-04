@@ -34,6 +34,14 @@ public func paste(_ text: String, restoringClipboard: Bool) {
   }
 }
 
+public func pasteClipboard() {
+  guard canPaste else { return }
+  Task {
+    try? await Task.sleep(for: .milliseconds(80))
+    postKey(kVK_ANSI_V, flags: .maskCommand)
+  }
+}
+
 public func postKey(_ keyCode: Int, flags: CGEventFlags = []) {
   let source = CGEventSource(stateID: .combinedSessionState)
   for isDown in [true, false] {

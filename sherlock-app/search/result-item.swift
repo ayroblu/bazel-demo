@@ -1,10 +1,13 @@
 import Foundation
+import clipboard
+import extensions
 import snippets
 
 public nonisolated struct ResultItem: Sendable {
   public enum Icon: Hashable, Sendable {
     case file(String)
     case symbol(String)
+    case image(String)
   }
 
   public let id: String
@@ -32,10 +35,11 @@ public nonisolated struct ResultItem: Sendable {
 nonisolated enum Action: Sendable {
   case open(URL)
   case copy(String)
-  case paste(String)
+  case clipboard(ClipboardEntry)
   case snippet(Snippet)
   case autocomplete(String)
   case command(SystemCommand)
+  case extensionAction(ExtensionCommand, String)
   case none
 }
 

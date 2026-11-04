@@ -1,6 +1,7 @@
 import AppKit
 import Carbon.HIToolbox
 import clipboard
+import extensions
 import preferences
 import search
 import snippets
@@ -19,10 +20,11 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
 
   public init(
     preferences: Preferences, clipboard: ClipboardHistory, snippets: SnippetStore,
-    quickLinks: QuickLinkStore
+    quickLinks: QuickLinkStore, extensions: Extensions
   ) {
     self.preferences = preferences
-    search = Search(clipboard: clipboard, snippets: snippets, quickLinks: quickLinks)
+    search = Search(
+      clipboard: clipboard, snippets: snippets, quickLinks: quickLinks, extensions: extensions)
     super.init()
     buildViews()
     panel.delegate = self
