@@ -12,31 +12,29 @@ public final class SnippetStore {
   public var onChange: () -> Void = {}
   public private(set) var snippets: [Snippet] = []
   public private(set) var version = 0
-  public private(set) var fileURL: URL
-  private var loadedModificationDate: Date?
+  private let file: ConfigFile<[Snippet]>
 
   public init(folder: URL) {
-    fileURL = folder.appending(path: "snippets.yaml")
+    file = ConfigFile(folder: folder, name: "snippets.yaml")
     load()
   }
 
+  public var fileURL: URL { file.url }
+
   public func moveFolder(to folder: URL) throws {
-    fileURL = try moveDataFile(fileURL, into: folder)
+    try file.move(to: folder)
     load()
   }
 
   public func reloadIfChanged() {
-    guard modificationDate() != loadedModificationDate else { return }
+    guard file.hasChanged else { return }
     load()
   }
 
   public func importAlfredSnippets(from folder: URL) throws -> Int {
     let imported = try readAlfredSnippets(in: folder)
     let added = imported.filter { !snippets.contains($0) }
-    snippets += added
-    try FileManager.default.createDirectory(
-      at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-    try encodeYAML(snippets).write(to: fileURL, atomically: true, encoding: .utf8)
+    try file.save(snippets + added)
     load()
     return added.count
   }
@@ -46,14 +44,10 @@ public final class SnippetStore {
   }
 
   private func load() {
-    loadedModificationDate = modificationDate()
-    snippets = decodeYAML([Snippet].self, from: fileURL) ?? []
+    guard let loaded = file.load() ?? (file.exists ? nil : []) else { return }
+    snippets = loaded
     version += 1
     onChange()
-  }
-
-  private func modificationDate() -> Date? {
-    (try? FileManager.default.attributesOfItem(atPath: fileURL.path))?[.modificationDate] as? Date
   }
 
   private func render(_ text: String, depth: Int) -> String {

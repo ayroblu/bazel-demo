@@ -2,6 +2,7 @@ import AppKit
 import browser
 import clipboard
 import conversion
+import preferences
 import snippets
 
 public final class Search {
@@ -10,6 +11,7 @@ public final class Search {
   public private(set) var results: [ResultItem] = []
   private let clipboard: ClipboardHistory
   private let snippets: SnippetStore
+  private let quickLinks: QuickLinkStore
   private let knowledge = Knowledge()
   private let fileSearch = FileSearch()
   private let exchangeRates = ExchangeRates()
@@ -19,6 +21,8 @@ public final class Search {
   private var indexedSnippetVersion = -1
   private var keywords: [KeywordMode: String] = [:]
   private var keywordItems: [Candidate] = []
+  private var quickLinkItems: [Candidate] = []
+  private var indexedQuickLinkVersion = -1
   private var scannedAt = Date.distantPast
   private var isScanning = false
   private var text = ""
@@ -27,9 +31,10 @@ public final class Search {
   private var fileResults: [ResultItem] = []
   private var fallbackResults: [ResultItem] = []
 
-  public init(clipboard: ClipboardHistory, snippets: SnippetStore) {
+  public init(clipboard: ClipboardHistory, snippets: SnippetStore, quickLinks: QuickLinkStore) {
     self.clipboard = clipboard
     self.snippets = snippets
+    self.quickLinks = quickLinks
     setKeywords(clipboard: "clip", snippets: "snip")
     exchangeRates.onUpdate = { [weak self] in
       self?.refreshLocalResults()
@@ -39,6 +44,7 @@ public final class Search {
 
   public func refreshIfStale() {
     snippets.reloadIfChanged()
+    quickLinks.reloadIfChanged()
     if indexedSnippetVersion != snippets.version {
       indexedSnippetVersion = snippets.version
       let snapshot = snippets.snippets
@@ -141,9 +147,14 @@ public final class Search {
       publish()
       return
     }
-    let instant = [keywordSearch(text), calculation(text), conversion(text)].compactMap(\.self)
-    localResults = instant + rank(keywordItems + candidates, query, limit: nil)
-    fallbackResults = localResults.isEmpty ? [webFallback(text)] : []
+    if indexedQuickLinkVersion != quickLinks.version {
+      indexedQuickLinkVersion = quickLinks.version
+      quickLinkItems = quickLinkCandidates(quickLinks.links)
+    }
+    let instant = [quickLinkResult(text, links: quickLinks.links), calculation(text), conversion(text)]
+      .compactMap(\.self)
+    localResults = instant + rank(keywordItems + quickLinkItems + candidates, query, limit: nil)
+    fallbackResults = localResults.isEmpty ? quickLinkFallbacks(text, links: quickLinks.links) : []
     publish()
   }
 

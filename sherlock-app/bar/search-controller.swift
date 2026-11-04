@@ -17,9 +17,12 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
   private var offset = 0
   private var top: CGFloat = 0
 
-  public init(preferences: Preferences, clipboard: ClipboardHistory, snippets: SnippetStore) {
+  public init(
+    preferences: Preferences, clipboard: ClipboardHistory, snippets: SnippetStore,
+    quickLinks: QuickLinkStore
+  ) {
     self.preferences = preferences
-    search = Search(clipboard: clipboard, snippets: snippets)
+    search = Search(clipboard: clipboard, snippets: snippets, quickLinks: quickLinks)
     super.init()
     buildViews()
     panel.delegate = self

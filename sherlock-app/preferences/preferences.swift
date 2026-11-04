@@ -1,7 +1,6 @@
 import AppKit
 import Carbon.HIToolbox
 import Observation
-import Yams
 import hotkey
 
 @Observable
@@ -20,6 +19,8 @@ public final class Preferences {
   public var isRecordingShortcut = false
   public var hotKeyRegistered = true
   public var clipboardHotKeyRegistered = true
+  @ObservationIgnored private let file: ConfigFile<StoredSettings>
+  @ObservationIgnored private var isApplying = false
 
   public static let standardClipboardShortcut = Shortcut(
     keyCode: UInt32(kVK_ANSI_C),
@@ -33,8 +34,8 @@ public final class Preferences {
       UserDefaults.standard.string(forKey: configFolderKey).map { URL(fileURLWithPath: $0) }
       ?? Self.standardConfigFolder
     configFolder = folder
-    let file = settingsFile(in: folder)
-    let stored = loadSettings(file) ?? StoredSettings()
+    file = ConfigFile(folder: folder, name: "settings.yaml")
+    let stored = file.load() ?? StoredSettings()
     shortcut = stored.shortcut
     clipboardShortcut = stored.clipboardShortcut
     showMenuBarIcon = stored.showMenuBarIcon
@@ -45,23 +46,30 @@ public final class Preferences {
     autoPaste = stored.autoPaste
     clipboardKeyword = stored.clipboardKeyword
     snippetKeyword = stored.snippetKeyword
-    if !FileManager.default.fileExists(atPath: file.path) {
+    if !file.exists {
       save()
     }
   }
 
-  public func moveConfigFolder(to folder: URL) throws {
-    let file = try moveDataFile(settingsFile(in: configFolder), into: folder)
-    configFolder = folder
-    UserDefaults.standard.set(folder.path, forKey: configFolderKey)
-    guard let stored = loadSettings(file) else {
-      save()
-      return
-    }
+  public func reloadIfChanged() {
+    guard file.hasChanged, let stored = file.load() else { return }
     apply(stored)
   }
 
+  public func moveConfigFolder(to folder: URL) throws {
+    try file.move(to: folder)
+    configFolder = folder
+    UserDefaults.standard.set(folder.path, forKey: configFolderKey)
+    if let stored = file.load() {
+      apply(stored)
+    } else {
+      save()
+    }
+  }
+
   private func apply(_ stored: StoredSettings) {
+    isApplying = true
+    defer { isApplying = false }
     shortcut = stored.shortcut
     clipboardShortcut = stored.clipboardShortcut
     showMenuBarIcon = stored.showMenuBarIcon
@@ -75,44 +83,17 @@ public final class Preferences {
   }
 
   private func save() {
-    let stored = StoredSettings(
-      shortcut: shortcut, clipboardShortcut: clipboardShortcut, showMenuBarIcon: showMenuBarIcon,
-      searchFiles: searchFiles, clipboardHistory: clipboardHistory,
-      clipboardRetentionDays: clipboardRetentionDays, expandSnippets: expandSnippets,
-      autoPaste: autoPaste, clipboardKeyword: clipboardKeyword, snippetKeyword: snippetKeyword)
-    try? FileManager.default.createDirectory(at: configFolder, withIntermediateDirectories: true)
-    try? encodeYAML(stored).write(to: settingsFile(in: configFolder), atomically: true, encoding: .utf8)
+    guard !isApplying else { return }
+    try? file.save(
+      StoredSettings(
+        shortcut: shortcut, clipboardShortcut: clipboardShortcut, showMenuBarIcon: showMenuBarIcon,
+        searchFiles: searchFiles, clipboardHistory: clipboardHistory,
+        clipboardRetentionDays: clipboardRetentionDays, expandSnippets: expandSnippets,
+        autoPaste: autoPaste, clipboardKeyword: clipboardKeyword, snippetKeyword: snippetKeyword))
   }
-}
-
-public func encodeYAML(_ value: some Encodable) throws -> String {
-  let encoder = YAMLEncoder()
-  encoder.options.allowUnicode = true
-  encoder.options.sortKeys = true
-  encoder.options.width = -1
-  encoder.options.newLineScalarStyle = .literal
-  return try encoder.encode(value)
-}
-
-public func decodeYAML<T: Decodable>(_ type: T.Type, from file: URL) -> T? {
-  (try? String(contentsOf: file, encoding: .utf8)).flatMap { try? YAMLDecoder().decode(type, from: $0) }
-}
-
-public func moveDataFile(_ file: URL, into folder: URL) throws -> URL {
-  let destination = folder.appending(path: file.lastPathComponent)
-  let fileManager = FileManager.default
-  try fileManager.createDirectory(at: folder, withIntermediateDirectories: true)
-  if fileManager.fileExists(atPath: file.path), !fileManager.fileExists(atPath: destination.path) {
-    try fileManager.moveItem(at: file, to: destination)
-  }
-  return destination
 }
 
 private let configFolderKey = "configFolder"
-
-private func settingsFile(in folder: URL) -> URL {
-  folder.appending(path: "settings.yaml")
-}
 
 private struct StoredSettings: Codable {
   var shortcut = Shortcut.standard
@@ -154,8 +135,4 @@ extension StoredSettings {
     snippetKeyword =
       try container.decodeIfPresent(String.self, forKey: .snippetKeyword) ?? standard.snippetKeyword
   }
-}
-
-private func loadSettings(_ file: URL) -> StoredSettings? {
-  decodeYAML(StoredSettings.self, from: file)
 }

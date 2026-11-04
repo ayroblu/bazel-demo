@@ -11,12 +11,17 @@ public final class SettingsWindowController {
   private let preferences: Preferences
   private let clipboard: ClipboardHistory
   private let snippets: SnippetStore
+  private let quickLinks: QuickLinkStore
   private var window: NSWindow?
 
-  public init(preferences: Preferences, clipboard: ClipboardHistory, snippets: SnippetStore) {
+  public init(
+    preferences: Preferences, clipboard: ClipboardHistory, snippets: SnippetStore,
+    quickLinks: QuickLinkStore
+  ) {
     self.preferences = preferences
     self.clipboard = clipboard
     self.snippets = snippets
+    self.quickLinks = quickLinks
   }
 
   public var isVisible: Bool { window?.isVisible ?? false }
@@ -33,7 +38,8 @@ public final class SettingsWindowController {
   }
 
   private func makeWindow() -> NSWindow {
-    let view = SettingsView(preferences: preferences, clipboard: clipboard, snippets: snippets)
+    let view = SettingsView(
+      preferences: preferences, clipboard: clipboard, snippets: snippets, quickLinks: quickLinks)
     let controller = NSHostingController(rootView: view)
     controller.sizingOptions = []
     let window = NSWindow(contentViewController: controller)
@@ -53,11 +59,13 @@ private struct SettingsView: View {
   @Bindable var preferences: Preferences
   let clipboard: ClipboardHistory
   let snippets: SnippetStore
+  let quickLinks: QuickLinkStore
   @State private var usesSystemShortcut = false
   @State private var runningLaunchers: [String] = []
   @State private var canSearchAllFiles = true
   @State private var canPasteIntoApps = true
   @State private var snippetCount = 0
+  @State private var quickLinkCount = 0
   @State private var snippetMessage: String?
   @State private var configFolderError: String?
   @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
@@ -127,7 +135,7 @@ private struct SettingsView: View {
         LabeledContent("\(snippetCount) \(snippetCount == 1 ? "snippet" : "snippets")") {
           HStack {
             Button("Import Alfred Snippets…", action: importAlfredSnippets)
-            Button("Edit…", action: openSnippetsFile)
+            Button("Edit…") { openConfigFile(snippets.fileURL) }
           }
         }
         if let snippetMessage {
@@ -137,6 +145,15 @@ private struct SettingsView: View {
           KeywordField(keyword: $preferences.snippetKeyword)
         }
         Toggle("Expand snippet keywords as you type", isOn: $preferences.expandSnippets)
+      }
+      Section("Quick Links") {
+        LabeledContent("\(quickLinkCount) \(quickLinkCount == 1 ? "quick link" : "quick links")") {
+          Button("Edit…") { openConfigFile(quickLinks.fileURL) }
+        }
+        Text(
+          "Type a keyword and your search, like ‘npm react’, to open its URL with {query} replaced."
+        )
+        .foregroundStyle(.secondary)
       }
       if !canPasteIntoApps {
         Section("Permissions") {
@@ -162,7 +179,7 @@ private struct SettingsView: View {
           }
         }
         Text(
-          "Holds settings.yaml and snippets.yaml. Changing the folder moves them there, unless it already has its own, which Sherlock then uses."
+          "Holds settings.yaml, snippets.yaml and quicklinks.yaml. Edits apply as soon as you save. Changing the folder moves the files there, unless it already has its own, which Sherlock then uses."
         )
         .foregroundStyle(.secondary)
         if let configFolderError {
@@ -205,6 +222,8 @@ private struct SettingsView: View {
     canPasteIntoApps = canPaste
     snippets.reloadIfChanged()
     snippetCount = snippets.snippets.count
+    quickLinks.reloadIfChanged()
+    quickLinkCount = quickLinks.links.count
     runningLaunchers = otherLaunchers.compactMap { bundleId, name in
       NSRunningApplication.runningApplications(withBundleIdentifier: bundleId).isEmpty ? nil : name
     }
@@ -240,6 +259,7 @@ private struct SettingsView: View {
   private func moveConfig(to folder: URL) {
     do {
       try snippets.moveFolder(to: folder)
+      try quickLinks.moveFolder(to: folder)
       try preferences.moveConfigFolder(to: folder)
       configFolderError = nil
     } catch {
@@ -248,8 +268,7 @@ private struct SettingsView: View {
     refreshStatus()
   }
 
-  private func openSnippetsFile() {
-    let url = snippets.fileURL
+  private func openConfigFile(_ url: URL) {
     if !FileManager.default.fileExists(atPath: url.path) {
       try? FileManager.default.createDirectory(
         at: url.deletingLastPathComponent(), withIntermediateDirectories: true)

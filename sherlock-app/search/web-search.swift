@@ -1,57 +1,55 @@
 import AppKit
+import preferences
 
-func keywordSearch(_ text: String) -> ResultItem? {
+func quickLinkResult(_ text: String, links: [QuickLink]) -> ResultItem? {
   let parts = text.split(separator: " ", maxSplits: 1)
   guard parts.count == 2,
-    let engine = engines.first(where: { $0.keywords.contains(parts[0].lowercased()) })
+    let link = links.first(where: { $0.keyword.lowercased() == parts[0].lowercased() }),
+    link.url.contains(queryPlaceholder)
   else { return nil }
   let terms = parts[1].trimmingCharacters(in: .whitespaces)
-  return terms.isEmpty ? nil : engine.item(searching: terms)
+  return terms.isEmpty ? nil : item(for: link, searching: terms)
 }
 
-func webFallback(_ text: String) -> ResultItem {
-  engines[0].item(searching: text)
-}
-
-private struct WebSearchEngine {
-  let id: String
-  let name: String
-  let keywords: [String]
-  let template: String
-  let appPath: String?
-
-  func item(searching terms: String) -> ResultItem {
-    let encoded = terms.addingPercentEncoding(withAllowedCharacters: queryAllowed) ?? terms
-    let url = URL(string: template.replacingOccurrences(of: "{query}", with: encoded))!
-    return ResultItem(
-      id: "web:" + id, title: "Search \(name) for ‘\(terms)’",
-      subtitle: [url.host(), "keyword: \(keywords[0])"].compactMap(\.self).joined(separator: " · "),
-      icon: .file(appPath ?? defaultBrowserPath()), action: .open(url))
+func quickLinkFallbacks(_ text: String, links: [QuickLink]) -> [ResultItem] {
+  links.filter { $0.fallback == true && $0.url.contains(queryPlaceholder) }.compactMap {
+    item(for: $0, searching: text)
   }
 }
 
-private let engines = [
-  WebSearchEngine(
-    id: "google", name: "Google", keywords: ["g", "google"],
-    template: "https://www.google.com/search?q={query}", appPath: nil),
-  WebSearchEngine(
-    id: "youtube", name: "YouTube", keywords: ["yt", "youtube"],
-    template: "https://www.youtube.com/results?search_query={query}", appPath: nil),
-  WebSearchEngine(
-    id: "wikipedia", name: "Wikipedia", keywords: ["wiki"],
-    template: "https://en.wikipedia.org/wiki/Special:Search?search={query}", appPath: nil),
-  WebSearchEngine(
-    id: "github", name: "GitHub", keywords: ["gh", "github"],
-    template: "https://github.com/search?q={query}", appPath: nil),
-  WebSearchEngine(
-    id: "maps", name: "Maps", keywords: ["maps"], template: "maps://?q={query}",
-    appPath: "/System/Applications/Maps.app"),
-]
+func quickLinkCandidates(_ links: [QuickLink]) -> [Candidate] {
+  links.compactMap { link in
+    let takesQuery = link.url.contains(queryPlaceholder)
+    guard let url = URL(string: link.url.replacing(queryPlaceholder, with: "")) else { return nil }
+    let title = link.title.replacing(queryPlaceholder, with: "…")
+    let item = ResultItem(
+      id: "quicklink:" + link.keyword, title: title,
+      subtitle: takesQuery ? "Type ‘\(link.keyword) ’ and your search" : link.url,
+      icon: .file(appPath(opening: url)),
+      action: takesQuery ? .autocomplete(link.keyword + " ") : .open(url))
+    let words = link.title.replacing(queryPlaceholder, with: "")
+    return Candidate(item: item, names: searchNames(link.keyword, words), fuzzy: false)
+  }
+}
+
+func appPath(opening url: URL) -> String {
+  NSWorkspace.shared.urlForApplication(toOpen: url)?.path ?? "/Applications/Safari.app"
+}
+
+private let queryPlaceholder = "{query}"
+
+private func item(for link: QuickLink, searching terms: String) -> ResultItem? {
+  let encoded = terms.split(separator: " ").map {
+    $0.addingPercentEncoding(withAllowedCharacters: queryAllowed) ?? String($0)
+  }.joined(separator: link.spaces ?? "%20")
+  guard let url = URL(string: link.url.replacing(queryPlaceholder, with: encoded)) else {
+    return nil
+  }
+  return ResultItem(
+    id: "quicklink:" + link.keyword, title: link.title.replacing(queryPlaceholder, with: terms),
+    subtitle: [url.host(), "keyword: \(link.keyword)"].compactMap(\.self).joined(separator: " · "),
+    icon: .file(appPath(opening: url)), action: .open(url))
+}
 
 private let queryAllowed = CharacterSet.urlQueryAllowed.subtracting(
   CharacterSet(charactersIn: "&+=#?/"))
-
-private func defaultBrowserPath() -> String {
-  NSWorkspace.shared.urlForApplication(toOpen: URL(string: "https://example.com")!)?.path
-    ?? "/Applications/Safari.app"
-}

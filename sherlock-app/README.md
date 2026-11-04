@@ -7,8 +7,8 @@ selected result. ⌥⌘C opens your clipboard history.
 
 Results are listed in this order:
 
-1. **Web search keywords**: `g …` (Google), `yt …` (YouTube), `wiki …`
-   (Wikipedia), `gh …` (GitHub) and `maps …` (Apple Maps).
+1. **Quick links**: a keyword and your search, like `npm react` or `gh swift
+   yaml`, opens that site's search (see [Quick links](#quick-links)).
 2. **Calculator and conversions**, ↩ copies the result:
    - Maths: `24*7`, `15% * 80`, `sqrt(16) + 2^3`, `=1/3`. Supports
      `+ - * × / ÷ ^ %`, brackets, `pi`, `e` and `sqrt abs sin cos tan asin acos
@@ -43,7 +43,7 @@ Results are listed in this order:
    them) from Spotlight results until Sherlock has Full Disk Access; Settings
    warns about this and links to System Settings > Privacy & Security > Full
    Disk Access.
-5. **Search Google**, when nothing in 1–3 matches.
+5. **Fallback quick links** (Google by default), when nothing in 1–3 matches.
 
 ### Keywords
 
@@ -128,17 +128,54 @@ You can:
 - hide the menu bar icon
 - launch Sherlock at login
 
+### Quick links
+
+`quicklinks.yaml` in the config folder lists sites to search by keyword. Typing
+the keyword, a space and your search opens `url` with `{query}` replaced by your
+search, percent-encoded:
+
+```yaml
+- keyword: npm
+  title: Search npm for ‘{query}’
+  url: https://www.npmjs.com/search?q={query}
+- keyword: gh
+  spaces: +
+  title: Search GitHub for ‘{query}’
+  url: https://github.com/search?q={query}
+- fallback: true
+  keyword: g
+  title: Search Google for ‘{query}’
+  url: https://www.google.com/search?q={query}
+- keyword: youtube
+  title: Open YouTube
+  url: https://youtube.com
+```
+
+- `title` is shown in the results, with `{query}` replaced by your search.
+- `spaces` (optional) replaces the spaces between words, for sites that expect
+  `+`; otherwise spaces become `%20`.
+- `fallback: true` (optional) shows the link when nothing else matches.
+- A `url` without `{query}` just opens that URL.
+- Typing a keyword or words from a title also lists the quick link; ↩ or ⇥ fills
+  in the keyword.
+
+The first time Sherlock runs it writes Google, YouTube, Wikipedia, GitHub and
+Maps quick links. Settings > Quick Links > Edit… opens the file.
+
 ### Config
 
 Your config lives in one folder, by default `~/Library/Application Support/Sherlock`.
 Change it in Settings > Config (for example to keep it in your dotfiles):
 
 - `settings.yaml`: hotkeys and options. Missing keys use their defaults, so a
-  hand-edited file can list only what it changes. Edits made outside Sherlock
-  apply the next time it starts.
+  hand-edited file can list only what it changes.
 - `snippets.yaml`: your snippets.
+- `quicklinks.yaml`: your quick links.
 
-Choosing a new folder moves both files there. If the new folder already has its
+Sherlock watches the folder, so edits apply as soon as you save. If a file
+doesn't parse, Sherlock keeps using its last good contents until you fix it.
+
+Choosing a new folder moves the files there. If the new folder already has its
 own copy of a file, Sherlock uses that one and leaves the old one where it was.
 
 Other state stays on this Mac:

@@ -22,11 +22,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private let preferences = Preferences()
   private let clipboard = ClipboardHistory()
   private lazy var snippets = SnippetStore(folder: preferences.configFolder)
+  private lazy var quickLinks = QuickLinkStore(folder: preferences.configFolder)
+  private lazy var configWatcher = FolderWatcher { [weak self] in self?.reloadConfig() }
   private lazy var expander = SnippetExpander(store: snippets)
   private lazy var search = SearchController(
-    preferences: preferences, clipboard: clipboard, snippets: snippets)
+    preferences: preferences, clipboard: clipboard, snippets: snippets, quickLinks: quickLinks)
   private lazy var settings = SettingsWindowController(
-    preferences: preferences, clipboard: clipboard, snippets: snippets)
+    preferences: preferences, clipboard: clipboard, snippets: snippets, quickLinks: quickLinks)
   private lazy var hotKey = HotKey { [weak self] in self?.search.toggle() }
   private lazy var clipboardHotKey = HotKey { [weak self] in self?.showClipboard() }
   private var statusItem: NSStatusItem?
@@ -69,6 +71,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       }
     }
     snippets.onChange = { [weak self] in self?.updateSnippetExpansion() }
+    Task {
+      for await folder in Observations({ self.preferences.configFolder }) {
+        configWatcher.watch(folder)
+      }
+    }
     DistributedNotificationCenter.default().addObserver(
       forName: Notification.Name("com.apple.accessibility.api"), object: nil, queue: .main
     ) { [weak self] _ in
@@ -107,6 +114,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       preferences.clipboardHotKeyRegistered = clipboardHotKey.register(
         preferences.clipboardShortcut)
     }
+  }
+
+  private func reloadConfig() {
+    preferences.reloadIfChanged()
+    snippets.reloadIfChanged()
+    quickLinks.reloadIfChanged()
   }
 
   private func updateSnippetExpansion() {
