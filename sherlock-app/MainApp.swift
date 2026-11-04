@@ -23,12 +23,12 @@ struct SherlockApp {
 final class AppDelegate: NSObject, NSApplicationDelegate {
   private let preferences = Preferences()
   private let clipboard = ClipboardHistory()
-  private lazy var snippets = SnippetStore(folder: preferences.configFolder)
-  private lazy var quickLinks = QuickLinkStore(folder: preferences.configFolder)
+  private lazy var snippets = SnippetStore(snippetsIn: preferences.configFolder)
+  private lazy var quickLinks = QuickLinkStore(quickLinksIn: preferences.configFolder)
   private lazy var extensions = Extensions(configFolder: preferences.configFolder)
-  private lazy var hotkeyStore = HotkeyStore(folder: preferences.configFolder)
+  private lazy var hotkeyStore = HotkeyStore(hotkeysIn: preferences.configFolder)
   private let hotkeyBindings = HotkeyBindings()
-  private lazy var configWatcher = FolderWatcher { [weak self] in self?.reloadConfig() }
+  private lazy var configWatcher = FolderWatcher { [weak self] in self?.reloadConfig($0) }
   private lazy var expander = SnippetExpander(store: snippets)
   private lazy var search = SearchController(
     preferences: preferences, clipboard: clipboard, snippets: snippets, quickLinks: quickLinks,
@@ -54,7 +54,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       for await _ in Observations({
         (
           self.preferences.shortcut, self.preferences.clipboardShortcut,
-          self.preferences.isRecordingShortcut
+          self.preferences.recordingShortcut
         )
       }) {
         updateHotKey()
@@ -73,14 +73,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       }
     }
     Task {
-      for await _ in Observations({ self.preferences.expandSnippets }) {
+      for await _ in Observations({ (self.preferences.expandSnippets, self.snippets.version) }) {
         updateSnippetExpansion()
       }
     }
-    snippets.onChange = { [weak self] in self?.updateSnippetExpansion() }
     hotkeyBindings.onSearch = { [weak self] in self?.search.show(text: $0) }
-    hotkeyStore.onChange = { [weak self] in self?.updateHotkeyBindings() }
-    updateHotkeyBindings()
+    Task {
+      for await bindings in Observations({ self.hotkeyStore.items }) {
+        hotkeyBindings.apply(bindings)
+      }
+    }
     Task {
       for await folder in Observations({ self.preferences.configFolder }) {
         configWatcher.watch(folder)
@@ -116,8 +118,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   private func updateHotKey() {
-    hotkeyBindings.setPaused(preferences.isRecordingShortcut)
-    if preferences.isRecordingShortcut {
+    let isRecording = preferences.recordingShortcut != nil
+    hotkeyBindings.setPaused(isRecording)
+    if isRecording {
       hotKey.unregister()
       clipboardHotKey.unregister()
     } else {
@@ -127,16 +130,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
   }
 
-  private func reloadConfig() {
-    preferences.reloadIfChanged()
-    snippets.reloadIfChanged()
-    quickLinks.reloadIfChanged()
-    hotkeyStore.reloadIfChanged()
-    extensions.reload()
-  }
-
-  private func updateHotkeyBindings() {
-    hotkeyBindings.apply(hotkeyStore.bindings)
+  private func reloadConfig(_ paths: [String]) {
+    let root = preferences.configFolder.resolvingSymlinksInPath().path + "/"
+    let changed = paths.filter { $0.hasPrefix(root) }.map { $0.dropFirst(root.count) }
+    if changed.contains(where: { !$0.contains("/") && $0.hasSuffix(".yaml") }) {
+      preferences.reloadIfChanged()
+      snippets.reloadIfChanged()
+      quickLinks.reloadIfChanged()
+      hotkeyStore.reloadIfChanged()
+    }
+    if changed.contains(where: { $0.hasPrefix("extensions/") || $0 == "extensions" }) {
+      extensions.reload()
+    }
   }
 
   private func updateSnippetExpansion() {

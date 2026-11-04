@@ -12,6 +12,7 @@ identity=$(security find-identity -v -p codesigning | grep -o '"Apple Developmen
 codesign --force --sign "${identity:--}" "$staging/Sherlock.app"
 
 pkill -x Sherlock || true
+while pgrep -x Sherlock >/dev/null; do sleep 0.1; done
 mkdir -p "$(dirname "$app")"
 rm -rf "$app"
 mv "$staging/Sherlock.app" "$app"

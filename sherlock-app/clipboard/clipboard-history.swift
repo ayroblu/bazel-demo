@@ -24,28 +24,12 @@ public nonisolated struct ClipboardEntry: Codable, Sendable {
   }
 }
 
-nonisolated extension ClipboardEntry {
-  public init(from decoder: Decoder) throws {
-    let container = try decoder.container(keyedBy: CodingKeys.self)
-    text = try container.decode(String.self, forKey: .text)
-    date = try container.decode(Date.self, forKey: .date)
-    sourceAppPath = try container.decodeIfPresent(String.self, forKey: .sourceAppPath)
-    id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
-    kind = try container.decodeIfPresent(Kind.self, forKey: .kind) ?? .text
-    imageWidth = try container.decodeIfPresent(Int.self, forKey: .imageWidth)
-    imageHeight = try container.decodeIfPresent(Int.self, forKey: .imageHeight)
-    fingerprint =
-      try container.decodeIfPresent(String.self, forKey: .fingerprint)
-      ?? contentFingerprint(text: text, blobs: [:])
-    storedTypes = try container.decodeIfPresent([String].self, forKey: .storedTypes) ?? []
-  }
-}
-
 public final class ClipboardHistory {
   public private(set) var entries: [ClipboardEntry] = []
   private var retention: TimeInterval = 7 * 24 * 60 * 60
   private var changeCount = -1
   private var timer: Timer?
+  private var capturing: Task<Void, Never>?
 
   public init() {
     entries = (try? Data(contentsOf: historyURL)).flatMap {
@@ -102,21 +86,16 @@ public final class ClipboardHistory {
     guard pasteboard.changeCount != changeCount else { return }
     changeCount = pasteboard.changeCount
     guard Set(pasteboard.types ?? []).isDisjoint(with: ignoredTypes),
-      let (entry, blobs) = capture(pasteboard)
+      let copy = readCopy(pasteboard)
     else { return }
-    for old in entries where old.fingerprint == entry.fingerprint {
-      try? FileManager.default.removeItem(at: blobFolder(old.id))
+    let previous = capturing
+    capturing = Task {
+      await previous?.value
+      guard let entry = await storeCopy(copy) else { return }
+      entries.removeAll { $0.fingerprint == entry.fingerprint }
+      entries.insert(entry, at: 0)
+      prune()
     }
-    entries.removeAll { $0.fingerprint == entry.fingerprint }
-    if !blobs.isEmpty {
-      try? FileManager.default.createDirectory(
-        at: blobFolder(entry.id), withIntermediateDirectories: true)
-      for (type, data) in blobs {
-        try? data.write(to: blobURL(entry.id, type))
-      }
-    }
-    entries.insert(entry, at: 0)
-    prune()
   }
 
   private func prune() {
@@ -153,7 +132,7 @@ let transientType = NSPasteboard.PasteboardType("org.nspasteboard.TransientType"
 
 private let historyURL = URL.applicationSupportDirectory.appending(path: "Sherlock/clipboard.json")
 
-private let blobsURL = URL.applicationSupportDirectory.appending(path: "Sherlock/Clipboard")
+private nonisolated let blobsURL = URL.applicationSupportDirectory.appending(path: "Sherlock/Clipboard")
 
 private let ignoredTypes: Set<NSPasteboard.PasteboardType> = [
   transientType, NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType"),
@@ -162,62 +141,97 @@ private let ignoredTypes: Set<NSPasteboard.PasteboardType> = [
   NSPasteboard.PasteboardType("de.petermaurer.TransientPasteboardType"),
 ]
 
-private let pngType = NSPasteboard.PasteboardType.png
+private nonisolated let pngType = NSPasteboard.PasteboardType.png
 
-private let richTypes: [NSPasteboard.PasteboardType] = [.rtfd, .rtf, .html]
+private nonisolated let richTypes: [NSPasteboard.PasteboardType] = [.rtfd, .rtf, .html]
 
 private let maxEntries = 500
 
 private let maxImages = 100
 
-private let maxBlobBytes = 20_000_000
+private nonisolated let maxBlobBytes = 20_000_000
 
-private func blobFolder(_ id: UUID) -> URL {
+private nonisolated func blobFolder(_ id: UUID) -> URL {
   blobsURL.appending(path: id.uuidString)
 }
 
-private func blobURL(_ id: UUID, _ type: String) -> URL {
+private nonisolated func blobURL(_ id: UUID, _ type: String) -> URL {
   blobFolder(id).appending(path: type)
 }
 
-private func capture(_ pasteboard: NSPasteboard) -> (ClipboardEntry, [String: Data])? {
-  let source = NSWorkspace.shared.frontmostApplication?.bundleURL?.path
+private nonisolated struct Copy: Sendable {
+  let date: Date
+  let sourceAppPath: String?
+  let files: [String]
+  let text: String
+  let formats: [String: Data]
+  let png: Data?
+  let tiff: Data?
+}
+
+private func readCopy(_ pasteboard: NSPasteboard) -> Copy? {
   let files =
     pasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true])
     as? [URL] ?? []
-  if !files.isEmpty {
-    let text = files.map(\.path).joined(separator: "\n")
-    let entry = ClipboardEntry(
-      id: UUID(), kind: .files, text: text, date: Date(), sourceAppPath: source, imageWidth: nil,
-      imageHeight: nil, fingerprint: "files:" + text, storedTypes: [])
-    return (entry, [:])
-  }
-  guard let item = pasteboard.pasteboardItems?.first else { return nil }
-  let text = item.string(forType: .string) ?? ""
-  let hasText = !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-  var blobs: [String: Data] = [:]
+  let item = pasteboard.pasteboardItems?.first
+  guard !files.isEmpty || item != nil else { return nil }
+  var formats: [String: Data] = [:]
   for type in richTypes {
-    if let data = item.data(forType: type), data.count <= maxBlobBytes {
-      blobs[type.rawValue] = data
+    if let data = item?.data(forType: type), data.count <= maxBlobBytes {
+      formats[type.rawValue] = data
     }
   }
-  let image = imageRepresentation(item)
+  let png = item?.data(forType: .png)
+  return Copy(
+    date: Date(), sourceAppPath: NSWorkspace.shared.frontmostApplication?.bundleURL?.path,
+    files: files.map(\.path), text: item?.string(forType: .string) ?? "", formats: formats,
+    png: png, tiff: png == nil ? item?.data(forType: .tiff) : nil)
+}
+
+@concurrent private func storeCopy(_ copy: Copy) async -> ClipboardEntry? {
+  if !copy.files.isEmpty {
+    let text = copy.files.joined(separator: "\n")
+    return ClipboardEntry(
+      id: UUID(), kind: .files, text: text, date: copy.date, sourceAppPath: copy.sourceAppPath,
+      imageWidth: nil, imageHeight: nil, fingerprint: "files:" + text, storedTypes: [])
+  }
+  var blobs = copy.formats
+  let image = imageRepresentation(png: copy.png, tiff: copy.tiff)
   if let image, image.png.count <= maxBlobBytes {
     blobs[pngType.rawValue] = image.png
   }
   let kind: ClipboardEntry.Kind
-  if hasText {
-    kind = blobs.keys.contains { $0 != pngType.rawValue } ? .richText : .text
+  if !copy.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+    kind = copy.formats.isEmpty ? .text : .richText
   } else if blobs[pngType.rawValue] != nil {
     kind = .image
   } else {
     return nil
   }
-  let entry = ClipboardEntry(
-    id: UUID(), kind: kind, text: text, date: Date(), sourceAppPath: source,
+  let id = UUID()
+  if !blobs.isEmpty {
+    try? FileManager.default.createDirectory(at: blobFolder(id), withIntermediateDirectories: true)
+    for (type, data) in blobs {
+      try? data.write(to: blobURL(id, type))
+    }
+  }
+  return ClipboardEntry(
+    id: id, kind: kind, text: copy.text, date: copy.date, sourceAppPath: copy.sourceAppPath,
     imageWidth: image?.width, imageHeight: image?.height,
-    fingerprint: contentFingerprint(text: text, blobs: blobs), storedTypes: blobs.keys.sorted())
-  return (entry, blobs)
+    fingerprint: contentFingerprint(text: copy.text, blobs: blobs),
+    storedTypes: blobs.keys.sorted())
+}
+
+private nonisolated func imageRepresentation(png: Data?, tiff: Data?) -> (
+  png: Data, width: Int, height: Int
+)? {
+  if let png, let rep = NSBitmapImageRep(data: png) {
+    return (png, rep.pixelsWide, rep.pixelsHigh)
+  }
+  guard let tiff, let rep = NSBitmapImageRep(data: tiff),
+    let png = rep.representation(using: .png, properties: [:])
+  else { return nil }
+  return (png, rep.pixelsWide, rep.pixelsHigh)
 }
 
 private nonisolated func contentFingerprint(text: String, blobs: [String: Data]) -> String {
@@ -227,14 +241,4 @@ private nonisolated func contentFingerprint(text: String, blobs: [String: Data])
     hash.update(data: blobs[type]!)
   }
   return hash.finalize().map { String(format: "%02x", $0) }.joined()
-}
-
-private func imageRepresentation(_ item: NSPasteboardItem) -> (png: Data, width: Int, height: Int)? {
-  if let png = item.data(forType: .png), let rep = NSBitmapImageRep(data: png) {
-    return (png, rep.pixelsWide, rep.pixelsHigh)
-  }
-  guard let tiff = item.data(forType: .tiff), let rep = NSBitmapImageRep(data: tiff),
-    let png = rep.representation(using: .png, properties: [:])
-  else { return nil }
-  return (png, rep.pixelsWide, rep.pixelsHigh)
 }

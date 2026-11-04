@@ -46,6 +46,13 @@ nonisolated func commandCandidates() -> [Candidate] {
   }
 }
 
+func showAlert(_ message: String, details: String) {
+  let alert = NSAlert()
+  alert.messageText = message
+  alert.informativeText = details
+  _ = runInFront(alert)
+}
+
 private func lockScreen() {
   let login = dlopen(
     "/System/Library/PrivateFrameworks/login.framework/Versions/Current/login", RTLD_LAZY)
@@ -99,13 +106,6 @@ private func ejectAll() {
       showAlert("Couldn't eject \(volume.lastPathComponent)", details: error.localizedDescription)
     }
   }
-}
-
-func showAlert(_ message: String, details: String) {
-  let alert = NSAlert()
-  alert.messageText = message
-  alert.informativeText = details
-  _ = runInFront(alert)
 }
 
 private func runInFront(_ alert: NSAlert) -> NSApplication.ModalResponse {

@@ -3,7 +3,7 @@ import Foundation
 public func convertTime(_ text: String, now: Date = Date()) -> Conversion? {
   let input = text.lowercased().trimmingCharacters(in: .whitespaces)
   if let match = input.wholeMatch(of: /(?:time|now) in (.+)|(.+) time/),
-    let place = place(named: match.1 ?? match.2 ?? ""), !(match.1 ?? match.2 ?? "").isEmpty
+    let place = place(named: match.1 ?? match.2 ?? "")
   {
     let result = format(now, in: place.zone)
     return Conversion(
@@ -36,14 +36,8 @@ private func place(named name: Substring) -> (zone: TimeZone, name: String)? {
   let identifier =
     zoneAliases[key] ?? zoneIdentifiers[key]
     ?? (key.count <= 5 ? TimeZone(abbreviation: key.uppercased())?.identifier : nil)
-  return identifier.flatMap(TimeZone.init(identifier:)).map { ($0, cityName($0)) }
+  return identifier.flatMap(TimeZone.init(identifier:)).map { ($0, cityName($0.identifier)) }
 }
-
-private let zoneIdentifiers = Dictionary(
-  TimeZone.knownTimeZoneIdentifiers.flatMap { identifier in
-    [(identifier.lowercased(), identifier), (cityName(identifier).lowercased(), identifier)]
-  },
-  uniquingKeysWith: { first, _ in first })
 
 private let zoneAliases = [
   "sf": "America/Los_Angeles", "san francisco": "America/Los_Angeles",
@@ -51,10 +45,23 @@ private let zoneAliases = [
   "ny": "America/New_York", "boston": "America/New_York", "uk": "Europe/London",
   "england": "Europe/London", "germany": "Europe/Berlin", "france": "Europe/Paris",
   "spain": "Europe/Madrid", "italy": "Europe/Rome", "japan": "Asia/Tokyo",
-  "india": "Asia/Kolkata", "china": "Asia/Shanghai", "beijing": "Asia/Shanghai",
+  "india": "Asia/Kolkata", "kolkata": "Asia/Kolkata", "mumbai": "Asia/Kolkata",
+  "delhi": "Asia/Kolkata", "kyiv": "Europe/Kyiv",
+  "bangalore": "Asia/Kolkata", "bengaluru": "Asia/Kolkata", "china": "Asia/Shanghai",
+  "beijing": "Asia/Shanghai",
   "hk": "Asia/Hong_Kong", "korea": "Asia/Seoul", "australia": "Australia/Sydney",
   "nz": "Pacific/Auckland", "new zealand": "Pacific/Auckland", "utc": "UTC", "gmt": "GMT",
 ]
+
+private let zoneIdentifiers = Dictionary(
+  TimeZone.knownTimeZoneIdentifiers.flatMap { identifier in
+    [(identifier.lowercased(), identifier), (cityName(identifier).lowercased(), identifier)]
+  },
+  uniquingKeysWith: { first, _ in first })
+
+private func cityName(_ identifier: String) -> String {
+  (identifier.split(separator: "/").last.map(String.init) ?? identifier).replacing("_", with: " ")
+}
 
 private func format(_ date: Date, in zone: TimeZone, relativeTo source: TimeZone? = nil) -> String {
   var style = Date.FormatStyle(date: .omitted, time: .shortened)
@@ -73,16 +80,10 @@ private func format(_ date: Date, in zone: TimeZone, relativeTo source: TimeZone
   return "\(time) \(date.formatted(dayStyle))"
 }
 
-private func cityName(_ zone: TimeZone) -> String {
-  cityName(zone.identifier)
-}
-
-private func cityName(_ identifier: String) -> String {
-  (identifier.split(separator: "/").last.map(String.init) ?? identifier).replacing("_", with: " ")
-}
-
 private func offset(_ zone: TimeZone, at date: Date) -> String {
   let seconds = zone.secondsFromGMT(for: date)
-  let hours = Double(seconds) / 3600
-  return "GMT" + (seconds == 0 ? "" : (hours > 0 ? "+" : "") + formatNumber(hours, grouping: false))
+  guard seconds != 0 else { return "GMT" }
+  let minutes = abs(seconds) / 60
+  let sign = seconds > 0 ? "+" : "-"
+  return "GMT\(sign)\(minutes / 60)" + (minutes % 60 == 0 ? "" : String(format: ":%02d", minutes % 60))
 }

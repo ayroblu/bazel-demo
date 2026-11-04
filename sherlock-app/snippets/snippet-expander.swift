@@ -4,7 +4,6 @@ import Synchronization
 import clipboard
 
 public final class SnippetExpander {
-  public private(set) var isRunning = false
   private let store: SnippetStore
   private let watcher = KeystrokeWatcher()
 
@@ -16,19 +15,18 @@ public final class SnippetExpander {
   }
 
   public func configure(enabled: Bool) {
-    watcher.setKeywords(store.snippets.map(\.keyword).filter { !$0.isEmpty })
-    isRunning = enabled && canPaste && watcher.start()
-    if !isRunning {
+    watcher.setKeywords(store.items.map(\.keyword).filter { !$0.isEmpty })
+    if !(enabled && canPaste && watcher.start()) {
       watcher.stop()
     }
   }
 
   private func expand(_ keyword: String) {
-    guard let snippet = store.snippets.first(where: { $0.keyword == keyword }) else { return }
+    guard let snippet = store.items.first(where: { $0.keyword == keyword }) else { return }
     for _ in keyword {
       postKey(kVK_Delete)
     }
-    paste(store.render(snippet), restoringClipboard: true)
+    paste(store.render(snippet))
   }
 }
 

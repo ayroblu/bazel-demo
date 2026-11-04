@@ -9,18 +9,20 @@ public struct WebPage: Sendable {
 }
 
 public func loadBookmarks() -> [WebPage] {
-  (safariBookmarks() + chromeProfiles().flatMap(chromeBookmarks)).filter(isWebPage)
+  uniqueWebPages(safariBookmarks() + chromeProfiles().flatMap(chromeBookmarks))
 }
 
 public func loadHistory() -> [WebPage] {
-  var seen = Set<URL>()
-  return (safariHistory() + chromeProfiles().flatMap(chromeHistory))
-    .sorted { ($0.lastVisit ?? .distantPast) > ($1.lastVisit ?? .distantPast) }
-    .filter { isWebPage($0) && seen.insert($0.url).inserted }
+  uniqueWebPages(
+    (safariHistory() + chromeProfiles().flatMap(chromeHistory))
+      .sorted { ($0.lastVisit ?? .distantPast) > ($1.lastVisit ?? .distantPast) })
 }
 
-private func isWebPage(_ page: WebPage) -> Bool {
-  page.url.scheme == "https" || page.url.scheme == "http"
+private func uniqueWebPages(_ pages: [WebPage]) -> [WebPage] {
+  var seen = Set<URL>()
+  return pages.filter {
+    ($0.url.scheme == "https" || $0.url.scheme == "http") && seen.insert($0.url).inserted
+  }
 }
 
 private let home = URL(fileURLWithPath: NSHomeDirectory())
@@ -91,9 +93,9 @@ private func safariHistory() -> [WebPage] {
     JOIN history_visits v ON v.history_item = i.id
     GROUP BY i.id ORDER BY MAX(v.visit_time) DESC LIMIT \(historyLimit)
     """
-  return queryHistory(home.appending(path: "Library/Safari/History.db"), query) { row in
+  return queryHistory(home.appending(path: "Library/Safari/History.db"), query) { url, row in
     WebPage(
-      title: row.text(1) ?? "", url: row.url(0), browserPath: safariPath,
+      title: row.text(1) ?? "", url: url, browserPath: safariPath,
       lastVisit: Date(timeIntervalSinceReferenceDate: row.double(2)))
   }
 }
@@ -103,9 +105,9 @@ private func chromeHistory(_ profile: URL) -> [WebPage] {
     SELECT url, title, last_visit_time FROM urls WHERE hidden = 0
     ORDER BY last_visit_time DESC LIMIT \(historyLimit)
     """
-  return queryHistory(profile.appending(path: "History"), query) { row in
+  return queryHistory(profile.appending(path: "History"), query) { url, row in
     WebPage(
-      title: row.text(1) ?? "", url: row.url(0), browserPath: chromePath,
+      title: row.text(1) ?? "", url: url, browserPath: chromePath,
       lastVisit: Date(timeIntervalSince1970: row.double(2) / 1_000_000 - chromeEpochOffset))
   }
 }
@@ -113,7 +115,7 @@ private func chromeHistory(_ profile: URL) -> [WebPage] {
 private let chromeEpochOffset: Double = 11_644_473_600
 
 private func queryHistory(
-  _ database: URL, _ query: String, _ makePage: (Row) -> WebPage?
+  _ database: URL, _ query: String, _ makePage: (URL, Row) -> WebPage
 ) -> [WebPage] {
   let copy = FileManager.default.temporaryDirectory.appending(path: "sherlock-\(UUID().uuidString)")
   defer { try? FileManager.default.removeItem(at: copy) }
@@ -140,8 +142,8 @@ private func queryHistory(
   var pages: [WebPage] = []
   while sqlite3_step(statement) == SQLITE_ROW {
     let row = Row(statement: statement)
-    if row.text(0).flatMap(URL.init(string:)) != nil, let page = makePage(row) {
-      pages.append(page)
+    if let url = row.text(0).flatMap(URL.init(string:)) {
+      pages.append(makePage(url, row))
     }
   }
   return pages
@@ -152,10 +154,6 @@ private struct Row {
 
   func text(_ column: Int32) -> String? {
     sqlite3_column_text(statement, column).map { String(cString: $0) }
-  }
-
-  func url(_ column: Int32) -> URL {
-    URL(string: text(column)!)!
   }
 
   func double(_ column: Int32) -> Double {

@@ -3,6 +3,7 @@ import search
 
 final class IconCache {
   private var icons: [ResultItem.Icon: NSImage] = [:]
+  private var prewarmed: Set<ResultItem.Icon> = []
 
   func image(for icon: ResultItem.Icon) -> NSImage {
     if let image = icons[icon] { return image }
@@ -11,7 +12,8 @@ final class IconCache {
       case .file(let path):
         NSWorkspace.shared.icon(forFile: (path as NSString).resolvingSymlinksInPath)
       case .symbol(let name):
-        NSImage(systemSymbolName: name, accessibilityDescription: nil)!
+        (NSImage(systemSymbolName: name, accessibilityDescription: nil)
+          ?? NSImage(systemSymbolName: "questionmark.square", accessibilityDescription: nil)!)
           .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 22, weight: .medium))!
       case .image(let path):
         thumbnail(path)
@@ -21,15 +23,25 @@ final class IconCache {
   }
 
   func prewarm(_ paths: [String]) {
-    let missing = paths.filter { icons[.file($0)] == nil }
+    let missing = Set(paths).filter { !prewarmed.contains(.file($0)) }
     guard !missing.isEmpty else { return }
     Task {
       let size = NSSize(width: Layout.iconSize, height: Layout.iconSize)
-      for (path, image) in await renderIcons(missing) {
+      for (path, image) in await renderIcons(Array(missing)) {
         icons[.file(path)] = NSImage(cgImage: image, size: size)
+        prewarmed.insert(.file(path))
       }
     }
   }
+
+  func trim() {
+    icons = icons.filter { prewarmed.contains($0.key) || isSymbol($0.key) }
+  }
+}
+
+private func isSymbol(_ icon: ResultItem.Icon) -> Bool {
+  guard case .symbol = icon else { return false }
+  return true
 }
 
 private func thumbnail(_ path: String) -> NSImage {

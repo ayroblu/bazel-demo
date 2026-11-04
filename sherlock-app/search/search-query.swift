@@ -71,8 +71,6 @@ nonisolated func searchNames(_ names: String...) -> [SearchName] {
   return result
 }
 
-private nonisolated let maxFuzzyLength = 40
-
 private nonisolated func characterMask(_ scalars: [Unicode.Scalar]) -> UInt64 {
   scalars.reduce(0) { mask, scalar in
     switch scalar {
@@ -110,6 +108,8 @@ private nonisolated func matchesInitials(_ name: SearchName, _ compact: [Unicode
   let initials = name.scalars.indices.lazy.filter { name.wordStarts[$0] }.map { name.scalars[$0] }
   return initials.starts(with: compact)
 }
+
+private nonisolated let maxFuzzyLength = 40
 
 private nonisolated func fuzzyScore(_ name: SearchName, _ compact: [Unicode.Scalar]) -> Int? {
   var total = 0

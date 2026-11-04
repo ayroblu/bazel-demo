@@ -5,41 +5,17 @@ public nonisolated struct Snippet: Codable, Sendable, Equatable {
   public var name: String
   public var keyword: String
   public var text: String
-  public var collection: String
 }
 
-public final class SnippetStore {
-  public var onChange: () -> Void = {}
-  public private(set) var snippets: [Snippet] = []
-  public private(set) var version = 0
-  private let file: ConfigFile<[Snippet]>
+public typealias SnippetStore = ConfigList<Snippet>
 
-  public init(folder: URL) {
-    file = ConfigFile(folder: folder, name: "snippets.yaml")
-    load()
-  }
-
-  public var fileURL: URL { file.url }
-
-  public func moveFolder(to folder: URL) throws {
-    try file.move(to: folder)
-    load()
-  }
-
-  public func reloadIfChanged() {
-    guard file.hasChanged else { return }
-    load()
+extension ConfigList where Item == Snippet {
+  public convenience init(snippetsIn folder: URL) {
+    self.init(folder: folder, name: "snippets.yaml")
   }
 
   public func render(_ snippet: Snippet) -> String {
     render(snippet.text, depth: 0)
-  }
-
-  private func load() {
-    guard let loaded = file.load() ?? (file.exists ? nil : []) else { return }
-    snippets = loaded
-    version += 1
-    onChange()
   }
 
   private func render(_ text: String, depth: Int) -> String {
@@ -63,9 +39,9 @@ public final class SnippetStore {
           return formatter.string(from: Date())
         }
         let keyword = name.dropFirst("snippet:".count)
-        guard name.hasPrefix("snippet:"), depth < 3,
-          let nested = snippets.first(where: { $0.keyword == keyword })
-        else { return String(match.output.0) }
+        guard depth < 3, let nested = items.first(where: { $0.keyword == keyword }) else {
+          return String(match.output.0)
+        }
         return render(nested.text, depth: depth + 1)
       }
     }

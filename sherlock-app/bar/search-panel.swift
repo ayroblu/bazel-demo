@@ -7,14 +7,12 @@ final class SearchPanel: NSPanel {
     super.init(
       contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView],
       backing: .buffered, defer: false)
-    isFloatingPanel = true
     level = .popUpMenu
     collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient, .ignoresCycle]
     backgroundColor = .clear
     isOpaque = false
     hasShadow = true
     hidesOnDeactivate = false
-    becomesKeyOnlyIfNeeded = false
     animationBehavior = .none
   }
 

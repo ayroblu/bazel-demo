@@ -77,8 +77,6 @@ private struct SettingsView: View {
   @State private var runningLaunchers: [String] = []
   @State private var canSearchAllFiles = true
   @State private var canPasteIntoApps = true
-  @State private var snippetCount = 0
-  @State private var quickLinkCount = 0
   @State private var configFolderError: String?
   @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
   @State private var launchAtLoginError: String?
@@ -88,8 +86,8 @@ private struct SettingsView: View {
       Section("Hotkeys") {
         LabeledContent("Show Sherlock") {
           ShortcutRecorder(
-            shortcut: $preferences.shortcut, pausesHotKeys: $preferences.isRecordingShortcut,
-            standard: .standard)
+            id: "search", shortcut: $preferences.shortcut,
+            recording: $preferences.recordingShortcut, standard: .standard)
         }
         if !preferences.hotKeyRegistered {
           warning(
@@ -108,8 +106,8 @@ private struct SettingsView: View {
         }
         LabeledContent("Clipboard History") {
           ShortcutRecorder(
-            shortcut: $preferences.clipboardShortcut,
-            pausesHotKeys: $preferences.isRecordingShortcut,
+            id: "clipboard", shortcut: $preferences.clipboardShortcut,
+            recording: $preferences.recordingShortcut,
             standard: Preferences.standardClipboardShortcut)
         }
         if !preferences.clipboardHotKeyRegistered {
@@ -157,7 +155,7 @@ private struct SettingsView: View {
         Button("Clear Clipboard History") { clipboard.clear() }
       }
       Section("Snippets") {
-        LabeledContent("\(snippetCount) \(snippetCount == 1 ? "snippet" : "snippets")") {
+        LabeledContent(count(snippets.items.count, "snippet")) {
           Button("Edit…") { openConfigFile(snippets.fileURL) }
         }
         LabeledContent("Keyword") {
@@ -166,7 +164,7 @@ private struct SettingsView: View {
         Toggle("Expand snippet keywords as you type", isOn: $preferences.expandSnippets)
       }
       Section("Quick Links") {
-        LabeledContent("\(quickLinkCount) \(quickLinkCount == 1 ? "quick link" : "quick links")") {
+        LabeledContent(count(quickLinks.items.count, "quick link")) {
           Button("Edit…") { openConfigFile(quickLinks.fileURL) }
         }
         Text(
@@ -255,13 +253,13 @@ private struct SettingsView: View {
     usesSystemShortcut = isSystemShortcut(preferences.shortcut)
     canSearchAllFiles = hasFullDiskAccess()
     canPasteIntoApps = canPaste
-    snippets.reloadIfChanged()
-    snippetCount = snippets.snippets.count
-    quickLinks.reloadIfChanged()
-    quickLinkCount = quickLinks.links.count
     runningLaunchers = otherLaunchers.compactMap { bundleId, name in
       NSRunningApplication.runningApplications(withBundleIdentifier: bundleId).isEmpty ? nil : name
     }
+  }
+
+  private func count(_ number: Int, _ noun: String) -> String {
+    "\(number) \(noun)\(number == 1 ? "" : "s")"
   }
 
   private func statusText(_ status: ExtensionStatus) -> String {
@@ -352,6 +350,7 @@ private struct KeywordField: View {
       .multilineTextAlignment(.trailing)
       .focused($isFocused)
       .onAppear { draft = keyword }
+      .onChange(of: keyword) { _, keyword in draft = keyword }
       .onSubmit(commit)
       .onChange(of: isFocused) { _, focused in
         if !focused { commit() }

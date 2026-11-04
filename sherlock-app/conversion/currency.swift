@@ -8,7 +8,7 @@ public struct CurrencyRequest: Sendable {
 
 public func parseCurrencyRequest(_ text: String) -> CurrencyRequest? {
   let pattern =
-    /^\s*([$£€¥])?\s*(\d[\d,]*\.?\d*)\s*([a-z]{3}|[$£€¥])?\s+(?:in|to|as|into)\s+([a-z]{3}|[$£€¥])\s*$/
+    /\s*([$£€¥])?\s*(\d[\d,]*\.?\d*)\s*([a-z]{3}|[$£€¥])?\s+(?:in|to|as|into)\s+([a-z]{3}|[$£€¥])\s*/
   guard let match = text.lowercased().wholeMatch(of: pattern),
     let amount = Double(match.2.replacing(",", with: "")),
     let from = currencyCode(match.1 ?? match.3), let to = currencyCode(match.4)
@@ -21,6 +21,7 @@ public final class ExchangeRates {
   public var onUpdate: () -> Void = {}
   private var cache: RatesCache?
   private var isFetching = false
+  private var lastAttempt = Date.distantPast
 
   public init() {
     cache = (try? Data(contentsOf: cacheURL)).flatMap {
@@ -42,9 +43,11 @@ public final class ExchangeRates {
   }
 
   private func refreshIfStale() {
-    guard !isFetching, Date().timeIntervalSince(cache?.fetchedAt ?? .distantPast) > 12 * 60 * 60
+    guard !isFetching, Date().timeIntervalSince(cache?.fetchedAt ?? .distantPast) > 12 * 60 * 60,
+      Date().timeIntervalSince(lastAttempt) > 60
     else { return }
     isFetching = true
+    lastAttempt = Date()
     Task {
       defer { isFetching = false }
       guard let fetched = await fetchRates() else { return }
@@ -66,7 +69,7 @@ private func currencyCode(_ text: Substring?) -> String? {
 private let currencySymbols = ["$": "USD", "£": "GBP", "€": "EUR", "¥": "JPY"]
 
 private let supportedCurrencies: Set<String> = [
-  "AUD", "BGN", "BRL", "CAD", "CHF", "CNY", "CZK", "DKK", "EUR", "GBP", "HKD", "HUF", "IDR",
+  "AUD", "BRL", "CAD", "CHF", "CNY", "CZK", "DKK", "EUR", "GBP", "HKD", "HUF", "IDR",
   "ILS", "INR", "ISK", "JPY", "KRW", "MXN", "MYR", "NOK", "NZD", "PHP", "PLN", "RON", "SEK",
   "SGD", "THB", "TRY", "USD", "ZAR",
 ]

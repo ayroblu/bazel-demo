@@ -8,5 +8,4 @@ swift_library(
     srcs = glob(["*.swift"]),
     copts = SWIFT6_NONISOLATED_COPTS,
     module_name = "browser",
-    linkopts = ["-lsqlite3"],
 )

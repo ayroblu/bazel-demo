@@ -75,15 +75,14 @@ other formats in `Clipboard/` next to it.
 [Config](#config)), a list like:
 
 ```yaml
-- collection: Personal Snippets
-  keyword: ::sig
+- keyword: ::sig
   name: Signature
   text: |-
     Thanks,
     {clipboard}
 ```
- Settings > Snippets >
-Edit… opens the file. Snippet text can use `{clipboard}`,
+
+Settings > Snippets > Edit… opens the file. Snippet text can use `{clipboard}`,
 `{date}`, `{time}`, `{datetime}`, `{date:yyyy-MM-dd}` (any date format),
 `{random:UUID}` and `{snippet:keyword}`. With "Expand snippet keywords as you
 type" on, typing a keyword anywhere replaces it with the snippet.
@@ -186,7 +185,9 @@ Maps quick links. Settings > Quick Links > Edit… opens the file.
 
 `hyper` is ⌃⌥⇧⌘; the other modifiers are `cmd`, `ctrl`, `alt` (or `opt`) and
 `shift`. Keys are letters, digits, `f1`–`f20`, `space`, `return`, `tab`, `esc`,
-`delete`, arrow keys (`left`, …) and punctuation. Settings > Hotkeys lists each
+`delete`, arrow keys (`left`, …) and punctuation. Every hotkey needs a modifier
+other than `shift` (except `f1`–`f20`), so it can't take over normal typing.
+Settings > Hotkeys lists each
 hotkey and any problem (an unknown key, an app it can't find, or a shortcut
 that's already taken). The first time an AppleScript controls another app,
 macOS asks you to allow it.
@@ -228,14 +229,22 @@ Extensions run in two steps:
 1. **Setup.** Sherlock copies the extension (without `.git`, `node_modules`
    and `data`) to `~/Library/Caches/com.ayroblu.sherlock/Extensions/<folder>`
    and runs `setup` there, unsandboxed, so it can install dependencies and
-   build. Whenever a file in the extension changes, Sherlock makes a fresh copy
-   and runs setup again. Setup output is saved in `.sherlock-setup.log` in the
+   build. Whenever a file in the extension changes (other than those three
+   folders at its top level), Sherlock makes a fresh copy and runs setup
+   again. Removing an extension removes its copy. Setup output is saved in `.sherlock-setup.log` in the
    copy, and failures show in Settings > Extensions and in the bar.
 2. **Running.** Scripts and actions run in that copy under `sandbox-exec`: they
-   can read files and use the network, but can only write to the extension's
-   data folder, `~/Library/Application Support/Sherlock/Extension Data/<folder>`
-   (reachable as `./data` or `$SHERLOCK_EXTENSION_DATA`), and temporary files.
-   Writing anywhere else fails with "Operation not permitted".
+   can read files and use the network, but can only write files in the
+   extension's data folder,
+   `~/Library/Application Support/Sherlock/Extension Data/<folder>` (reachable
+   as `./data` or `$SHERLOCK_EXTENSION_DATA`), and the temporary folders.
+   Writing a file anywhere else fails with "Operation not permitted". This
+   keeps scripts from changing their own code or your files by accident; it
+   isn't a security boundary, since scripts can still ask other programs to
+   make changes (for example with AppleScript or `defaults write`).
+
+A script that runs too long is stopped along with anything it started: after
+15 seconds for searches, 60 for actions and 10 minutes for setup.
 
 Scripts get the `PATH` from your login shell, so tools like `node` and Homebrew
 commands are found. `sandbox-exec` is deprecated by Apple but still works; if
@@ -253,8 +262,11 @@ Change it in Settings > Config (for example to keep it in your dotfiles):
 - `hotkeys.yaml`: your hotkeys.
 - `extensions/`: your extensions.
 
-Sherlock watches the folder, so edits apply as soon as you save. If a file
-doesn't parse, Sherlock keeps using its last good contents until you fix it.
+Sherlock watches the folder, so edits apply as soon as you save. If
+`settings.yaml`, `snippets.yaml`, `quicklinks.yaml` or `hotkeys.yaml` doesn't
+parse, Sherlock keeps using its last good contents until you fix it, and
+doesn't save over a broken `settings.yaml`. An `extension.yaml` that doesn't
+parse shows as an error in Settings > Extensions.
 
 Choosing a new folder moves the files there. If the new folder already has its
 own copy of a file, Sherlock uses that one and leaves the old one where it was.

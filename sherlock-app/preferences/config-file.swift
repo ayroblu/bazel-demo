@@ -1,6 +1,40 @@
 import CoreServices
 import Foundation
+import Observation
 import Yams
+
+@Observable
+public final class ConfigList<Item: Codable & Equatable & Sendable> {
+  public private(set) var items: [Item] = []
+  public private(set) var version = 0
+  @ObservationIgnored private let file: ConfigFile<[Item]>
+
+  public init(folder: URL, name: String, defaults: [Item] = []) {
+    file = ConfigFile(folder: folder, name: name)
+    if !defaults.isEmpty, !file.exists {
+      try? file.save(defaults)
+    }
+    load()
+  }
+
+  public var fileURL: URL { file.url }
+
+  public func reloadIfChanged() {
+    guard file.hasChanged else { return }
+    load()
+  }
+
+  public func moveFolder(to folder: URL) throws {
+    try file.move(to: folder)
+    load()
+  }
+
+  private func load() {
+    guard let loaded = file.load() ?? (file.exists ? nil : []), loaded != items else { return }
+    items = loaded
+    version += 1
+  }
+}
 
 public final class ConfigFile<Value: Codable> {
   public private(set) var url: URL
@@ -45,10 +79,10 @@ public final class ConfigFile<Value: Codable> {
 }
 
 public final class FolderWatcher {
-  private let onChange: () -> Void
+  private let onChange: ([String]) -> Void
   private var stream: FSEventStreamRef?
 
-  public init(onChange: @escaping () -> Void) {
+  public init(onChange: @escaping ([String]) -> Void) {
     self.onChange = onChange
   }
 
@@ -64,14 +98,14 @@ public final class FolderWatcher {
     stream = FSEventStreamCreate(
       nil, handleFolderEvents, &context, [folder.resolvingSymlinksInPath().path] as CFArray,
       FSEventStreamEventId(kFSEventStreamEventIdSinceNow), 0.2,
-      FSEventStreamCreateFlags(kFSEventStreamCreateFlagFileEvents))
+      FSEventStreamCreateFlags(kFSEventStreamCreateFlagFileEvents | kFSEventStreamCreateFlagUseCFTypes))
     guard let stream else { return }
     FSEventStreamSetDispatchQueue(stream, .main)
     FSEventStreamStart(stream)
   }
 
-  fileprivate func fire() {
-    onChange()
+  fileprivate func fire(_ paths: [String]) {
+    onChange(paths)
   }
 }
 
@@ -91,5 +125,6 @@ private nonisolated func handleFolderEvents(
 ) {
   guard let info else { return }
   let watcher = Unmanaged<FolderWatcher>.fromOpaque(info).takeUnretainedValue()
-  MainActor.assumeIsolated { watcher.fire() }
+  let changed = Unmanaged<CFArray>.fromOpaque(paths).takeUnretainedValue() as? [String] ?? []
+  MainActor.assumeIsolated { watcher.fire(changed) }
 }

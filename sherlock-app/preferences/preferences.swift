@@ -16,26 +16,30 @@ public final class Preferences {
   public var clipboardKeyword: String { didSet { save() } }
   public var snippetKeyword: String { didSet { save() } }
   public private(set) var configFolder: URL
-  public var isRecordingShortcut = false
+  public var recordingShortcut: String?
   public var hotKeyRegistered = true
   public var clipboardHotKeyRegistered = true
   @ObservationIgnored private let file: ConfigFile<StoredSettings>
   @ObservationIgnored private var isApplying = false
+  @ObservationIgnored private var fileIsInvalid = false
 
   public static let standardClipboardShortcut = Shortcut(
     keyCode: UInt32(kVK_ANSI_C),
     modifiers: NSEvent.ModifierFlags([.command, .option]).rawValue, key: "C")
 
   public static let standardConfigFolder = URL.applicationSupportDirectory.appending(
-    path: "Sherlock")
+    path: "Sherlock", directoryHint: .isDirectory)
 
   public init() {
     let folder =
-      UserDefaults.standard.string(forKey: configFolderKey).map { URL(fileURLWithPath: $0) }
-      ?? Self.standardConfigFolder
+      UserDefaults.standard.string(forKey: configFolderKey).map {
+        URL(filePath: $0, directoryHint: .isDirectory)
+      } ?? Self.standardConfigFolder
     configFolder = folder
     file = ConfigFile(folder: folder, name: "settings.yaml")
-    let stored = file.load() ?? StoredSettings()
+    let loaded = file.load()
+    fileIsInvalid = loaded == nil && file.exists
+    let stored = loaded ?? StoredSettings()
     shortcut = stored.shortcut
     clipboardShortcut = stored.clipboardShortcut
     showMenuBarIcon = stored.showMenuBarIcon
@@ -52,19 +56,25 @@ public final class Preferences {
   }
 
   public func reloadIfChanged() {
-    guard file.hasChanged, let stored = file.load() else { return }
-    apply(stored)
+    guard file.hasChanged, let loaded = loadFile() else { return }
+    apply(loaded)
   }
 
   public func moveConfigFolder(to folder: URL) throws {
     try file.move(to: folder)
     configFolder = folder
     UserDefaults.standard.set(folder.path, forKey: configFolderKey)
-    if let stored = file.load() {
-      apply(stored)
+    if let loaded = loadFile() {
+      apply(loaded)
     } else {
       save()
     }
+  }
+
+  private func loadFile() -> StoredSettings? {
+    let loaded = file.load()
+    fileIsInvalid = loaded == nil && file.exists
+    return loaded
   }
 
   private func apply(_ stored: StoredSettings) {
@@ -83,7 +93,7 @@ public final class Preferences {
   }
 
   private func save() {
-    guard !isApplying else { return }
+    guard !isApplying, !fileIsInvalid else { return }
     try? file.save(
       StoredSettings(
         shortcut: shortcut, clipboardShortcut: clipboardShortcut, showMenuBarIcon: showMenuBarIcon,

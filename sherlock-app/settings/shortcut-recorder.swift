@@ -4,10 +4,10 @@ import SwiftUI
 import hotkey
 
 struct ShortcutRecorder: View {
+  let id: String
   @Binding var shortcut: Shortcut
-  @Binding var pausesHotKeys: Bool
+  @Binding var recording: String?
   let standard: Shortcut
-  @State private var isRecording = false
   @State private var monitor = KeyDownMonitor()
 
   var body: some View {
@@ -16,30 +16,33 @@ struct ShortcutRecorder: View {
         Button("Reset") { shortcut = standard }
       }
       Button {
-        setRecording(!isRecording)
+        recording = isRecording ? nil : id
       } label: {
         Text(isRecording ? "Type shortcut…" : shortcut.description).frame(minWidth: 110)
       }
     }
-    .onDisappear { setRecording(false) }
-  }
-
-  private func setRecording(_ recording: Bool) {
-    isRecording = recording
-    pausesHotKeys = recording
-    if recording {
-      monitor.start(record)
-    } else {
-      monitor.stop()
+    .onChange(of: isRecording) { _, isRecording in
+      if isRecording {
+        monitor.start(record)
+      } else {
+        monitor.stop()
+      }
+    }
+    .onDisappear {
+      if isRecording {
+        recording = nil
+      }
     }
   }
 
+  private var isRecording: Bool { recording == id }
+
   private func record(_ event: NSEvent) {
     if event.keyCode == kVK_Escape {
-      setRecording(false)
+      recording = nil
     } else if let recorded = Shortcut(event: event) {
       shortcut = recorded
-      setRecording(false)
+      recording = nil
     }
   }
 }

@@ -11,23 +11,20 @@ public func requestPastePermission() {
   _ = AXIsProcessTrustedWithOptions(options)
 }
 
-public func paste(_ text: String, restoringClipboard: Bool) {
+public func paste(_ text: String) {
   let pasteboard = NSPasteboard.general
   guard canPaste else {
     pasteboard.clearContents()
     pasteboard.setString(text, forType: .string)
     return
   }
-  let previous = restoringClipboard ? snapshot(pasteboard) : nil
+  let previous = snapshot(pasteboard)
   pasteboard.clearContents()
-  if restoringClipboard {
-    pasteboard.declareTypes([.string, transientType], owner: nil)
-  }
+  pasteboard.declareTypes([.string, transientType], owner: nil)
   pasteboard.setString(text, forType: .string)
   Task {
     try? await Task.sleep(for: .milliseconds(80))
     postKey(kVK_ANSI_V, flags: .maskCommand)
-    guard let previous else { return }
     try? await Task.sleep(for: .milliseconds(400))
     pasteboard.clearContents()
     pasteboard.writeObjects(previous)

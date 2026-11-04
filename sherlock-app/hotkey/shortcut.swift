@@ -17,8 +17,7 @@ public struct Shortcut: Codable, Equatable, Sendable {
 
   public init?(event: NSEvent) {
     let flags = event.modifierFlags.intersection([.command, .option, .control, .shift])
-    let isFunctionKey = functionKeyCodes.contains(Int(event.keyCode))
-    guard !flags.subtracting(.shift).isEmpty || isFunctionKey else { return nil }
+    guard canBeHotKey(Int(event.keyCode), flags) else { return nil }
     keyCode = UInt32(event.keyCode)
     modifiers = flags.rawValue
     key =
@@ -37,6 +36,7 @@ public struct Shortcut: Codable, Equatable, Sendable {
       guard let modifierFlags = specModifiers[modifier] else { return nil }
       flags.formUnion(modifierFlags)
     }
+    guard canBeHotKey(key.code, flags) else { return nil }
     self.init(keyCode: UInt32(key.code), modifiers: flags.rawValue, key: key.label)
   }
 
@@ -78,7 +78,11 @@ public func isSystemShortcut(_ shortcut: Shortcut) -> Bool {
   }
 }
 
-private let functionKeyCodes: Set<Int> = [
+private func canBeHotKey(_ keyCode: Int, _ flags: NSEvent.ModifierFlags) -> Bool {
+  !flags.subtracting(.shift).isEmpty || functionKeys.contains(keyCode)
+}
+
+private let functionKeys = [
   kVK_F1, kVK_F2, kVK_F3, kVK_F4, kVK_F5, kVK_F6, kVK_F7, kVK_F8, kVK_F9, kVK_F10,
   kVK_F11, kVK_F12, kVK_F13, kVK_F14, kVK_F15, kVK_F16, kVK_F17, kVK_F18, kVK_F19, kVK_F20,
 ]
@@ -88,19 +92,7 @@ private let specialKeyNames: [Int: String] = [
   kVK_ForwardDelete: "⌦", kVK_Escape: "⎋", kVK_LeftArrow: "←", kVK_RightArrow: "→",
   kVK_UpArrow: "↑", kVK_DownArrow: "↓", kVK_Home: "↖", kVK_End: "↘",
   kVK_PageUp: "⇞", kVK_PageDown: "⇟",
-  kVK_F1: "F1", kVK_F2: "F2", kVK_F3: "F3", kVK_F4: "F4", kVK_F5: "F5", kVK_F6: "F6",
-  kVK_F7: "F7", kVK_F8: "F8", kVK_F9: "F9", kVK_F10: "F10", kVK_F11: "F11", kVK_F12: "F12",
-  kVK_F13: "F13", kVK_F14: "F14", kVK_F15: "F15", kVK_F16: "F16", kVK_F17: "F17",
-  kVK_F18: "F18", kVK_F19: "F19", kVK_F20: "F20",
-]
-
-private let spotlightHotKeyId = "64"
-
-private let specModifiers: [String: NSEvent.ModifierFlags] = [
-  "hyper": [.command, .option, .control, .shift], "cmd": .command, "command": .command,
-  "⌘": .command, "ctrl": .control, "control": .control, "⌃": .control, "alt": .option,
-  "opt": .option, "option": .option, "⌥": .option, "shift": .shift, "⇧": .shift,
-]
+].merging(functionKeys.enumerated().map { ($1, "F\($0 + 1)") }) { $1 }
 
 private let specKeys: [String: (code: Int, label: String)] = {
   var keys: [String: (code: Int, label: String)] = [:]
@@ -121,10 +113,6 @@ private let specKeys: [String: (code: Int, label: String)] = {
   for (digit, code) in digits.enumerated() {
     keys[String(digit)] = (code, String(digit))
   }
-  let functionKeys = [
-    kVK_F1, kVK_F2, kVK_F3, kVK_F4, kVK_F5, kVK_F6, kVK_F7, kVK_F8, kVK_F9, kVK_F10, kVK_F11,
-    kVK_F12, kVK_F13, kVK_F14, kVK_F15, kVK_F16, kVK_F17, kVK_F18, kVK_F19, kVK_F20,
-  ]
   for (offset, code) in functionKeys.enumerated() {
     keys["f\(offset + 1)"] = (code, "F\(offset + 1)")
   }
@@ -145,3 +133,11 @@ private let specKeys: [String: (code: Int, label: String)] = {
   }
   return keys
 }()
+
+private let specModifiers: [String: NSEvent.ModifierFlags] = [
+  "hyper": [.command, .option, .control, .shift], "cmd": .command, "command": .command,
+  "⌘": .command, "ctrl": .control, "control": .control, "⌃": .control, "alt": .option,
+  "opt": .option, "option": .option, "⌥": .option, "shift": .shift, "⇧": .shift,
+]
+
+private let spotlightHotKeyId = "64"

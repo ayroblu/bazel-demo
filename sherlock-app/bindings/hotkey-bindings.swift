@@ -39,17 +39,18 @@ public final class HotkeyBindings {
       guard let shortcut = Shortcut(spec: binding.hotkey) else {
         return HotkeyStatus(
           id: index, shortcut: binding.hotkey, target: target,
-          error: "Unknown hotkey. Use modifiers like hyper, cmd, ctrl, alt and shift, then a key.")
+          error: "Unknown hotkey. Use hyper, cmd, ctrl, alt or shift, then a key, like hyper+t.")
       }
       let action: () -> Void
       switch (binding.app, binding.search, binding.applescript) {
       case (let app?, nil, nil):
-        guard appURL(named: app) != nil else {
+        guard let url = appURL(named: app) else {
           return HotkeyStatus(
             id: index, shortcut: shortcut.description, target: target,
             error: "Couldn't find an app called ‘\(app)’")
         }
-        action = { focus(app) }
+        let followsDefaultBrowser = app.lowercased() == defaultBrowser
+        action = { focus(followsDefaultBrowser ? appURL(named: app) ?? url : url) }
       case (nil, let text?, nil):
         action = { [weak self] in self?.onSearch(text) }
       case (nil, nil, let script?):
@@ -80,7 +81,7 @@ private func describe(_ binding: HotkeyBinding) -> String {
 }
 
 private func appURL(named name: String) -> URL? {
-  if name.lowercased() == "default browser" {
+  if name.lowercased() == defaultBrowser {
     return NSWorkspace.shared.urlForApplication(toOpen: URL(string: "https://example.com")!)
   }
   let expanded = (name as NSString).expandingTildeInPath
@@ -98,6 +99,8 @@ private func appURL(named name: String) -> URL? {
   }
   return spotlightApp(named: name)
 }
+
+private let defaultBrowser = "default browser"
 
 private let applicationFolders = [
   "/Applications", "/Applications/Utilities", "/System/Applications",
@@ -118,8 +121,7 @@ private func spotlightApp(named name: String) -> URL? {
   return (MDItemCopyAttribute(item, kMDItemPath) as? String).map(URL.init(fileURLWithPath:))
 }
 
-private func focus(_ app: String) {
-  guard let url = appURL(named: app) else { return }
+private func focus(_ url: URL) {
   let configuration = NSWorkspace.OpenConfiguration()
   configuration.activates = true
   NSWorkspace.shared.openApplication(at: url, configuration: configuration, completionHandler: nil)

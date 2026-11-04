@@ -7,7 +7,7 @@ public struct Conversion: Sendable {
 }
 
 public func convertUnits(_ text: String) -> Conversion? {
-  let pattern = /^\s*(-?\d[\d,]*\.?\d*)\s*(\D.*?)\s+(?:in|to|as|into)\s+(.+?)\s*$/
+  let pattern = /\s*(-?\d[\d,]*\.?\d*)\s*(\D.*?)\s+(?:in|to|as|into)\s+(.+?)\s*/
   guard let match = text.lowercased().wholeMatch(of: pattern),
     let amount = Double(match.1.replacing(",", with: "")),
     let from = unit(named: match.2), let to = unit(named: match.3),
@@ -21,8 +21,9 @@ public func convertUnits(_ text: String) -> Conversion? {
 }
 
 func formatNumber(_ value: Double, grouping: Bool) -> String {
-  value.formatted(
-    .number.precision(.fractionLength(0...4)).grouping(grouping ? .automatic : .never))
+  let precision: NumberFormatStyleConfiguration.Precision =
+    abs(value) >= 1 || value == 0 ? .fractionLength(0...4) : .significantDigits(1...4)
+  return value.formatted(.number.precision(precision).grouping(grouping ? .automatic : .never))
 }
 
 private func unit(named name: Substring) -> Dimension? {

@@ -24,12 +24,16 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
   ) {
     self.preferences = preferences
     search = Search(
-      clipboard: clipboard, snippets: snippets, quickLinks: quickLinks, extensions: extensions)
+      clipboard: clipboard, snippets: snippets, quickLinks: quickLinks, extensions: extensions,
+      clipboardKeyword: preferences.clipboardKeyword, snippetKeyword: preferences.snippetKeyword)
     super.init()
     buildViews()
     panel.delegate = self
     panel.onKeyEquivalent = { [weak self] in self?.handleKeyEquivalent($0) ?? false }
-    resultsView.onClick = { [weak self] in self?.open(at: $0, reveal: false) }
+    resultsView.onClick = { [weak self] row in
+      guard let self else { return }
+      open(at: offset + row, reveal: false)
+    }
     resultsView.onScroll = { [weak self] in self?.moveSelection(by: $0) }
     search.onChange = { [weak self] in self?.reload() }
     search.onIndexUpdate = { [weak self] in self?.icons.prewarm($0) }
@@ -46,8 +50,6 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
 
   public func show(text: String = "") {
     search.refreshIfStale()
-    field.stringValue = text
-    update(text)
     let mouse = NSEvent.mouseLocation
     let screen =
       NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? NSScreen.screens[0]
@@ -57,6 +59,8 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
       NSRect(
         x: (visible.midX - Layout.width / 2).rounded(), y: top - Layout.searchHeight,
         width: Layout.width, height: Layout.searchHeight), display: false)
+    field.stringValue = text
+    update(text)
     panel.makeKeyAndOrderFront(nil)
     panel.makeFirstResponder(field)
     field.currentEditor()?.selectedRange = NSRange(location: text.utf16.count, length: 0)
@@ -65,6 +69,7 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
   public func hide() {
     panel.orderOut(nil)
     search.stop()
+    icons.trim()
   }
 
   public func controlTextDidChange(_ obj: Notification) {
@@ -177,7 +182,9 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
       return false
     }
     if event.keyCode == kVK_Return || event.keyCode == kVK_ANSI_KeypadEnter {
-      open(at: selected, reveal: true)
+      if search.results.indices.contains(selected), search.results[selected].revealPath != nil {
+        open(at: selected, reveal: true)
+      }
       return true
     }
     if event.keyCode == kVK_ANSI_Comma {

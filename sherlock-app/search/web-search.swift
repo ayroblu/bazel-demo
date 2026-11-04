@@ -32,10 +32,6 @@ func quickLinkCandidates(_ links: [QuickLink], favicons: Favicons) -> [Candidate
   }
 }
 
-func appPath(opening url: URL) -> String {
-  NSWorkspace.shared.urlForApplication(toOpen: url)?.path ?? "/Applications/Safari.app"
-}
-
 private let queryPlaceholder = "{query}"
 
 private func item(for link: QuickLink, searching terms: String, favicons: Favicons) -> ResultItem? {
@@ -53,3 +49,7 @@ private func item(for link: QuickLink, searching terms: String, favicons: Favico
 
 private let queryAllowed = CharacterSet.urlQueryAllowed.subtracting(
   CharacterSet(charactersIn: "&+=#?/"))
+
+private func appPath(opening url: URL) -> String {
+  NSWorkspace.shared.urlForApplication(toOpen: url)?.path ?? "/Applications/Safari.app"
+}

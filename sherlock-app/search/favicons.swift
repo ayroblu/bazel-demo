@@ -4,28 +4,27 @@ final class Favicons {
   var onUpdate: () -> Void = {}
   private var fetching: Set<String> = []
 
-  func icon(for url: URL, fallback: ResultItem.Icon) -> ResultItem.Icon {
-    guard let host = url.host(), let scheme = url.scheme, ["http", "https"].contains(scheme) else {
-      return fallback
-    }
+  func icon(for url: URL, fallback: @autoclosure () -> ResultItem.Icon) -> ResultItem.Icon {
+    guard let page = homePage(of: url), let host = page.host() else { return fallback() }
     let file = faviconsURL.appending(path: host + ".png")
     let failure = faviconsURL.appending(path: host + ".none")
+    let canRetry = (age(of: failure) ?? .infinity) > retryAge
     if let age = age(of: file) {
-      if age > refreshAge {
-        fetch(host: host, scheme: scheme)
+      if age > refreshAge, canRetry {
+        fetch(page, host: host)
       }
       return .image(file.path)
     }
-    if (age(of: failure) ?? .infinity) > retryAge {
-      fetch(host: host, scheme: scheme)
+    if canRetry {
+      fetch(page, host: host)
     }
-    return fallback
+    return fallback()
   }
 
-  private func fetch(host: String, scheme: String) {
+  private func fetch(_ page: URL, host: String) {
     guard fetching.insert(host).inserted else { return }
     Task {
-      let png = await fetchFavicon(host: host, scheme: scheme)
+      let png = await fetchFavicon(page)
       try? FileManager.default.createDirectory(at: faviconsURL, withIntermediateDirectories: true)
       if let png {
         try? png.write(to: faviconsURL.appending(path: host + ".png"), options: .atomic)
@@ -40,6 +39,18 @@ final class Favicons {
   }
 }
 
+private func homePage(of url: URL) -> URL? {
+  guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+    let scheme = components.scheme, ["http", "https"].contains(scheme), components.host != nil
+  else { return nil }
+  components.path = "/"
+  components.query = nil
+  components.fragment = nil
+  components.user = nil
+  components.password = nil
+  return components.url
+}
+
 private let faviconsURL = URL.cachesDirectory.appending(path: "com.ayroblu.sherlock/Favicons")
 
 private let refreshAge: TimeInterval = 30 * 24 * 60 * 60
@@ -51,12 +62,7 @@ private func age(of file: URL) -> TimeInterval? {
     .map { -$0.timeIntervalSinceNow }
 }
 
-@concurrent private func fetchFavicon(host: String, scheme: String) async -> Data? {
-  let configuration = URLSessionConfiguration.ephemeral
-  configuration.timeoutIntervalForRequest = 8
-  configuration.httpAdditionalHeaders = ["User-Agent": userAgent]
-  let session = URLSession(configuration: configuration)
-  let page = URL(string: "\(scheme)://\(host)/")!
+@concurrent private func fetchFavicon(_ page: URL) async -> Data? {
   var candidates: [URL] = []
   if let (data, response) = try? await session.data(from: page) {
     let html = String(decoding: data.prefix(300_000), as: UTF8.self)
@@ -73,8 +79,15 @@ private func age(of file: URL) -> TimeInterval? {
   return nil
 }
 
-private nonisolated let userAgent =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15"
+private nonisolated let session: URLSession = {
+  let configuration = URLSessionConfiguration.ephemeral
+  configuration.timeoutIntervalForRequest = 8
+  configuration.httpAdditionalHeaders = [
+    "User-Agent":
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15"
+  ]
+  return URLSession(configuration: configuration)
+}()
 
 private nonisolated func iconLinks(in html: String, base: URL) -> [URL] {
   var links: [(url: URL, size: Int)] = []

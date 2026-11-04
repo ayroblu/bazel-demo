@@ -43,7 +43,7 @@ public final class Extensions {
   @ObservationIgnored private var folder: URL
   @ObservationIgnored private var loaded: [String: LoadedExtension] = [:]
   @ObservationIgnored private var builds: [String: Task<Void, Never>] = [:]
-  @ObservationIgnored private var environmentPath: String?
+  @ObservationIgnored private var loginPath: Task<String, Never>?
   @ObservationIgnored private var isScanning = false
   @ObservationIgnored private var needsRescan = false
 
@@ -92,6 +92,7 @@ public final class Extensions {
 
   public func run(_ command: ExtensionCommand, query: String) async -> Result<[ExtensionItem], ExtensionError> {
     await builds[command.folder]?.value
+    if Task.isCancelled { return .success([]) }
     guard status(of: command) == .ready else {
       return .failure(ExtensionError(message: "\(command.title) isn't set up"))
     }
@@ -133,11 +134,19 @@ public final class Extensions {
         status = .ready
       } else if sameFiles, let previous, previous.status != .ready {
         status = previous.status
+      } else if sameFiles, FileManager.default.fileExists(
+        atPath: buildsURL.appending(path: extensionInfo.folder).path)
+      {
+        status = .ready
       } else {
         status = .settingUp
         startBuild(extensionInfo)
       }
       next[extensionInfo.folder] = LoadedExtension(info: extensionInfo, status: status)
+    }
+    for removed in Set(loaded.keys).subtracting(next.keys) {
+      builds.removeValue(forKey: removed)?.cancel()
+      try? FileManager.default.removeItem(at: buildsURL.appending(path: removed))
     }
     loaded = next
     publish()
@@ -148,6 +157,7 @@ public final class Extensions {
     builds[extensionInfo.folder] = Task {
       let error = await buildExtension(
         extensionInfo, environment: await environment(for: extensionInfo.folder, query: ""))
+      guard !Task.isCancelled else { return }
       builds[extensionInfo.folder] = nil
       guard loaded[extensionInfo.folder]?.info.fingerprint == extensionInfo.fingerprint else { return }
       loaded[extensionInfo.folder]?.status = error.map { .failed($0) } ?? .ready
@@ -171,11 +181,10 @@ public final class Extensions {
   }
 
   private func environment(for folder: String, query: String) async -> [String: String] {
-    if environmentPath == nil {
-      environmentPath = await loginShellPath()
-    }
+    let path = loginPath ?? Task { await loginShellPath() }
+    loginPath = path
     var environment = ProcessInfo.processInfo.environment
-    environment["PATH"] = environmentPath
+    environment["PATH"] = await path.value
     environment["SHERLOCK_EXTENSION_DATA"] = dataURL.appending(path: folder).path
     environment["SHERLOCK_QUERY"] = query
     return environment
@@ -264,8 +273,11 @@ private nonisolated func fingerprint(of folder: URL) -> String {
     errorHandler: nil)
   var entries: [String] = []
   while let url = enumerator?.nextObject() as? URL {
-    if excludedNames.contains(url.lastPathComponent) {
+    if enumerator?.level == 1, excludedNames.contains(url.lastPathComponent) {
       enumerator?.skipDescendants()
+      continue
+    }
+    if url.lastPathComponent == ".DS_Store" {
       continue
     }
     let values = try? url.resourceValues(forKeys: Set(keys))

@@ -1,6 +1,13 @@
 import CoreServices
 import Foundation
 
+public func hasFullDiskAccess() -> Bool {
+  let descriptor = open(home + "/Library/Application Support/com.apple.TCC/TCC.db", O_RDONLY)
+  guard descriptor >= 0 else { return false }
+  close(descriptor)
+  return true
+}
+
 final class FileSearch {
   private var query: MDQuery?
   private var searchQuery = SearchQuery("")
@@ -65,13 +72,6 @@ final class FileSearch {
     hits.sort { $0.score != $1.score ? $0.score > $1.score : $0.date > $1.date }
     onResults(hits.prefix(maxResults).map(\.item))
   }
-}
-
-public func hasFullDiskAccess() -> Bool {
-  let descriptor = open(home + "/Library/Application Support/com.apple.TCC/TCC.db", O_RDONLY)
-  guard descriptor >= 0 else { return false }
-  close(descriptor)
-  return true
 }
 
 private nonisolated func spotlightQuery(_ query: SearchQuery) -> String {
