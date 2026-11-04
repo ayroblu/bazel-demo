@@ -9,6 +9,7 @@ swift_library(
     copts = SWIFT6_MAINACTOR_COPTS,
     deps = [
         "//sherlock-app/bar",
+        "//sherlock-app/bindings",
         "//sherlock-app/clipboard",
         "//sherlock-app/extensions",
         "//sherlock-app/hotkey",

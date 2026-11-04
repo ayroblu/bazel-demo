@@ -1,6 +1,7 @@
 import AppKit
 import Observation
 import bar
+import bindings
 import clipboard
 import extensions
 import hotkey
@@ -25,6 +26,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private lazy var snippets = SnippetStore(folder: preferences.configFolder)
   private lazy var quickLinks = QuickLinkStore(folder: preferences.configFolder)
   private lazy var extensions = Extensions(configFolder: preferences.configFolder)
+  private lazy var hotkeyStore = HotkeyStore(folder: preferences.configFolder)
+  private let hotkeyBindings = HotkeyBindings()
   private lazy var configWatcher = FolderWatcher { [weak self] in self?.reloadConfig() }
   private lazy var expander = SnippetExpander(store: snippets)
   private lazy var search = SearchController(
@@ -32,7 +35,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     extensions: extensions)
   private lazy var settings = SettingsWindowController(
     preferences: preferences, clipboard: clipboard, snippets: snippets, quickLinks: quickLinks,
-    extensions: extensions)
+    extensions: extensions, hotkeyStore: hotkeyStore, hotkeyBindings: hotkeyBindings)
   private lazy var hotKey = HotKey { [weak self] in self?.search.toggle() }
   private lazy var clipboardHotKey = HotKey { [weak self] in self?.showClipboard() }
   private var statusItem: NSStatusItem?
@@ -75,6 +78,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       }
     }
     snippets.onChange = { [weak self] in self?.updateSnippetExpansion() }
+    hotkeyBindings.onSearch = { [weak self] in self?.search.show(text: $0) }
+    hotkeyStore.onChange = { [weak self] in self?.updateHotkeyBindings() }
+    updateHotkeyBindings()
     Task {
       for await folder in Observations({ self.preferences.configFolder }) {
         configWatcher.watch(folder)
@@ -110,6 +116,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   private func updateHotKey() {
+    hotkeyBindings.setPaused(preferences.isRecordingShortcut)
     if preferences.isRecordingShortcut {
       hotKey.unregister()
       clipboardHotKey.unregister()
@@ -124,7 +131,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     preferences.reloadIfChanged()
     snippets.reloadIfChanged()
     quickLinks.reloadIfChanged()
+    hotkeyStore.reloadIfChanged()
     extensions.reload()
+  }
+
+  private func updateHotkeyBindings() {
+    hotkeyBindings.apply(hotkeyStore.bindings)
   }
 
   private func updateSnippetExpansion() {

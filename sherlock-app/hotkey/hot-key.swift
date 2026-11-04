@@ -25,6 +25,13 @@ public final class HotKey {
       &hotKeyRef) == noErr
   }
 
+  isolated deinit {
+    unregister()
+    if let handlerRef {
+      RemoveEventHandler(handlerRef)
+    }
+  }
+
   public func unregister() {
     guard let hotKeyRef else { return }
     UnregisterEventHotKey(hotKeyRef)

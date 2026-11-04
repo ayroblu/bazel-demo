@@ -1,6 +1,7 @@
 import AppKit
 import ServiceManagement
 import SwiftUI
+import bindings
 import clipboard
 import extensions
 import hotkey
@@ -14,17 +15,22 @@ public final class SettingsWindowController {
   private let snippets: SnippetStore
   private let quickLinks: QuickLinkStore
   private let extensions: Extensions
+  private let hotkeyStore: HotkeyStore
+  private let hotkeyBindings: HotkeyBindings
   private var window: NSWindow?
 
   public init(
     preferences: Preferences, clipboard: ClipboardHistory, snippets: SnippetStore,
-    quickLinks: QuickLinkStore, extensions: Extensions
+    quickLinks: QuickLinkStore, extensions: Extensions, hotkeyStore: HotkeyStore,
+    hotkeyBindings: HotkeyBindings
   ) {
     self.preferences = preferences
     self.clipboard = clipboard
     self.snippets = snippets
     self.quickLinks = quickLinks
     self.extensions = extensions
+    self.hotkeyStore = hotkeyStore
+    self.hotkeyBindings = hotkeyBindings
   }
 
   public var isVisible: Bool { window?.isVisible ?? false }
@@ -43,7 +49,7 @@ public final class SettingsWindowController {
   private func makeWindow() -> NSWindow {
     let view = SettingsView(
       preferences: preferences, clipboard: clipboard, snippets: snippets, quickLinks: quickLinks,
-      extensions: extensions)
+      extensions: extensions, hotkeyStore: hotkeyStore, hotkeyBindings: hotkeyBindings)
     let controller = NSHostingController(rootView: view)
     controller.sizingOptions = []
     let window = NSWindow(contentViewController: controller)
@@ -65,6 +71,8 @@ private struct SettingsView: View {
   let snippets: SnippetStore
   let quickLinks: QuickLinkStore
   let extensions: Extensions
+  let hotkeyStore: HotkeyStore
+  let hotkeyBindings: HotkeyBindings
   @State private var usesSystemShortcut = false
   @State private var runningLaunchers: [String] = []
   @State private var canSearchAllFiles = true
@@ -108,6 +116,19 @@ private struct SettingsView: View {
           warning(
             "Sherlock couldn't register \(preferences.clipboardShortcut.description). Choose another shortcut.",
             color: .red)
+        }
+        ForEach(hotkeyBindings.statuses) { status in
+          VStack(alignment: .leading, spacing: 4) {
+            LabeledContent(status.target) {
+              Text(status.shortcut)
+            }
+            if let error = status.error {
+              Text(error).foregroundStyle(.red)
+            }
+          }
+        }
+        LabeledContent("Hotkeys for apps, searches and AppleScript") {
+          Button("Edit…") { openConfigFile(hotkeyStore.fileURL) }
         }
       }
       Section("Search") {
@@ -193,7 +214,7 @@ private struct SettingsView: View {
           }
         }
         Text(
-          "Holds settings.yaml, snippets.yaml, quicklinks.yaml and extensions/. Edits apply as soon as you save. Changing the folder moves the files there, unless it already has its own, which Sherlock then uses."
+          "Holds settings.yaml, snippets.yaml, quicklinks.yaml, hotkeys.yaml and extensions/. Edits apply as soon as you save. Changing the folder moves the files there, unless it already has its own, which Sherlock then uses."
         )
         .foregroundStyle(.secondary)
         if let configFolderError {
@@ -274,6 +295,7 @@ private struct SettingsView: View {
     do {
       try snippets.moveFolder(to: folder)
       try quickLinks.moveFolder(to: folder)
+      try hotkeyStore.moveFolder(to: folder)
       try extensions.moveFolder(to: folder)
       try preferences.moveConfigFolder(to: folder)
       configFolderError = nil

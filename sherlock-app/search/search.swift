@@ -17,6 +17,7 @@ public final class Search {
   private let knowledge = Knowledge()
   private let fileSearch = FileSearch()
   private let exchangeRates = ExchangeRates()
+  private let favicons = Favicons()
   private var candidates: [Candidate] = []
   private var history: [Candidate] = []
   private var snippetCandidates: [Candidate] = []
@@ -47,6 +48,11 @@ public final class Search {
     self.snippets = snippets
     self.quickLinks = quickLinks
     self.extensions = extensions
+    favicons.onUpdate = { [weak self] in
+      self?.indexedQuickLinkVersion = -1
+      self?.refreshLocalResults()
+      self?.onChange()
+    }
     extensions.onChange = { [weak self] in
       self?.refreshLocalResults()
       self?.onChange()
@@ -179,9 +185,12 @@ public final class Search {
     }
     if indexedQuickLinkVersion != quickLinks.version {
       indexedQuickLinkVersion = quickLinks.version
-      quickLinkItems = quickLinkCandidates(quickLinks.links)
+      quickLinkItems = quickLinkCandidates(quickLinks.links, favicons: favicons)
     }
-    let instant = [quickLinkResult(text, links: quickLinks.links), calculation(text), conversion(text)]
+    let instant = [
+      quickLinkResult(text, links: quickLinks.links, favicons: favicons), calculation(text),
+      conversion(text),
+    ]
       .compactMap(\.self)
     if indexedCommands != extensions.commands {
       indexedCommands = extensions.commands
@@ -192,7 +201,7 @@ public final class Search {
     localResults =
       instant
       + rank(keywordItems + extensionCommandItems + quickLinkItems + candidates, query, limit: nil)
-    fallbackResults = localResults.isEmpty ? quickLinkFallbacks(text, links: quickLinks.links) : []
+    fallbackResults = localResults.isEmpty ? quickLinkFallbacks(text, links: quickLinks.links, favicons: favicons) : []
     publish()
   }
 

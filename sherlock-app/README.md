@@ -161,9 +161,35 @@ search, percent-encoded:
 - A `url` without `{query}` just opens that URL.
 - Typing a keyword or words from a title also lists the quick link; ↩ or ⇥ fills
   in the keyword.
+- Web quick links show the site's favicon (its Apple touch icon or `<link rel="icon">`,
+  else `/favicon.ico`), fetched directly from the site and cached in
+  `~/Library/Caches/com.ayroblu.sherlock/Favicons` for 30 days. Until it arrives,
+  or if the site has none (retried daily), the browser icon is shown.
 
 The first time Sherlock runs it writes Google, YouTube, Wikipedia, GitHub and
 Maps quick links. Settings > Quick Links > Edit… opens the file.
+
+### Hotkeys
+
+`hotkeys.yaml` in the config folder binds global hotkeys:
+
+```yaml
+- hotkey: hyper+t
+  app: Alacritty            # app name, bundle ID or path; focuses or launches it
+- hotkey: hyper+b
+  app: default browser      # your default browser at the time you press it
+- hotkey: hyper+v
+  search: "clip "           # opens the bar with this text
+- hotkey: hyper+m
+  applescript: tell application "Music" to playpause
+```
+
+`hyper` is ⌃⌥⇧⌘; the other modifiers are `cmd`, `ctrl`, `alt` (or `opt`) and
+`shift`. Keys are letters, digits, `f1`–`f20`, `space`, `return`, `tab`, `esc`,
+`delete`, arrow keys (`left`, …) and punctuation. Settings > Hotkeys lists each
+hotkey and any problem (an unknown key, an app it can't find, or a shortcut
+that's already taken). The first time an AppleScript controls another app,
+macOS asks you to allow it.
 
 ### Extensions
 
@@ -224,6 +250,7 @@ Change it in Settings > Config (for example to keep it in your dotfiles):
   hand-edited file can list only what it changes.
 - `snippets.yaml`: your snippets.
 - `quicklinks.yaml`: your quick links.
+- `hotkeys.yaml`: your hotkeys.
 - `extensions/`: your extensions.
 
 Sherlock watches the folder, so edits apply as soon as you save. If a file
@@ -266,6 +293,7 @@ too. Sherlock's Settings warn you when:
 | `browser/` | Safari and Chrome bookmarks and history |
 | `extensions/` | Extension setup, sandboxed script runs and status |
 | `hotkey/` | Global hotkey registration and the shortcut model |
+| `bindings/` | Hotkeys from `hotkeys.yaml`: focusing apps, searches, AppleScript |
 | `preferences/` | Saved settings |
 | `settings/` | The Settings window and shortcut recorder |
 
