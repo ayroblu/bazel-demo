@@ -113,7 +113,9 @@ public final class Search {
   }
 
   public func stop() {
+    let query = rankedQuery
     update("", includeFiles: false)
+    rankedQuery = query
   }
 
   public func perform(_ item: ResultItem, reveal: Bool, autoPaste: Bool) {

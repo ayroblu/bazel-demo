@@ -58,9 +58,10 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
     panel.setFrame(
       NSRect(
         x: (visible.midX - Layout.width / 2).rounded(), y: top - Layout.searchHeight,
-        width: Layout.width, height: Layout.searchHeight), display: false)
+        width: Layout.width, height: Layout.searchHeight), display: true)
     field.stringValue = text
     update(text)
+    panel.invalidateShadow()
     panel.makeKeyAndOrderFront(nil)
     panel.makeFirstResponder(field)
     field.currentEditor()?.selectedRange = NSRange(location: text.utf16.count, length: 0)
@@ -69,6 +70,10 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
   public func hide() {
     panel.orderOut(nil)
     search.stop()
+    field.stringValue = ""
+    selected = 0
+    offset = 0
+    reload()
     icons.trim()
   }
 
