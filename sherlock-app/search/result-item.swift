@@ -8,6 +8,7 @@ public nonisolated struct ResultItem: Sendable {
     case file(String)
     case symbol(String)
     case image(String)
+    case favicon(Data, badge: String)
   }
 
   public let id: String

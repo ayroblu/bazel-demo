@@ -18,6 +18,12 @@ public func loadHistory() -> [WebPage] {
       .sorted { ($0.lastVisit ?? .distantPast) > ($1.lastVisit ?? .distantPast) })
 }
 
+public func loadFavicons() -> [String: Data] {
+  chromeProfiles().reduce(into: [:]) { icons, profile in
+    icons.merge(chromeFavicons(profile)) { current, _ in current }
+  }
+}
+
 private func uniqueWebPages(_ pages: [WebPage]) -> [WebPage] {
   var seen = Set<URL>()
   return pages.filter {
@@ -99,10 +105,12 @@ private func safariHistory() -> [WebPage] {
     JOIN history_visits v ON v.history_item = i.id
     GROUP BY i.id ORDER BY MAX(v.visit_time) DESC LIMIT \(historyLimit)
     """
-  return queryHistory(home.appending(path: "Library/Safari/History.db"), query) { url, row in
-    WebPage(
-      title: row.text(1) ?? "", url: url, browserPath: safariPath,
-      lastVisit: Date(timeIntervalSinceReferenceDate: row.double(2)))
+  return queryDatabase(home.appending(path: "Library/Safari/History.db"), query) { row in
+    row.url(0).map {
+      WebPage(
+        title: row.text(1) ?? "", url: $0, browserPath: safariPath,
+        lastVisit: Date(timeIntervalSinceReferenceDate: row.double(2)))
+    }
   }
 }
 
@@ -111,18 +119,34 @@ private func chromeHistory(_ profile: URL) -> [WebPage] {
     SELECT url, title, last_visit_time FROM urls WHERE hidden = 0
     ORDER BY last_visit_time DESC LIMIT \(historyLimit)
     """
-  return queryHistory(profile.appending(path: "History"), query) { url, row in
-    WebPage(
-      title: row.text(1) ?? "", url: url, browserPath: chromePath,
-      lastVisit: Date(timeIntervalSince1970: row.double(2) / 1_000_000 - chromeEpochOffset))
+  return queryDatabase(profile.appending(path: "History"), query) { row in
+    row.url(0).map {
+      WebPage(
+        title: row.text(1) ?? "", url: $0, browserPath: chromePath,
+        lastVisit: Date(timeIntervalSince1970: row.double(2) / 1_000_000 - chromeEpochOffset))
+    }
   }
 }
 
 private let chromeEpochOffset: Double = 11_644_473_600
 
-private func queryHistory(
-  _ database: URL, _ query: String, _ makePage: (URL, Row) -> WebPage
-) -> [WebPage] {
+private func chromeFavicons(_ profile: URL) -> [String: Data] {
+  let query = """
+    SELECT m.page_url, b.id, b.image_data FROM icon_mapping m
+    JOIN favicon_bitmaps b ON b.icon_id = m.icon_id ORDER BY b.width
+    """
+  var images: [Int64: Data] = [:]
+  let pages = queryDatabase(profile.appending(path: "Favicons"), query) { row in
+    let bitmap = row.int(1)
+    if images[bitmap] == nil {
+      images[bitmap] = row.data(2)
+    }
+    return row.text(0).map { ($0, bitmap) }
+  }
+  return Dictionary(pages) { _, larger in larger }.compactMapValues { images[$0] }
+}
+
+private func queryDatabase<T>(_ database: URL, _ query: String, _ makeRow: (Row) -> T?) -> [T] {
   let copy = FileManager.default.temporaryDirectory.appending(path: "sherlock-\(UUID().uuidString)")
   defer { try? FileManager.default.removeItem(at: copy) }
   do {
@@ -145,14 +169,13 @@ private func queryHistory(
   var statement: OpaquePointer?
   guard sqlite3_prepare_v2(handle, query, -1, &statement, nil) == SQLITE_OK else { return [] }
   defer { sqlite3_finalize(statement) }
-  var pages: [WebPage] = []
+  var rows: [T] = []
   while sqlite3_step(statement) == SQLITE_ROW {
-    let row = Row(statement: statement)
-    if let url = row.text(0).flatMap(URL.init(string:)) {
-      pages.append(makePage(url, row))
+    if let row = makeRow(Row(statement: statement)) {
+      rows.append(row)
     }
   }
-  return pages
+  return rows
 }
 
 private struct Row {
@@ -162,7 +185,21 @@ private struct Row {
     sqlite3_column_text(statement, column).map { String(cString: $0) }
   }
 
+  func url(_ column: Int32) -> URL? {
+    text(column).flatMap(URL.init(string:))
+  }
+
   func double(_ column: Int32) -> Double {
     sqlite3_column_double(statement, column)
+  }
+
+  func int(_ column: Int32) -> Int64 {
+    sqlite3_column_int64(statement, column)
+  }
+
+  func data(_ column: Int32) -> Data? {
+    sqlite3_column_blob(statement, column).map {
+      Data(bytes: $0, count: Int(sqlite3_column_bytes(statement, column)))
+    }
   }
 }

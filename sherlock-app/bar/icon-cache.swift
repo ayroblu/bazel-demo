@@ -17,6 +17,8 @@ final class IconCache {
           .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 22, weight: .medium))!
       case .image(let path):
         thumbnail(path)
+      case .favicon(let data, let badge):
+        badged(data, badge: image(for: .file(badge)))
       }
     icons[icon] = image
     return image
@@ -54,6 +56,30 @@ private func thumbnail(_ path: String) -> NSImage {
     let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options)
   else { return NSImage(systemSymbolName: "photo", accessibilityDescription: nil)! }
   return NSImage(cgImage: image, size: NSSize(width: Layout.iconSize, height: Layout.iconSize))
+}
+
+private func badged(_ favicon: Data, badge: NSImage) -> NSImage {
+  guard let face = NSImage(data: favicon) else { return badge }
+  let pixels = Int(Layout.iconSize * 2)
+  let size = CGFloat(pixels)
+  let context = CGContext(
+    data: nil, width: pixels, height: pixels, bitsPerComponent: 8, bytesPerRow: 0,
+    space: CGColorSpace(name: CGColorSpace.sRGB)!,
+    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+  NSGraphicsContext.saveGraphicsState()
+  NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: false)
+  NSGraphicsContext.current?.imageInterpolation = .high
+  let faceFrame = NSRect(x: size * 0.06, y: size * 0.17, width: size * 0.77, height: size * 0.77)
+  NSGraphicsContext.saveGraphicsState()
+  NSBezierPath(
+    roundedRect: faceFrame, xRadius: faceFrame.width * 0.2, yRadius: faceFrame.width * 0.2
+  ).addClip()
+  face.draw(in: faceFrame)
+  NSGraphicsContext.restoreGraphicsState()
+  badge.draw(in: NSRect(x: size * 0.5, y: 0, width: size * 0.5, height: size * 0.5))
+  NSGraphicsContext.restoreGraphicsState()
+  return NSImage(
+    cgImage: context.makeImage()!, size: NSSize(width: Layout.iconSize, height: Layout.iconSize))
 }
 
 @concurrent private func renderIcons(_ paths: [String]) async -> [(String, CGImage)] {

@@ -388,24 +388,32 @@ private nonisolated func snippetCandidate(_ snippet: Snippet) -> Candidate {
 }
 
 @concurrent private func loadCandidates() async -> ([Candidate], [Candidate]) {
+  let favicons = loadFavicons()
   let local =
     scanApplications() + scanSettingsPanes() + commandCandidates()
-    + loadBookmarks().map { webPageCandidate($0, subtitle: "Bookmark · ") }
-  return (local, loadHistory().map { webPageCandidate($0, subtitle: "") })
+    + loadBookmarks().map { webPageCandidate($0, subtitle: "Bookmark · ", favicons: favicons) }
+  return (local, loadHistory().map { webPageCandidate($0, subtitle: "", favicons: favicons) })
 }
 
-private nonisolated func webPageCandidate(_ page: WebPage, subtitle: String) -> Candidate {
+private nonisolated func webPageCandidate(
+  _ page: WebPage, subtitle: String, favicons: [String: Data]
+) -> Candidate {
   let address = page.url.absoluteString.replacing(/^https?:\/\/(www\.)?/, with: "")
+  let icon: ResultItem.Icon =
+    favicons[page.url.absoluteString].map { .favicon($0, badge: page.browserPath) }
+    ?? .file(page.browserPath)
   let item = ResultItem(
     id: page.url.absoluteString, title: page.title.isEmpty ? address : page.title,
-    subtitle: subtitle + address, icon: .file(page.browserPath), action: .open(page.url))
+    subtitle: subtitle + address, icon: icon, action: .open(page.url))
   return Candidate(
     item: item, names: searchNames(page.title, page.url.host() ?? ""), fuzzy: false)
 }
 
 private func filePath(of icon: ResultItem.Icon) -> String? {
-  guard case .file(let path) = icon else { return nil }
-  return path
+  switch icon {
+  case .file(let path), .favicon(_, let path): path
+  case .symbol, .image: nil
+  }
 }
 
 private func keywordCandidate(_ mode: KeywordMode, keyword: String) -> Candidate {
