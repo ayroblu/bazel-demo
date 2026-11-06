@@ -54,11 +54,20 @@ Start the query with a keyword and a space to search one thing:
 | `clip …` (or ⌥⌘C) | Clipboard history, newest first | Copies the item |
 | `snip …` | Snippets, by name or keyword | Copies the snippet |
 | `h …` | Safari and Chrome history, newest first | Opens the page |
+| `e …` | Emoji, by name, keyword or Slack shortcode (`e tada`) | Pastes the emoji |
+| `u …` | Unicode symbols, by name (`u em dash`, `u e acute`, `u cmd`) | Pastes the symbol |
 
 Change the `clip` and `snip` keywords in Settings > Clipboard and Settings >
 Snippets (one word, case-insensitive); the clipboard hotkey uses the clipboard
-keyword. Typing `clipboard`, `snippets` or `history` also shows an item that
-fills in the keyword (↩ or ⇥).
+keyword. Typing `clipboard`, `snippets`, `history`, `emoji` or `unicode` also
+shows an item that fills in the keyword (↩ or ⇥).
+
+**Emoji** come from [emojibase](https://emojibase.dev) (`emojibase-data`,
+fetched by Bazel and bundled in the app), with Slack shortcodes; skin tone
+variants are left out. **Symbols** are the Unicode symbols, punctuation and
+Latin, Greek and Cyrillic letters, named by Swift's built-in Unicode data;
+keyboard symbols (`⌘ ⌥ ⇧ ⌃ ↩ ⌫ ⎋ ⇥`) can also be found by key name and are
+listed first. Both are loaded once at launch and searched in memory.
 
 **Clipboard history** records what you copy (checked twice a second, plus
 whatever is on the clipboard when Sherlock starts), with the app it came from:
@@ -88,7 +97,8 @@ Settings > Snippets > Edit… opens the file. Snippet text can use `{clipboard}`
 type" on, typing a keyword anywhere replaces it with the snippet.
 
 Turn on Settings > Clipboard > "Paste into the front app" to have ↩ paste
-clipboard items and snippets straight into the app you were using. Pasting and expanding snippets need Accessibility access
+clipboard items, snippets, emoji and symbols straight into the app you were
+using; otherwise ↩ copies them. Pasting and expanding snippets need Accessibility access
 (Settings > Permissions); without it, Sherlock copies the text instead.
 Safari bookmarks and history need Full Disk Access.
 
@@ -303,6 +313,7 @@ too. Sherlock's Settings warn you when:
 | `clipboard/` | Clipboard history and pasting into the front app |
 | `snippets/` | Snippet storage, placeholders and expansion as you type |
 | `browser/` | Safari and Chrome bookmarks and history |
+| `characters/` | Emoji and Unicode symbol data |
 | `extensions/` | Extension setup, sandboxed script runs and status |
 | `hotkey/` | Global hotkey registration and the shortcut model |
 | `bindings/` | Hotkeys from `hotkeys.yaml`: focusing apps, searches, AppleScript |

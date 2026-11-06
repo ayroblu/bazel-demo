@@ -35,7 +35,15 @@ bazel_dep(name = "sourcekit_bazel_bsp", version = "0.8.2", repo_name = "sourceki
 # bazel_dep(name = "swiftlint", version = "0.59.1", repo_name = "SwiftLint")
 # bazel_dep(name = "aspect_rules_lint", version = "1.4.4")
 
-# http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "emojibase_data",
+    build_file_content = 'exports_files(["en/compact.json", "en/shortcodes/iamcal.json"])',
+    integrity = "sha512-TPPRRYv2zPd0jKI+pTpMquwWNZXYAsC3IVsCMeg2X8y8fEzKwOks4/5bz0YavF5r6d71aGPpb6oDnUEwSLLMoA==",
+    strip_prefix = "package",
+    url = "https://registry.npmjs.org/emojibase-data/-/emojibase-data-18.0.0.tgz",
+)
 
 # http_archive(
 #     name = "swiftformat",

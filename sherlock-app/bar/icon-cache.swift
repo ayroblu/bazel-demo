@@ -19,6 +19,8 @@ final class IconCache {
         thumbnail(path)
       case .favicon(let data, let badge):
         badged(data, badge: image(for: .file(badge)))
+      case .text(let text):
+        textIcon(text)
       }
     icons[icon] = image
     return image
@@ -80,6 +82,19 @@ private func badged(_ favicon: Data, badge: NSImage) -> NSImage {
   NSGraphicsContext.restoreGraphicsState()
   return NSImage(
     cgImage: context.makeImage()!, size: NSSize(width: Layout.iconSize, height: Layout.iconSize))
+}
+
+private func textIcon(_ text: String) -> NSImage {
+  NSImage(size: NSSize(width: Layout.iconSize, height: Layout.iconSize), flipped: false) { rect in
+    let fitted = NSAttributedString(string: text, attributes: [.font: NSFont.systemFont(ofSize: 26)])
+    let fontSize = 26 * min(1, rect.width / fitted.size().width)
+    let string = NSAttributedString(
+      string: text,
+      attributes: [.font: NSFont.systemFont(ofSize: fontSize), .foregroundColor: NSColor.labelColor])
+    let size = string.size()
+    string.draw(at: NSPoint(x: rect.midX - size.width / 2, y: rect.midY - size.height / 2))
+    return true
+  }
 }
 
 @concurrent private func renderIcons(_ paths: [String]) async -> [(String, CGImage)] {

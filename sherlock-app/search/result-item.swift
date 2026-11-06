@@ -9,6 +9,7 @@ public nonisolated struct ResultItem: Sendable {
     case symbol(String)
     case image(String)
     case favicon(Data, badge: String)
+    case text(String)
   }
 
   public let id: String
@@ -36,6 +37,7 @@ public nonisolated struct ResultItem: Sendable {
 nonisolated enum Action: Sendable {
   case open(URL)
   case copy(String)
+  case paste(String)
   case clipboard(ClipboardEntry)
   case snippet(Snippet)
   case autocomplete(String)

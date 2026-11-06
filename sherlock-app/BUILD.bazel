@@ -32,6 +32,10 @@ macos_application(
     bundle_name = "Sherlock",
     infoplists = ["Resources/Info.plist"],
     minimum_os_version = "26.0",
+    resources = [
+        "@emojibase_data//:en/compact.json",
+        "@emojibase_data//:en/shortcodes/iamcal.json",
+    ],
     version = "//swift-shared:version",
     visibility = ["//visibility:public"],
     deps = [":lib"],

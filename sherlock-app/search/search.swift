@@ -1,5 +1,6 @@
 import AppKit
 import browser
+import characters
 import clipboard
 import conversion
 import extensions
@@ -21,6 +22,8 @@ public final class Search {
   private var candidates: [Candidate] = []
   private var history: [Candidate] = []
   private var snippetCandidates: [Candidate] = []
+  private var emojiCandidates: [Candidate] = []
+  private var symbolCandidates: [Candidate] = []
   private var indexedSnippetVersion = -1
   private var keywords: [KeywordMode: String] = [:]
   private var keywordItems: [Candidate] = []
@@ -58,6 +61,10 @@ public final class Search {
     }
     extensions.onChange = { [weak self] in self?.refresh() }
     exchangeRates.onUpdate = { [weak self] in self?.refresh() }
+    Task {
+      (emojiCandidates, symbolCandidates) = await loadCharacterCandidates()
+      refresh()
+    }
   }
 
   public func refreshIfStale() {
@@ -85,7 +92,7 @@ public final class Search {
 
   public func setKeywords(clipboard: String, snippets: String) {
     let newKeywords: [KeywordMode: String] = [
-      .clipboard: clipboard, .snippets: snippets, .history: "h",
+      .clipboard: clipboard, .snippets: snippets, .history: "h", .emoji: "e", .symbols: "u",
     ]
     guard newKeywords != keywords else { return }
     keywords = newKeywords
@@ -131,6 +138,12 @@ public final class Search {
       NSWorkspace.shared.open(url)
     case .copy(let string):
       copy(string)
+    case .paste(let string):
+      if autoPaste {
+        paste(string)
+      } else {
+        copy(string)
+      }
     case .clipboard(let entry):
       clipboard.copyToPasteboard(entry)
       if autoPaste {
@@ -171,6 +184,8 @@ public final class Search {
         case .clipboard: clipboardResults(argumentQuery)
         case .snippets: rank(snippetCandidates, argumentQuery)
         case .history: rank(argument.isEmpty ? Array(history.prefix(100)) : history, argumentQuery)
+        case .emoji: rank(emojiCandidates, argumentQuery)
+        case .symbols: rank(symbolCandidates, argumentQuery)
         }
       if localResults.isEmpty {
         localResults = [emptyMessage(mode, searching: argument)]
@@ -266,7 +281,11 @@ public final class Search {
     guard !query.isEmpty else { return items.map(\.item) }
     var hits: [(item: ResultItem, score: Int, titleLength: Int)] = []
     for candidate in items {
-      guard let best = candidate.names.compactMap({ score(query, $0, fuzzy: candidate.fuzzy) }).max()
+      guard
+        let best = candidate.names.compactMap({ score(query, $0, fuzzy: candidate.fuzzy) }).max()
+          ?? candidate.keywords.compactMap({ score(query, $0, fuzzy: false) }).max().map({
+            $0 - keywordPenalty
+          })
       else { continue }
       hits.append(
         (
@@ -353,12 +372,17 @@ nonisolated struct Candidate: Sendable {
   let item: ResultItem
   let names: [SearchName]
   var fuzzy = true
+  var keywords: [SearchName] = []
 }
+
+private let keywordPenalty = 400
 
 private enum KeywordMode: CaseIterable {
   case clipboard
   case snippets
   case history
+  case emoji
+  case symbols
 }
 
 private struct ClipboardSummary {
@@ -395,6 +419,19 @@ private nonisolated func snippetCandidate(_ snippet: Snippet) -> Candidate {
   return (local, loadHistory().map { webPageCandidate($0, subtitle: "", favicons: favicons) })
 }
 
+@concurrent private func loadCharacterCandidates() async -> ([Candidate], [Candidate]) {
+  (loadEmoji().map(characterCandidate), loadSymbols().map(characterCandidate))
+}
+
+private nonisolated func characterCandidate(_ entry: CharacterEntry) -> Candidate {
+  let item = ResultItem(
+    id: entry.id, title: entry.title, subtitle: entry.subtitle, icon: .text(entry.text),
+    action: .paste(entry.text))
+  return Candidate(
+    item: item, names: entry.names.flatMap { searchNames($0) }, fuzzy: false,
+    keywords: entry.keywords.flatMap { searchNames($0) })
+}
+
 private nonisolated func webPageCandidate(
   _ page: WebPage, subtitle: String, favicons: [String: Data]
 ) -> Candidate {
@@ -412,7 +449,7 @@ private nonisolated func webPageCandidate(
 private func filePath(of icon: ResultItem.Icon) -> String? {
   switch icon {
   case .file(let path), .favicon(_, let path): path
-  case .symbol, .image: nil
+  case .symbol, .image, .text: nil
   }
 }
 
@@ -422,6 +459,8 @@ private func keywordCandidate(_ mode: KeywordMode, keyword: String) -> Candidate
     case .clipboard: ("Clipboard History", "doc.on.clipboard", "clipboard")
     case .snippets: ("Snippets", "text.quote", "snippets")
     case .history: ("Browser History", "clock.arrow.circlepath", "history")
+    case .emoji: ("Emoji", "face.smiling", "emoji")
+    case .symbols: ("Symbols", "command", "unicode")
     }
   let item = ResultItem(
     id: "keyword:\(mode)", title: title, subtitle: "Type ‘\(keyword) ’ to search",
@@ -438,9 +477,12 @@ private func emptyMessage(_ mode: KeywordMode, searching argument: String) -> Re
       ("No snippets yet", "Add them to snippets.yaml from Settings (⌘,)")
     case (.history, true):
       ("No browser history", "Safari history needs Full Disk Access (Settings, ⌘,)")
+    case (.emoji, true), (.symbols, true): ("Loading characters…", "")
     case (.clipboard, false): ("No clipboard items match ‘\(argument)’", "")
     case (.snippets, false): ("No snippets match ‘\(argument)’", "")
     case (.history, false): ("No pages match ‘\(argument)’", "")
+    case (.emoji, false): ("No emoji match ‘\(argument)’", "")
+    case (.symbols, false): ("No symbols match ‘\(argument)’", "")
     }
   return message(title, subtitle)
 }
