@@ -93,6 +93,7 @@ public final class Search {
   public func setKeywords(clipboard: String, snippets: String) {
     let newKeywords: [KeywordMode: String] = [
       .clipboard: clipboard, .snippets: snippets, .history: "h", .emoji: "e", .symbols: "u",
+      .ai: "ai",
     ]
     guard newKeywords != keywords else { return }
     keywords = newKeywords
@@ -155,7 +156,7 @@ public final class Search {
       } else {
         copy(snippets.render(snippet))
       }
-    case .autocomplete, .none:
+    case .autocomplete, .ask, .none:
       break
     case .command(let command):
       command.run()
@@ -186,6 +187,7 @@ public final class Search {
         case .history: rank(argument.isEmpty ? Array(history.prefix(100)) : history, argumentQuery)
         case .emoji: rank(emojiCandidates, argumentQuery)
         case .symbols: rank(symbolCandidates, argumentQuery)
+        case .ai: askItems(argument)
         }
       if localResults.isEmpty {
         localResults = [emptyMessage(mode, searching: argument)]
@@ -383,6 +385,7 @@ private enum KeywordMode: CaseIterable {
   case history
   case emoji
   case symbols
+  case ai
 }
 
 private struct ClipboardSummary {
@@ -461,6 +464,7 @@ private func keywordCandidate(_ mode: KeywordMode, keyword: String) -> Candidate
     case .history: ("Browser History", "clock.arrow.circlepath", "history")
     case .emoji: ("Emoji", "face.smiling", "emoji")
     case .symbols: ("Symbols", "command", "unicode")
+    case .ai: ("Ask Grok", "sparkles", "grok")
     }
   let item = ResultItem(
     id: "keyword:\(mode)", title: title, subtitle: "Type ‘\(keyword) ’ to search",
@@ -478,6 +482,7 @@ private func emptyMessage(_ mode: KeywordMode, searching argument: String) -> Re
     case (.history, true):
       ("No browser history", "Safari history needs Full Disk Access (Settings, ⌘,)")
     case (.emoji, true), (.symbols, true): ("Loading characters…", "")
+    case (.ai, _): ("Ask Grok", "Type a question, then press ↩")
     case (.clipboard, false): ("No clipboard items match ‘\(argument)’", "")
     case (.snippets, false): ("No snippets match ‘\(argument)’", "")
     case (.history, false): ("No pages match ‘\(argument)’", "")
@@ -485,6 +490,16 @@ private func emptyMessage(_ mode: KeywordMode, searching argument: String) -> Re
     case (.symbols, false): ("No symbols match ‘\(argument)’", "")
     }
   return message(title, subtitle)
+}
+
+private func askItems(_ question: String) -> [ResultItem] {
+  let question = question.trimmingCharacters(in: .whitespaces)
+  guard !question.isEmpty else { return [] }
+  return [
+    ResultItem(
+      id: "ai", title: question, subtitle: "Ask Grok · ↩ answers here", icon: .symbol("sparkles"),
+      action: .ask(question))
+  ]
 }
 
 private func message(_ title: String, _ subtitle: String) -> ResultItem {

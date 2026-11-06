@@ -11,6 +11,7 @@ swift_library(
     deps = [
         "//sherlock-app/clipboard",
         "//sherlock-app/extensions",
+        "//sherlock-app/grok",
         "//sherlock-app/preferences",
         "//sherlock-app/search",
         "//sherlock-app/snippets",

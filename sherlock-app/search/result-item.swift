@@ -32,6 +32,11 @@ public nonisolated struct ResultItem: Sendable {
     guard case .autocomplete(let text) = action else { return nil }
     return text
   }
+
+  public var question: String? {
+    guard case .ask(let question) = action else { return nil }
+    return question
+  }
 }
 
 nonisolated enum Action: Sendable {
@@ -41,6 +46,7 @@ nonisolated enum Action: Sendable {
   case clipboard(ClipboardEntry)
   case snippet(Snippet)
   case autocomplete(String)
+  case ask(String)
   case command(SystemCommand)
   case extensionAction(ExtensionCommand, String)
   case none

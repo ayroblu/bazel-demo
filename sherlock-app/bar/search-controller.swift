@@ -2,6 +2,7 @@ import AppKit
 import Carbon.HIToolbox
 import clipboard
 import extensions
+import grok
 import preferences
 import search
 import snippets
@@ -13,10 +14,17 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
   private let panel = SearchPanel()
   private let field = NSTextField()
   private let resultsView = ResultsView()
+  private let answerView = AnswerView(width: Layout.width - Layout.padding * 2)
   private let icons = IconCache()
   private var selected = 0
   private var offset = 0
   private var top: CGFloat = 0
+  private var question: String?
+  private var answer = ""
+  private var thought = ""
+  private var status: String?
+  private var startsNewMessage = false
+  private var answerTask: Task<Void, Never>?
 
   public init(
     preferences: Preferences, clipboard: ClipboardHistory, snippets: SnippetStore,
@@ -68,6 +76,7 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
   }
 
   public func hide() {
+    closeAnswer()
     panel.orderOut(nil)
     search.stop()
     field.stringValue = ""
@@ -78,12 +87,23 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
   }
 
   public func controlTextDidChange(_ obj: Notification) {
+    closeAnswer()
     update(field.stringValue)
   }
 
   public func control(
     _ control: NSControl, textView: NSTextView, doCommandBy selector: Selector
   ) -> Bool {
+    if question != nil {
+      switch selector {
+      case #selector(NSResponder.insertNewline(_:)): copyAnswer()
+      case #selector(NSResponder.cancelOperation(_:)):
+        closeAnswer()
+        scrollToSelection()
+      default: return false
+      }
+      return true
+    }
     switch selector {
     case #selector(NSResponder.moveUp(_:)): moveSelection(by: -1)
     case #selector(NSResponder.moveDown(_:)): moveSelection(by: 1)
@@ -136,6 +156,10 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
       x: Layout.padding, y: Layout.searchHeight, width: Layout.width - Layout.padding * 2,
       height: 0)
     container.addSubview(resultsView)
+
+    answerView.frame.origin = NSPoint(x: Layout.padding, y: Layout.searchHeight)
+    answerView.isHidden = true
+    container.addSubview(answerView)
   }
 
   private func update(_ text: String) {
@@ -158,6 +182,7 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
   }
 
   private func scrollToSelection() {
+    guard question == nil else { return }
     let results = search.results
     if selected < offset {
       offset = selected
@@ -167,13 +192,12 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
     offset = max(min(offset, results.count - Layout.maxRows), 0)
     let visible = results[offset..<min(offset + Layout.maxRows, results.count)]
     resultsView.show(visible, selected: selected - offset, icons: icons)
-    resize(rows: visible.count)
+    resultsView.frame.size.height = CGFloat(visible.count) * Layout.rowHeight
+    resize(listHeight: resultsView.frame.height)
   }
 
-  private func resize(rows: Int) {
-    let listHeight = CGFloat(rows) * Layout.rowHeight
-    resultsView.frame.size.height = listHeight
-    let height = Layout.searchHeight + (rows > 0 ? listHeight + Layout.padding : 0)
+  private func resize(listHeight: CGFloat) {
+    let height = Layout.searchHeight + (listHeight > 0 ? listHeight + Layout.padding : 0)
     guard panel.frame.height != height else { return }
     var frame = panel.frame
     frame.origin.y = top - height
@@ -183,9 +207,8 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
   }
 
   private func handleKeyEquivalent(_ event: NSEvent) -> Bool {
-    guard event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .command else {
-      return false
-    }
+    guard question == nil, event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .command
+    else { return false }
     if event.keyCode == kVK_Return || event.keyCode == kVK_ANSI_KeypadEnter {
       if search.results.indices.contains(selected), search.results[selected].revealPath != nil {
         open(at: selected, reveal: true)
@@ -221,8 +244,85 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
       autocomplete()
       return
     }
+    if let question = item.question {
+      ask(question)
+      return
+    }
     hide()
     search.perform(item, reveal: reveal, autoPaste: preferences.autoPaste)
+  }
+
+  private func ask(_ question: String) {
+    closeAnswer()
+    self.question = question
+    resultsView.isHidden = true
+    answerView.isHidden = false
+    status = "Starting Grok…"
+    showAnswer()
+    answerTask = Task {
+      do {
+        try await askGrok(question) { update in
+          guard !Task.isCancelled else { return }
+          self.apply(update)
+          self.showAnswer()
+        }
+        guard !Task.isCancelled else { return }
+        status = nil
+        showAnswer(answer.isEmpty ? "Grok didn't answer." : answer)
+      } catch {
+        guard !Task.isCancelled else { return }
+        status = nil
+        showAnswer((error as? GrokError)?.message ?? error.localizedDescription, color: .systemRed)
+      }
+    }
+  }
+
+  private func apply(_ update: GrokUpdate) {
+    switch update {
+    case .thought(let text):
+      thought += text
+      status = "Thinking: " + (thought.count > 500 ? "…" + thought.suffix(500) : thought)
+    case .step(let title):
+      thought = ""
+      startsNewMessage = !answer.isEmpty
+      status = title + "…"
+    case .text(let text):
+      if startsNewMessage {
+        answer = ""
+        startsNewMessage = false
+      }
+      thought = ""
+      answer += text
+      status = "Writing…"
+    }
+  }
+
+  private func showAnswer(_ text: String? = nil, color: NSColor = .labelColor) {
+    resize(
+      listHeight: answerView.show(
+        text ?? answer, color: color, status: status,
+        maxHeight: CGFloat(Layout.maxRows) * Layout.rowHeight))
+  }
+
+  private func copyAnswer() {
+    guard status == nil, !answer.isEmpty else { return }
+    let answer = answer
+    hide()
+    NSPasteboard.general.clearContents()
+    NSPasteboard.general.setString(answer, forType: .string)
+  }
+
+  private func closeAnswer() {
+    answerTask?.cancel()
+    answerTask = nil
+    question = nil
+    answer = ""
+    thought = ""
+    status = nil
+    startsNewMessage = false
+    answerView.stopSpinner()
+    answerView.isHidden = true
+    resultsView.isHidden = false
   }
 }
 

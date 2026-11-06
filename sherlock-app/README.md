@@ -56,11 +56,12 @@ Start the query with a keyword and a space to search one thing:
 | `h …` | Safari and Chrome history, newest first | Opens the page |
 | `e …` | Emoji, by name, keyword or Slack shortcode (`e tada`) | Pastes the emoji |
 | `u …` | Unicode symbols, by name (`u em dash`, `u e acute`, `u cmd`) | Pastes the symbol |
+| `ai …` | Nothing; shows your question | Streams Grok's answer into the bar |
 
 Change the `clip` and `snip` keywords in Settings > Clipboard and Settings >
 Snippets (one word, case-insensitive); the clipboard hotkey uses the clipboard
-keyword. Typing `clipboard`, `snippets`, `history`, `emoji` or `unicode` also
-shows an item that fills in the keyword (↩ or ⇥).
+keyword. Typing `clipboard`, `snippets`, `history`, `emoji`, `unicode` or `grok`
+also shows an item that fills in the keyword (↩ or ⇥).
 
 **Emoji** come from [emojibase](https://emojibase.dev) (`emojibase-data`,
 fetched by Bazel and bundled in the app), with Slack shortcodes; skin tone
@@ -68,6 +69,11 @@ variants are left out. **Symbols** are the Unicode symbols, punctuation and
 Latin, Greek and Cyrillic letters, named by Swift's built-in Unicode data;
 keyboard symbols (`⌘ ⌥ ⇧ ⌃ ↩ ⌫ ⎋ ⇥`) can also be found by key name and are
 listed first. Both are loaded once at launch and searched in memory.
+
+**Ask Grok** (`ai …`) runs your Grok Build CLI headless (`~/.grok/bin/grok -p`,
+`grok-4.7`, web search only), so it uses the account you're logged in with. The
+answer streams into the bar in a few seconds; ↩ copies it and ⎋ goes back.
+Each answer's Grok session is deleted afterwards.
 
 **Clipboard history** records what you copy (checked twice a second, plus
 whatever is on the clipboard when Sherlock starts), with the app it came from:
@@ -314,6 +320,7 @@ too. Sherlock's Settings warn you when:
 | `snippets/` | Snippet storage, placeholders and expansion as you type |
 | `browser/` | Safari and Chrome bookmarks and history |
 | `characters/` | Emoji and Unicode symbol data |
+| `grok/` | Streaming answers from the headless Grok Build CLI |
 | `extensions/` | Extension setup, sandboxed script runs and status |
 | `hotkey/` | Global hotkey registration and the shortcut model |
 | `bindings/` | Hotkeys from `hotkeys.yaml`: focusing apps, searches, AppleScript |
