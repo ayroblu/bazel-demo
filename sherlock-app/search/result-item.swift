@@ -12,6 +12,12 @@ public nonisolated struct ResultItem: Sendable {
     case text(String)
   }
 
+  public enum Preview: Sendable {
+    case clipboard(ClipboardEntry)
+    case snippet(Snippet)
+    case file(URL)
+  }
+
   public let id: String
   public let title: String
   public let subtitle: String
@@ -36,6 +42,15 @@ public nonisolated struct ResultItem: Sendable {
   public var question: String? {
     guard case .ask(let question) = action else { return nil }
     return question
+  }
+
+  public var preview: Preview? {
+    switch action {
+    case .clipboard(let entry): .clipboard(entry)
+    case .snippet(let snippet): .snippet(snippet)
+    case .open(let url) where url.isFileURL && url.pathExtension != "app": .file(url)
+    default: nil
+    }
   }
 }
 

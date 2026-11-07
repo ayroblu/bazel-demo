@@ -10,17 +10,21 @@ import snippets
 public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDelegate {
   public var onOpenSettings: () -> Void = {}
   private let preferences: Preferences
+  private let clipboard: ClipboardHistory
   private let search: Search
   private let panel = SearchPanel()
   private let field = NSTextField()
   private let resultsView = ResultsView()
   private let answerView = AnswerView(width: Layout.width - Layout.padding * 2)
+  private let previewView = PreviewView(size: Layout.previewSize)
   private let icons = IconCache()
   private let history = QueryHistory()
   private var historyIndex: Int?
   private var selected = 0
   private var offset = 0
+  private var screenFrame = NSRect.zero
   private var top: CGFloat = 0
+  private var left: CGFloat?
   private var question: String?
   private var answer = ""
   private var thought = ""
@@ -33,6 +37,7 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
     quickLinks: QuickLinkStore, extensions: Extensions
   ) {
     self.preferences = preferences
+    self.clipboard = clipboard
     search = Search(
       clipboard: clipboard, snippets: snippets, quickLinks: quickLinks, extensions: extensions,
       clipboardKeyword: preferences.clipboardKeyword, snippetKeyword: preferences.snippetKeyword)
@@ -63,15 +68,14 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
     let mouse = NSEvent.mouseLocation
     let screen =
       NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? NSScreen.screens[0]
-    let visible = screen.visibleFrame
-    top = visible.maxY - (visible.height * 0.18).rounded()
-    panel.setFrame(
-      NSRect(
-        x: (visible.midX - Layout.width / 2).rounded(), y: top - Layout.searchHeight,
-        width: Layout.width, height: Layout.searchHeight), display: true)
+    screenFrame = screen.visibleFrame
+    top = screenFrame.maxY - (screenFrame.height * 0.18).rounded()
+    left = nil
+    resize(width: Layout.width, listHeight: 0)
     historyIndex = nil
     field.stringValue = text
     update(text)
+    left = panel.frame.minX
     panel.invalidateShadow()
     panel.makeKeyAndOrderFront(nil)
     panel.makeFirstResponder(field)
@@ -117,6 +121,10 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
         moveSelection(by: -1)
       }
     case #selector(NSResponder.moveDown(_:)): moveSelection(by: 1)
+    case #selector(NSResponder.moveUpAndModifySelection(_:)) where !previewView.isHidden:
+      previewView.scroll(by: -1)
+    case #selector(NSResponder.moveDownAndModifySelection(_:)) where !previewView.isHidden:
+      previewView.scroll(by: 1)
     case #selector(NSResponder.insertNewline(_:)): open(at: selected, reveal: false)
     case #selector(NSResponder.cancelOperation(_:)): hide()
     case #selector(NSResponder.insertTab(_:)): autocomplete()
@@ -153,6 +161,7 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
     field.frame = NSRect(
       x: 18, y: ((Layout.searchHeight - fieldHeight) / 2).rounded(),
       width: Layout.width - 18 - Layout.logoSize - 26, height: fieldHeight)
+    field.autoresizingMask = [.width]
     container.addSubview(field)
 
     let logo = NSImageView(image: NSApp.applicationIconImage)
@@ -160,6 +169,7 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
     logo.frame = NSRect(
       x: Layout.width - Layout.logoSize - 14, y: (Layout.searchHeight - Layout.logoSize) / 2,
       width: Layout.logoSize, height: Layout.logoSize)
+    logo.autoresizingMask = [.minXMargin]
     container.addSubview(logo)
 
     resultsView.frame = NSRect(
@@ -170,6 +180,11 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
     answerView.frame.origin = NSPoint(x: Layout.padding, y: Layout.searchHeight)
     answerView.isHidden = true
     container.addSubview(answerView)
+
+    previewView.frame.origin = NSPoint(
+      x: Layout.padding * 2 + Layout.previewingListWidth, y: Layout.searchHeight)
+    previewView.isHidden = true
+    container.addSubview(previewView)
   }
 
   private func update(_ text: String) {
@@ -200,18 +215,32 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
       offset = selected - Layout.maxRows + 1
     }
     offset = max(min(offset, results.count - Layout.maxRows), 0)
+    let preview = results.indices.contains(selected) ? results[selected].preview : nil
     let visible = results[offset..<min(offset + Layout.maxRows, results.count)]
+    resultsView.frame.size = NSSize(
+      width: preview == nil ? Layout.width - Layout.padding * 2 : Layout.previewingListWidth,
+      height: CGFloat(visible.count) * Layout.rowHeight)
     resultsView.show(visible, selected: selected - offset, icons: icons)
-    resultsView.frame.size.height = CGFloat(visible.count) * Layout.rowHeight
-    resize(listHeight: resultsView.frame.height)
+    if let preview {
+      previewView.show(preview, clipboard: clipboard)
+      previewView.isHidden = false
+      resize(width: Layout.previewingWidth, listHeight: Layout.previewSize.height)
+    } else {
+      if !previewView.isHidden {
+        previewView.clear()
+        previewView.isHidden = true
+      }
+      resize(width: Layout.width, listHeight: resultsView.frame.height)
+    }
   }
 
-  private func resize(listHeight: CGFloat) {
+  private func resize(width: CGFloat = Layout.width, listHeight: CGFloat) {
     let height = Layout.searchHeight + (listHeight > 0 ? listHeight + Layout.padding : 0)
-    guard panel.frame.height != height else { return }
-    var frame = panel.frame
-    frame.origin.y = top - height
-    frame.size.height = height
+    let x = min(
+      max(left ?? (screenFrame.midX - width / 2).rounded(), screenFrame.minX),
+      screenFrame.maxX - width)
+    let frame = NSRect(x: x, y: top - height, width: width, height: height)
+    guard panel.frame != frame else { return }
     panel.setFrame(frame, display: true)
     panel.invalidateShadow()
   }

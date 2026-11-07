@@ -62,6 +62,21 @@ public final class ClipboardHistory {
     entry.storedTypes.contains(pngType.rawValue) ? blobURL(entry.id, pngType.rawValue).path : nil
   }
 
+  public func richText(of entry: ClipboardEntry) -> NSAttributedString? {
+    for type in [NSPasteboard.PasteboardType.rtfd, .rtf]
+    where entry.storedTypes.contains(type.rawValue) {
+      guard let data = try? Data(contentsOf: blobURL(entry.id, type.rawValue)),
+        data.count <= maxRichPreviewBytes
+      else { continue }
+      let text =
+        type == .rtfd
+        ? NSAttributedString(rtfd: data, documentAttributes: nil)
+        : NSAttributedString(rtf: data, documentAttributes: nil)
+      if let text { return text }
+    }
+    return nil
+  }
+
   public func copyToPasteboard(_ entry: ClipboardEntry) {
     let pasteboard = NSPasteboard.general
     pasteboard.clearContents()
@@ -150,6 +165,8 @@ private let maxEntries = 500
 private let maxImages = 100
 
 private nonisolated let maxBlobBytes = 20_000_000
+
+private let maxRichPreviewBytes = 2_000_000
 
 private nonisolated func blobFolder(_ id: UUID) -> URL {
   blobsURL.appending(path: id.uuidString)

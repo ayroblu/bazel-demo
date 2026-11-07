@@ -116,6 +116,14 @@ Monitor), substring, then a loose in-order match (`safri` → Safari). Sherlock
 remembers what you pick: the result you chose for a query moves to the top the
 next time you type that query, and often-used items rank higher.
 
+**Previews**: when the selected result is a clipboard item, snippet or file, the
+bar widens to the right and shows its full contents next to the list, with
+details underneath (source app and age, size, character and line counts, image
+dimensions). Text is shown in full up to 100,000 characters; rich text keeps its
+fonts and styles (from RTF or RTFD) but uses the bar's text colour, and HTML-only
+copies show as plain text. Files use Quick Look. Scroll the preview with the
+mouse, or ⇧↑ ⇧↓ for text.
+
 ## Keys
 
 | Key | Action |
@@ -125,6 +133,7 @@ next time you type that query, and often-used items rank higher.
 | ⇥ | Fill in the selected keyword item |
 | ↑ ↓, ⌃P ⌃N, scroll | Move the selection |
 | ↑, ⌃P on the first result | Go back through earlier searches |
+| ⇧↑ ⇧↓ | Scroll the text preview |
 | ↩ | Run the selected result |
 | ⌘1 … ⌘9 | Open the result with that number |
 | ⌘↩ | Reveal the selected result in Finder |

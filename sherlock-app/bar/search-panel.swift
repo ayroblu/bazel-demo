@@ -29,10 +29,15 @@ final class FlippedView: NSView {
 
 nonisolated enum Layout {
   static let width: CGFloat = 680
+  static let previewingWidth: CGFloat = 1000
+  static let previewingListWidth: CGFloat = 420
   static let searchHeight: CGFloat = 64
   static let rowHeight: CGFloat = 50
   static let maxRows = 9
   static let padding: CGFloat = 8
+  static let previewSize = NSSize(
+    width: previewingWidth - previewingListWidth - padding * 3,
+    height: CGFloat(maxRows) * rowHeight)
   static let cornerRadius: CGFloat = 14
   static let logoSize: CGFloat = 40
   static let iconSize: CGFloat = 36
