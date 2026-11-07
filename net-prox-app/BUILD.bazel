@@ -1,0 +1,34 @@
+load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//swift-shared:concurrency.bzl", "SWIFT6_MAINACTOR_COPTS")
+load("//swift-shared:swift-ide.bzl", "ide")
+
+swift_library(
+    name = "lib",
+    srcs = glob(["*.swift"]),
+    copts = SWIFT6_MAINACTOR_COPTS,
+)
+
+macos_application(
+    name = "net-prox-app",
+    bundle_id = "com.ayroblu.net-prox-app",
+    bundle_name = "NetProxToggle",
+    infoplists = ["Resources/Info.plist"],
+    minimum_os_version = "26.0",
+    version = "//swift-shared:version",
+    visibility = ["//visibility:public"],
+    deps = [":lib"],
+)
+
+sh_binary(
+    name = "install",
+    srcs = ["tools/install.sh"],
+    data = [":net-prox-app"],
+)
+
+ide(
+    macos_xcode_targets = [":net-prox-app"],
+    targets = ["//net-prox-app"],
+    xcode_project_name = "net-prox-app",
+    xcode_targets = [],
+)
