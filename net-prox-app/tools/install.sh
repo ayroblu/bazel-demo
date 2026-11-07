@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-zip="$PWD/net-prox-app/net-prox-app.zip"
+zip="$PWD/net-prox-app/macos.zip"
 app="$HOME/Applications/NetProxToggle.app"
 staging=$(mktemp -d)
 trap 'rm -rf "$staging"' EXIT

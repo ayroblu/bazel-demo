@@ -1,36 +1,53 @@
+import NetworkExtension
 import SwiftUI
 
 @main
 struct MainApp: App {
-  @State private var proxy = WifiProxy()
+  @State private var proxy = VPNProxy()
 
   var body: some Scene {
-    MenuBarExtra {
-      ProxyMenu(proxy: proxy)
-    } label: {
-      Image(systemName: proxy.enabled ? "network" : "network.slash")
+    WindowGroup {
+      ContentView(proxy: proxy)
     }
-    .menuBarExtraStyle(.window)
   }
 }
 
-struct ProxyMenu: View {
-  @Bindable var proxy: WifiProxy
+struct ContentView: View {
+  @Bindable var proxy: VPNProxy
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 10) {
-      Toggle("Wi-Fi proxy", isOn: Binding(get: { proxy.enabled }, set: { proxy.set($0) }))
-        .toggleStyle(.switch)
-      TextField("host:port", text: $proxy.value)
-        .onSubmit { if proxy.enabled { proxy.set(true) } }
-      if let error = proxy.error {
-        Text(error).foregroundStyle(.red)
+    NavigationStack {
+      Form {
+        Section {
+          Toggle("Proxy", isOn: Binding(get: { proxy.enabled }, set: { proxy.set($0) }))
+          TextField("host:port", text: $proxy.value)
+            .keyboardType(.numbersAndPunctuation)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+            .onSubmit { if proxy.enabled { proxy.set(true) } }
+        } footer: {
+          Text("Sends HTTP and HTTPS traffic through the proxy, e.g. NetProx on your Mac.")
+        }
+        Section {
+          LabeledContent("Status", value: label(proxy.status))
+          if let error = proxy.error {
+            Text(error).foregroundStyle(.red)
+          }
+        }
       }
-      Divider()
-      Button("Quit") { NSApp.terminate(nil) }
+      .navigationTitle("NetProx Toggle")
     }
-    .padding()
-    .frame(width: 240)
-    .onAppear { proxy.refresh() }
+  }
+}
+
+private func label(_ status: NEVPNStatus) -> String {
+  switch status {
+  case .invalid: "Not set up"
+  case .disconnected: "Off"
+  case .connecting: "Connecting…"
+  case .connected: "On"
+  case .reasserting: "Updating…"
+  case .disconnecting: "Turning off…"
+  @unknown default: "Unknown"
   }
 }

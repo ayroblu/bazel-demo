@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import address
 
 @Observable
 final class WifiProxy {
@@ -28,12 +29,12 @@ final class WifiProxy {
     Task {
       do {
         if on {
-          guard let colon = value.lastIndex(of: ":"), let port = UInt16(value[colon...].dropFirst()),
-            colon != value.startIndex
-          else { throw Failure("Enter host:port, e.g. 192.168.1.20:8888") }
-          let host = String(value[..<colon])
-          try await networksetup("-setwebproxy", service, host, String(port))
-          try await networksetup("-setsecurewebproxy", service, host, String(port))
+          guard let address = ProxyAddress(value) else {
+            throw Failure("Enter host:port, e.g. 192.168.1.20:8888")
+          }
+          let port = String(address.port)
+          try await networksetup("-setwebproxy", service, address.host, port)
+          try await networksetup("-setsecurewebproxy", service, address.host, port)
         } else {
           try await networksetup("-setwebproxystate", service, "off")
           try await networksetup("-setsecurewebproxystate", service, "off")

@@ -1,0 +1,11 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//swift-shared:concurrency.bzl", "SWIFT6_MAINACTOR_COPTS")
+
+package(default_visibility = ["//net-prox-app:__subpackages__"])
+
+swift_library(
+    name = "menu-bar",
+    srcs = glob(["*.swift"]),
+    copts = SWIFT6_MAINACTOR_COPTS,
+    deps = ["//net-prox-app/address"],
+)

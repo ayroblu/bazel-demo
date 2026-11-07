@@ -1,3 +1,4 @@
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application", "ios_extension")
 load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 load("//swift-shared:concurrency.bzl", "SWIFT6_MAINACTOR_COPTS")
@@ -7,28 +8,63 @@ swift_library(
     name = "lib",
     srcs = glob(["*.swift"]),
     copts = SWIFT6_MAINACTOR_COPTS,
+    deps = ["//net-prox-app/address"],
 )
 
-macos_application(
+ios_application(
     name = "net-prox-app",
     bundle_id = "com.ayroblu.net-prox-app",
     bundle_name = "NetProxToggle",
+    entitlements = "Resources/NetworkExtension.entitlements",
+    extensions = [":tunnel"],
+    families = [
+        "iphone",
+        "ipad",
+    ],
     infoplists = ["Resources/Info.plist"],
     minimum_os_version = "26.0",
+    provisioning_profile = "development.mobileprovision",
     version = "//swift-shared:version",
     visibility = ["//visibility:public"],
     deps = [":lib"],
 )
 
+ios_extension(
+    name = "tunnel",
+    bundle_id = "com.ayroblu.net-prox-app.tunnel",
+    bundle_name = "NetProxTunnel",
+    entitlements = "Resources/NetworkExtension.entitlements",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = ["Resources/TunnelInfo.plist"],
+    minimum_os_version = "26.0",
+    provisioning_profile = "tunnel-development.mobileprovision",
+    version = "//swift-shared:version",
+    deps = ["//net-prox-app/packet-tunnel"],
+)
+
+macos_application(
+    name = "macos",
+    bundle_id = "com.ayroblu.net-prox-app",
+    bundle_name = "NetProxToggle",
+    infoplists = ["Resources/MacInfo.plist"],
+    minimum_os_version = "26.0",
+    version = "//swift-shared:version",
+    visibility = ["//visibility:public"],
+    deps = ["//net-prox-app/menu-bar"],
+)
+
 sh_binary(
-    name = "install",
+    name = "install-macos",
     srcs = ["tools/install.sh"],
-    data = [":net-prox-app"],
+    data = [":macos"],
 )
 
 ide(
-    macos_xcode_targets = [":net-prox-app"],
+    macos_xcode_targets = [":macos"],
     targets = ["//net-prox-app"],
     xcode_project_name = "net-prox-app",
-    xcode_targets = [],
+    xcode_targets = [":net-prox-app"],
 )
