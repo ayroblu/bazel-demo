@@ -124,6 +124,7 @@ next time you type that query, and often-used items rank higher.
 | ⌥⌘C | Show clipboard history (change it in Settings) |
 | ⇥ | Fill in the selected keyword item |
 | ↑ ↓, ⌃P ⌃N, scroll | Move the selection |
+| ↑, ⌃P on the first result | Go back through earlier searches |
 | ↩ | Run the selected result |
 | ⌘1 … ⌘9 | Open the result with that number |
 | ⌘↩ | Reveal the selected result in Finder |
@@ -291,8 +292,8 @@ Other state stays on this Mac:
 
 - clipboard history: `~/Library/Application Support/Sherlock/clipboard.json`
   and `Clipboard/`
-- learned picks and the config folder location: the `com.ayroblu.sherlock` user
-  defaults
+- learned picks, search history and the config folder location: the
+  `com.ayroblu.sherlock` user defaults
 - exchange rates: `~/Library/Caches/com.ayroblu.sherlock/rates.json`
 - extension copies: `~/Library/Caches/com.ayroblu.sherlock/Extensions/`
 - extension data: `~/Library/Application Support/Sherlock/Extension Data/`

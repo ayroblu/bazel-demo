@@ -16,6 +16,8 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
   private let resultsView = ResultsView()
   private let answerView = AnswerView(width: Layout.width - Layout.padding * 2)
   private let icons = IconCache()
+  private let history = QueryHistory()
+  private var historyIndex: Int?
   private var selected = 0
   private var offset = 0
   private var top: CGFloat = 0
@@ -67,6 +69,7 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
       NSRect(
         x: (visible.midX - Layout.width / 2).rounded(), y: top - Layout.searchHeight,
         width: Layout.width, height: Layout.searchHeight), display: true)
+    historyIndex = nil
     field.stringValue = text
     update(text)
     panel.invalidateShadow()
@@ -76,6 +79,7 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
   }
 
   public func hide() {
+    history.record(field.stringValue)
     closeAnswer()
     panel.orderOut(nil)
     search.stop()
@@ -87,6 +91,7 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
   }
 
   public func controlTextDidChange(_ obj: Notification) {
+    historyIndex = nil
     closeAnswer()
     update(field.stringValue)
   }
@@ -105,7 +110,12 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
       return true
     }
     switch selector {
-    case #selector(NSResponder.moveUp(_:)): moveSelection(by: -1)
+    case #selector(NSResponder.moveUp(_:)):
+      if selected == 0 {
+        showOlderQuery()
+      } else {
+        moveSelection(by: -1)
+      }
     case #selector(NSResponder.moveDown(_:)): moveSelection(by: 1)
     case #selector(NSResponder.insertNewline(_:)): open(at: selected, reveal: false)
     case #selector(NSResponder.cancelOperation(_:)): hide()
@@ -230,9 +240,20 @@ public final class SearchController: NSObject, NSTextFieldDelegate, NSWindowDele
     guard search.results.indices.contains(selected),
       let completion = search.results[selected].autocompletion
     else { return }
-    field.stringValue = completion
-    field.currentEditor()?.selectedRange = NSRange(location: completion.utf16.count, length: 0)
-    update(completion)
+    setQuery(completion)
+  }
+
+  private func showOlderQuery() {
+    let index = (historyIndex ?? -1) + 1
+    guard history.queries.indices.contains(index) else { return }
+    historyIndex = index
+    setQuery(history.queries[index])
+  }
+
+  private func setQuery(_ text: String) {
+    field.stringValue = text
+    field.currentEditor()?.selectedRange = NSRange(location: text.utf16.count, length: 0)
+    update(text)
   }
 
   private func open(at index: Int, reveal: Bool) {
