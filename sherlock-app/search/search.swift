@@ -136,7 +136,7 @@ public final class Search {
     }
     switch item.action {
     case .open(let url):
-      NSWorkspace.shared.open(url)
+      NSWorkspace.shared.open(url, configuration: NSWorkspace.OpenConfiguration())
     case .copy(let string):
       copy(string)
     case .paste(let string):
