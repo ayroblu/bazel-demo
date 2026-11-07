@@ -1,0 +1,15 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//swift-shared:concurrency.bzl", "SWIFT6_MAINACTOR_COPTS")
+
+package(default_visibility = ["//map-design-app:__subpackages__"])
+
+swift_library(
+    name = "content",
+    srcs = glob(["*.swift"]),
+    copts = SWIFT6_MAINACTOR_COPTS,
+    module_name = "content",
+    deps = [
+        "//map-design-app/capture",
+        "//map-design-app/model",
+    ],
+)

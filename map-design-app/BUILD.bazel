@@ -1,0 +1,35 @@
+load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//swift-shared:concurrency.bzl", "SWIFT6_MAINACTOR_COPTS")
+load("//swift-shared:swift-ide.bzl", "ide")
+
+swift_library(
+    name = "lib",
+    srcs = ["MainApp.swift"],
+    copts = SWIFT6_MAINACTOR_COPTS,
+    deps = ["//map-design-app/content"],
+)
+
+ios_application(
+    name = "map-design-app",
+    bundle_id = "com.ayroblu.map-design-app",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = ["Resources/Info.plist"],
+    minimum_os_version = "18.0",
+    provisioning_profile = select({
+        "//conditions:default": "development.mobileprovision",
+        "@bazel-demo//:release_build": "distribution.mobileprovision",
+    }),
+    version = "//swift-shared:version",
+    visibility = ["//visibility:public"],
+    deps = [":lib"],
+)
+
+ide(
+    targets = ["//map-design-app"],
+    xcode_project_name = "map-design-app",
+    xcode_targets = [":map-design-app"],
+)

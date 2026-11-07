@@ -1,0 +1,15 @@
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//swift-shared:concurrency.bzl", "SWIFT6_NONISOLATED_COPTS")
+
+package(default_visibility = ["//map-design-app:__subpackages__"])
+
+swift_library(
+    name = "capture",
+    srcs = glob(["*.swift"]),
+    copts = SWIFT6_NONISOLATED_COPTS,
+    module_name = "capture",
+    deps = [
+        "//map-design-app/model",
+        "//map-design-app/reconstruction",
+    ],
+)
