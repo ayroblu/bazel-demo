@@ -1,5 +1,5 @@
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
-load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
+load("//swift-shared:concurrency.bzl", "SWIFT6_MAINACTOR_COPTS")
 
 package(default_visibility = ["//example-ios-app:__subpackages__"])
 
@@ -8,7 +8,7 @@ swift_library(
     srcs = glob(
         ["*.swift"],
     ),
-    copts = STRICT_MAINACTOR_COPTS,
+    copts = SWIFT6_MAINACTOR_COPTS,
     module_name = "rust_uniffi_example",
     deps = [
         "//rust-code/client-shared/example-shared-lib:example-swift",

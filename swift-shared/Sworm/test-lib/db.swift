@@ -7,6 +7,7 @@ open class DbTestCase: XCTestCase {
   open var dbName: String { fatalError("Subclasses must override the 'dbName' property") }
 
   override public func setUpWithError() throws {
+    let fm = FileManager.default
     var isDir: ObjCBool = false
     if !fm.fileExists(atPath: tempDirPath, isDirectory: &isDir) || !isDir.boolValue {
       try fm.createDirectory(
@@ -73,6 +74,12 @@ extension DbTestCase {
 
 extension Database {
   func schema() throws -> String {
+    let selectSchema = SwormSelectable(
+      statement: "SELECT sql FROM sqlite_master WHERE type='table' ORDER BY sql;",
+      columns: [.text],
+      parse: { datatypes in
+        return Schema(sql: try parseAny(String.self, datatypes[0]))
+      })
     let rows = try execute(selectSchema)
     return rows.map { $0.sql }.joined(separator: "\n")
   }
@@ -84,15 +91,10 @@ public enum DbTestError: Error {
   case invalidRollback
 }
 
-let fm = FileManager.default
-let tempDir = fm.temporaryDirectory / (Bundle.main.bundleIdentifier ?? "__unknown__")
+let tempDir =
+  FileManager.default.temporaryDirectory / (Bundle.main.bundleIdentifier ?? "__unknown__")
 let tempDirPath: String = tempDir.path
 
 struct Schema {
   let sql: String
 }
-let selectSchema = SwormSelectable(
-  statement: "SELECT sql FROM sqlite_master WHERE type='table' ORDER BY sql;", columns: [.text],
-  parse: { datatypes in
-    return Schema(sql: try parseAny(String.self, datatypes[0]))
-  })

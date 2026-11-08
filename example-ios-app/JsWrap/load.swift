@@ -36,7 +36,7 @@ func setupTimers(jsContext: JSContext) {
   var timeoutTimers = [Int: DispatchSourceTimer]()
   let setTimeout: @convention(block) (JSValue, Int) -> Int = { callback, delayMs in
     let key = getId()
-    let timer = DispatchSource.makeTimerSource()
+    let timer = DispatchSource.makeTimerSource(queue: .main)
     timer.schedule(deadline: .now() + .milliseconds(delayMs))
     timer.setEventHandler {
       intervalTimers.removeValue(forKey: key)
@@ -54,7 +54,7 @@ func setupTimers(jsContext: JSContext) {
 
   let setInterval: @convention(block) (JSValue, Int) -> Int = { callback, intervalMs in
     let key = getId()
-    let timer = DispatchSource.makeTimerSource()
+    let timer = DispatchSource.makeTimerSource(queue: .main)
     timer.schedule(
       deadline: .now() + .milliseconds(intervalMs), repeating: .milliseconds(intervalMs))
     timer.setEventHandler {

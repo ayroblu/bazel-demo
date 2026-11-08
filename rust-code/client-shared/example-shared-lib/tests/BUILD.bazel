@@ -3,7 +3,7 @@ load("@build_bazel_rules_swift//swift:swift.bzl", "swift_test")
 load("@example-shared-lib-jest-npm//:defs.bzl", "npm_link_all_packages")
 load("@rules_kotlin//kotlin:android.bzl", "kt_android_local_test")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
-load("//swift-shared:concurrency.bzl", "STRICT_NONISOLATED_COPTS")
+load("//swift-shared:concurrency.bzl", "SWIFT6_NONISOLATED_COPTS")
 
 test_suite(
     name = "tests",
@@ -16,7 +16,7 @@ test_suite(
 swift_test(
     name = "swift-tests",
     srcs = glob(["*.swift"]),
-    copts = STRICT_NONISOLATED_COPTS,
+    copts = SWIFT6_NONISOLATED_COPTS,
     deps = [
         "//rust-code/client-shared/example-shared-lib:example-swift",
     ],

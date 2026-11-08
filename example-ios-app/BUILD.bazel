@@ -1,12 +1,12 @@
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
-load("//swift-shared:concurrency.bzl", "STRICT_MAINACTOR_COPTS")
+load("//swift-shared:concurrency.bzl", "SWIFT6_MAINACTOR_COPTS")
 load("//swift-shared:swift-ide.bzl", "ide")
 
 swift_library(
     name = "lib",
     srcs = ["BazelApp.swift"],
-    copts = STRICT_MAINACTOR_COPTS,
+    copts = SWIFT6_MAINACTOR_COPTS,
     deps = [
         "//example-ios-app/JsWrap",
         "//example-ios-app/drag-example",

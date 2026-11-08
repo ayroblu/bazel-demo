@@ -2,6 +2,7 @@ import JavaScriptCore
 import JsWrap
 import XCTest
 
+@MainActor
 class SetTimeoutTests: XCTestCase {
   func testSetTimeoutWorks() {
     let context = setup()
@@ -54,7 +55,7 @@ class SetTimeoutTests: XCTestCase {
   private func wait(delayMs: Int) {
     let expectation = expectation(description: "Test")
 
-    let timer = DispatchSource.makeTimerSource()
+    let timer = DispatchSource.makeTimerSource(queue: .main)
     timer.schedule(deadline: .now() + .milliseconds(delayMs))
     timer.setEventHandler {
       expectation.fulfill()

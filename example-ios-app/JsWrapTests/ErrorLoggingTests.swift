@@ -2,6 +2,7 @@ import JavaScriptCore
 import JsWrap
 import XCTest
 
+@MainActor
 class ErrorLoggingTests: XCTestCase {
   func testErrorLoggingWorks() {
     let (context, errorSpy) = setup()

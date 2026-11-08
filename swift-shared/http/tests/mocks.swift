@@ -17,7 +17,9 @@ func mockResponse(path: String, response: HttpResponse) {
   let urlResponse = HTTPURLResponse(
     url: url, statusCode: response.statusCode, httpVersion: "HTTP/2", headerFields: response.headers
   )
-  MockURLProtocol.mockResponses[url] = (data: response.body, response: urlResponse, error: nil)
+  MockURLProtocol.mockResponses.withLock {
+    $0[url] = (data: response.body, response: urlResponse, error: nil)
+  }
 }
 
 func exampleRequest() -> HttpRequest {
@@ -28,8 +30,9 @@ func exampleRequest() -> HttpRequest {
 }
 
 class MockURLProtocol: URLProtocol {
-  static var requests: [URLRequest] = []
-  static var mockResponses: [URL: (data: Data?, response: URLResponse?, error: Error?)] = [:]
+  static let requests = Locked<[URLRequest]>([])
+  static let mockResponses = Locked<[URL: (data: Data?, response: URLResponse?, error: Error?)]>(
+    [:])
 
   override class func canInit(with request: URLRequest) -> Bool {
     return true
@@ -40,8 +43,10 @@ class MockURLProtocol: URLProtocol {
   }
 
   override func startLoading() {
-    MockURLProtocol.requests.append(request)
-    if let url = request.url, let mockResponse = MockURLProtocol.mockResponses[url] {
+    MockURLProtocol.requests.withLock { $0.append(request) }
+    if let url = request.url,
+      let mockResponse = MockURLProtocol.mockResponses.withLock({ $0[url] })
+    {
       if let error = mockResponse.error {
         client?.urlProtocol(self, didFailWithError: error)
       } else {
@@ -68,17 +73,30 @@ enum MockHttpError: Error {
 
 class HttpTestCase: XCTestCase {
   override func setUp() {
-    MockURLProtocol.requests = []
-    MockURLProtocol.mockResponses = [:]
+    MockURLProtocol.requests.withLock { $0 = [] }
+    MockURLProtocol.mockResponses.withLock { $0 = [:] }
   }
   override func tearDown() {
-    MockURLProtocol.requests = []
-    MockURLProtocol.mockResponses = [:]
+    MockURLProtocol.requests.withLock { $0 = [] }
+    MockURLProtocol.mockResponses.withLock { $0 = [:] }
   }
   override func setUpWithError() throws {
     try rm(etagDirURL)
   }
   override func tearDownWithError() throws {
     try rm(etagDirURL)
+  }
+}
+
+final class Locked<Value>: @unchecked Sendable {
+  private let lock = NSLock()
+  private var value: Value
+
+  init(_ value: Value) {
+    self.value = value
+  }
+
+  func withLock<Result>(_ body: (inout Value) -> Result) -> Result {
+    lock.withLock { body(&value) }
   }
 }

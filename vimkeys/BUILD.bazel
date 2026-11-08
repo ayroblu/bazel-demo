@@ -3,6 +3,7 @@ load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application", "macos_ex
 load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 load("@vimkeys-npm//:defs.bzl", "npm_link_all_packages")
+load("//swift-shared:concurrency.bzl", "SWIFT6_MAINACTOR_COPTS", "SWIFT6_NONISOLATED_COPTS")
 load("//swift-shared:swift-ide.bzl", "ide")
 
 package(default_visibility = ["//visibility:public"])
@@ -80,6 +81,7 @@ swift_library(
         "Shared (App)/ViewController.swift",
         "macOS (App)/AppDelegate.swift",
     ],
+    copts = SWIFT6_MAINACTOR_COPTS,
     data = [":app_resources"],
     linkopts = [
         "-framework",
@@ -93,6 +95,7 @@ swift_library(
 swift_library(
     name = "extension_lib",
     srcs = ["Shared (Extension)/SafariWebExtensionHandler.swift"],
+    copts = SWIFT6_NONISOLATED_COPTS,
     data = [":extension_resources"],
     linkopts = [
         "-framework",

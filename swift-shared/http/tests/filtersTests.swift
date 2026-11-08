@@ -20,7 +20,8 @@ class FiltersTests: HttpTestCase {
     XCTAssertEqual(result, response)
     let savedEtag = getEtag(urlPath: request.path)
     XCTAssertEqual(savedEtag, etag)
-    let reqHeader = MockURLProtocol.requests[0].value(forHTTPHeaderField: "If-None-Match")
+    let reqHeader = MockURLProtocol.requests.withLock { $0[0] }
+      .value(forHTTPHeaderField: "If-None-Match")
     XCTAssertEqual(reqHeader, nil)
 
     // Second request has an etag
@@ -28,13 +29,14 @@ class FiltersTests: HttpTestCase {
     mockResponse(path: request.path, response: response2)
     let result2 = try await http.request(request)
     XCTAssertEqual(result2, response2)
-    let reqHeader2 = MockURLProtocol.requests[1].value(forHTTPHeaderField: "If-None-Match")
+    let reqHeader2 = MockURLProtocol.requests.withLock { $0[1] }
+      .value(forHTTPHeaderField: "If-None-Match")
     XCTAssertEqual(reqHeader2, etag)
   }
 
   func testSingleGetFilter() async throws {
-    var counter = 0
-    let counterFilter = CallbackFilter(beforeCallback: { counter += 1 })
+    let counter = Locked(0)
+    let counterFilter = CallbackFilter(beforeCallback: { counter.withLock { $0 += 1 } })
     let http = mockHttp(
       filters: defaultFilters + [counterFilter, delayResponseFilter])
     let request = exampleRequest()
@@ -44,19 +46,21 @@ class FiltersTests: HttpTestCase {
     let req2 = Task { try await http.request(request) }
     let _ = try await req1.value
     let _ = try await req2.value
-    XCTAssertEqual(counter, 1)
+    XCTAssertEqual(counter.withLock { $0 }, 1)
   }
 
   func testFilterOrder() async throws {
-    var record: [Int] = []
+    let record = Locked<[Int]>([])
     let firstFilter = CallbackFilter(
-      beforeCallback: { record.append(1) }, afterCallback: { record.append(2) })
+      beforeCallback: { record.withLock { $0.append(1) } },
+      afterCallback: { record.withLock { $0.append(2) } })
     let secondFilter = CallbackFilter(
-      beforeCallback: { record.append(10) }, afterCallback: { record.append(20) })
+      beforeCallback: { record.withLock { $0.append(10) } },
+      afterCallback: { record.withLock { $0.append(20) } })
     let http = mockHttp(filters: [firstFilter, secondFilter])
     let request = exampleRequest()
     let _ = try await http.request(request)
-    XCTAssertEqual(record, [1, 10, 20, 2])
+    XCTAssertEqual(record.withLock { $0 }, [1, 10, 20, 2])
   }
 }
 

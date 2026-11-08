@@ -1051,6 +1051,7 @@ private let middayToday = SchedulerCalendar().startOfDay(for: Date()).addingTime
   #expect(store.currentCard != first)
 }
 
+@MainActor
 @Test func browsingWalksTheDeckInOrderThroughQuestionAndAnswer() throws {
   let csv = "ja,en\n猫[ねこ],cat\n犬[いぬ],dog\n"
   let deck = try CSVDeckLoader.load(name: "Japanese", data: Data(csv.utf8))
@@ -1083,6 +1084,7 @@ private let middayToday = SchedulerCalendar().startOfDay(for: Date()).addingTime
   #expect(!session.showingAnswer)
 }
 
+@MainActor
 @Test func browsingRandomlyKeepsEveryCardInADifferentOrder() throws {
   let csv = "ja,en\n" + (1...20).map { "card\($0),answer\($0)\n" }.joined()
   let deck = try CSVDeckLoader.load(name: "Japanese", data: Data(csv.utf8))
@@ -1109,6 +1111,7 @@ private struct SeededGenerator: RandomNumberGenerator {
   }
 }
 
+@MainActor
 @Test func browsingAnEmptyDeckHasNoCard() {
   var session = BrowseSession(cards: [])
   #expect(session.card == nil)
@@ -1118,6 +1121,7 @@ private struct SeededGenerator: RandomNumberGenerator {
   #expect(session.card == nil)
 }
 
+@MainActor
 @Test func autoPlayReadsTheQuestionThreeTimesThenAlternatesWithTheAnswer() {
   let steps = AutoBrowse.steps()
 
@@ -1126,6 +1130,7 @@ private struct SeededGenerator: RandomNumberGenerator {
   #expect(steps.filter { $0 == .answer }.count == 3)
 }
 
+@MainActor
 @Test func autoPlayQuestionRepeatsAreConfigurableAndClamped() {
   #expect(AutoBrowse.steps(questionRepeats: 1).prefix(2) == [.question, .answer])
   #expect(AutoBrowse.steps(questionRepeats: 5).prefix(6) == [.question, .question, .question, .question, .question, .answer])
@@ -1135,6 +1140,7 @@ private struct SeededGenerator: RandomNumberGenerator {
     AutoBrowse.steps(questionRepeats: 99) == AutoBrowse.steps(questionRepeats: AutoBrowse.questionRepeatsRange.upperBound))
 }
 
+@MainActor
 @Test func autoPlayAdvancesToTheNextCardAndStopsAtTheEnd() throws {
   let csv = "ja,en\n猫[ねこ],cat\n犬[いぬ],dog\n"
   let deck = try CSVDeckLoader.load(name: "Japanese", data: Data(csv.utf8))

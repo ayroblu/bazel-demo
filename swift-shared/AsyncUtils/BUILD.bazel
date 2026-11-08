@@ -1,5 +1,5 @@
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
-load("//swift-shared:concurrency.bzl", "STRICT_NONISOLATED_COPTS")
+load("//swift-shared:concurrency.bzl", "SWIFT6_NONISOLATED_COPTS")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -8,7 +8,7 @@ swift_library(
     srcs = glob(
         ["*.swift"],
     ),
-    copts = STRICT_NONISOLATED_COPTS,
+    copts = SWIFT6_NONISOLATED_COPTS,
     module_name = "AsyncUtils",
     deps = [
         "//swift-shared/Log",
