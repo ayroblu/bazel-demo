@@ -1,0 +1,11 @@
+--- a/Library/SRCommon.m
++++ b/Library/SRCommon.m
+@@ -41,7 +41,7 @@
+     static dispatch_once_t onceToken;
+     static NSBundle *Bundle = nil;
+     dispatch_once(&onceToken, ^{
+-        Bundle = [NSBundle bundleWithIdentifier:@"com.kulakov.ShortcutRecorder"];
++        Bundle = [NSBundle bundleWithURL:[NSBundle.mainBundle URLForResource:@"ShortcutRecorder" withExtension:@"bundle"]];
+     });
+ 
+     if (Bundle)

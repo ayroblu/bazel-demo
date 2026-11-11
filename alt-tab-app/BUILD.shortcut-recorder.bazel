@@ -1,0 +1,30 @@
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_bundle")
+
+objc_library(
+    name = "ShortcutRecorder",
+    srcs = glob(["Library/*.m"]),
+    hdrs = glob(["include/ShortcutRecorder/*.h"]),
+    copts = ["-w"],
+    data = [":resources"],
+    includes = [
+        "include",
+        "include/ShortcutRecorder",
+    ],
+    module_name = "ShortcutRecorder",
+    sdk_frameworks = [
+        "AppKit",
+        "Carbon",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+apple_resource_bundle(
+    name = "resources",
+    bundle_id = "com.kulakov.ShortcutRecorder",
+    bundle_name = "ShortcutRecorder",
+    infoplists = ["Library/Info.plist"],
+    resources = glob([
+        "Resources/Images.xcassets/**",
+        "Resources/*.lproj/**",
+    ]),
+)

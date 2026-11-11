@@ -45,6 +45,20 @@ http_archive(
     url = "https://registry.npmjs.org/emojibase-data/-/emojibase-data-18.0.0.tgz",
 )
 
+http_archive(
+    name = "shortcut_recorder",
+    build_file = "//alt-tab-app:BUILD.shortcut-recorder.bazel",
+    integrity = "sha256-xPeZQV5TM7mb6rZP8iU41C59Rd6ufGvfEm7AK3sG27c=",
+    patch_args = ["-p1"],
+    patch_cmds = [
+        "mkdir -p include/ShortcutRecorder",
+        "mv Library/*.h include/ShortcutRecorder/",
+    ],
+    patches = ["//alt-tab-app:shortcut-recorder.patch"],
+    strip_prefix = "ShortcutRecorder-52c6273d233f7794e4fd5d22f50d2de0e4e41b19",
+    url = "https://github.com/lwouis/ShortcutRecorder/archive/52c6273d233f7794e4fd5d22f50d2de0e4e41b19.tar.gz",
+)
+
 # http_archive(
 #     name = "swiftformat",
 #     build_file_content = "filegroup(name = \"swiftformat\", srcs=[\"swiftformat_linux\"], visibility=[\"//visibility:public\"])",

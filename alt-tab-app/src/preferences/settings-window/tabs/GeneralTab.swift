@@ -1,0 +1,142 @@
+import Cocoa
+import UniformTypeIdentifiers
+
+class GeneralTab {
+    static var menubarIconDropdown: NSPopUpButton?
+    static var menuIconShownToggle: Switch?
+
+    static func initTab() -> NSView {
+        let startAtLogin = TableGroupView.Row(leftTitle: NSLocalizedString("Start at login", comment: ""),
+            rightViews: [LabelAndControl.makeSwitch("startAtLogin")])
+        menubarIconDropdown = LabelAndControl.makeDropdown("menubarIcon", MenubarIconPreference.allCases)
+        menuIconShownToggle = LabelAndControl.makeSwitch("menubarIconShown")
+        let menubarIcon = TableGroupView.Row(leftTitle: NSLocalizedString("Menubar icon", comment: ""),
+            rightViews: [
+                menubarIconDropdown!,
+                menuIconShownToggle!,
+            ])
+        let language = TableGroupView.Row(leftTitle: NSLocalizedString("Language", comment: ""),
+            rightViews: [LabelAndControl.makeDropdown("language", LanguagePreference.allCases, extraAction: setLanguageCallback)])
+        for i in 0..<MenubarIconPreference.allCases.count {
+            let image = NSImage.initCopy("menubar-\(i)")
+            image.isTemplate = MenubarIconPreference.allCases[i].isTemplate
+            image.size = NSSize(width: 22, height: 22)
+            menubarIconDropdown!.item(at: i)!.image = image
+        }
+        let cell = menubarIconDropdown!.cell! as! NSPopUpButtonCell
+        cell.bezelStyle = .regularSquare
+        cell.arrowPosition = .arrowAtBottom
+        cell.imagePosition = .imageOnly
+        let captureWindowsInBackground = TableGroupView.Row(leftTitle: NSLocalizedString("Capture windows in the background", comment: ""),
+            subTitle: NSLocalizedString("When disabled, avoids the macOS purple screen-recording indicator, and avoids flickers when playing DRM video. Thumbnails will be less up-to-date.", comment: ""),
+            rightViews: [LabelAndControl.makeSwitch("captureWindowsInBackground")])
+        let table = TableGroupView(width: SettingsWindow.contentWidth)
+        table.addRow(startAtLogin)
+        table.addRow(menubarIcon)
+        table.addRow(captureWindowsInBackground)
+        table.addNewTable()
+        table.addRow(language)
+        let exportButton = NSButton(title: NSLocalizedString("Export settings…", comment: ""), target: nil, action: nil)
+        exportButton.onAction = { _ in exportSettings() }
+        let importButton = NSButton(title: NSLocalizedString("Import settings…", comment: ""), target: nil, action: nil)
+        importButton.onAction = { _ in importSettings() }
+        let resetButton = NSButton(title: NSLocalizedString("Reset settings and restart", comment: "") + "…", target: nil, action: nil)
+        resetButton.bezelStyle = .rounded
+        resetButton.hasDestructiveAction = true
+        resetButton.onAction = { _ in resetPreferences() }
+        let tools = StackView([exportButton, importButton, resetButton], .horizontal)
+        let view = TableGroupSetView(originalViews: [table, tools], padding: 0, bottomPadding: 0)
+        return view
+    }
+
+    static func cleanup() {
+        menubarIconDropdown = nil
+        menuIconShownToggle = nil
+    }
+
+    static func refreshControlsFromPreferences() {
+        menubarIconDropdown?.selectItem(at: CachedUserDefaults.intFromMacroPref("menubarIcon", MenubarIconPreference.allCases))
+        menubarIconDropdown?.isEnabled = Preferences.menubarIconShown
+    }
+
+    @objc static func resetPreferences() {
+        let alert = NSAlert()
+        alert.alertStyle = .critical
+        alert.messageText = ""
+        alert.informativeText = NSLocalizedString("You can’t undo this action.", comment: "")
+        let cancelButton = alert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
+        cancelButton.keyEquivalent = "\u{1b}" // Escape
+        let resetButton = alert.addButton(withTitle: NSLocalizedString("Reset settings and restart", comment: ""))
+        resetButton.hasDestructiveAction = true
+        alert.present(attachedTo: SettingsWindow.shared) {
+            guard $0 == .alertSecondButtonReturn else { return }
+            Preferences.resetAll()
+            App.restart()
+        }
+    }
+
+    private static func exportSettings() {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = "\(App.bundleIdentifier).plist"
+        panel.allowedContentTypes = [.propertyList]
+        presentPanel(panel) { NSDictionary(dictionary: Preferences.all).write(to: $0, atomically: true) }
+    }
+
+    private static func importSettings() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.propertyList]
+        panel.allowsMultipleSelection = false
+        presentPanel(panel) { importSettings(from: $0) }
+    }
+
+    private static func importSettings(from url: URL) {
+        guard let dict = NSDictionary(contentsOf: url) as? [String: Any] else {
+            let alert = NSAlert()
+            alert.alertStyle = .critical
+            alert.messageText = NSLocalizedString("Failed to import settings", comment: "")
+            alert.present(attachedTo: SettingsWindow.shared) { _ in }
+            return
+        }
+        let filtered = dict.filter { Preferences.ownedKeys.contains($0.key) }
+        UserDefaults.standard.setPersistentDomain(filtered, forName: App.bundleIdentifier)
+        CachedUserDefaults.cache.withLock { $0.removeAll() }
+        Preferences.invalidateAllCache()
+        let alert = NSAlert()
+        alert.alertStyle = .informational
+        alert.messageText = NSLocalizedString("Settings imported", comment: "")
+        alert.informativeText = NSLocalizedString("The application needs to restart to apply the imported settings.", comment: "")
+        alert.addButton(withTitle: NSLocalizedString("Restart Now", comment: ""))
+        let laterButton = alert.addButton(withTitle: NSLocalizedString("Later", comment: ""))
+        laterButton.keyEquivalent = "\u{1b}" // Escape
+        alert.present(attachedTo: SettingsWindow.shared) {
+            if $0 == .alertFirstButtonReturn { App.restart() }
+        }
+    }
+
+    /// Attached to Settings when it is on screen, like this tab's alerts. The choice is handled on the next turn,
+    /// once the panel has left, so an alert that follows can take its place as the sheet.
+    private static func presentPanel(_ panel: NSSavePanel, _ onChoice: @escaping (URL) -> Void) {
+        let handle = { (response: NSApplication.ModalResponse) in
+            guard response == .OK, let url = panel.url else { return }
+            DispatchQueue.main.async { onChoice(url) }
+        }
+        guard let settings = SettingsWindow.shared, settings.isVisible else { return handle(panel.runModal()) }
+        panel.beginSheetModal(for: settings, completionHandler: handle)
+    }
+
+    // periphery:ignore:parameters sender - LabelAndControl callback signature
+    static func setLanguageCallback(_ sender: NSControl) {
+        Preferences.language.applyToAppleLanguages()
+        // Inform the user that the app needs to restart to apply the language change
+        let alert = NSAlert()
+        alert.alertStyle = .informational
+        alert.messageText = NSLocalizedString("Language Change", comment: "")
+        alert.informativeText = NSLocalizedString("The application needs to restart to apply the language change.", comment: "")
+        alert.addButton(withTitle: NSLocalizedString("Restart Now", comment: ""))
+        let laterButton = alert.addButton(withTitle: NSLocalizedString("Later", comment: ""))
+        laterButton.keyEquivalent = "\u{1b}" // Escape
+        alert.present(attachedTo: SettingsWindow.shared) {
+            if $0 == .alertFirstButtonReturn { App.restart() }
+        }
+    }
+}

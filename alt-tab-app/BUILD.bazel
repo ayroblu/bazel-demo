@@ -1,0 +1,73 @@
+load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
+load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("//swift-shared:swift-ide.bzl", "ide")
+
+objc_library(
+    name = "objc",
+    srcs = glob(["src/vendors/*.m"]),
+    hdrs = glob(["src/vendors/*.h"]),
+    enable_modules = True,
+    includes = ["src/vendors"],
+)
+
+swift_library(
+    name = "lib",
+    srcs = glob(
+        ["src/**/*.swift"],
+        exclude = [
+            "src/**/*Tests.swift",
+            "src/**/Test*.swift",
+            "src/_test-support/**",
+        ],
+    ),
+    copts = [
+        "-swift-version",
+        "5",
+        "-import-objc-header",
+        "$(execpath alt-tab-macos-Bridging-Header.h)",
+    ] + select({
+        "//:release_build": [],
+        "//conditions:default": ["-DDEBUG"],
+    }),
+    linkopts = [
+        "-F/System/Library/PrivateFrameworks",
+        "-framework",
+        "SkyLight",
+        "-weak_framework",
+        "ScreenCaptureKit",
+    ],
+    module_name = "AltTab",
+    swiftc_inputs = ["alt-tab-macos-Bridging-Header.h"],
+    deps = [
+        ":objc",
+        "@shortcut_recorder//:ShortcutRecorder",
+    ],
+)
+
+macos_application(
+    name = "alt-tab-app",
+    bundle_id = "com.ayroblu.alt-tab",
+    bundle_name = "AltTab",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "12.0",
+    resources = [
+        "docs/acknowledgments.md",
+        "docs/contributors.md",
+        "//alt-tab-app/resources",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [":lib"],
+)
+
+sh_binary(
+    name = "install",
+    srcs = ["tools/install.sh"],
+    data = [":alt-tab-app"],
+)
+
+ide(
+    macos_xcode_targets = [":alt-tab-app"],
+    targets = ["//alt-tab-app"],
+    xcode_project_name = "alt-tab-app",
+    xcode_targets = [],
+)

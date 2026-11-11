@@ -1,0 +1,14 @@
+load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
+
+apple_resource_group(
+    name = "resources",
+    resources = glob([
+        "icons/**",
+        "l10n/*.lproj/*.strings",
+    ]) + [
+        "SF-Pro-Text-Regular.otf",
+        "pro-rabbit.png",
+    ],
+    structured_resources = glob(["native-illustrations/**"]),
+    visibility = ["//alt-tab-app:__pkg__"],
+)

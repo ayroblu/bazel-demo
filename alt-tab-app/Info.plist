@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- ===== Bundle identity (required by macOS / App Store) ===== -->
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleIconFile</key>
+	<string>app.png</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>GPL-3.0 licence</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.utilities</string>
+
+	<!-- ===== Versioning ===== -->
+	<key>CFBundleShortVersionString</key>
+	<string>11.10.1</string>
+	<key>CFBundleVersion</key>
+	<string>11.10.1</string>
+
+	<!-- ===== Launch behavior (read by LaunchServices before app starts) ===== -->
+	<key>LSUIElement</key>
+	<string>true</string>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>NSSupportsAutomaticTermination</key>
+	<string>false</string>
+	<key>NSSupportsSuddenTermination</key>
+	<string>false</string>
+	<key>ATSApplicationFontsPath</key>
+	<string></string>
+
+	<!-- ===== Upstream services ===== -->
+	<key>Domain</key>
+	<string>alt-tab.app</string>
+	<key>ApiDomain</key>
+	<string>alt-tab.app/api</string>
+</dict>
+</plist>
