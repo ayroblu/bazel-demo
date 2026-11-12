@@ -1,0 +1,18 @@
+#vimkeys-hud {
+  position: fixed;
+  bottom: 8px;
+  right: 8px;
+  padding: 4px 10px;
+  font: bold 12px/1.4 "SF Mono", Menlo, Consolas, monospace;
+  color: #e8e8e8;
+  background: rgba(30, 30, 30, 0.85);
+  border-radius: 4px;
+  z-index: 2147483647;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+#vimkeys-hud.vimkeys-visible {
+  opacity: 1;
+}

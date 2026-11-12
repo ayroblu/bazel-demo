@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "VimKeys",
+  "version": "0.1.0",
+  "description": "Simple vim key bindings for Chrome",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_end",
+      "all_frames": true
+    }
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
